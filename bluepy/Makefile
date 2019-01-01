@@ -14,7 +14,7 @@ CFLAGS=${COPT}
 # ------------------------------------------------------------------------
 
 all:
-	python3 buildme.py
+	python buildme.py
 
 test: all
 	@./bluetest.py >cc
@@ -29,6 +29,7 @@ clean:
 	rm -f *.so
 	rm -f *.pyd
 	rm -f *.dll
+
 
 
 

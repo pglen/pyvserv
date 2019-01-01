@@ -1,0 +1,3 @@
+LIBRARY _gcrypt.pyd
+EXPORTS
+init_gcrypt

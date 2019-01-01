@@ -100,7 +100,7 @@ def client(sock, message):
 def help():
 
     print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
+    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] host")
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 9999)")
@@ -146,9 +146,12 @@ if __name__ == '__main__':
     hand.client("user peter")
     hand.client("pass 1234")
     
-    hand.client("help")
-    hand.client("help uadd")
-    hand.client("help udel")
+    resp = hand.client("help")
+    print ("Server response:", resp)
+    
+    # 
+    #hand.client("help uadd")
+    #hand.client("help udel")
     
     hand.client("quit")
     s1.close();
@@ -156,16 +159,4 @@ if __name__ == '__main__':
     sys.exit(0)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+# EOF

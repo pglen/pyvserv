@@ -181,9 +181,11 @@ PyMethodDef bluepy_functions[] =
     
 #if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+#error "py ver 3"
 #else
 #define GETSTATE(m) (&_state)
 //static struct module_state _state;
+//#error "py ver 2"
 #endif
 
 #if PY_MAJOR_VERSION >= 3
@@ -204,7 +206,6 @@ struct module_state {
     PyObject *error;
 };
 
-
 static int myextension_traverse(PyObject *m, visitproc visit, void *arg) {
     Py_VISIT(GETSTATE(m)->error);
     return 0;
@@ -215,7 +216,6 @@ static int myextension_clear(PyObject *m) {
     return 0;
 }
 
-    
 static struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
         "bluepy",
@@ -239,7 +239,7 @@ PyInit_bluepy2(void)
 
 #else
 DL_EXPORT(void) 
-initbluepy(void)
+initbluepy2(void)
 #endif
 
 {
@@ -270,6 +270,7 @@ initbluepy(void)
 }
 
 // EOF
+
 
 
 

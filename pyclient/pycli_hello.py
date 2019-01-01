@@ -66,14 +66,15 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
     
-    hand.client("hello")
+    resp = hand.client("hello")
+    print ("Server response:", resp)
     hand.client("quit")
-    
     s1.close();
 
     sys.exit(0)
 
 
 # EOF
+
 
 

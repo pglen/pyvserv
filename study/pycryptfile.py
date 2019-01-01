@@ -5,7 +5,7 @@ import os, getpass, sys, base64 #, crypt, pwd, spwd,
 sys.path.append("..")
 
 import  pyserv.pycrypt, pyserv.pyclisup
-import bluepy.bluepy
+import  bluepy.bluepy
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -141,6 +141,7 @@ if __name__ == '__main__':
               
     if conf.verbose:
         print( "%d bytes processed." % bytes   )
+
 
 
 

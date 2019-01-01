@@ -7,19 +7,12 @@ import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
 sys.path.append('..')
-from pyserv import pydata
-from pyserv import pyservsup
-import pycrypt, pyclisup
-
-# ------------------------------------------------------------------------
-# Globals 
-
-version = 1.0
+from common import support, pycrypt, pyservsup, pyclisup, syslog
 
 def phelp():
 
     print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
+    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] host")
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 9999)")
@@ -73,26 +66,11 @@ if __name__ == '__main__':
     hand.pgdebug = conf.pgdebug
 
     hand.client("ver")
-    hand.client("kini peter 1234")
+    resp = hand.client("kini peter 1234")
+    print ("Server response:", resp)
+
     hand.client("quit")
     
     sys.exit(0)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# EOF

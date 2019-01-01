@@ -10,11 +10,6 @@ sys.path.append('..')
 from common import support, pycrypt, pyservsup, pyclisup, syslog
 
 # ------------------------------------------------------------------------
-# Globals
-
-version = 1.0
-
-# ------------------------------------------------------------------------
 # Functions from command line
 
 def phelp():
@@ -31,7 +26,7 @@ def phelp():
     sys.exit(0)
 
 def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
+    print( os.path.basename(sys.argv[0]), "Version", support.version)
     sys.exit(0)
  
     # option, var_name, initial_val, function
@@ -72,10 +67,12 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
     
-    hand.client("ver")
+    resp = hand.client("ver")
+    print ("Server response:", resp)
     hand.client("quit")
     
     s1.close();
     sys.exit(0)
+
 
 
