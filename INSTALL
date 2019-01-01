@@ -1,0 +1,11 @@
+INSTALL
+
+on msys:
+
+pacman -S mingw-w64-i686-libgcrypt
+
+pip install passlib
+pip install pygcrypt
+
+
+
