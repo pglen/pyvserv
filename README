@@ -12,7 +12,9 @@ a set of preloaded keys need to be specified on initialization.
 ##          BELOW IS OLD INFO, PLEASE WAIT FOR UPDATE (dec/2018)                                                                                                  
                                                                                                                                                                                                     
  The server's user names and initial keys can only be initialized from the 
-loopback interface. An unconfigured server will refuse to accept logins.
+loopback interface. An unconfigured server will refuse to accept logins,
+but can be configured remotely via public key encryption.
+
 
  The best way to learn about the operation of the server is to look at the 
 sample client examples in the pyclient source tree. (Files named pycli_*)
@@ -53,6 +55,7 @@ distinguish algorythm versioning.
     print( "Builddate: ",  bluepy.builddate())
 
   
+
 
 
 

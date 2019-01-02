@@ -1,11 +1,13 @@
 INSTALL
 
-on msys:
+On msys the following dependencies where needed:
 
-pacman -S mingw-w64-i686-libgcrypt
+pacman -S mingw-w64-i686-gcc
 
 pip install passlib
-pip install pygcrypt
+pip install pycrypto
 
+#Switched to pycrypto, no libgcrypt is needed
+#pacman -S mingw-w64-i686-libgcrypt
 
 
