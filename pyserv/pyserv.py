@@ -1,13 +1,14 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import os, sys, getopt, signal, select, string, time
 import tarfile, subprocess, struct 
 import socket, threading, socketserver #, traceback 
 
-import pystate, pydata
+import pystate
 
-sys.path.append('..')
-from common import support, pyservsup, pyclisup, syslog
+#sys.path.append('..')
+sys.path.append('../common')
+import support, pyservsup, pyclisup, syslog, pydata
 
 # Globals
 verbose = False  
@@ -194,6 +195,8 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
+
+
 
 
 

@@ -34,7 +34,7 @@ static PyObject *_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     int  blen = 0, plen = 0;
     Py_buffer pb1, pb2;
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*y*", kwlist, 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
                                 &pb1, &pb2))
         return NULL;
         
@@ -52,7 +52,7 @@ static PyObject *_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     bluepoint2_encrypt(mem, blen, passw, plen);
     mem[blen] = 0;
     
-    return Py_BuildValue("y#", mem, blen);
+    return Py_BuildValue("s#", mem, blen);
 }
 
 static PyObject *_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -63,7 +63,7 @@ static PyObject *_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     
     Py_buffer pb1, pb2;
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*y*", kwlist, 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
                                 &pb1, &pb2))
         return NULL;
         
@@ -78,7 +78,7 @@ static PyObject *_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     memcpy(mem, buff, blen);
     bluepoint2_decrypt(mem, blen, passw, plen);
     mem[blen] = 0;
-    return Py_BuildValue("y#", mem, blen);
+    return Py_BuildValue("s#", mem, blen);
 }
 
 static PyObject *_tohex(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -88,7 +88,7 @@ static PyObject *_tohex(PyObject *self, PyObject *args, PyObject *kwargs)
     int  blen = 0, plen = 0;
     Py_buffer pb1;
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*", kwlist, 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*", kwlist, 
                         &pb1))
         return NULL;
         
@@ -113,7 +113,7 @@ static PyObject *_destroy(PyObject *self, PyObject *args, PyObject *kwargs)
     
     Py_buffer pb1;
     
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*|i", kwlist, 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*|i", kwlist, 
                         &pb1, &fill))
         return NULL;
         
@@ -154,7 +154,7 @@ static PyObject *_fromhex(PyObject *self, PyObject *args, PyObject *kwargs)
         return PyErr_NoMemory();
         }
     bluepoint2_fromhex(buff, blen, mem, &plen);
-    return Py_BuildValue("y#", mem, plen);
+    return Py_BuildValue("s#", mem, plen);
 }
 
 // Define module
@@ -162,19 +162,19 @@ static PyObject *_fromhex(PyObject *self, PyObject *args, PyObject *kwargs)
 PyMethodDef bluepy_functions[] = 
     {
     
-    { "version",   (PyCFunction)_version, METH_VARARGS|METH_KEYWORDS, "Bluepy version."},
-    { "builddate", (PyCFunction)_bdate,   METH_VARARGS|METH_KEYWORDS, "Bluepy build date."},
-    { "encrypt2",   (PyCFunction)_encrypt, METH_VARARGS|METH_KEYWORDS, \
-        "Bluepy encryption. Pass buffer and pass."},
-    { "decrypt2",   (PyCFunction)_decrypt, METH_VARARGS|METH_KEYWORDS, \
-        "Bluepy decryption. Pass buffer and pass."},
+    { "version",   (PyCFunction)_version, METH_VARARGS|METH_KEYWORDS, "Return bluepy version."},
+    { "builddate", (PyCFunction)_bdate,   METH_VARARGS|METH_KEYWORDS, "Return build date."},
+    { "encrypt",   (PyCFunction)_encrypt, METH_VARARGS|METH_KEYWORDS, \
+        "Bluepy encryption. Pass buffer and key."},
+    { "decrypt",   (PyCFunction)_decrypt, METH_VARARGS|METH_KEYWORDS, \
+        "Bluepy decryption. Pass buffer and key."},
     { "destroy",   (PyCFunction)_destroy, METH_VARARGS|METH_KEYWORDS, 
-        "Bluepy destruction. Scramble variable. Fill with '0' or number. " \
+        "Bluepy string scramble. Fill with number. " \
         "Pass zero to randomize."},
     { "tohex",     (PyCFunction)_tohex,   METH_VARARGS|METH_KEYWORDS, \
-        "Bluepy tohex. Convert to hex string."},
+        "Bluepy tohex. Return hex string."},
     { "fromhex",   (PyCFunction)_fromhex, METH_VARARGS|METH_KEYWORDS, \
-        "Bluepy fromhex. Convert from hex string."},
+        "Bluepy fromhex. Return binary string."},
     
     {  NULL },
     };
@@ -236,10 +236,9 @@ static struct PyModuleDef moduledef = {
 #if PY_MAJOR_VERSION >= 3
 PyMODINIT_FUNC
 PyInit_bluepy2(void)
-
 #else
 DL_EXPORT(void) 
-initbluepy2(void)
+initbluepy(void)
 #endif
 
 {
@@ -270,6 +269,9 @@ initbluepy2(void)
 }
 
 // EOF
+
+
+
 
 
 

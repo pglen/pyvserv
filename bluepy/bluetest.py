@@ -1,8 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from __future__ import print_function
 
-import sys
+import sys, os
+
+sys.path.insert(0, os.path.abspath('./'))
+
 import bluepy
 
 if __name__ == '__main__':
@@ -11,18 +14,9 @@ if __name__ == '__main__':
 
     print( "Version:   ", bluepy.version())
     print( "Builddate: ",  bluepy.builddate())
-    #print( "Const:     ", bluepy.OPEN)
-    #print( "Const:     ", bluepy.author)
-    #print( bluepy.__dict__)
-
-    '''for aa in bluepy.__dict__.keys():
-        print( aa)
-        print( bluepy.__dict__[aa].__doc__)
-        print( )
-
-    print( bluepy.destroy.__doc__)'''
-
-    buff = "Hello, this is a test string ";
+    print()
+    
+    buff = "Hello, this is a test string.";
     passw = "1234"
 
     if  len(sys.argv) > 1:
@@ -30,22 +24,27 @@ if __name__ == '__main__':
     if  len(sys.argv) > 2:
         passw = sys.argv[2]
     
-    print( "'" + "org" + "'", "'" + buff + "'\n")              
+    print( "org:", "'" + buff + "'")              
     
     enc = bluepy.encrypt( buff, passw)
-    print( "'" + "enc "+ "'", enc)
+    #print( "enc:", "'" + enc + "'")
     
-    dec = bluepy.decrypt(enc, passw)
-    print( "'" + "dec"+ "'", "'" + dec + "'")
+    hexenc = bluepy.tohex(enc)
+    print("enc:", "'" +  hexenc + "'")
     
-    hex = bluepy.tohex(buff)
-    print( "hex:   ", hex)
-    uex = bluepy.fromhex(hex)
-    print( "unhex: '" +  uex +"'")
+    uex = bluepy.fromhex(hexenc)
+    
+    dec = bluepy.decrypt(uex, passw)
+    print("dec:", "'" + dec + "'")
+    
+    #hexx = bluepy.tohex(buff)
+    #print( "hex:   ", hexx)
+    #print( "unhex:",  "'" +  uex +"'")
     
     bluepy.destroy(enc)
     #print( "enc dest", "'" + enc.decode("cp437") + "'")
-    print( "enc dest", "'" + str(enc) + "'")
+    print()
+    #print( "enc destroyed:", "'" + bluepy.tohex(enc) + "'")
            
     err = 0
     if dec != buff:
@@ -55,5 +54,9 @@ if __name__ == '__main__':
     sys.exit(err)
 
 # EOF
+
+
+
+
 
 

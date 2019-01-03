@@ -38,7 +38,6 @@ class DataHandler():
         self.par.request.shutdown(socket.SHUT_RDWR)
     
     def putdata(self, response, key, rand = True):
-        ret = 0
         if self.pgdebug > 7:
             print ("putdata '" + response + "'")
         try:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
                                         
 import os, getpass, sys, base64, getopt  #crypt, pwd, spwd, 
 
@@ -181,6 +181,7 @@ if __name__ == '__main__':
               
     if conf.verbose:
         print( "%d bytes processed." % bytes   )
+
 
 
 

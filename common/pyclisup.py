@@ -3,14 +3,12 @@
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random
 
-sys.path.append('..')
+#sys.path.append('..')
 sys.path.append('../bluepy')
-
 import bluepy.bluepy
 
-from pyserv import pydata
-from common import pyservsup
-                            
+import pydata, pyservsup
+                                                        
 # -----------------------------------------------------------------------
 # Globals 
 
@@ -227,6 +225,8 @@ class CliSup:
         return response
     
 # EOF    
+
+
 
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
@@ -7,7 +7,8 @@ import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
 sys.path.append('..')
-from common import support, pycrypt, pyservsup, pyclisup, syslog
+sys.path.append('../common')
+import support, pycrypt, pyservsup, pyclisup, syslog
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -45,10 +46,10 @@ conf = pyclisup.Config(optarr)
 
 if __name__ == '__main__':
 
-    if  sys.version_info[0] < 3:
-        print("Needs python 3 or better.")
-        sys.exit(1)
-    
+    #if  sys.version_info[0] < 3:
+    #    print("Needs python 3 or better.")
+    #    sys.exit(1)
+    #
     args = conf.comline(sys.argv[1:])
     
     if len(args) == 0:
@@ -73,6 +74,8 @@ if __name__ == '__main__':
     
     s1.close();
     sys.exit(0)
+
+
 
 
 

@@ -6,7 +6,8 @@ sys.path.append('..')
 sys.path.append('../bluepy')
 import bluepy.bluepy
 
-from common import support, pyservsup, pyclisup, syslog
+sys.path.append('../common')
+import support, pyservsup, pyclisup, syslog
 
 # Globals
 
@@ -562,6 +563,7 @@ class StateHandler():
         return ret          
     
 # EOF
+
 
 
 
