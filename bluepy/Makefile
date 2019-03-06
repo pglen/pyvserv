@@ -21,8 +21,8 @@ all:
 test: all
 	@./bluetest.py >cc
 	@diff test.org cc
-	@./bluefile.py -e -f -p 1111 Makefile aa
-	@./bluefile.py -d -f -p 1111 aa bb
+	@python3 ./bluefile.py -e -f -p 1111 Makefile aa
+	@python3 ./bluefile.py -d -f -p 1111 aa bb
 	@echo Diff should be silent
 	@diff Makefile bb
 	@rm -f aa bb cc
@@ -32,6 +32,7 @@ clean:
 	rm -f *.so
 	rm -f *.pyd
 	rm -f *.dll
+
 
 
 

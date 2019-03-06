@@ -181,7 +181,7 @@ PyMethodDef bluepy_functions[] =
     
 #if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
-#error "py ver 3"
+//#error "py ver 3"
 #else
 #define GETSTATE(m) (&_state)
 //static struct module_state _state;
@@ -269,6 +269,7 @@ initbluepy(void)
 }
 
 // EOF
+
 
 
 
