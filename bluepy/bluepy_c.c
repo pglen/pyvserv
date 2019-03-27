@@ -190,6 +190,8 @@ PyMethodDef bluepy_functions[] =
 
 #if PY_MAJOR_VERSION >= 3
 
+#if 0
+
 static PyObject *
 error_out(PyObject *m) {
     struct module_state *st = GETSTATE(m);
@@ -197,10 +199,13 @@ error_out(PyObject *m) {
     return NULL;
 }
 
+
 static PyMethodDef myextension_methods[] = {
     {"error_out", (PyCFunction)error_out, METH_NOARGS, NULL},
     {NULL, NULL}
 };
+
+#endif
 
 struct module_state {
     PyObject *error;
@@ -235,10 +240,10 @@ static struct PyModuleDef moduledef = {
 
 #if PY_MAJOR_VERSION >= 3
 PyMODINIT_FUNC
-PyInit_bluepy2(void)
+PyInit_bluepy3(void)
 #else
 DL_EXPORT(void) 
-initbluepy(void)
+initbluepy_c(void)
 #endif
 
 {
@@ -246,9 +251,10 @@ initbluepy(void)
 
 #if PY_MAJOR_VERSION >= 3
     module = PyModule_Create(&moduledef);
+    //module = Py_InitModule4("bluepy", bluepy_functions, "Bluepoint encryption library for Python.");
     #define IS_PY3K
 #else
-    module = Py_InitModule3("bluepy", bluepy_functions, "Bluepoint encryption library for Python.");
+    module = Py_InitModule3("bluepy_c", bluepy_functions, "Bluepoint encryption library for Python.");
 #endif
 
     //d = PyModule_GetDict (module);
@@ -269,6 +275,8 @@ initbluepy(void)
 }
 
 // EOF
+
+
 
 
 

@@ -318,7 +318,7 @@ ulong   bluepoint2_hash(char *buff, int blen)
 {
     unsigned long    sum = 0;
     int     loop;
-    char    aa, aa2, aa3;
+    //char    aa, aa2, aa3;
 
     for (loop = 0; loop < blen; loop++)
         {
@@ -391,7 +391,7 @@ unsigned long long bluepoint2_crypthash64(char *buff, int blen, char *pass, int 
 
 void    ENCRYPT(char *str, int slen, char *pass, int plen)
 {
-    int loop, loop2 = 0;  unsigned char  aa, bb, cc;
+    int loop, loop2 = 0;  unsigned char  aa, bb; //, cc;
     
     PASSLOOP(+)
     MIXIT2(+)   MIXIT2R(+)
@@ -468,7 +468,7 @@ char    *bluepoint2_dumphex(char *str, int len)
 
     for (loop = 0; loop < len; loop++)
         {
-        pos += sprintf(buff + pos, "-%02x", ( unsigned char)str[loop]);
+        pos += sprintf((char*)buff + pos, "-%02x", ( unsigned char)str[loop]);
 
         if(pos >= (sizeof(buff) - 8))
             {
@@ -481,7 +481,7 @@ char    *bluepoint2_dumphex(char *str, int len)
             }
         }
     buff[pos] = '\0';
-    return(buff);
+    return((char*)buff);
 }
 
 //# -------------------------------------------------------------------------
@@ -501,7 +501,7 @@ char    *bluepoint2_dump(char *str, int len)
 
     for (loop = 0; loop < len; loop++)
         {
-        pos += sprintf(buff + pos, "%02x", ( unsigned char)str[loop]);
+        pos += sprintf((char*)buff + pos, "%02x", ( unsigned char)str[loop]);
 
         if(pos >= (sizeof(buff) - 8))
             {
@@ -514,7 +514,7 @@ char    *bluepoint2_dump(char *str, int len)
             }
         }
     buff[pos] = '\0';
-    return(buff);
+    return((char*)buff);
 }
 
 //# -------------------------------------------------------------------------
@@ -548,7 +548,7 @@ char    *bluepoint2_undump(char *str, int len)
         }
     //printf("\n");
 
-    return(buff);
+    return((char*)buff);
 }
 
 #endif
@@ -579,7 +579,7 @@ char    *bluepoint2_tohex(char *str, int len, char *out, int *olen)
 char    *bluepoint2_fromhex(char *str, int len, char *out, int *olen)
 
 {
-    unsigned char *str2 = (unsigned char *)str;
+    //unsigned char *str2 = (unsigned char *)str;
 
     char chh[3]; chh[2] = 0;
 
@@ -605,6 +605,7 @@ char    *bluepoint2_fromhex(char *str, int len, char *out, int *olen)
     *olen = pos;
     return(out);
 }
+
 
 
 
