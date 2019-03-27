@@ -30,7 +30,7 @@ if __name__ == '__main__':
     #print( "enc:", "'" + enc + "'")
     
     hexenc = bluepy.tohex(enc)
-    print("enc:", "'" +  hexenc + "'")
+    #print("enc:", "'" +  hexenc + "'")
     
     uex = bluepy.fromhex(hexenc)
     

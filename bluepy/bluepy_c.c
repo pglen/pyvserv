@@ -34,14 +34,19 @@ static PyObject *_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     int  blen = 0, plen = 0;
     Py_buffer pb1, pb2;
     
+    #if PY_MAJOR_VERSION >= 3
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*y*", kwlist, 
+                                &pb1, &pb2))
+        return NULL;
+    #endif    
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
                                 &pb1, &pb2))
         return NULL;
         
     buff  = pb1.buf;  passw = pb2.buf;
     blen  = pb1.len;  plen  = pb2.len;
-  
-    //printf("in object: '%s'\n", pb1.buf);
+        
+    //printf("in object: %d '%s'\n", pb1.len, pb1.buf);
       
     mem = malloc(blen+1);
     if(mem == NULL)
@@ -50,9 +55,16 @@ static PyObject *_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
         }
     memcpy(mem, buff, blen);
     bluepoint2_encrypt(mem, blen, passw, plen);
-    mem[blen] = 0;
+    int oxlen = 3 * blen + 3;    
+    char *mem2 = malloc(oxlen + 1);
+    if(mem2 == NULL)
+        {
+        return PyErr_NoMemory();
+        }
+    bluepoint2_tohex(mem, blen, mem2, &oxlen);
+    free(mem);
     
-    return Py_BuildValue("s#", mem, blen);
+    return Py_BuildValue("s", mem2, oxlen);
 }
 
 static PyObject *_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -63,22 +75,29 @@ static PyObject *_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     
     Py_buffer pb1, pb2;
     
+    #if PY_MAJOR_VERSION >= 3
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*y*", kwlist, 
+                                &pb1, &pb2))
+        return NULL;
+    #else
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
                                 &pb1, &pb2))
         return NULL;
+    #endif
         
     buff  = pb1.buf;  passw = pb2.buf;
     blen  = pb1.len;  plen  = pb2.len;
   
-    mem = malloc(blen + 1);
+    int olen = blen;
+    mem = malloc(olen + 1);
     if(mem == NULL)
         {
         return PyErr_NoMemory();
         }
-    memcpy(mem, buff, blen);
-    bluepoint2_decrypt(mem, blen, passw, plen);
-    mem[blen] = 0;
-    return Py_BuildValue("s#", mem, blen);
+    bluepoint2_fromhex(buff, blen, mem, &olen);
+    bluepoint2_decrypt(mem, olen, passw, plen);
+    mem[olen] = 0;
+    return Py_BuildValue("s#", mem, olen);
 }
 
 static PyObject *_tohex(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -223,7 +242,7 @@ static int myextension_clear(PyObject *m) {
 
 static struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
-        "bluepy",
+        "bluepy_c",
         NULL,
         sizeof(struct module_state),
         bluepy_functions,
@@ -275,13 +294,5 @@ initbluepy_c(void)
 }
 
 // EOF
-
-
-
-
-
-
-
-
 
 

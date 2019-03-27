@@ -17,14 +17,16 @@ if __name__ == '__main__':
     
     print( "Const:     ", bluepy.OPEN)
     print( "Const:     ", bluepy.author)
-    #print( bluepy.__dict__)
-
-    for aa in bluepy.__dict__.keys():
-        print( aa)
-        print( bluepy.__dict__[aa].__doc__)
-        print( )
-
+    
+    #print( bluepy.dict)
+    '''for aa in bluepy.dict.keys():
+        print( aa )
+        #print( bluepy.dict[aa].__doc__)
+        #print( )
+    '''
+    
 # EOF
+
 
 
 
