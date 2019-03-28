@@ -35,7 +35,40 @@ static PyObject *_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     Py_buffer pb1, pb2;
     
     #if PY_MAJOR_VERSION >= 3
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*y*", kwlist, 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
+                                &pb1, &pb2))
+        return NULL;
+    #endif    
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
+                                &pb1, &pb2))
+        return NULL;
+        
+    buff  = pb1.buf;  passw = pb2.buf;
+    blen  = pb1.len;  plen  = pb2.len;
+        
+    //printf("in object: %d '%s'\n", pb1.len, pb1.buf);
+      
+    mem = malloc(blen+1);
+    if(mem == NULL)
+        {
+        return PyErr_NoMemory();
+        }
+    memcpy(mem, buff, blen);
+    mem[blen] = 0;
+    bluepoint2_encrypt(mem, blen, passw, plen);
+    
+    return Py_BuildValue("y", mem, blen);
+}
+
+static PyObject *_encrypt2(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = { "buffer", "password",  NULL };
+    char *buff = "";  char *passw = ""; char *mem;
+    int  blen = 0, plen = 0;
+    Py_buffer pb1, pb2;
+    
+    #if PY_MAJOR_VERSION >= 3
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*s*", kwlist, 
                                 &pb1, &pb2))
         return NULL;
     #endif    
@@ -68,6 +101,37 @@ static PyObject *_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 
 static PyObject *_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = { "buffer", "password",  NULL };
+    char *buff = ""; char *passw = ""; char *mem;
+    int  blen = 0, plen = 0;
+    
+    Py_buffer pb1, pb2;
+    
+    #if PY_MAJOR_VERSION >= 3
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*s*", kwlist, 
+                                &pb1, &pb2))
+        return NULL;
+    #else
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
+                                &pb1, &pb2))
+        return NULL;
+    #endif
+        
+    buff  = pb1.buf;  passw = pb2.buf;
+    blen  = pb1.len;  plen  = pb2.len;
+  
+    mem = malloc(blen + 1);
+    if(mem == NULL)
+        {
+        return PyErr_NoMemory();
+        }
+    memcpy(mem, buff, blen);
+    bluepoint2_decrypt(mem, blen, passw, plen);
+    return Py_BuildValue("s#", mem, blen);
+}
+
+static PyObject *_decrypt2(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = { "buffer", "password",  NULL };
     char *buff = ""; char *passw = ""; char *mem;
@@ -294,5 +358,6 @@ initbluepy_c(void)
 }
 
 // EOF
+
 
 

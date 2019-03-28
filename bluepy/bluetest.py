@@ -6,6 +6,16 @@ import sys, os
 
 sys.path.insert(0, os.path.abspath('./'))
 
+def dumpx(ctrx):
+    bb = ""         
+    if sys.version_info[0] < 3:
+        for aa in ctrx:
+            bb += "%02x" % ord(aa)
+    else:
+        for aa in ctrx:
+            bb += "%02x" % aa
+    return bb
+
 import bluepy
 
 if __name__ == '__main__':
@@ -27,24 +37,26 @@ if __name__ == '__main__':
     print( "org:", "'" + buff + "'")              
     
     enc = bluepy.encrypt( buff, passw)
-    #print( "enc:", "'" + enc + "'")
     
-    hexenc = bluepy.tohex(enc)
-    #print("enc:", "'" +  hexenc + "'")
+    print("enz: '" + dumpx(enc) + "'")
+    
+    '''hexenc = bluepy.tohex(enc)
+    print("enc:", "'" +  hexenc + "'")
     
     uex = bluepy.fromhex(hexenc)
+    print("exz: '" + dumpx(uex) + "'")'''
     
-    dec = bluepy.decrypt(uex, passw)
+    dec = bluepy.decrypt(enc, passw)
     print("dec:", "'" + dec + "'")
+    #de2 = bluepy.decrypt(enc, passw)
+    #print("de2:", "'" + dec + "'")
     
     #hexx = bluepy.tohex(buff)
     #print( "hex:   ", hexx)
     #print( "unhex:",  "'" +  uex +"'")
     
     bluepy.destroy(enc)
-    #print( "enc dest", "'" + enc.decode("cp437") + "'")
-    print()
-    #print( "enc destroyed:", "'" + bluepy.tohex(enc) + "'")
+    print( "edd:", "'" + bluepy.tohex(enc) + "'")
            
     err = 0
     if dec != buff:
@@ -54,6 +66,7 @@ if __name__ == '__main__':
     sys.exit(err)
 
 # EOF
+
 
 
 

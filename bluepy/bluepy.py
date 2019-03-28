@@ -18,11 +18,11 @@ def builddate():
     return bluepy_c.builddate()
 
 def encrypt(buff, passwd):
-    rrr = bluepy_c.encrypt(bytearray(buff,"cp437"), bytearray(passwd,"cp437"))
+    rrr = bluepy_c.encrypt(buff, passwd)
     return rrr
 
 def decrypt(buff, passwd):
-    rrr = bluepy_c.decrypt(bytearray(buff,"cp437"), bytearray(passwd,"cp437"))
+    rrr = bluepy_c.decrypt(buff, passwd)
     return rrr
 
 def tohex(buff):
@@ -40,4 +40,5 @@ def destroy(buff, fill = 0):
 OPEN = bluepy_c.OPEN
 author = bluepy_c.author
 dict = bluepy_c.__dict__
+
 
