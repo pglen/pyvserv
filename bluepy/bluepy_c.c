@@ -28,17 +28,12 @@ static PyObject *_version(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 
 static PyObject *_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
-{
+{                           
     static char *kwlist[] = { "buffer", "password",  NULL };
     char *buff = "";  char *passw = ""; char *mem;
     int  blen = 0, plen = 0;
     Py_buffer pb1, pb2;
     
-    #if PY_MAJOR_VERSION >= 3
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
-                                &pb1, &pb2))
-        return NULL;
-    #endif    
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
                                 &pb1, &pb2))
         return NULL;
@@ -57,9 +52,14 @@ static PyObject *_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     mem[blen] = 0;
     bluepoint2_encrypt(mem, blen, passw, plen);
     
-    return Py_BuildValue("y", mem, blen);
+    #if PY_MAJOR_VERSION >= 3
+    return Py_BuildValue("y#", mem, blen);
+    #else
+    return Py_BuildValue("s#", mem, blen);
+    #endif
 }
 
+#if 0
 static PyObject *_encrypt2(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = { "buffer", "password",  NULL };
@@ -97,8 +97,9 @@ static PyObject *_encrypt2(PyObject *self, PyObject *args, PyObject *kwargs)
     bluepoint2_tohex(mem, blen, mem2, &oxlen);
     free(mem);
     
-    return Py_BuildValue("s", mem2, oxlen);
+    return Py_BuildValue("s#", mem2, oxlen);
 }
+#endif
 
 static PyObject *_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -128,9 +129,15 @@ static PyObject *_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
         }
     memcpy(mem, buff, blen);
     bluepoint2_decrypt(mem, blen, passw, plen);
+    
+    #if PY_MAJOR_VERSION >= 3
+    return Py_BuildValue("y#", mem, blen);
+    #else
     return Py_BuildValue("s#", mem, blen);
+    #endif
 }
 
+#if 0
 static PyObject *_decrypt2(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = { "buffer", "password",  NULL };
@@ -163,6 +170,8 @@ static PyObject *_decrypt2(PyObject *self, PyObject *args, PyObject *kwargs)
     mem[olen] = 0;
     return Py_BuildValue("s#", mem, olen);
 }
+#endif
+
 
 static PyObject *_tohex(PyObject *self, PyObject *args, PyObject *kwargs)
 {

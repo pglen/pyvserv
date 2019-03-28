@@ -160,14 +160,17 @@ if __name__ == '__main__':
         if len(buff) == 0:
             break
             
+        #print("reading: ", len(buff)) 
+        
         bytes += len(buff)
         
         if conf.encrypt:
-            buff2 = bluepy.encrypt(buff.decode("cp437"), conf.passwd)
+            buff2 = bluepy.encrypt(buff, conf.passwd)
             
         if conf.decrypt:
-            buff2 = bluepy.decrypt(buff, conf.passwd).encode("cp437")
-                
+            buff2 = bluepy.decrypt(buff, conf.passwd)
+               
+        #print("Writing: ", len(buff2)) 
         try:
             fh2.write(buff2)
         except:
@@ -181,6 +184,7 @@ if __name__ == '__main__':
               
     if conf.verbose:
         print( "%d bytes processed." % bytes   )
+
 
 
 

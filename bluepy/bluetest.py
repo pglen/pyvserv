@@ -35,18 +35,18 @@ if __name__ == '__main__':
         passw = sys.argv[2]
     
     print( "org:", "'" + buff + "'")              
-    
     enc = bluepy.encrypt( buff, passw)
     
-    print("enz: '" + dumpx(enc) + "'")
-    
-    '''hexenc = bluepy.tohex(enc)
+    #print("enz: '" + dumpx(enc) + "'")
+    hexenc = bluepy.tohex(enc)
     print("enc:", "'" +  hexenc + "'")
     
-    uex = bluepy.fromhex(hexenc)
-    print("exz: '" + dumpx(uex) + "'")'''
+    '''uex = bluepy.fromhex(hexenc)
+    print("enc: '" + dumpx(uex) + "'")'''
     
     dec = bluepy.decrypt(enc, passw)
+    if sys.version_info[0] >= 3:
+        dec = dec.decode("cp437")  
     print("dec:", "'" + dec + "'")
     #de2 = bluepy.decrypt(enc, passw)
     #print("de2:", "'" + dec + "'")
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     #print( "unhex:",  "'" +  uex +"'")
     
     bluepy.destroy(enc)
-    print( "edd:", "'" + bluepy.tohex(enc) + "'")
+    #print( "edd:", "'" + bluepy.tohex(enc) + "'")
            
     err = 0
     if dec != buff:
