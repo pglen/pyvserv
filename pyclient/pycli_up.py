@@ -6,8 +6,8 @@
 import os, sys, getopt, signal, select
 import socket, time, struct, random, stat
 
-sys.path.append('..')
-from common import support, pycrypt, pyservsup, pyclisup, syslog
+sys.path.append('../common')
+import support, pycrypt, pyservsup, pyclisup, syslog
 
 # ------------------------------------------------------------------------
 # Globals
@@ -33,7 +33,7 @@ def phelp():
 def pversion():
     print os.path.basename(sys.argv[0]), "Version", version
     sys.exit(0)
- 
+
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
@@ -43,17 +43,17 @@ optarr = \
     ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
-    
-conf = Config(optarr)
+
+conf = pyclisup.Config(optarr)
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
     args = conf.comline(sys.argv[1:])
-    
-    pyserv.pyclisup.verbose = conf.verbose
-    pyserv.pyclisup.pgdebug = conf.pgdebug
+
+    pyclisup.verbose = conf.verbose
+    pyclisup.pgdebug = conf.pgdebug
 
     if len(args) == 0:
         ip = '127.0.0.1'
@@ -72,9 +72,9 @@ if __name__ == '__main__':
     xkey = set_key(s1, "k1", "")
     client(s1, "user peter", xkey)
     client(s1, "pass 1234", xkey)
-    
+
     sendfile(s1, "aa", "bb", xkey)
-    
+
     # New key, new file
     xkey = set_key(s1, "1111", xkey)
     sendfile(s1, "bb", "cc", xkey)
@@ -83,10 +83,12 @@ if __name__ == '__main__':
     xkey = set_key(s1, "", xkey)
     client(s1, "ver", xkey)
     client(s1, "quit", xkey)
-    
+
     s1.close();
 
     sys.exit(0)
+
+
 
 
 

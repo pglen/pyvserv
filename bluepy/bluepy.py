@@ -3,6 +3,8 @@
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random
 
+#print(sys.version_info)
+
 if sys.version_info[0] < 3:
     import bluepy_c
 else:
@@ -28,11 +30,11 @@ def decrypt(buff, passwd):
 def tohex(buff):
     rrr = bluepy_c.tohex(buff);   #//buff.encode("cp437"))
     return rrr
-    
+
 def fromhex(buff):
     rrr = bluepy_c.fromhex(buff)
     return rrr
-           
+
 def destroy(buff, fill = 0):
     bluepy_c.destroy(buff, fill)
     pass
@@ -40,5 +42,6 @@ def destroy(buff, fill = 0):
 OPEN = bluepy_c.OPEN
 author = bluepy_c.author
 dict = bluepy_c.__dict__
+
 
 

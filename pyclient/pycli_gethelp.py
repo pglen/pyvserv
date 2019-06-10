@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. User add.
@@ -6,11 +6,11 @@
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-sys.path.append('..')
-from common import support, pycrypt, pyservsup, pyclisup, syslog
+sys.path.append('../common')
+import support, pycrypt, pyservsup, pyclisup, syslog
 
 # ------------------------------------------------------------------------
-# Globals 
+# Globals
 
 myhandler = None
 mydathand = None
@@ -56,17 +56,17 @@ conf = pyclisup.Config(optarr)
 def sendx(sock, message):
     strx = struct.pack("!h", len(message)) + message
     sock.send(strx)
-    
+
 def sendfile(s1, fname, toname):
 
     response = ""
-    try:    
+    try:
         flen = os.stat(fname)[stat.ST_SIZE]
         fh = open(fname)
     except:
         print( "Cannot open file", sys.exc_info()[1])
         return
-    
+
     client(s1, "file " + toname)
     client(s1, "data " + str(flen))
     while 1:
@@ -75,12 +75,12 @@ def sendfile(s1, fname, toname):
             break
         sendx(s1, buff)
     response = myhandler.handle_one(mydathand)
-    
+
     if verbose:
         print( "Received: '%s'" % response)
-    
+
     return response
-    
+
 # ------------------------------------------------------------------------
 
 def client(sock, message):
@@ -88,11 +88,11 @@ def client(sock, message):
     sendx(sock, message)
     if verbose:
         print( "Sent: '%s'" % message)
-        
+
     response = myhandler.handle_one(mydathand)
     if verbose:
         print( "Received: '%s'" % response)
-        
+
     return response
 
 # ------------------------------------------------------------------------
@@ -114,25 +114,25 @@ def help():
 
 if __name__ == '__main__':
 
-    if  sys.version_info[0] < 3:
+    '''if  sys.version_info[0] < 3:
         print("Needs python 3 or better.")
-        sys.exit(1)
+        sys.exit(1)'''
 
-    args = conf.comline(sys.argv[1:])        
-    
+    args = conf.comline(sys.argv[1:])
+
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
 
     if len(args) == 0:
-        ip = '127.0.0.1' 
+        ip = '127.0.0.1'
     else:
         ip = args[0]
-    
+
     s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
+
     #mydathand  = pydata.xHandler(s1)
-    #myhandler  = pydata.DataHandler()     
-    
+    #myhandler  = pydata.DataHandler()
+
     try:
         s1.connect((ip, port))
     except:
@@ -142,21 +142,22 @@ if __name__ == '__main__':
     hand = pyclisup.CliSup(s1)
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
-    
+
     hand.client("user peter")
     hand.client("pass 1234")
-    
+
     resp = hand.client("help")
     print ("Server response:", resp)
-    
-    # 
+
+    #
     #hand.client("help uadd")
     #hand.client("help udel")
-    
+
     hand.client("quit")
     s1.close();
-    
+
     sys.exit(0)
 
 
 # EOF
+

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, getopt, signal, select, string, time, stat 
+import os, sys, getopt, signal, select, string, time, stat
 
 sys.path.append('..')
 sys.path.append('../bluepy')
@@ -38,7 +38,7 @@ none_in      = 120
 def get_lsd_func(self, strx):
     dname = ""; sss = ""
     try:
-       dname = strx[1]; 
+       dname = strx[1];
     except:
        pass
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
@@ -54,13 +54,13 @@ def get_lsd_func(self, strx):
         #support.put_exception("lsd")
         response = "ERR " + str(sys.exc_info()[1] )
     self.resp.datahandler.putdata(response, self.resp.ekey)
-    
+
 def get_ls_func(self, strx):
     dname = ""; sss = ""
     try:
-        dname = pyservsup.unescape(strx[1]); 
+        dname = pyservsup.unescape(strx[1]);
     except:
-        pass   
+        pass
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
     dname2 = pyservsup.dirclean(dname2)
     try:
@@ -73,24 +73,24 @@ def get_ls_func(self, strx):
                     sss += pyservsup.escape(aa) + " "
             except:
                 print( "Cannot stat ", aaa)
-                
+
         response = "OK " + sss
     except:
         support.put_exception("ls ")
         response = "ERR No such directory"
     self.resp.datahandler.putdata(response, self.resp.ekey)
-    
+
 def get_fget_func(self, strx):
     dname = ""
     if len(strx) == 1:
         response = "ERR Must specify file name"
         self.resp.datahandler.putdata(response, self.resp.ekey)
         return
-    dname = pyservsup.unescape(strx[1]); 
+    dname = pyservsup.unescape(strx[1]);
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
     dname2 = pyservsup.dirclean(dname2)
     flen = 0
-    try:    
+    try:
         flen = os.stat(dname2)[stat.ST_SIZE]
         fh = open(dname2)
     except:
@@ -113,7 +113,7 @@ def get_fget_func(self, strx):
                 "' " + str(flen) + " bytes"
     print( xstr)
     syslog.syslog(xstr)
-    
+
 def get_ekey_func(self, strx):
     oldkey = self.resp.ekey[:]
     if len(strx) < 2:
@@ -122,7 +122,7 @@ def get_ekey_func(self, strx):
     else:
         self.resp.ekey = strx[1]
         response = "OK " +  "Key Set"
-    # Encrypt reply to ekey with old the key 
+    # Encrypt reply to ekey with old the key
     self.resp.datahandler.putdata(response, oldkey)
 
 def get_xkey_func(self, strx):
@@ -135,20 +135,20 @@ def get_xkey_func(self, strx):
         retx = pyservsup.kauth(strx[1], "", 0)
         if retx[0] == 1:
             print( "key set", "'" + retx[1] + "'")
-            self.resp.ekey = retx[1]   
+            self.resp.ekey = retx[1]
             response = "OK " +  "Key Set"
-        else:     
+        else:
             response = "ERR " + strx[1]
-    # Encrypt reply to xkey with old the key 
+    # Encrypt reply to xkey with old the key
     self.resp.datahandler.putdata(response, oldkey)
 
 def get_pwd_func(self, strx):
-    dname2 = self.resp.dir 
+    dname2 = self.resp.dir
     dname2 = pyservsup.dirclean(dname2)
     if dname2 == "": dname2 = "/"
     response = "OK " +  dname2
     self.resp.datahandler.putdata(response, self.resp.ekey)
-    
+
 def get_ver_func(self, strx):
     response = "OK Version " + str(version)
     self.resp.datahandler.putdata(response, self.resp.ekey)
@@ -160,26 +160,26 @@ def get_hello_func(self, strx):
 def get_cd_func(self, strx):
     org = self.resp.dir
     try:
-        dname = pyservsup.unescape(strx[1]); 
+        dname = pyservsup.unescape(strx[1]);
         if dname == "..":
             self.resp.dir = pyservsup.chup(self.resp.dir)
-        else:     
+        else:
             self.resp.dir += "/" + dname
-            
+
         self.resp.dir = pyservsup.dirclean(self.resp.dir)
-        dname2 = self.resp.cwd + "/" + self.resp.dir 
+        dname2 = self.resp.cwd + "/" + self.resp.dir
         dname2 = pyservsup.dirclean(dname2)
         if os.path.isdir(dname2):
             response = "OK " + self.resp.dir
         else:
             # Back out
             self.resp.dir = org
-            response = "ERR Directory does not exist" 
+            response = "ERR Directory does not exist"
     except:
         support.put_exception("cd")
         response = "ERR Must specify directory name"
     self.resp.datahandler.putdata(response, self.resp.ekey)
-  
+
 def get_stat_func(self, strx):
     fname = ""; aaa = " "
     try:
@@ -194,19 +194,19 @@ def get_stat_func(self, strx):
     except:
         response = "ERR Must specify file name"
     self.resp.datahandler.putdata(response, self.resp.ekey)
-  
+
 def get_user_func(self, strx):
     if len(strx) == 1:
         self.resp.datahandler.putdata("ERR must specify user name", self.resp.ekey)
-        return              
+        return
     self.resp.user = strx[1]
     self.resp.datahandler.putdata("OK Enter pass for '" + self.resp.user + "'", self.resp.ekey)
-    
+
 def get_pass_func(self, strx):
     ret = ""
     # Make sure there is a trace of the attempt
     stry = "Logon  '" + self.resp.user + "' " + \
-                str(self.resp.client_address) 
+                str(self.resp.client_address)
     print( stry        )
     syslog.syslog(stry)
     if not os.path.isfile(pyservsup.passfile):
@@ -221,7 +221,7 @@ def get_pass_func(self, strx):
             self.curr_state = in_idle
         else:
             stry = "Error on logon  '" + self.resp.user + "' " + \
-                    str(self.resp.client_address) 
+                    str(self.resp.client_address)
             print( stry        )
             syslog.syslog(stry)
             ret = "ERR " + xret[1]
@@ -242,7 +242,7 @@ def get_uadd_func(self, strx):
         elif ret[0] == 2:
             response = "OK added user '" + strx[1] + "'"
         else:
-            response = "ERR " + ret[1] 
+            response = "ERR " + ret[1]
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_uini_func(self, strx):
@@ -264,9 +264,9 @@ def get_uini_func(self, strx):
             elif ret[0] == 2:
                 response = "OK added user '" + strx[1] + "'"
             else:
-                response = "ERR " + ret[1] 
+                response = "ERR " + ret[1]
     self.resp.datahandler.putdata(response, self.resp.ekey)
-    
+
 def get_kini_func(self, strx):
     # Test for local client
     if str(self.resp.client_address[0]) != "127.0.0.1":
@@ -283,13 +283,13 @@ def get_kini_func(self, strx):
             #ret = pyservsup.kauth(strx[1], tmp, 1)
             ret = pyservsup.kauth(strx[1], strx[2], 1)
             #bluepy.bluepy.destroy(tmp)
-            
+
             if ret[0] == 0:
                 response = "OK added key '" + strx[1] + "'"
             else:
                 response = "ERR " + ret[1]
     self.resp.datahandler.putdata(response, self.resp.ekey)
-    
+
 def get_kadd_func(self, strx):
     if not os.path.isfile(pyservsup.keyfile):
         response = "ERR " + "No initial keys yet"
@@ -307,7 +307,7 @@ def get_kadd_func(self, strx):
         else:
             response = "ERR " + "invalid return code"
     self.resp.datahandler.putdata(response, self.resp.ekey)
-    
+
 def get_udel_func(self, strx):
     if not os.path.isfile(pyservsup.passfile):
         response = "ERR " + "No users yet"
@@ -321,9 +321,9 @@ def get_udel_func(self, strx):
         elif ret[0] == 4:
             response = "OK deleted user '" + strx[1] + "'"
         else:
-            response = "ERR " + ret[1] 
+            response = "ERR " + ret[1]
     self.resp.datahandler.putdata(response, self.resp.ekey)
-    
+
 def get_fname_func(self, strx):
     try:
         self.resp.fname = strx[1]
@@ -343,14 +343,14 @@ def get_data_func(self, strx):
         response = "ERR Must specify file name"
         self.resp.datahandler.putdata(response, self.resp.ekey)
         return
-    try:  
-        fh = open(self.resp.fname, "w")         
+    try:
+        fh = open(self.resp.fname, "w")
     except:
         response = "ERR Cannot save file on server"
         self.resp.datahandler.putdata(response, self.resp.ekey)
         return
     self.resp.datahandler.putdata("OK Send data", self.resp.ekey)
-    
+
     # Consume buffers until we got all
     mylen = 0
     while mylen < self.resp.dlen:
@@ -382,7 +382,7 @@ def get_data_func(self, strx):
     print( xstr)
     syslog.syslog(xstr)
     self.resp.datahandler.putdata("OK Got data", self.resp.ekey)
-            
+
 def get_help_func(self, strx):
     #print( "get_help_func", strx)
     hstr = "OK "
@@ -396,16 +396,16 @@ def get_help_func(self, strx):
                 break
         if hstr == "OK ":
             hstr = "ERR no help for command '" + strx[1] + "'"
-            
+
     self.resp.datahandler.putdata(hstr, self.resp.ekey)
-    
+
 # Also stop timeouts
 def get_exit_func(self, strx):
     #print( "get_exit_func", strx)
     self.resp.datahandler.putdata("OK Bye", self.resp.ekey)
-    
+
     # Cancel **after** sending bye
-    if self.resp.datahandler.tout: 
+    if self.resp.datahandler.tout:
         self.resp.datahandler.tout.cancel()
     return True
 
@@ -415,10 +415,10 @@ def get_tout_func(self, strx):
     if len(strx) > 1:
         tout = int(strx[1])
         self.resp.datahandler.timeout = tout
-        
-    if self.resp.datahandler.tout: 
+
+    if self.resp.datahandler.tout:
         self.resp.datahandler.tout.cancel()
-        
+
     self.resp.datahandler.putdata("OK timeout set to " + str(tout), self.resp.ekey)
     return
 
@@ -463,7 +463,7 @@ xxxx_help = "Usage: no data"
 
 # ------------------------------------------------------------------------
 # Table driven server state machine.
-# The table is searched for a mathing start_state, and the corresponding 
+# The table is searched for a mathing start_state, and the corresponding
 # function is executed. The new state set to end_state
 
 state_table = [
@@ -498,7 +498,7 @@ state_table = [
 class StateHandler():
 
     def __init__(self, resp):
-        # Fill in class globals 
+        # Fill in class globals
         self.curr_state = initial
         self.resp = resp
         self.resp.fname = ""
@@ -507,40 +507,44 @@ class StateHandler():
         self.resp.dir = ""
         self.resp.ekey = ""
         syslog.openlog("pyserv.py")
-    
+
     # --------------------------------------------------------------------
     # This is the function where outside stimulus comes in.
     # All the workings of the state protocol are handled here.
     # Return True from handlers to signal session terminate request
 
     def run_state(self, strx):
+        ret = None
+        #print("Run state: '" + strx + "'")
         try:
-            self.run_state2(strx)
+            ret = self.run_state2(strx)
         except:
             support.put_exception("run state:")
             #print( sys.exc_info())
-            
+        return ret
+
     def run_state2(self, strx):
-        got = False; ret = True 
-        
+        got = False; ret = True
+
         # If encrypted, process it
         if self.resp.ekey != "":
-            ddd  = strx.encode("cp437")
+            #ddd  = strx.encode("cp437")
+            ddd  = strx
             strx2 = bluepy.bluepy.decrypt(ddd, self.resp.ekey)
             bluepy.bluepy.destroy(ddd)
             strx = strx2
-            
+
         comx = strx.split()
         if self.verbose:
             print( "Com:", comx, "State =", self.curr_state)
-        
+
         # Scan the state table, execute actions, set new states
         for aa in state_table:
             # See if command is in state or all_in is in effect
             # or auth_in and stat > auth is in effect -- use early out
             cond = aa[1] == self.curr_state
             if not cond:
-                cond = cond or (aa[1] == auth_in and self.curr_state >= in_idle) 
+                cond = cond or (aa[1] == auth_in and self.curr_state >= in_idle)
             if not cond:
                 cond = cond or aa[1] == all_in
             if cond:
@@ -552,17 +556,20 @@ class StateHandler():
                         self.curr_state = aa[2]
                     got = True
                     break
-                    
+
         # Not found in the state table for the current state, complain
-        if not got: 
+        if not got:
             print( "Invalid or out of sequence command:", strx)
             sss =  "ERR Invalid or Out of Sequence command " + strx
-            self.resp.datahandler.putdata(sss.encode("cp437"), self.resp.ekey)
+            #self.resp.datahandler.putdata(sss.encode("cp437"), self.resp.ekey)
+            self.resp.datahandler.putdata(sss, self.resp.ekey)
             # Do not quit, just signal the error
             ret = False
-        return ret          
-    
+        return ret
+
 # EOF
+
+
 
 
 

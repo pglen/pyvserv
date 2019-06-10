@@ -18,43 +18,13 @@
 all:
 	@echo Targets: build test test3 git clean
 
-# the .so targets
-
-bluepy_c.so:  bluepy_c.c bluepoint2.c
-	python buildme.py
-
-bluepy3_c.so: bluepy_c.c  bluepoint2.c
-	python3 buildme3.py
-
 # Building modules:
-
-build: bluepy_c.so
-
-build3: bluepy3_c.so
 
 # Testing modules:
 
-test: build
-	@echo Diffs should be silent
-	@python bluetest.py >cc
-	@diff -w test.org cc
-	@python bluefile.py -e -f -p 1111 Makefile aa
-	@python bluefile.py -d -f -p 1111 aa bb
-	@diff Makefile bb
-	@rm -f aa bb cc dd ee
-
-test3: build3
-	@echo Diffs should be silent
-	@python3  bluetest.py >cc
-	@diff -w test.org cc
-	@python3 ./bluefile.py -e -f -p 1111 Makefile aa
-	@python3 ./bluefile.py -d -f -p 1111 aa bb
-	@diff Makefile bb
-	@rm -f aa bb cc dd ee
-
-git:
-	@git add .
-	@git commit -m autocheck
+test:
+	@echo Starting server ...
+	./pyserv.py
 
 clean:
 	@rm -f aa bb cc dd ee
@@ -62,6 +32,7 @@ clean:
 	@rm -f *.so
 	@rm -f *.pyd
 	@rm -f *.dll
+
 
 
 

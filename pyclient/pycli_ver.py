@@ -29,7 +29,7 @@ def phelp():
 def pversion():
     print( os.path.basename(sys.argv[0]), "Version", support.version)
     sys.exit(0)
- 
+
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
@@ -39,7 +39,7 @@ optarr = \
     ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
-    
+
 conf = pyclisup.Config(optarr)
 
 # ------------------------------------------------------------------------
@@ -51,29 +51,35 @@ if __name__ == '__main__':
     #    sys.exit(1)
     #
     args = conf.comline(sys.argv[1:])
-    
+
     if len(args) == 0:
         ip = '127.0.0.1'
     else:
         ip = args[0]
     s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
+
     try:
         s1.connect((ip, conf.port))
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
+    s1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
     hand = pyclisup.CliSup(s1)
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
-    
+
     resp = hand.client("ver")
     print ("Server response:", resp)
     hand.client("quit")
-    
+
+    s1.shutdown(socket.SHUT_RDWR)
     s1.close();
+
     sys.exit(0)
+
+
 
 
 

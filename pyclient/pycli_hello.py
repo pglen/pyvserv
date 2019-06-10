@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
@@ -6,8 +6,8 @@
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
-sys.path.append('..')
-from common import support, pycrypt, pyservsup, pyclisup, syslog
+sys.path.append('../common')
+import support, pycrypt, pyservsup, pyclisup, syslog
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -28,7 +28,7 @@ def phelp():
 def pversion():
     print( os.path.basename(sys.argv[0]), "Version", support.version)
     sys.exit(0)
- 
+
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
@@ -38,7 +38,7 @@ optarr = \
     ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
-    
+
 conf = pyclisup.Config(optarr)
 
 # ------------------------------------------------------------------------
@@ -46,7 +46,7 @@ conf = pyclisup.Config(optarr)
 if __name__ == '__main__':
 
     args = conf.comline(sys.argv[1:])
-    
+
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
 
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     hand = pyclisup.CliSup(s1)
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
-    
+
     resp = hand.client("hello")
     print ("Server response:", resp)
     hand.client("quit")
@@ -75,6 +75,7 @@ if __name__ == '__main__':
 
 
 # EOF
+
 
 
 
