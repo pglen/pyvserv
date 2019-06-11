@@ -3,14 +3,14 @@
 .PHONY: test clean
 
 all:
-	@echo Targets: all git blue test
+	@echo Targets: all git build test
 
 git:
 	git add .
 	git commit -m auto
 	git push
 
-blue:
+build:
 	@make -C bluepy build
 
 test:
@@ -19,8 +19,10 @@ test:
 clean:
 	@make -C pyclient clean
 	@make -C bluepy clean
-	@make -C pyserv clean
+	@make -C server clean
 	@make -C common clean
+
+
 
 
 

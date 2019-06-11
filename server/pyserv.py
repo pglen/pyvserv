@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import os, sys, getopt, signal, select, string, time
 import tarfile, subprocess, struct
 import socket, threading, socketserver #, traceback
@@ -17,8 +19,6 @@ pgdebug = 0
 mydata = {}
 datadir = ".pyserv"
 
-#server = None
-
 # ------------------------------------------------------------------------
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
@@ -32,6 +32,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def setup(self):
         cur_thread = threading.currentThread()
         self.name = cur_thread.getName()
+        #print( "Logoff '" + usr + "'", cli)
+
         self.verbose = verbose
         if verbose:
             print( "Connection from ", self.a2, "as", self.name)
@@ -45,7 +47,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.statehandler.verbose = verbose
 
         mydata[self.name] = self
+
+        print("Connected " + " " + str(self.client_address))
+
         syslog.syslog("Connected " + " " + str(self.client_address))
+        self.datahandler.verbose = verbose
+        self.datahandler.par = self
+        self.datahandler.putdata("OK pyserv ready", "")
 
     def handle_error(request, client_address):
         print(  "PyServ Error", request, client_address)
@@ -65,7 +73,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def finish(self):
         cli = str(mydata[self.name].client_address)
         usr = str(mydata[self.name].user)
-        print( "Logoff '" + usr + "'", cli)
+        #print( "Logoff '" + usr + "'", cli)
         del mydata[self.name]
         if verbose:
             print( "Closed socket on", self.name)
@@ -209,6 +217,8 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
+
+
 
 
 

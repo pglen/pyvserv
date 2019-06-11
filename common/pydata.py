@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import os, sys, getopt, signal, select, string, time, struct
 import socket, threading, socketserver, traceback, random #, syslog
 
@@ -37,10 +39,13 @@ class DataHandler():
         self.par.request.shutdown(socket.SHUT_RDWR)
 
     def putdata(self, response, key, rand = True):
+        ret = ""; response2 = ""
         if self.pgdebug > 7:
-            print ("putdata '" + response + "'")
+            #print ("putdata '" + response + "'")
+            pass
         try:
-            response2 = response.encode("cp437")
+            #response2 = response.encode("cp437")
+            response2 = response
             if  key != "":
                 pass
                 #if rand:
@@ -128,6 +133,8 @@ class xHandler():
         pass
 
 # EOF
+
+
 
 
 

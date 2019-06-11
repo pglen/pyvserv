@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
 
@@ -9,6 +11,8 @@ import  random, stat
 sys.path.append('..')
 sys.path.append('../common')
 import support, pycrypt, pyservsup, pyclisup, syslog
+
+version = "1,0"
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -27,7 +31,7 @@ def phelp():
     sys.exit(0)
 
 def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", support.version)
+    print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
     # option, var_name, initial_val, function
@@ -56,28 +60,28 @@ if __name__ == '__main__':
         ip = '127.0.0.1'
     else:
         ip = args[0]
-    s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    hand = pyclisup.CliSup()
+    hand.verbose = conf.verbose
+    hand.pgdebug = conf.pgdebug
 
     try:
-        s1.connect((ip, conf.port))
+        hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    s1.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-    hand = pyclisup.CliSup(s1)
-    hand.verbose = conf.verbose
-    hand.pgdebug = conf.pgdebug
+    resp2 = hand.getreply()
+    print ("Server initial:", resp2)
 
     resp = hand.client("ver")
     print ("Server response:", resp)
     hand.client("quit")
-
-    s1.shutdown(socket.SHUT_RDWR)
-    s1.close();
+    hand.close()
 
     sys.exit(0)
+
+# EOF
 
 
 

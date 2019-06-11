@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import os, sys, getopt, signal, select, string, time, stat
 
 sys.path.append('..')
@@ -403,6 +405,7 @@ def get_help_func(self, strx):
 def get_exit_func(self, strx):
     #print( "get_exit_func", strx)
     self.resp.datahandler.putdata("OK Bye", self.resp.ekey)
+    #self.resp.datahandler.par.shutdown(socket.SHUT_RDWR)
 
     # Cancel **after** sending bye
     if self.resp.datahandler.tout:
@@ -568,6 +571,8 @@ class StateHandler():
         return ret
 
 # EOF
+
+
 
 
 

@@ -8,8 +8,11 @@ from __future__ import print_function
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
+sys.path.append('..')
 sys.path.append('../common')
 import support, pycrypt, pyservsup, pyclisup, syslog
+
+version = "1,0"
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -24,11 +27,11 @@ def phelp():
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
-    print( " Needs debug level or verbose to have any output.")
+    print()
     sys.exit(0)
 
 def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", support.version)
+    print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
     # option, var_name, initial_val, function
@@ -47,36 +50,32 @@ conf = pyclisup.Config(optarr)
 
 if __name__ == '__main__':
 
+    #if  sys.version_info[0] < 3:
+    #    print("Needs python 3 or better.")
+    #    sys.exit(1)
+    #
     args = conf.comline(sys.argv[1:])
-
-    pyclisup.verbose = conf.verbose
-    pyclisup.pgdebug = conf.pgdebug
 
     if len(args) == 0:
         ip = '127.0.0.1'
     else:
         ip = args[0]
-    s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    hand = pyclisup.CliSup()
+    #hand.verbose = conf.verbose
+    #hand.pgdebug = conf.pgdebug
 
     try:
-        s1.connect((ip, conf.port))
+        resp2 = hand.connect(ip, conf.port)
+        print ("Server initial:", resp2)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    hand = pyclisup.CliSup(s1)
-    hand.verbose = conf.verbose
-    hand.pgdebug = conf.pgdebug
-    resp2 = hand.getreply()
-    print ("Server initial:", resp2)
-
-    resp = hand.client("hello")
-    print ("Server response:", resp)
-    hand.client("quit")
-    s1.close();
+    #hand.client("quit")
+    hand.close()
 
     sys.exit(0)
-
 
 # EOF
 

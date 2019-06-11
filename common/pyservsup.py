@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import os, sys, string, time, traceback
+from __future__ import print_function
+
+import os, sys, string, time, traceback, bcrypt
 
 # Globals and configurables
 
@@ -35,7 +37,7 @@ def kauth(namex, keyx, kadd = False):
         fields = line.split(",")
         if namex == fields[0]:
             dup = True
-            break                      
+            break
     if not dup:
         if kadd == 1:
             # Add
@@ -49,10 +51,10 @@ def kauth(namex, keyx, kadd = False):
                     return -1, "Cannot open / create " + keyfile + " for writing"
             try:
                 fh2.seek(0, os.SEEK_END)
-                fh2.write(namex + "," + keyx + "\n")                
+                fh2.write(namex + "," + keyx + "\n")
             except:
                 fh2.close()
-                return -1, "Cannot write to " + keyfile 
+                return -1, "Cannot write to " + keyfile
             fh2.close()
             ret = 0, "Key saved"
     else:
@@ -82,16 +84,16 @@ def kauth(namex, keyx, kadd = False):
                 else:
                     fh3.write(line)
             fh3.close()
-            # Rename       
+            # Rename
             try:
                 os.remove(keyfile)
             except:
-                ret = -1, "Cannot remove from " + pname3 
+                ret = -1, "Cannot remove from " + pname3
             try:
                 os.rename(pname3, passfile)
             except:
-                ret = -1, "Cannot rename from " + pname3 
-                return ret  
+                ret = -1, "Cannot rename from " + pname3
+                return ret
             if delok:
                 ret = 4, "Key deleted"
             else:
@@ -125,7 +127,7 @@ def auth(userx, upass, uadd = False):
             fh = open(passfile, "w+")
         except:
             return -1, "Cannot open pass file " + passfile
-            
+
     passdb = fh.readlines()
     for line in passdb:
         fields = line.split(",")
@@ -133,7 +135,7 @@ def auth(userx, upass, uadd = False):
             dup = True
             break
         fh.close()
-                
+
     if not dup:
         if uadd == 1:
             try:
@@ -147,7 +149,7 @@ def auth(userx, upass, uadd = False):
             fh2.seek(0, os.SEEK_END)
             upass2 = bcrypt.hashpw(upass.encode("cp437"), bcrypt.gensalt())
             print ("upass2", upass2)
-            fh2.write(userx + "," + upass2.decode("cp437") + "\n")                
+            fh2.write(userx + "," + upass2.decode("cp437") + "\n")
             fh2.close()
             ret = 2, "Saved pass"
         else:
@@ -174,17 +176,17 @@ def auth(userx, upass, uadd = False):
                     pass
                 else:
                     fh3.write(line)
-            fh3.close()        
-            # Rename       
+            fh3.close()
+            # Rename
             try:
                 os.remove(passfile)
             except:
-                ret = 0, "Cannot remove " + passfile 
+                ret = 0, "Cannot remove " + passfile
             try:
                 os.rename(pname3, passfile)
             except:
-                ret = 0, "Cannot rename from " + pname3 
-                return ret  
+                ret = 0, "Cannot rename from " + pname3
+                return ret
             if delok:
                 ret = 4, "User deleted"
             else:
@@ -201,9 +203,11 @@ def auth(userx, upass, uadd = False):
 
 if __name__ == '__main__':
     print( "test")
-    
+
 
 # EOF
+
+
 
 
 

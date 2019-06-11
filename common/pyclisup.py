@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random
+import struct, stat, base64, random, socket
 
 import pydata, pyservsup
 
@@ -65,14 +67,41 @@ class Config:
                             self.optarr[bb][3]()
         return args
 
-class CliSup:
+# ------------------------------------------------------------------------
 
-    def __init__(self, sock):
+class CliSup():
+
+    def __init__(self, sock = None):
         self.sock = sock
-        self.mydathand  = pydata.xHandler(self.sock)
-        self.myhandler  = pydata.DataHandler()
         self.verbose = False
         self.debug = False
+        if self.sock != None:
+            self.mydathand  = pydata.xHandler(self.sock)
+            self.myhandler  = pydata.DataHandler()
+
+    def connect(self, ip, port):
+        resp2 = ""
+        if self.sock != None:
+            raise ValueError("Already connected.")
+        try:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.connect((ip, port))
+
+        except:
+            #print( "Cannot connect to:", ip + ":" + str(port), sys.exc_info()[1])
+            raise
+
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.mydathand  = pydata.xHandler(self.sock)
+        self.myhandler  = pydata.DataHandler()
+
+        return self.getreply()
+
+    def close(self):
+        #self.sock.shutdown(socket.SHUT_RDWR)
+        #self.sock.shutdown(socket.SHUT_WR)
+        #self.sock.shutdown(socket.SHUT_RD)
+        self.sock.close();
 
     # ------------------------------------------------------------------------
     # Send out our special buffer (short)len + (str)message
@@ -197,6 +226,10 @@ class CliSup:
             return
         return True
 
+    def  getreply(self):
+        response = self.myhandler.handle_one(self.mydathand)
+        return response
+
     # ------------------------------------------------------------------------
     # Ping Pong function with encryption.
 
@@ -208,7 +241,8 @@ class CliSup:
         if key != "":
             if rand:
                 message = message + " " * random.randint(0, 20)
-            message = bluepy.bluepy.encrypt(message, key).decode("cp437")
+            #message = bluepy.bluepy.encrypt(message, key).decode("cp437")
+            message = bluepy.bluepy.encrypt(message, key)
 
         self.sendx(message)
 
@@ -216,7 +250,9 @@ class CliSup:
             print( "   put: '%s'" % base64.b64encode(message),)
 
         #print("wait for answer")
-        response = self.myhandler.handle_one(self.mydathand)
+        response = self.getreply()
+
+        #self.myhandler.handle_one(self.mydathand)
 
         if self.verbose and key != "":
             print( "get: '%s'" % base64.b64encode(response))
@@ -231,6 +267,7 @@ class CliSup:
         return response
 
 # EOF
+
 
 
 

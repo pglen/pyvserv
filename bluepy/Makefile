@@ -62,6 +62,8 @@ clean:
 	@rm -f *.so
 	@rm -f *.pyd
 	@rm -f *.dll
+	@rm -f *.pyc
+
 
 
 

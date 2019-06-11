@@ -149,7 +149,6 @@ if __name__ == '__main__':
     resp = hand.client("help")
     print ("Server response:", resp)
 
-    #
     #hand.client("help uadd")
     #hand.client("help udel")
 
@@ -160,4 +159,5 @@ if __name__ == '__main__':
 
 
 # EOF
+
 
