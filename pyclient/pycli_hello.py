@@ -56,29 +56,28 @@ if __name__ == '__main__':
         ip = '127.0.0.1'
     else:
         ip = args[0]
-    s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    hand = pyclisup.CliSup()
+    hand.verbose = conf.verbose
+    hand.pgdebug = conf.pgdebug
 
     try:
-        s1.connect((ip, conf.port))
+        resp2 = hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    hand = pyclisup.CliSup(s1)
-    hand.verbose = conf.verbose
-    hand.pgdebug = conf.pgdebug
-    resp2 = hand.getreply()
     print ("Server initial:", resp2)
 
     resp = hand.client("hello")
     print ("Server response:", resp)
     hand.client("quit")
-    s1.close();
+    hand.close();
 
     sys.exit(0)
 
-
 # EOF
+
 
 
 

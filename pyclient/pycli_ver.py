@@ -66,12 +66,11 @@ if __name__ == '__main__':
     hand.pgdebug = conf.pgdebug
 
     try:
-        hand.connect(ip, conf.port)
+        resp2 = hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp2 = hand.getreply()
     print ("Server initial:", resp2)
 
     resp = hand.client("ver")
@@ -82,6 +81,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

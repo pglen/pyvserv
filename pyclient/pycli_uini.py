@@ -58,28 +58,26 @@ if __name__ == '__main__':
     else:
         ip = args[0]
 
-    s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    hand = pyclisup.CliSup()
+    hand.verbose = conf.verbose
+    hand.pgdebug = conf.pgdebug
 
     try:
-        s1.connect((ip, conf.port))
+        hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
-
-    hand = pyclisup.CliSup(s1)
-    hand.verbose = conf.verbose
-    hand.pgdebug = conf.pgdebug
 
     hand.client("ver")
     ret = hand.client("uini peter 1234")
     print (ret)
     hand.client("quit")
-
-    s1.close();
+    hand.close();
 
     sys.exit(0)
 
 # EOF
+
 
 
 
