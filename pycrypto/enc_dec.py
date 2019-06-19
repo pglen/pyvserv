@@ -5,12 +5,13 @@ from __future__ import print_function
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random
 
+from crysupp import *
+
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
-
 
 message = '\
     [[[Message to be encrypted. Here we go ]]]\n\
@@ -24,6 +25,7 @@ message = '\
     [[[Message to be encrypted. Here we go ]]]\n\
     [[[Message to be encrypted. Here we go ]]]\n\
     '
+# ------------------------------------------------------------------------
 
 def test_one():
 
@@ -31,10 +33,12 @@ def test_one():
 
     hh = SHA.new(message)
 
+    print (hexdump(message))
+
     print ("org:")
     print( message)
 
-    pukey = RSA.importKey(open("keys/8afe5d09b299f8ea.pub").read())
+    pukey = RSA.importKey(open("testkey.pub").read())
     cipher = PKCS1_v1_5.new(pukey)
 
     messaged = message + hh.digest()
@@ -54,9 +58,11 @@ def test_one():
 
     #print ("enc:", ciphertext)
 
-    prkey = RSA.importKey(open("keys/8afe5d09b299f8ea.pem").read())
+    prkey = RSA.importKey(open("testkey.pem").read())
 
     sentinel = Random.new().read(dsize)      # Let's assume that average data length is 15
+
+    print (hexdump(sentinel))
 
     #print("sentinel", sentinel)
 
@@ -80,6 +86,8 @@ def test_one():
 
 if __name__ == '__main__':
     test_one()
+
+
 
 
 
