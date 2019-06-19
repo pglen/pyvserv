@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random
 
@@ -9,47 +11,66 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
 
-message = '[[[Message to be encrypted. Here we go ]]]'
-dsize = SHA.digest_size
 
-hh = SHA.new(message)
+message = '\
+    [[[Message to be encrypted. Here we go ]]]\n\
+    [[[Message to be encrypted. Here we go ]]]\n\
+    [[[Message to be encrypted. Here we go ]]]\n\
+    [[[Message to be encrypted. Here we go ]]]\n\
+    [[[Message to be encrypted. Here we go ]]]\n\
+    [[[Message to be encrypted. Here we go ]]]\n\
+    [[[Message to be encrypted. Here we go ]]]\n\
+    [[[Message to be encrypted. Here we go ]]]\n\
+    [[[Message to be encrypted. Here we go ]]]\n\
+    [[[Message to be encrypted. Here we go ]]]\n\
+    '
 
-print ("org:", message)
+def test_one():
 
-#key = RSA.importKey(open('pubkey.der').read())
-cipher = PKCS1_v1_5.new(pkey)
+    dsize = SHA.digest_size
 
-messaged = message + hh.digest()
-print ("deco:", messaged)
+    hh = SHA.new(message)
 
-ciphertext = cipher.encrypt(messaged)
+    print ("org:")
+    print( message)
 
-print ("enc:", ciphertext)
+    pukey = RSA.importKey(open("keys/97345d09ae00279c.pub").read())
+    cipher = PKCS1_v1_5.new(pukey)
 
-#key = RSA.importKey(open('privkey.der').read())
+    messaged = message + hh.digest()
+    #print ("deco:", messaged)
 
-sentinel = Random.new().read(dsize)      # Let's assume that average data length is 15
+    ciphertext = cipher.encrypt(messaged)
 
-print("sentinel", sentinel)
+    #print ("enc:", ciphertext)
 
-cipher2 = PKCS1_v1_5.new(key)
-message2 = cipher2.decrypt(ciphertext, sentinel)
+    prkey = RSA.importKey(open("keys/97345d09ae00279c.pem").read())
 
-print ("decr:", message2)
+    sentinel = Random.new().read(dsize)      # Let's assume that average data length is 15
 
-digest2 = SHA.new(message2[:-dsize]).digest()
+    #print("sentinel", sentinel)
 
-print ("digest2:", digest2)
+    cipher2 = PKCS1_v1_5.new(prkey)
+    message2 = cipher2.decrypt(ciphertext, sentinel)
 
-if digest2 == message2[-dsize:]:                # Note how we DO NOT look for the sentinel
-    print "Encryption was correct.", message2[:-dsize]
-else:
-    print "Encryption was not correct.", message2[:-dsize]
+    #print ("decr:", message2)
 
+    digest2 = SHA.new(message2[:-dsize]).digest()
+
+    #print ("digest2:", digest2)
+
+    if digest2 == message2[-dsize:]:                # Note how we DO NOT look for the sentinel
+        print("Decr:")
+        print (message2[:-dsize])
+        print ("Encryption was correct.")
+    else:
+        print ("Encryption was not correct.")
+        print (message2[:-dsize])
 
 
 if __name__ == '__main__':
-    print( "test")
+    test_one()
+
 
 
 

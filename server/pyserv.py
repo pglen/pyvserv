@@ -18,6 +18,7 @@ version = 1.0
 pgdebug = 0
 mydata = {}
 datadir = ".pyserv"
+lockfile = datadir + "/lock"
 
 # ------------------------------------------------------------------------
 
@@ -131,6 +132,7 @@ def terminate(arg1, arg2):
         print( "Terminated pyserv.py.")
 
     syslog.syslog("Terminated Server")
+    os.unlink(lockfile)
     sys.exit(2)
 
 # ------------------------------------------------------------------------
@@ -149,8 +151,14 @@ if __name__ == '__main__':
         if not os.path.isdir(datadir):
             os.mkdir(datadir)
     except:
-        print( "Cannot make dir", sys.exc_info())
+        print( "Cannot make data dir", sys.exc_info())
         sys.exit(0)
+
+    pid = os.getpid()
+
+    fh = open(lockfile, "w")
+    fh.write(str(pid))
+    fh.close()
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:qhvV")
@@ -217,6 +225,7 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
+
 
 
 

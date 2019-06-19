@@ -3,6 +3,8 @@
 .PHONY: test
 
 test:
+	# Start server
+	@-cd ../server; python ./pyserv.py &
 	@-./pycli_down.py -v
 	@-./pycli_enc.py -v
 	@-./pycli_gethelp.py -v
@@ -13,6 +15,7 @@ test:
 	@-./pycli_uini.py -v
 	@-./pycli_up.py -v
 	@-./pycli_ver.py -v
+	@-./killserv.sh
 
 clean:
 	@rm -f aa bb cc dd ee
@@ -21,6 +24,8 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+
+
 
 
 
