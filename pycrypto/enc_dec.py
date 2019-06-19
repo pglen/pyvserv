@@ -34,7 +34,7 @@ def test_one():
     print ("org:")
     print( message)
 
-    pukey = RSA.importKey(open("keys/97345d09ae00279c.pub").read())
+    pukey = RSA.importKey(open("keys/8afe5d09b299f8ea.pub").read())
     cipher = PKCS1_v1_5.new(pukey)
 
     messaged = message + hh.digest()
@@ -42,9 +42,19 @@ def test_one():
 
     ciphertext = cipher.encrypt(messaged)
 
+    pstr = base64.b64encode(ciphertext)
+    plen = len(pstr)
+    xstr = ""
+    for aa in range(plen/64 + 1):
+        xstr += pstr[aa * 64: (aa+1) * 64] + "\n"
+
+    f2 = open("encrypted",'wb')
+    f2.write(xstr)
+    f2.close()
+
     #print ("enc:", ciphertext)
 
-    prkey = RSA.importKey(open("keys/97345d09ae00279c.pem").read())
+    prkey = RSA.importKey(open("keys/8afe5d09b299f8ea.pem").read())
 
     sentinel = Random.new().read(dsize)      # Let's assume that average data length is 15
 

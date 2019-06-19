@@ -27,13 +27,15 @@ ddd = './keys/'
 if not os.path.isdir(ddd):
     os.mkdir(ddd)
 
-#key = RSA.generate(2048)
-#print (key, key.size())
 
 fff  = genfname()
 print( "generating file ", fff, "...",)
 
-key = RSA.generate(4096)
+key = RSA.generate(8192)
+#key = RSA.generate(4096)
+#key = RSA.generate(2048)
+#print (key, key.size())
+
 prkey = key.exportKey('PEM')
 f2 = open(ddd + fff + '.pem','wb')
 f2.write(prkey)
