@@ -194,8 +194,6 @@ if __name__ == '__main__':
 
     # Port 0 would mean to select an arbitrary unused port
     HOST, PORT = "", 9999
-    #HOST, PORT = "localhost", 9999
-    #HOST, PORT = "192.168.1.13", 9999
 
     try:
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
@@ -225,21 +223,4 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

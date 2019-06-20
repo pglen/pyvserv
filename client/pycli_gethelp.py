@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. User add.
 
@@ -15,6 +17,7 @@ import support, pycrypt, pyservsup, pyclisup, syslog
 myhandler = None
 mydathand = None
 pgdebug = 0
+subhelp = ""
 verbose = 0
 port    = 9999
 version = 1.0
@@ -41,15 +44,16 @@ def pversion():
     sys.exit(0)
 
 optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
+    ["d:",  "pgdebug",  0,       None],      \
+    ["p:",  "port",     9999,    None],      \
+    ["v",   "verbose",  0,       None],      \
+    ["q",   "quiet",    0,       None],      \
+    ["t",   "test",     "x",     None],      \
+    ["s:",  "subhelp",  subhelp, None],      \
+    ["V",   None,       None,    pversion],  \
+    ["h",   None,       None,    phelp]      \
 
-conf = pyclisup.Config(optarr)
+conf = support.Config(optarr)
 
 # Send out our special buffer (short)len + (str)message
 
@@ -107,6 +111,7 @@ def help():
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
+    print( "            -s str    - Subhelp string")
     print()
     sys.exit(0)
 
@@ -128,36 +133,29 @@ if __name__ == '__main__':
     else:
         ip = args[0]
 
-    s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    #mydathand  = pydata.xHandler(s1)
-    #myhandler  = pydata.DataHandler()
-
-    try:
-        s1.connect((ip, port))
-    except:
-        print( "Cannot connect to:", ip + ":" + str(port), sys.exc_info()[1])
-        sys.exit(1)
-
-    hand = pyclisup.CliSup(s1)
+    hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    hand.client("user peter")
-    hand.client("pass 1234")
+    print("subhelp", conf.subhelp);
 
-    resp = hand.client("help")
+    try:
+        resp2 = hand.connect(ip, conf.port)
+    except:
+        print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
+        sys.exit(1)
+
+    print ("Server initial:", resp2)
+
+    resp = hand.client("help " + conf.subhelp)
     print ("Server response:", resp)
 
-    #hand.client("help uadd")
-    #hand.client("help udel")
-
     hand.client("quit")
-    s1.close();
+    hand.close();
 
     sys.exit(0)
 
-
 # EOF
+
 
 

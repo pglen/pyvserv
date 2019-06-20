@@ -17,40 +17,16 @@ quiet = False
 loopit = False
 version = "1.0"
 
-def genfname():
-    rsize = 2; sss = ""
-    rrr = Random.new().read(rsize)
-    for aa in rrr:
-        sss += "%x" % ord(aa)
-    sss += "%x" % int(time.time()) # % 1000000)
-    rrr = Random.new().read(rsize)
-    for aa in rrr:
-        sss += "%x" % ord(aa)
-    return sss
+# Return basename for key file
 
-def genkey():
+def pickkey():
 
-    if not os.path.isdir(ddd):
-        os.mkdir(ddd)
+    dl = os.listdir(ddd)
+    dust = random.randint(0, len(dl)-1)
 
-    fff  = genfname()
-    print( "Generating file: ", fff, "in dir", ddd)
-    print ("(8192 bits) Please wait ...")
-
-    key = RSA.generate(8192)
-    #key = RSA.generate(4096)
-    #key = RSA.generate(2048)
-    #print (key, key.size())
-
-    prkey = key.exportKey('PEM')
-    f2 = open(ddd + fff + '.pem','wb')
-    f2.write(prkey)
-    f2.close()
-
-    pkey = key.publickey()
-    f3 = open(ddd + fff + '.pub','wb')
-    f3.write(pkey.exportKey('PEM'))
-    f3.close()
+    eee = os.path.splitext(os.path.basename(dl[dust]))
+    #print("picking key", eee[0])
+    return eee[0]
 
 def help():
     print("Use: ");
@@ -86,12 +62,7 @@ if __name__ == '__main__':
             print( os.path.basename(sys.argv[0]), "Version", version)
             sys.exit(0)
 
-    if loopit:
-        while True:
-            genkey()
-            time.sleep(30)
-    else:
-        genkey()
+    print (pickkey())
     #print( "generated")
 
 

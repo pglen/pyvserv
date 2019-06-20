@@ -204,6 +204,18 @@ def get_user_func(self, strx):
     self.resp.user = strx[1]
     self.resp.datahandler.putdata("OK Enter pass for '" + self.resp.user + "'", self.resp.ekey)
 
+def get_key_func(self, strx):
+
+    self.keyfroot = support.pickkey()
+    try:
+        fp = open(support.keydir + self.keyfroot + ".pub", "rb")
+        keyx = fp.read()
+        fp.close()
+        self.resp.datahandler.putdata("OK key follows", self.resp.ekey)
+        self.resp.datahandler.putdata(keyx, self.resp.ekey)
+    except:
+        self.resp.datahandler.putdata("ERR cannot open keyfile.", self.resp.ekey)
+
 def get_pass_func(self, strx):
     ret = ""
     # Make sure there is a trace of the attempt
@@ -428,28 +440,29 @@ def get_tout_func(self, strx):
 # ------------------------------------------------------------------------
 # Help stings
 
-user_help = "Usage: user logon_name"
-pass_help = "Usage: pass logon_pass"
-file_help = "Usage: file fname -- Specify name for upload"
-fget_help = "Usage: fget fname -- Download (get) file"
-uadd_help = "Usage: uadd user_name user_pass -- Create new user"
-kadd_help = "Usage: kadd key_name key_val -- Add new encryption key"
-uini_help = "Usage: uini user_name user_pass -- Create initial user. "\
+user_help  = "Usage: user logon_name"
+key_help   = "Usage: key"
+pass_help  = "Usage: pass logon_pass"
+file_help  = "Usage: file fname -- Specify name for upload"
+fget_help  = "Usage: fget fname -- Download (get) file"
+uadd_help  = "Usage: uadd user_name user_pass -- Create new user"
+kadd_help  = "Usage: kadd key_name key_val -- Add new encryption key"
+uini_help  = "Usage: uini user_name user_pass -- Create initial user. "\
                 "Must be from local net."
-kini_help = "Usage: kini key_name key_pass -- Create initial key. " \
+kini_help  = "Usage: kini key_name key_pass -- Create initial key. " \
                 "Must be from local net."
-udel_help = "Usage: udel user_name user_pass -- Delete user"
-data_help = "Usage: data datalen -- Specify length of file to follow"
-vers_help = "Usage: ver -- Get protocol version. alias: vers"
+udel_help  = "Usage: udel user_name user_pass -- Delete user"
+data_help  = "Usage: data datalen -- Specify length of file to follow"
+vers_help  = "Usage: ver -- Get protocol version. alias: vers"
 hello_help = "Usage: hello -- Say Hello - test connectivity."
-quit_help = "Usage: quit -- Terminate connection. alias: exit"
-help_help = "Usage: help [command] -- Offer help on command"
-lsls_help = "Usage: ls [dir] -- List files in dir"
-lsls_help = "Usage: lsd [dir] -- List dirs in dir"
-lsld_help = "Usage: help command -- Offer help on command"
-cdcd_help = "Usage: cd dir -- Change to dir. Capped to server root"
-pwdd_help = "Usage: pwd -- Show current dir"
-stat_help = "Usage: stat fname  -- Get file stat. Field list:\n"\
+quit_help  = "Usage: quit -- Terminate connection. alias: exit"
+help_help  = "Usage: help [command] -- Offer help on command"
+lsls_help  = "Usage: ls [dir] -- List files in dir"
+lsls_help  = "Usage: lsd [dir] -- List dirs in dir"
+lsld_help  = "Usage: help command -- Offer help on command"
+cdcd_help  = "Usage: cd dir -- Change to dir. Capped to server root"
+pwdd_help  = "Usage: pwd -- Show current dir"
+stat_help  = "Usage: stat fname  -- Get file stat. Field list:\n"\
 "   1.  ST_MODE Inode protection mode.\n"\
 "   2.  ST_INO Inode number.\n"\
 "   3.  ST_DEV Device inode resides on.\n"\
@@ -460,9 +473,9 @@ stat_help = "Usage: stat fname  -- Get file stat. Field list:\n"\
 "   8.  ST_ATIME Time of last access.\n"\
 "   9.  ST_MTIME Time of last modification.\n"\
 "   10. ST_CTIME Time of last metadata change."
-tout_help = "Usage: tout new_val -- Set / Reset timeout in seconds"
-ekey_help = "Usage: ekey encryption_key -- Set encryption key "
-xxxx_help = "Usage: no data"
+tout_help  = "Usage: tout new_val -- Set / Reset timeout in seconds"
+ekey_help  = "Usage: ekey encryption_key -- Set encryption key "
+xxxx_help  = "Usage: no data"
 
 # ------------------------------------------------------------------------
 # Table driven server state machine.
@@ -473,6 +486,7 @@ state_table = [
             # Command ; start_state ; end_state ; action function
             ("user",    initial,    auth_pass,  get_user_func,  user_help),
             ("pass",    auth_pass,  none_in,    get_pass_func,  pass_help),
+            ("key",     initial,    initial,    get_key_func,   key_help),
             ("file",    in_idle,    got_fname,  get_fname_func, file_help),
             ("fget",    in_idle,    in_idle,    get_fget_func,  fget_help),
             ("data",    got_fname,  in_idle,    get_data_func,  data_help),
@@ -571,6 +585,7 @@ class StateHandler():
         return ret
 
 # EOF
+
 
 
 
