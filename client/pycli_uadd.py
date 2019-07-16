@@ -43,7 +43,7 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = pyclisup.Config(optarr)
+conf = support.Config(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -96,6 +96,7 @@ if __name__ == '__main__':
     s1.close();
 
     sys.exit(0)
+
 
 
 

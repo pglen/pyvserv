@@ -4,7 +4,12 @@ from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time
 import tarfile, subprocess, struct
-import socket, threading, socketserver #, traceback
+import socket, threading
+
+if sys.version_info[0] < 3:
+    import SocketServer as socketserver
+else:
+    import socketserver
 
 import pystate
 
@@ -223,4 +228,5 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
+
 

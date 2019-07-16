@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Initial key add.
 
@@ -36,7 +38,7 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = pyclisup.Config(optarr)
+conf = support.Config(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -74,5 +76,6 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 

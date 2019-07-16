@@ -3,7 +3,13 @@
 from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time, struct
-import socket, threading, socketserver, traceback, random #, syslog
+import socket, threading, traceback, random #, syslog
+
+if sys.version_info[0] < 3:
+    import SocketServer
+else:
+    import socketserver
+
 
 sys.path.append('../bluepy')
 import bluepy
@@ -58,10 +64,16 @@ class DataHandler():
             #self.tout = threading.Timer(self.timeout, self.handler_timeout)
             #self.tout.start()
             # Send out our special buffer (short)len + (str)message
-            strx = struct.pack("!h", len(response2)) + response2
+            if sys.version_info[0] < 3:
+                strx = struct.pack("!h", len(response2)) + response2
+            else:
+                strx = struct.pack("!h", len(response2)) + response2.encode()
+
             #if self.pgdebug > 9:
             #    print ("sending: '", strx ) # + strx.decode("cp437") + "'")
-            ret = self.par.request.send(strx)
+
+            print ("sending: '", strx )
+            ret = self.par.request.send(strx.encode())
         except:
             support.put_exception("Put Data:")
         return ret
@@ -133,6 +145,8 @@ class xHandler():
         pass
 
 # EOF
+
+
 
 
 

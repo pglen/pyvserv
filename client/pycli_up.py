@@ -44,7 +44,11 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = pyclisup.Config(optarr)
+conf = support.Config(optarr)
+
+
+def  set_key(aa, bb, cc):
+    return "key here"
 
 # ------------------------------------------------------------------------
 
@@ -59,34 +63,38 @@ if __name__ == '__main__':
         ip = '127.0.0.1'
     else:
         ip = args[0]
-    s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    init_handler(s1)
+
+    hand = pyclisup.CliSup()
+    hand.verbose = conf.verbose
+    hand.pgdebug = conf.pgdebug
 
     try:
-        s1.connect((ip, conf.port))
+        hand.connect(ip, conf.port)
     except:
-        print "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1]
+        print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    # Auth Key
-    xkey = set_key(s1, "k1", "")
-    client(s1, "user peter", xkey)
-    client(s1, "pass 1234", xkey)
 
-    sendfile(s1, "aa", "bb", xkey)
+    # Auth Key
+    xkey = set_key(hand, "k1", "")
+    hand.client("user peter", xkey)
+    hand.client("pass 1234", xkey)
+
+    #sendfile(hand, "aa", "bb", xkey)
 
     # New key, new file
-    xkey = set_key(s1, "1111", xkey)
-    sendfile(s1, "bb", "cc", xkey)
+    xkey = set_key(hand, "1111", xkey)
+    #sendfile(hand, "bb", "cc", xkey)
 
     # Back to clear text
-    xkey = set_key(s1, "", xkey)
-    client(s1, "ver", xkey)
-    client(s1, "quit", xkey)
+    xkey = set_key(hand, "", xkey)
+    hand.client("ver", xkey)
+    hand.client("quit", xkey)
 
-    s1.close();
+    hand.close();
 
     sys.exit(0)
+
 
 
 

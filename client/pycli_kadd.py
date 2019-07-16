@@ -39,7 +39,7 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = pyclisup.Config(optarr)
+conf = support.Config(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -73,7 +73,8 @@ if __name__ == '__main__':
     hand.client("user peter")
     resp = hand.client("pass 1234")
     if resp.split()[0] != "OK":
-        raise ValueError("Not authorized")
+        print("Not auth")
+        #raise ValueError("Not authorized")
 
     hand.client("kadd k2 1234")
 
@@ -87,5 +88,6 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 

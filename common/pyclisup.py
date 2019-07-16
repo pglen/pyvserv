@@ -8,6 +8,7 @@ import struct, stat, base64, random, socket
 import pydata, pyservsup
 
 sys.path.append('../bluepy')
+
 import bluepy
 
 # -----------------------------------------------------------------------
@@ -55,7 +56,12 @@ class CliSup():
     # Send out our special buffer (short)len + (str)message
 
     def sendx(self, message):
-        strx = struct.pack("!h", len(message)) + message.encode("cp437")
+
+        if sys.version_info[0] < 3:
+            strx = struct.pack("!h", len(message)) + message
+        else:
+            strx = struct.pack("!h", len(message)) + message.encode("cp437")
+
         #print("message:", strx)
         self.sock.send(strx)
 
@@ -111,12 +117,12 @@ class CliSup():
             if len(buff) == 0:
                 break
             if key != "":
-                buff = bluepy.bluepy.encrypt(buff, key)
+                buff = bluepy.encrypt(buff, key)
             self.sendx(buff)
         response = self.myhandler.handle_one(self.mydathand)
 
         if key != "":
-            response = bluepy.bluepy.decrypt(response, key)
+            response = bluepy.decrypt(response, key)
         if self.verbose:
             print( "Received: '%s'" % response)
         return True
@@ -153,7 +159,7 @@ class CliSup():
             data = self.myhandler.handle_one(self.mydathand)
             #print("got data", data)
             if key != "":
-                data = bluepy.bluepy.decrypt(data, key)
+                data = bluepy.decrypt(data, key)
             try:
                 fh.write(data)
             except:
@@ -189,8 +195,8 @@ class CliSup():
         if key != "":
             if rand:
                 message = message + " " * random.randint(0, 20)
-            #message = bluepy.bluepy.encrypt(message, key).decode("cp437")
-            message = bluepy.bluepy.encrypt(message, key)
+            #message = bluepy.encrypt(message, key).decode("cp437")
+            message = bluepy.encrypt(message, key)
 
         self.sendx(message)
 
@@ -206,7 +212,7 @@ class CliSup():
             print( "get: '%s'" % base64.b64encode(response))
         if key != "":
             #response = pycrypt.xdecrypt(response, key)
-            #response = bluepy.bluepy.decrypt(response, key)
+            #response = bluepy.decrypt(response, key)
             pass
         if self.verbose:
             print( "Rec: '%s'" % response)
@@ -215,6 +221,7 @@ class CliSup():
         return response
 
 # EOF
+
 
 
 
