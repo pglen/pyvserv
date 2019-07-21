@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+from Crypto.Hash import SHA512
 import os, sys, getopt, signal, select, string, time, stat
 
 sys.path.append('..')
@@ -211,7 +212,10 @@ def get_key_func(self, strx):
         fp = open(support.keydir + self.keyfroot + ".pub", "rb")
         keyx = fp.read()
         fp.close()
-        self.resp.datahandler.putdata("OK key follows", self.resp.ekey)
+
+        hh = SHA512.new(); hh.update(keyx)
+
+        self.resp.datahandler.putdata("OK Hash: %s " % hh.hexdigest(), self.resp.ekey)
         self.resp.datahandler.putdata(keyx, self.resp.ekey)
     except:
         self.resp.datahandler.putdata("ERR cannot open keyfile.", self.resp.ekey)
@@ -585,6 +589,7 @@ class StateHandler():
         return ret
 
 # EOF
+
 
 
 

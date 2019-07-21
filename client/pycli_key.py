@@ -5,6 +5,7 @@ from __future__ import print_function
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
 
+from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
@@ -67,12 +68,25 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    print ("Server initial:", resp2)
+    #print ("Server initial:", resp2)
 
     resp = hand.client("key")
-    print ("Server response:", resp)
+    hhh = resp.split()[2]
+    #print ("Server response:", "'" + hhh + "'")
+
     resp2 = hand.getreply()
-    print ("Server response2:", resp2)
+    #print ("Server response2:",  "'" + resp2 +  "'")
+
+    hh = SHA512.new(); hh.update(resp2)
+
+    #print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())
+
+    hand.pkey = resp2;
+
+    if hhh !=  hh.hexdigest():
+        print("Tainted key")
+    else:
+        print("Key OK")
 
     hand.client("quit")
     hand.close();
@@ -80,6 +94,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

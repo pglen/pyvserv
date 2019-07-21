@@ -74,6 +74,7 @@ if __name__ == '__main__':
     resp = hand.client("pass 1234")
     if resp.split()[0] != "OK":
         print("Not auth")
+
         #raise ValueError("Not authorized")
 
     hand.client("kadd k2 1234")
@@ -88,6 +89,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

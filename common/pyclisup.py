@@ -73,7 +73,7 @@ class CliSup():
         tmp = resp.split()
         if len(tmp) < 2 or tmp[0] != "OK":
             print( "Cannot set new key", resp)
-            raise(ValueError, "Cannot set new key. ")
+            #raise(ValueError, "Cannot set new key. ")
         return newkey
 
     # ------------------------------------------------------------------------
@@ -85,7 +85,8 @@ class CliSup():
         tmp = resp.split()
         if len(tmp) < 2 or tmp[0] != "OK":
             print( "Cannot set new key", resp)
-            raise(Exception(ValueError, "Cannot set new named key."))
+            #raise(Exception(ValueError, "Cannot set new named key."))
+        return newkey
 
     # ------------------------------------------------------------------------
     # Send file. Return True for success.
@@ -221,6 +222,8 @@ class CliSup():
         return response
 
 # EOF
+
+
 
 
 

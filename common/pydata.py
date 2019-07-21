@@ -72,10 +72,15 @@ class DataHandler():
             #if self.pgdebug > 9:
             #    print ("sending: '", strx ) # + strx.decode("cp437") + "'")
 
-            print ("sending: '", strx )
-            ret = self.par.request.send(strx.encode())
+            #print ("sending: '", strx )
+
+            if sys.version_info[0] < 3:
+                ret = self.par.request.send(strx)
+            else:
+                ret = self.par.request.send(strx.encode())
+
         except:
-            support.put_exception("Put Data:")
+            support.put_exception("While in Put Data:")
         return ret
 
     def getdata(self, amount):
@@ -128,7 +133,7 @@ class DataHandler():
                         print( "Unkown state")
             if self.tout: self.tout.cancel()
         except:
-            support.put_exception("Handshake:")
+            support.put_exception("While in Handshake:")
 
         #if self.pgdebug > 8:
         #    print("got data: '" + data + "'")
@@ -145,6 +150,7 @@ class xHandler():
         pass
 
 # EOF
+
 
 
 
