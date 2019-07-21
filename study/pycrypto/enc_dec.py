@@ -182,7 +182,6 @@ if message == message2:
 else:
     print ("Text delivery ERROR")
 
-
 digest2 = SHA.new(message2[:-dsize]).digest()
 
 #print ("digest2:", digest2)
