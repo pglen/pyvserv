@@ -137,7 +137,7 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    print("subhelp", conf.subhelp);
+    #print("subhelp", conf.subhelp);
 
     try:
         resp2 = hand.connect(ip, conf.port)
@@ -145,10 +145,12 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    print ("Server initial:", resp2)
+    if conf.quiet == False:
+        print ("Server initial:", resp2)
 
     resp = hand.client("help " + conf.subhelp)
-    print ("Server response:", resp)
+    if conf.quiet == False:
+        print ("Server response:", resp)
 
     hand.client("quit")
     hand.close();
@@ -156,6 +158,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

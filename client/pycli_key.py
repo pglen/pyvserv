@@ -39,6 +39,7 @@ optarr = \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \
+    ["s",   "showkey",  "",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -68,7 +69,8 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    #print ("Server initial:", resp2)
+    if conf.quiet == False:
+        print ("Server initial:", resp2)
 
     resp = hand.client("key")
     hhh = resp.split()[2]
@@ -84,9 +86,15 @@ if __name__ == '__main__':
     hand.pkey = resp2;
 
     if hhh !=  hh.hexdigest():
-        print("Tainted key")
+        if conf.quiet == False:
+            print("Tainted key")
     else:
-        print("Key OK")
+        if conf.quiet == False:
+            print("Key OK")
+
+    if conf.showkey:
+        #print("Key:")
+        print(hand.pkey)
 
     hand.client("quit")
     hand.close();
@@ -94,6 +102,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

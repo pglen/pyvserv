@@ -71,16 +71,20 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    print ("Server initial:", resp2)
+    if conf.quiet == False:
+        print ("Server initial:", resp2)
 
     resp = hand.client("ver")
-    print ("Server response:", resp)
+    if conf.quiet == False:
+        print ("Server response:", resp)
+
     hand.client("quit")
     hand.close()
 
     sys.exit(0)
 
 # EOF
+
 
 
 

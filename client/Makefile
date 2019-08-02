@@ -5,18 +5,18 @@
 test:
 	# Start server
 	@-cd ../server; python ./pyserv.py &
-	@-./pycli_ping.py -v
-	@-./pycli_hello.py -v
-	@-./pycli_ver.py -v
-	@-./pycli_gethelp.py -v
-	@-./pycli_key.py -v
-	@#-./pycli_kadd.py -v
-	@#-./pycli_kini.py -v
-	@-./pycli_uadd.py -v
-	@-./pycli_uini.py -v
-	@#-./pycli_down.py -v
-	@#-./pycli_enc.py -v
-	@#-./pycli_up.py -v
+	@-./pycli_ping.py -q
+	@-./pycli_hello.py -q
+	@-./pycli_ver.py -q
+	@-./pycli_gethelp.py -q
+	@-./pycli_key.py -q
+	@#-./pycli_kadd.py -q
+	@#-./pycli_kini.py -q
+	#@-./pycli_uadd.py -q
+	#@-./pycli_uini.py -q
+	@#-./pycli_down.py -q
+	@#-./pycli_enc.py -q
+	@#-./pycli_up.py -q
 	@-./killserv.sh
 
 clean:
@@ -26,6 +26,8 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+
+
 
 
 

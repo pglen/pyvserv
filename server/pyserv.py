@@ -147,11 +147,6 @@ if __name__ == '__main__':
     global server
     opts = []; args = []
 
-    sys.stdout = support.Unbuffered(sys.stdout)
-    sys.stderr = support.Unbuffered(sys.stderr)
-
-    syslog.openlog("pyserv.py")
-
     try:
         if not os.path.isdir(datadir):
             os.mkdir(datadir)
@@ -161,9 +156,21 @@ if __name__ == '__main__':
 
     pid = os.getpid()
 
-    fh = open(lockfile, "w")
-    fh.write(str(pid))
-    fh.close()
+    try:
+        fh = open(lockfile, "r")
+        if fh:
+            fh.close()
+            print("Server running already.")
+            sys.exit(2)
+    except:
+        pass
+
+    fh = open(lockfile, "w");  fh.write(str(pid));  fh.close()
+
+    sys.stdout = support.Unbuffered(sys.stdout)
+    sys.stderr = support.Unbuffered(sys.stderr)
+
+    syslog.openlog("pyserv.py")
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:qhvV")
@@ -228,5 +235,6 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
+
 
 
