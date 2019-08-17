@@ -14,18 +14,20 @@ can be transmitted securely, even with zero knowledge.
 
  Project still in motion, not much is usable yet.
 
-Working so far:
+###Working so far:
 
  Bluepoint2. The subdir bluepy contains the 'c' code and the python binding.
 
- make build;    # operational
- make test;     # operational
+    make build;    # operational
+    make test;     # operational
 
-Partiall Working:
+####Partially Working:
 
- Server.
- Client.
- Test Suite:
+    Server.    subdir: server   -- Server has 50% of the commands done
+    Client.    subdir: client
+    Test Suite.
+    Studies.   subdir: study    -- testing subsystems
+
 
 
 
