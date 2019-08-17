@@ -10,7 +10,8 @@ instructing the server to use an encryption key.
  PyvServ contains key exchange protocol, so the new session keys
 can be transmitted securely, even with zero knowledge.
 
- PyvServ internally generates a random key, so communication is always
+ PyvServ internally generates  random keys, and spools aymmetric key generation,
+so communication data is always distinctive.
 
  Project still in motion, not much is usable yet.
 
