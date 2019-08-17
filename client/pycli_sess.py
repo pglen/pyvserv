@@ -73,6 +73,7 @@ if __name__ == '__main__':
     if conf.quiet == False:
         print ("Server initial:", resp2)
 
+'''
     resp = hand.client("key")
     hhh = resp.split()[2]
     #print ("Server response:", "'" + hhh + "'")
@@ -98,6 +99,7 @@ if __name__ == '__main__':
     if conf.showkey:
         #print("Key:")
         print(hand.pkey)
+'''
 
     conf.sess_key = Random.new().read(256)
     #crysupp.trandstr(32);
