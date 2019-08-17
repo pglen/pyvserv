@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time, struct
-import socket, threading, traceback, random #, syslog
+import socket, threading, traceback, random
 
 if sys.version_info[0] < 3:
     import SocketServer
@@ -15,7 +15,7 @@ sys.path.append('../bluepy')
 import bluepy
 
 sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog
+import support, pycrypt, pyservsup, pyclisup, pysyslog
 
 # Walk thru the server (chunk) state machine
 # Chunk is our special buffer (short [16 bit])len + (str)message
@@ -150,6 +150,7 @@ class xHandler():
         pass
 
 # EOF
+
 
 
 

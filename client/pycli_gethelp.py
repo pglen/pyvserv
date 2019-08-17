@@ -35,9 +35,11 @@ def phelp():
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
+    print( "            -s str    - Subhelp string")
+    print()
     print( " Needs debug level or verbose to have any output.")
+    print()
     sys.exit(0)
-
 
 def pversion():
     print( os.path.basename(sys.argv[0]), "Version", version)
@@ -101,22 +103,6 @@ def client(sock, message):
 
 # ------------------------------------------------------------------------
 
-def help():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] host")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print( "            -s str    - Subhelp string")
-    print()
-    sys.exit(0)
-
-# ------------------------------------------------------------------------
-
 if __name__ == '__main__':
 
     '''if  sys.version_info[0] < 3:
@@ -158,6 +144,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

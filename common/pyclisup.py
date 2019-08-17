@@ -222,25 +222,3 @@ class CliSup():
         return response
 
 # EOF
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

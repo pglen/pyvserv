@@ -32,8 +32,8 @@ def put_exception(xstr):
             ttt = traceback.extract_tb(c)
             for aa in ttt:
                 cumm += "File: " + os.path.basename(aa[0]) + \
-                        " Line: " + str(aa[1]) + "\n" +  \
-                    "   Context: " + aa[2] + " -> " + aa[3] + "\n"
+                        "  Line: " + str(aa[1]) + "\n" +  \
+                        "    Context: " + aa[2] + " -> " + aa[3] + "\n"
         except:
             print( "Could not print trace stack. ", sys.exc_info())
 
@@ -215,6 +215,7 @@ def pickkey():
 
 if __name__ == '__main__':
     print( "test")
+
 
 
 

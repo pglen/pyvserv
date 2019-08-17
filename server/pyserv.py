@@ -14,7 +14,7 @@ else:
 import pystate
 
 sys.path.append('../common')
-import support, pyservsup, pyclisup, syslog, pydata
+import support, pyservsup, pyclisup, pysyslog, pydata
 
 # Globals
 verbose = False
@@ -56,7 +56,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         print("Connected " + " " + str(self.client_address))
 
-        syslog.syslog("Connected " + " " + str(self.client_address))
+        pysyslog.syslog("Connected " + " " + str(self.client_address))
         self.datahandler.verbose = verbose
         self.datahandler.par = self
         self.datahandler.putdata("OK pyserv ready", "")
@@ -83,11 +83,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         del mydata[self.name]
         if verbose:
             print( "Closed socket on", self.name)
-        syslog.syslog("Logoff '" + usr + "' " + cli)
+        pysyslog.syslog("Logoff '" + usr + "' " + cli)
 
         #server.socket.shutdown(socket.SHUT_RDWR)
         #server.socket.close()
-
 
 # ------------------------------------------------------------------------
 # Override stock methods
@@ -128,7 +127,10 @@ def terminate(arg1, arg2):
         print( "Dumping connection info:")
         print( mydata)
 
-    server.shutdown()
+    try:
+        server.shutdown()
+    except:
+        pass
 
     #server.socket.shutdown(socket.SHUT_RDWR)
     #server.socket.close()
@@ -136,7 +138,7 @@ def terminate(arg1, arg2):
     if not quiet:
         print( "Terminated pyserv.py.")
 
-    syslog.syslog("Terminated Server")
+    pysyslog.syslog("Terminated Server")
     os.unlink(lockfile)
     sys.exit(2)
 
@@ -167,10 +169,14 @@ if __name__ == '__main__':
 
     fh = open(lockfile, "w");  fh.write(str(pid));  fh.close()
 
+    # Set termination handlers, so lock will be deleted
+    signal.signal(signal.SIGTERM, terminate)
+    signal.signal(signal.SIGINT, terminate)
+
     sys.stdout = support.Unbuffered(sys.stdout)
     sys.stderr = support.Unbuffered(sys.stderr)
 
-    syslog.openlog("pyserv.py")
+    pysyslog.openlog("pyserv.py")
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:qhvV")
@@ -200,10 +206,6 @@ if __name__ == '__main__':
             print( os.path.basename(sys.argv[0]), "Version", version)
             sys.exit(0)
 
-    # Set termination handlers
-    signal.signal(signal.SIGTERM, terminate)
-    signal.signal(signal.SIGINT, terminate)
-
     # Port 0 would mean to select an arbitrary unused port
     HOST, PORT = "", 9999
 
@@ -211,7 +213,8 @@ if __name__ == '__main__':
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
     except:
         print( "Cannot start server.", sys.exc_info()[1])
-        sys.exit(1)
+        terminate(None, None)
+        #sys.exit(1)
 
     ip, port = server.server_address
     server.allow_reuse_address = True
@@ -229,12 +232,13 @@ if __name__ == '__main__':
     if not quiet:
         print( "Server running:", server.server_address)
 
-    syslog.syslog("Started Server")
+    pysyslog.syslog("Started Server")
 
     # Block
     server.serve_forever()
 
 # EOF
+
 
 
 

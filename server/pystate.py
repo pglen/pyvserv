@@ -10,7 +10,7 @@ sys.path.append('../bluepy')
 import bluepy.bluepy
 
 sys.path.append('../common')
-import support, pyservsup, pyclisup, syslog
+import support, pyservsup, pyclisup, crysupp, pysyslog
 
 # Globals
 
@@ -22,11 +22,12 @@ version = 1.0
 
 initial     = 0
 auth_user   = 1
-auth_pass   = 2
-in_idle     = 3
-got_fname   = 4
-in_trans    = 5
-got_file    = 6
+auth_key    = 2
+auth_pass   = 3
+in_idle     = 4
+got_fname   = 5
+in_trans    = 6
+got_file    = 7
 
 # The commands in this state are allowed always
 all_in       = 100
@@ -115,7 +116,7 @@ def get_fget_func(self, strx):
     xstr = "Sent file: '" + dname + \
                 "' " + str(flen) + " bytes"
     print( xstr)
-    syslog.syslog(xstr)
+    pysyslog.syslog(xstr)
 
 def get_ekey_func(self, strx):
     oldkey = self.resp.ekey[:]
@@ -205,6 +206,20 @@ def get_user_func(self, strx):
     self.resp.user = strx[1]
     self.resp.datahandler.putdata("OK Enter pass for '" + self.resp.user + "'", self.resp.ekey)
 
+def get_sess_func(self, strx):
+
+    #if(strx != ""):
+    print("got session key")
+    print(crysupp.hexdump(strx))
+    print("session key end")
+
+    self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
+
+    '''try:
+    except:
+        self.resp.datahandler.putdata("ERR cannot open keyfile.", self.resp.ekey)'''
+
+
 def get_key_func(self, strx):
 
     self.keyfroot = support.pickkey()
@@ -226,7 +241,7 @@ def get_pass_func(self, strx):
     stry = "Logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
     print( stry        )
-    syslog.syslog(stry)
+    pysyslog.syslog(stry)
     if not os.path.isfile(pyservsup.passfile):
         ret = "ERR " + "No initial users yet"
     else:
@@ -241,7 +256,7 @@ def get_pass_func(self, strx):
             stry = "Error on logon  '" + self.resp.user + "' " + \
                     str(self.resp.client_address)
             print( stry        )
-            syslog.syslog(stry)
+            pysyslog.syslog(stry)
             ret = "ERR " + xret[1]
     self.resp.datahandler.putdata(ret, self.resp.ekey)
 
@@ -398,7 +413,7 @@ def get_data_func(self, strx):
     xstr = "Received file: '" + self.resp.fname + \
                 "' " + str(self.resp.dlen) + " bytes"
     print( xstr)
-    syslog.syslog(xstr)
+    pysyslog.syslog(xstr)
     self.resp.datahandler.putdata("OK Got data", self.resp.ekey)
 
 def get_help_func(self, strx):
@@ -479,6 +494,7 @@ stat_help  = "Usage: stat fname  -- Get file stat. Field list:\n"\
 "   10. ST_CTIME Time of last metadata change."
 tout_help  = "Usage: tout new_val -- Set / Reset timeout in seconds"
 ekey_help  = "Usage: ekey encryption_key -- Set encryption key "
+sess_help  = "Usage: sess session data -- Set session key "
 xxxx_help  = "Usage: no data"
 
 # ------------------------------------------------------------------------
@@ -490,16 +506,15 @@ state_table = [
             # Command ; start_state ; end_state ; action function
             ("user",    initial,    auth_pass,  get_user_func,  user_help),
             ("pass",    auth_pass,  none_in,    get_pass_func,  pass_help),
-            ("key",     initial,    initial,    get_key_func,   key_help),
+            ("key",     initial,    auth_key,   get_key_func,   key_help),
             ("file",    in_idle,    got_fname,  get_fname_func, file_help),
             ("fget",    in_idle,    in_idle,    get_fget_func,  fget_help),
             ("data",    got_fname,  in_idle,    get_data_func,  data_help),
             ("ekey",    all_in,     none_in,    get_ekey_func,  ekey_help),
             ("xkey",    all_in,     none_in,    get_xkey_func,  ekey_help),
+            ("sess",    auth_key,   none_in,    get_sess_func,  sess_help),
             ("uadd",    auth_in,    none_in,    get_uadd_func,  uadd_help),
             ("kadd",    auth_in,    none_in,    get_kadd_func,  kadd_help),
-            ("uini",    all_in,     none_in,    get_uini_func,  uini_help),
-            ("kini",    all_in,     none_in,    get_kini_func,  kini_help),
             ("udel",    auth_in,    none_in,    get_udel_func,  udel_help),
             ("ver",     all_in,     none_in,    get_ver_func,   vers_help),
             ("vers",    all_in,     none_in,    get_ver_func,   vers_help),
@@ -513,6 +528,8 @@ state_table = [
             ("pwd",     auth_in,    none_in,    get_pwd_func,   pwdd_help),
             ("stat",    auth_in,    none_in,    get_stat_func,  stat_help),
             ("tout",    auth_in,    none_in,    get_tout_func,  tout_help),
+            #("uini",    all_in,     none_in,    get_uini_func,  uini_help),
+            #("kini",    all_in,     none_in,    get_kini_func,  kini_help),
             ]
 # ------------------------------------------------------------------------
 
@@ -527,7 +544,7 @@ class StateHandler():
         self.resp.cwd = os.getcwd()
         self.resp.dir = ""
         self.resp.ekey = ""
-        syslog.openlog("pyserv.py")
+        pysyslog.openlog("pyserv.py")
 
     # --------------------------------------------------------------------
     # This is the function where outside stimulus comes in.
@@ -540,7 +557,7 @@ class StateHandler():
         try:
             ret = self.run_state2(strx)
         except:
-            support.put_exception("run state:")
+            support.put_exception("in run state:")
             #print( sys.exc_info())
         return ret
 
@@ -557,6 +574,7 @@ class StateHandler():
 
         comx = strx.split()
         if self.verbose:
+            print( "Line: '"+ strx + "'")
             print( "Com:", comx, "State =", self.curr_state)
 
         # Scan the state table, execute actions, set new states
@@ -589,6 +607,8 @@ class StateHandler():
         return ret
 
 # EOF
+
+
 
 
 
