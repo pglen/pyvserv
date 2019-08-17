@@ -22,14 +22,18 @@ so communication data is always distinctive.
     make build;    # operational
     make test;     # operational
 
+    Both py2 and py3 support.
+
 #### Partially Working:
 
-    Server.    subdir: server   -- Server has 50% of the commands done
-    Client.    subdir: client
-    Test Suite.
-    Studies.   subdir: study    -- testing subsystems
+    Server.     subdir: server      -- Server has 50% of the commands done
+    Client.     subdir: client
+    Test Suite. subdir: test
 
-Versioning.
+    Studies.    subdir: study       -- testing subsystems
+                subdir: pycrypto    -- test crypto functions
+
+#### Versioning.
 
   The 'C' module has a date API, that is generated automatically. Use it to
 distinguish algorythm versioning.
@@ -55,6 +59,7 @@ The following should be printed on command line:
  The best way to learn about the operation of the server is to look at the
 sample client examples in the client source tree. (Files named pycli_*)
 
+All tests are base on python2, some modules function on both py2 and py3.
 
 
 
