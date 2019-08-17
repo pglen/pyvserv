@@ -11,12 +11,19 @@ pip install bcrypt
 #Switched to pycrypto, no libgcrypt is needed
 #pacman -S mingw-w64-i686-libgcrypt
 
-On Ubuntu / Fedora:
+On Ubuntu:
 
 pip install pycrypto
 pip install bcrypt
 
+alternate:
+
+sudo apt install python-bcrypt
+
+On Fedora:
+
 # EOF
+
 
 
 

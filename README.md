@@ -28,21 +28,32 @@ can be transmitted securely, even with zero knowledge.
     Test Suite.
     Studies.   subdir: study    -- testing subsystems
 
-####  BELOW IS OLD INFO, PLEASE WAIT FOR UPDATE (dec/2018)
-
- The server's user names and initial keys can only be initialized from the
-loopback interface. An unconfigured server will refuse to accept logins,
-but can be configured remotely via public key encryption.
-
- The best way to learn about the operation of the server is to look at the
-sample client examples in the client source tree. (Files named pycli_*)
-
 Versioning.
 
   The 'C' module has a date API, that is generated automatically. Use it to
 distinguish algorythm versioning.
 
     print( "Builddate: ",  bluepy.builddate())
+
+Quick start:
+
+  open terminal window
+  navigate to server subdir
+  type ./pyserv.py
+
+  open another terminal window
+  navigate to client subdir
+  type ./pycli_hello.py
+
+The following should be printed on command line:
+
+    > ./pycli_hello.py
+    > Server initial: OK pyserv ready
+    > Server response: OK Hello
+
+ The best way to learn about the operation of the server is to look at the
+sample client examples in the client source tree. (Files named pycli_*)
+
 
 
 
