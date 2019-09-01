@@ -19,8 +19,12 @@ pip install bcrypt
 alternate:
 
 sudo apt install python-bcrypt
+sudo apt install pycrypto
 
 On Fedora:
+
+sudo yum install python-bcrypt
+sudo yum install pycrypto
 
 # EOF
 

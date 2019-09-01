@@ -209,9 +209,9 @@ def get_user_func(self, strx):
 def get_sess_func(self, strx):
 
     #if(strx != ""):
-    print("got session key")
-    print(crysupp.hexdump(strx))
-    print("session key end")
+    #print("got session key")
+    #print(crysupp.hexdump(strx))
+    #print("session key end")
 
     self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
 
@@ -506,7 +506,7 @@ state_table = [
             # Command ; start_state ; end_state ; action function
             ("user",    initial,    auth_pass,  get_user_func,  user_help),
             ("pass",    auth_pass,  none_in,    get_pass_func,  pass_help),
-            ("key",     initial,    auth_key,   get_key_func,   key_help),
+            ("akey",    initial,    auth_key,   get_key_func,   key_help),
             ("file",    in_idle,    got_fname,  get_fname_func, file_help),
             ("fget",    in_idle,    in_idle,    get_fget_func,  fget_help),
             ("data",    got_fname,  in_idle,    get_data_func,  data_help),
@@ -607,6 +607,7 @@ class StateHandler():
         return ret
 
 # EOF
+
 
 
 
