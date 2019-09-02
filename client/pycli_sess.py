@@ -11,7 +11,8 @@ import  random, stat
 from Crypto import Random
 
 sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, pysyslog, crysupp
+import support, pycrypt, pyservsup, pyclisup,
+import pysyslog, crysupp, pypacker
 
 # ------------------------------------------------------------------------
 # Functions from command line

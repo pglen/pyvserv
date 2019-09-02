@@ -212,9 +212,21 @@ def pickkey():
     #print("picking key", eee[0])
     return eee[0]
 
+def  breaklines(xstr, xlen):
+    ystr = ""
+    for aa in range(len(xstr)):
+        ystr += xstr[aa]
+        if aa % xlen == xlen-1:
+            ystr += "\n"
+    return ystr
+
+def catbegend(xstr):
+    pass
+
 
 if __name__ == '__main__':
     print( "test")
+
 
 
 

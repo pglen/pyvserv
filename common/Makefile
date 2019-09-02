@@ -16,34 +16,15 @@
 # ------------------------------------------------------------------------
 
 all:
-	@echo Targets: build test test3 git clean
+	@echo Targets: test test3 clean
 
-# the .so targets
-
-bluepy_c.so:  bluepy_c.c bluepoint2.c
-	python buildme.py
-
-bluepy3_c.so: bluepy_c.c  bluepoint2.c
-	python3 buildme3.py
-
-# Building modules:
-
-build: bluepy_c.so
-
-build3: bluepy3_c.so
-
-# Testing modules:
-
-test: build
+test:
 	@echo Diffs should be silent
-	@python bluetest.py >cc
+	@python pypacker.py >cc
 	@diff -w test.org cc
-	@python bluefile.py -e -f -p 1111 Makefile aa
-	@python bluefile.py -d -f -p 1111 aa bb
-	@diff Makefile bb
-	@rm -f aa bb cc dd ee
+	@rm -f cc
 
-test3: build3
+test3:
 	@echo Diffs should be silent
 	@python3  bluetest.py >cc
 	@diff -w test.org cc
@@ -63,6 +44,7 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+
 
 
 

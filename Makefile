@@ -23,6 +23,9 @@ clean:
 	@make -C server clean
 	@make -C common clean
 
+md5:
+
+
 
 
 

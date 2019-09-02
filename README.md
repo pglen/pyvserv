@@ -10,7 +10,7 @@ instructing the server to use an encryption key.
  PyvServ contains key exchange protocol, so the new session keys
 can be transmitted securely, even with zero knowledge.
 
- PyvServ internally generates  random keys, and spools aymmetric key generation,
+ PyvServ internally generates random keys, and spools aymmetric key generation,
 so communication data is always distinctive.
 
  Project still in motion, not much is usable yet.
@@ -22,7 +22,7 @@ so communication data is always distinctive.
     make build;    # operational
     make test;     # operational
 
-    Both py2 and py3 support.
+    Both py2 and py3 supported. Current focus: py2
 
 #### Partially Working:
 
@@ -60,6 +60,7 @@ The following should be printed on command line:
 sample client examples in the client source tree. (Files named pycli_*)
 
 All tests are base on python2, some modules function on both py2 and py3.
+
 
 
 

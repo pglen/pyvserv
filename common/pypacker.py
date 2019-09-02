@@ -5,6 +5,10 @@ from __future__ import print_function
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random, zlib
 
+from Crypto.Hash import SHA512
+
+import support
+
 # ------------------------------------------------------------------------
 # Encode / decode arbitrary data in a string. Preserves type, data.
 # on python 2 it is 8 bit clean.
@@ -190,7 +194,7 @@ class packbin():
     def autotype(self, xdata):
         aaa = ""
         for aa in xdata:
-            #print("type", type(aa).__name__)
+            #print("type", aa, type(aa).__name__)
             if type(aa).__name__ == "int":
                 aaa += "i"
 
@@ -206,11 +210,13 @@ class packbin():
                 if bbb:
                     aaa += "b"
                 else:
-                    aaa += "s"
+                    if len(aa) == 1:
+                        aaa += "c"
+                    else:
+                        aaa += "s"
 
             if type(aa).__name__ == "float":
                 aaa += "f"
-
 
         return aaa
 
@@ -225,6 +231,7 @@ class packbin():
         localf = formstr[0]
         if  localf == "":
             localf = self.autotype(formstr[1:])
+            #print("Autotype:", localf);
 
         packed_str = "pg "
 
@@ -289,6 +296,41 @@ class packbin():
 
         return arr
 
+    # Wrap data in a hash, compress, base64
+    def wrap_data(self, xddd):
+
+        #print ("\nddd=", xddd, "\ntstr=", self.autotype(xddd))
+        sss = self.encode_data("", *xddd)
+        #print ("sss", sss);
+        hh = SHA512.new(); hh.update(sss)
+        #print (hhh, sss)
+        dddd = [hh.hexdigest(), sss]
+        #print("dddd", dddd)
+        ssss = self.encode_data("sx", *dddd)
+
+        fff = zlib.compress(ssss)
+        fff2 = base64.b64encode(fff)
+
+        return fff2
+
+    # Unrap data in a hash, de  base64, decompress,
+    def unwrap_data(self, xddd):
+
+        fff2 = base64.b64decode(xddd)
+        fff = zlib.decompress(fff2)
+
+        #print ("\nddd=", xddd, "\ntstr=", self.autotype(xddd))
+        sss = self.decode_data(fff)
+        #print ("sss", sss);
+        hh = SHA512.new(); hh.update(sss[1])
+        #print (hhh, sss)
+        #print ("2digest", [hh.hexdigest(), sss[0]])
+        if not hh.hexdigest() == sss[0]:
+            raise ValueError("Mismatching hashes on data")
+
+        return sss[1]
+
+
 # ------------------------------------------------------------------------
 # test harness
 
@@ -297,11 +339,16 @@ if __name__ == '__main__':
 
     from Crypto import Random
 
-    print ("Should print 3 successes")
+    rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
+            "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
+
+    print ("Should print 4 successes and a sample output")
 
     pb = packbin()
-    bindat = Random.new().read(64)
-    #print("bindat64:", base64.b64encode(bindat))
+    #bindat = Random.new().read(64)
+    #print("bindat64:\n", base64.b64encode(bindat))
+
+    bindat = base64.b64decode(rrr)
 
     org = [ 33, "sub", 'd', "longer str here with \' and \" all crap", 33L, 33333333.2, bindat ]
     #print ("org:\n", org)
@@ -350,13 +397,27 @@ if __name__ == '__main__':
     else:
         print ("Success ", end="")
 
+    www = pb.wrap_data(org)
+    #print ("www", www)
+
+    # damage the data
+    zzz = www[:100] + chr(ord(www[100]) + 1) + www[101:]
+    # OK data
+    zzz = www[:100] + www[100:]
+    #print (len(zzz), len(www), chr(ord(www[100]) + 1))
+
+
+    ooo = pb.unwrap_data(zzz)
+    oooo = pb.decode_data(ooo)
+
+    if not org == oooo:
+        print ("Broken unwrap")
+    else:
+        print ("Success ", end="")
+
     print()
 
-    fff = zlib.compress(eee)
-    fff2 = base64.b64encode(fff)
+    zzzz = support.breaklines(zzz, 75)
+    print (zzzz)
 
-    print(fff2)
-
-
-
-
+# eof
