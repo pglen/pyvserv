@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import os, sys, string, time,  traceback, getopt, random
+from __future__ import print_function
+
+import os, sys, string, time,  traceback, getopt, random, glob
 
 # ------------------------------------------------------------------------
 # Globals
@@ -224,21 +226,60 @@ def catbegend(xstr):
     pass
 
 
+# ------------------------------------------------------------------------
+# Create a list of recursive names
+
+class listrec():
+
+    def __init__(self, dirx = ""):
+        self.filearr = []
+
+        self._rel = "."
+        self._relarr = []
+        self.startdir = os.getcwd()
+
+        if dirx != "":
+            self.fill(dirx)
+
+    def _gotfile(self, fname):
+        self.filearr.append(fname)
+
+    def _listit(self):
+        #print ( "_listit at: ", self._rel)
+        arr = glob.glob(self._rel + "/*")
+        #print ("arr", arr)
+        for aa in arr:
+            bb = self._rel + "/" +  os.path.basename(aa)
+            if os.path.isdir(bb):
+                #print ( "got dir", bb)
+                self._relarr.append(self._rel)
+                self._rel += "/" + os.path.basename(aa)
+                self._listit()
+                self._rel = self._relarr.pop()
+
+        for aa in arr:
+            bb = self._rel + "/" + os.path.basename(aa)
+            if not os.path.isdir(bb):
+                #print ("file aa", aa)
+                self._gotfile(bb)
+
+    def fill(self, dirx = ""):
+        self.startdir = os.getcwd()
+        self._rel = dirx
+        self._relarr = []
+        self._relarr.append(self._rel)
+        self.filearr = []
+        self._listit()
+
 if __name__ == '__main__':
-    print( "test")
+    lr = listrec("..")
+    #lr.fill("..")
 
+    #print ("startdir:", lr.startdir)
+    for aa in lr.filearr:
+        print(aa)
 
-
-
-
-
-
-
-
-
-
-
-
+    #print ("filearr:", lr.filearr)
 
 
 
