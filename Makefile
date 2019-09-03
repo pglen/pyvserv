@@ -3,7 +3,7 @@
 .PHONY: test clean
 
 all:
-	@echo Targets: all git build test clean
+	@echo Targets: all git build build3 test clean
 
 git:
 	git add .
@@ -12,6 +12,8 @@ git:
 
 build:
 	@make -C bluepy build
+
+build3:
 	@make -C bluepy build3
 
 test:
@@ -24,6 +26,7 @@ clean:
 	@make -C common clean
 
 md5:
+
 
 
 

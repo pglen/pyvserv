@@ -8,6 +8,11 @@ from __future__ import print_function
 from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
+
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto.PublicKey import RSA
+from Crypto.Hash import SHA
 from Crypto import Random
 
 sys.path.append('../common')
@@ -97,18 +102,21 @@ if __name__ == '__main__':
             print("Key OK")
 
     if conf.showkey:
-        #print("Key:")
+        print("Key:")
         print(hand.pkey)
 
-    conf.sess_key = Random.new().read(256)
+    hand.pubkey = RSA.importKey(hand.pkey)
+
+    print (hand.pubkey)
+
+
+    # interpret
+
+    #conf.sess_key = Random.new().read(256)
     #crysupp.trandstr(32);
-    print("session key:")
-    print(crysupp.hexdump(conf.sess_key))
+    #print("session key:")
+    #print(crysupp.hexdump(conf.sess_key))
     #print("session key:\n'" + conf.sess_key + "'")
-
-    resp = hand.client("sess", "", False)
-
-    print("Sess Response:", resp)
 
     hand.client("quit")
     hand.close();
@@ -116,6 +124,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

@@ -233,7 +233,7 @@ class listrec():
 
     def __init__(self, dirx = ""):
         self.filearr = []
-
+        self.noext = []
         self._rel = "."
         self._relarr = []
         self.startdir = os.getcwd()
@@ -242,6 +242,13 @@ class listrec():
             self.fill(dirx)
 
     def _gotfile(self, fname):
+        # filter extensions
+        if len(self.noext):
+            eee = os.path.splitext(fname)
+            for aa in self.noext:
+                if aa == eee[1]:
+                    return
+
         self.filearr.append(fname)
 
     def _listit(self):
@@ -273,6 +280,7 @@ class listrec():
 
 if __name__ == '__main__':
     lr = listrec("..")
+    lr.noext = [".pyc", ".o", ".so", ".pem", ".pub", ]
     #lr.fill("..")
 
     #print ("startdir:", lr.startdir)
@@ -280,6 +288,7 @@ if __name__ == '__main__':
         print(aa)
 
     #print ("filearr:", lr.filearr)
+
 
 
 

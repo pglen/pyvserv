@@ -1,0 +1,25 @@
+                                    PROTOCOL
+
+ This is a sketchup for the protocol. A hybrid between a spec and a design
+document. The implementation follows loosely the outline of the interaction.
+
+
+    Client                          Server
+    TCP connection estabilished.    Sent signon str
+
+    initial state, query server     sent appropriate answer
+
+    akey requested                  sent rendomly selected pub key
+
+    akey state, ready to estabilish session
+
+    session key generated,          session key stored
+        encrypted, transmitted
+
+    session state, sent rand str    acknowledge estabilished session
+        with checksum                   seed with random amount of data
+
+    Transactions start              respond with packer data
+        send packer data
+
+

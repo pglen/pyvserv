@@ -22,7 +22,7 @@ quiet  = False
 version = 1.0
 pgdebug = 0
 mydata = {}
-datadir = ".pyserv"
+datadir = ".pyvserv"
 lockfile = datadir + "/lock"
 
 # ------------------------------------------------------------------------
@@ -59,10 +59,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         pysyslog.syslog("Connected " + " " + str(self.client_address))
         self.datahandler.verbose = verbose
         self.datahandler.par = self
-        self.datahandler.putdata("OK pyserv ready", "")
+        self.datahandler.putdata("OK pyvserv ready", "")
 
     def handle_error(request, client_address):
-        print(  "PyServ Error", request, client_address)
+        print(  "pyvserv Error", request, client_address)
 
     def handle(self):
         try:
@@ -136,7 +136,7 @@ def terminate(arg1, arg2):
     #server.socket.close()
 
     if not quiet:
-        print( "Terminated pyserv.py.")
+        print( "Terminated pyvserv.py.")
 
     pysyslog.syslog("Terminated Server")
     os.unlink(lockfile)
@@ -176,7 +176,7 @@ if __name__ == '__main__':
     sys.stdout = support.Unbuffered(sys.stdout)
     sys.stderr = support.Unbuffered(sys.stderr)
 
-    pysyslog.openlog("pyserv.py")
+    pysyslog.openlog("pyvserv.py")
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "d:qhvV")
@@ -238,6 +238,7 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
+
 
 
 

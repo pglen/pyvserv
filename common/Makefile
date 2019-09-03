@@ -22,7 +22,8 @@ test:
 	@echo Diffs should be silent
 	@python pypacker.py >cc
 	@diff -w test.org cc
-	@rm -f cc
+	@python support.py >dd
+	@rm -f cc dd
 
 test3:
 	@echo Diffs should be silent
@@ -44,6 +45,7 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+
 
 
 

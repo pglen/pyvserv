@@ -9,7 +9,7 @@ import os, getpass, sys, base64
 seed = "309812347089lhjkhdfasbsvnm,sdkljd089d908asd089sdajasdl;jk28923"
 
 # Starting vector for the feedback loop
- vector = 0xe5
+vector = 0xe5
 
 # Limit the rounds
 MAXROUNDS = 32
@@ -174,6 +174,7 @@ if __name__ == '__main__':
         print( "\nERROR! Faulty base 64")
     if org != org3:
         print( "\nERROR! Faulty xencrypt / xdecrypt")
+
 
 
 
