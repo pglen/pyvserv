@@ -22,6 +22,22 @@ def genfname():
         sss += "%x" % ord(aa)
     return sss
 
+def genkey():
+
+    #key = RSA.generate(2048)
+    key = RSA.generate(4096)
+    #print ("Generated:", key, key.size())
+
+    fff  = genfname()
+    f = open(keydir + fff + '.pem','w')
+    f.write(key.exportKey('PEM'))
+    f.close()
+
+    pkey = key.publickey()
+    f3 = open(keydir + fff + '.pub','w')
+    f3.write(pkey.exportKey('PEM'))
+    f3.close()
+
 keydir = './keys/'
 
 if __name__ == '__main__':
@@ -41,25 +57,16 @@ if __name__ == '__main__':
     if not os.path.isdir(keydir):
         os.mkdir(keydir)
 
-    print("Current dir:     ", os.getcwd())
-    print ("Started gen ...")
+    #print("Current dir:     ", os.getcwd())
+    print ("Started gen ... ", end=""); sys.stdout.flush()
+    genkey();
+    print(" done.")
 
-    #key = RSA.generate(2048)
-    key = RSA.generate(4096)
-    #print ("Generated:", key, key.size())
-
-    fff  = genfname()
-    f = open(ddd + fff + '.pem','w')
-    f.write(key.exportKey('PEM'))
-    f.close()
-
-    pkey = key.publickey()
-    f3 = open(ddd + fff + '.pub','w')
-    f3.write(pkey.exportKey('PEM'))
-    f3.close()
 
 #if __name__ == '__main__':
 #    print( "Generated file: ", "'" + fff + "'")
+
+
 
 
 

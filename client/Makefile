@@ -19,6 +19,14 @@ test:
 	@#-./pycli_up.py -q
 	@-./killserv.sh
 
+# "ps xa | grep "pyserv.py" | grep python")
+#	@-cd ../server; python ./pyserv.py &
+#	@-./pycli_hello.py -q
+#	@-./killserv.sh
+
+hello:
+	@./testhello.sh
+
 clean:
 	@rm -f aa bb cc dd ee
 	@rm -f *.o
@@ -26,6 +34,7 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+
 
 
 

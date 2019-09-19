@@ -5,22 +5,13 @@ from __future__ import print_function
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random
 
-from Crypto.PublicKey import RSA
+'''from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
-from Crypto import Random
+from Crypto import Random'''
 
-def genfname():
-    rsize = 2; sss = ""
-    rrr = Random.new().read(rsize)
-    for aa in rrr:
-        sss += "%x" % ord(aa)
-    sss += "%x" % int(time.time()) # % 1000000)
-    rrr = Random.new().read(rsize)
-    for aa in rrr:
-        sss += "%x" % ord(aa)
-    return sss
+import genkey
 
 keydir = './keys/'
 
@@ -41,25 +32,26 @@ if __name__ == '__main__':
     if not os.path.isdir(keydir):
         os.mkdir(keydir)
 
-    print("Current dir:     ", os.getcwd())
-    print ("Started gen ...")
+    #print("Current dir:     ", os.getcwd())
+    print ("Started gen. Press Ctrl-C to abort.")
+    cnt = 0
 
-    #key = RSA.generate(2048)
-    key = RSA.generate(4096)
-    #print ("Generated:", key, key.size())
+    while(True):
+        cnt += 1;
+        print ("Key %d ... " % cnt, end=""); sys.stdout.flush()
+        genkey.genkey()
+        print ("OK. ")
 
-    fff  = genfname()
-    f = open(ddd + fff + '.pem','w')
-    f.write(key.exportKey('PEM'))
-    f.close()
-
-    pkey = key.publickey()
-    f3 = open(ddd + fff + '.pub','w')
-    f3.write(pkey.exportKey('PEM'))
-    f3.close()
+        if cnt > 100:
+            time.sleep(1000)
+        elif cnt > 10:
+            time.sleep(100)
+        else:
+            time.sleep(10)
 
 #if __name__ == '__main__':
 #    print( "Generated file: ", "'" + fff + "'")
+
 
 
 

@@ -19,6 +19,9 @@ build3:
 test:
 	@make -C client test
 
+hello:
+	@make -C client hello
+
 clean:
 	@make -C client clean
 	@make -C bluepy clean
@@ -26,6 +29,7 @@ clean:
 	@make -C common clean
 
 md5:
+
 
 
 

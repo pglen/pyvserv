@@ -22,6 +22,8 @@ quiet  = False
 version = 1.0
 pgdebug = 0
 mydata = {}
+
+script_home = ""
 datadir = ".pyvserv"
 lockfile = datadir + "/lock"
 
@@ -139,7 +141,11 @@ def terminate(arg1, arg2):
         print( "Terminated pyvserv.py.")
 
     pysyslog.syslog("Terminated Server")
-    os.unlink(lockfile)
+    try:
+        os.unlink(lockfile)
+    except:
+        print("Cannot unlink lockfile.")
+
     sys.exit(2)
 
 # ------------------------------------------------------------------------
@@ -149,23 +155,47 @@ if __name__ == '__main__':
     global server
     opts = []; args = []
 
-    try:
-        if not os.path.isdir(datadir):
-            os.mkdir(datadir)
-    except:
-        print( "Cannot make data dir", sys.exc_info())
-        sys.exit(0)
-
     pid = os.getpid()
 
+    #print("This script:     ", os.path.realpath(__file__))
+    #print("Exec argv:       ", sys.argv[0])
+    #print("Full path argv:  ", os.path.abspath(sys.argv[0]))
+    #print("Executable name: ", sys.executable)
+    #print("Script name:     ", os.__file__)
+
+    script_home = os.path.dirname(os.path.realpath(__file__)) + "/../data/"
+    #print ("Script home:     ", script_home)
+
+    try:
+        if not os.path.isdir(script_home):
+            os.mkdir(script_home)
+    except:
+        print( "Cannot make script home dir", sys.exc_info())
+        sys.exit(1)
+
+    try:
+        if not os.path.isdir(script_home + datadir):
+            os.mkdir(script_home + datadir)
+    except:
+        print( "Cannot make data dir", sys.exc_info())
+        sys.exit(1)
+
+    os.chdir(script_home)
+    #print("Current dir:     ", os.getcwd())
+
+    closeit = 0
     try:
         fh = open(lockfile, "r")
         if fh:
             fh.close()
-            print("Server running already.")
-            sys.exit(2)
+            closeit = 1
+
     except:
         pass
+
+    if closeit:
+        print("Server running already.")
+        sys.exit(2)
 
     fh = open(lockfile, "w");  fh.write(str(pid));  fh.close()
 
