@@ -14,10 +14,6 @@ import support, pyservsup, pyclisup, crysupp, pysyslog
 
 from pysfunc import *
 
-# Globals
-
-version = 1.0
-
 # Ping pong state machine
 
 # 1.) States
@@ -216,6 +212,7 @@ class StateHandler():
         return ret
 
 # EOF
+
 
 
 

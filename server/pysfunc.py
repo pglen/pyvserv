@@ -12,6 +12,10 @@ import bluepy.bluepy
 sys.path.append('../common')
 import support, pyservsup, pyclisup, crysupp, pysyslog
 
+# Globals
+
+version = 1.0
+
 # ------------------------------------------------------------------------
 # State transition and action functions
 
@@ -407,5 +411,6 @@ def get_help_func(self, strx):
             hstr = "ERR no help for command '" + strx[1] + "'"
 
     self.resp.datahandler.putdata(hstr, self.resp.ekey)
+
 
 

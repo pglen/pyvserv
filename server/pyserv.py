@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time
 import tarfile, subprocess, struct
-import socket, threading
+import socket, threading, psutil
 
 if sys.version_info[0] < 3:
     import SocketServer as socketserver
@@ -95,6 +95,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
+    #def __init__(self):
+    #    self._BaseServer__shutdown_request = True
+
     def stop(self):
         self._BaseServer__shutdown_request = True
         if verbose:
@@ -148,14 +151,48 @@ def terminate(arg1, arg2):
 
     sys.exit(2)
 
+
+def lock_process():
+
+    closeit = 0; pidstr = ""
+    pid = os.getpid()
+
+    try:
+        fh = open(lockfile, "r")
+        if fh:
+            pidstr = fh.read()
+            fh.close()
+            closeit = 1
+    except:
+        pass
+
+    if closeit:
+
+        # Examine if it is still running:
+        was = False
+        if pidstr != "":
+            for proc in psutil.process_iter():
+                if proc.pid == int(pidstr):
+                    was = True
+        if not was:
+            print("Lockfile active, no process ... breaking in")
+            os.unlink(lockfile)
+        else:
+            print("Server running already.")
+            if verbose:
+                print("Lockfile '%s' pid '%s'" % (lockfile, pidstr))
+            sys.exit(2)
+
+    fh = open(lockfile, "w");
+    fh.write( str() );
+    fh.close()
+
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
     global server
     opts = []; args = []
-
-    pid = os.getpid()
 
     #print("This script:     ", os.path.realpath(__file__))
     #print("Exec argv:       ", sys.argv[0])
@@ -164,6 +201,7 @@ if __name__ == '__main__':
     #print("Script name:     ", os.__file__)
 
     script_home = os.path.dirname(os.path.realpath(__file__)) + "/../data/"
+
     #print ("Script home:     ", script_home)
 
     try:
@@ -183,21 +221,6 @@ if __name__ == '__main__':
     os.chdir(script_home)
     #print("Current dir:     ", os.getcwd())
 
-    closeit = 0
-    try:
-        fh = open(lockfile, "r")
-        if fh:
-            fh.close()
-            closeit = 1
-
-    except:
-        pass
-
-    if closeit:
-        print("Server running already.")
-        sys.exit(2)
-
-    fh = open(lockfile, "w");  fh.write(str(pid));  fh.close()
 
     # Set termination handlers, so lock will be deleted
     signal.signal(signal.SIGTERM, terminate)
@@ -236,6 +259,8 @@ if __name__ == '__main__':
             print( os.path.basename(sys.argv[0]), "Version", version)
             sys.exit(0)
 
+    lock_process()
+
     # Port 0 would mean to select an arbitrary unused port
     HOST, PORT = "", 9999
 
@@ -268,6 +293,7 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
+
 
 
 

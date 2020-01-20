@@ -1,32 +1,33 @@
 INSTALL
 
+On Ubuntu:
+
+    pip install pycrypto
+    pip install bcrypt
+
 On msys the following dependencies where needed:
 
-pacman -S mingw-w64-i686-gcc
+    pacman -S mingw-w64-i686-gcc
 
-pip install passlib
-pip install pycrypto
-pip install bcrypt
+    pip install passlib
+    pip install pycrypto
+    pip install bcrypt
 
 #Switched to pycrypto, no libgcrypt is needed
 #pacman -S mingw-w64-i686-libgcrypt
 
-On Ubuntu:
-
-pip install pycrypto
-pip install bcrypt
-
 alternate:
 
-sudo apt install python-bcrypt
-sudo apt install pycrypto
+    sudo apt install python-bcrypt
+    sudo apt install pycrypto
 
 On Fedora:
 
-sudo yum install python-bcrypt
-sudo yum install pycrypto
+    sudo yum install python-bcrypt
+    sudo yum install pycrypto
 
 # EOF
+
 
 
 

@@ -61,8 +61,9 @@ class DataHandler():
                 #bluepy.bluepy.destroy(response)
 
             if self.tout: self.tout.cancel()
-            #self.tout = threading.Timer(self.timeout, self.handler_timeout)
-            #self.tout.start()
+            self.tout = threading.Timer(self.timeout, self.handler_timeout)
+            self.tout.start()
+
             # Send out our special buffer (short)len + (str)message
             if sys.version_info[0] < 3:
                 strx = struct.pack("!h", len(response2)) + response2
@@ -77,7 +78,8 @@ class DataHandler():
             if sys.version_info[0] < 3:
                 ret = self.par.request.send(strx)
             else:
-                ret = self.par.request.send(strx.encode())
+                #ret = self.par.request.send(strx.encode())
+                ret = self.par.request.send(strx)
 
         except:
             support.put_exception("While in Put Data:")
@@ -86,9 +88,11 @@ class DataHandler():
     def getdata(self, amount):
         #if self.pgdebug > 7:
         #    print("getting data:", amount)
+
         if self.tout: self.tout.cancel()
-        #self.tout = threading.Timer(self.timeout, self.handler_timeout)
-        #self.tout.start()
+        self.tout = threading.Timer(self.timeout, self.handler_timeout)
+        self.tout.start()
+
         sss = self.par.request.recv(amount)
         #if self.pgdebug > 8:
         #    print("got len", amount, "got data:", sss)
@@ -150,6 +154,8 @@ class xHandler():
         pass
 
 # EOF
+
+
 
 
 
