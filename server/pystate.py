@@ -7,10 +7,9 @@ import os, sys, getopt, signal, select, string, time, stat
 
 sys.path.append('..')
 sys.path.append('../bluepy')
-import bluepy.bluepy
-
 sys.path.append('../common')
-import support, pyservsup, pyclisup, crysupp, pysyslog
+
+import support, pyservsup, pyclisup, crysupp, pysyslog, bluepy
 
 from pysfunc import *
 
@@ -31,13 +30,16 @@ got_file    = 9
 
 # The commands in this state are allowed always
 all_in       = 100
+
 # The commands in this state are allowed in all states after auth
 auth_in      = 110
+
 # The commands in this state do not set new state
 none_in      = 120
 
-
+# ------------------------------------------------------------------------
 # Also stop timeouts
+
 def get_exit_func(self, strx):
     #print( "get_exit_func", strx)
     self.resp.datahandler.putdata("OK Bye", self.resp.ekey)
@@ -82,8 +84,7 @@ hello_help = "Usage: hello -- Say Hello - test connectivity."
 quit_help  = "Usage: quit -- Terminate connection. alias: exit"
 help_help  = "Usage: help [command] -- Offer help on command"
 lsls_help  = "Usage: ls [dir] -- List files in dir"
-lsls_help  = "Usage: lsd [dir] -- List dirs in dir"
-lsld_help  = "Usage: help command -- Offer help on command"
+lsld_help  = "Usage: lsd [dir] -- List dirs in dir"
 cdcd_help  = "Usage: cd dir -- Change to dir. Capped to server root"
 pwdd_help  = "Usage: pwd -- Show current dir"
 stat_help  = "Usage: stat fname  -- Get file stat. Field list:\n"\
@@ -114,7 +115,7 @@ state_table = [
             ("akey",    initial,    auth_key,   get_akey_func,  akey_help),
             ("xkey",    all_in,     none_in,    get_xkey_func,  ekey_help),
             ("ekey",    all_in,     none_in,    get_ekey_func,  ekey_help),
-            ("sess",    initial,    auth_sess,  get_sess_func,  sess_help),
+            ("sess",    auth_key,   auth_sess,  get_sess_func,  sess_help),
             ("file",    in_idle,    got_fname,  get_fname_func, file_help),
             ("fget",    in_idle,    in_idle,    get_fget_func,  fget_help),
             ("data",    got_fname,  in_idle,    get_data_func,  data_help),

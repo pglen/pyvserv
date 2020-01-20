@@ -7,14 +7,15 @@ import os, sys, getopt, signal, select, string, time, stat
 
 sys.path.append('..')
 sys.path.append('../bluepy')
-import bluepy.bluepy
+import bluepy
 
 sys.path.append('../common')
-import support, pyservsup, pyclisup, crysupp, pysyslog
+import support, pyservsup, pyclisup, crysupp, pysyslog, pystate
 
 # Globals
 
 version = 1.0
+pgdebug = 0
 
 # ------------------------------------------------------------------------
 # State transition and action functions
@@ -208,11 +209,19 @@ def get_akey_func(self, strx):
         keyx = fp.read()
         fp.close()
 
+        if pgdebug > 2:
+            print("Key read: \n'" + keyx.decode("cp437") + "'\n")
+            #print("Key read: \n'" + keyx.hex() + "'\n")
+
         hh = SHA512.new(); hh.update(keyx)
+        if pgdebug > 1:
+            print("Key digest: \n'" + hh.hexdigest() + "'\n")
 
         self.resp.datahandler.putdata("OK Hash: %s " % hh.hexdigest(), self.resp.ekey)
         self.resp.datahandler.putdata(keyx, self.resp.ekey)
     except:
+        print("Cannot read key:", self.keyfroot, sys.exc_info()[1])
+        support.put_exception("read key")
         self.resp.datahandler.putdata("ERR cannot open keyfile.", self.resp.ekey)
 
 def get_pass_func(self, strx):
@@ -397,13 +406,14 @@ def get_data_func(self, strx):
     self.resp.datahandler.putdata("OK Got data", self.resp.ekey)
 
 def get_help_func(self, strx):
+
     #print( "get_help_func", strx)
     hstr = "OK "
     if len(strx) == 1:
-        for aa in state_table:
+        for aa in pystate.state_table:
             hstr += aa[0] + " "
     else:
-        for aa in state_table:
+        for aa in pystate.state_table:
             if strx[1] == aa[0]:
                 hstr = "OK " + aa[4]
                 break
@@ -411,6 +421,7 @@ def get_help_func(self, strx):
             hstr = "ERR no help for command '" + strx[1] + "'"
 
     self.resp.datahandler.putdata(hstr, self.resp.ekey)
+
 
 
 

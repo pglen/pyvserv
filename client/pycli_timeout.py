@@ -12,7 +12,7 @@ sys.path.append('..')
 sys.path.append('../common')
 import support, pycrypt, pyservsup, pyclisup, syslog
 
-version = "1,0"
+version = "1.0"
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -50,10 +50,6 @@ conf = support.Config(optarr)
 
 if __name__ == '__main__':
 
-    #if  sys.version_info[0] < 3:
-    #    print("Needs python 3 or better.")
-    #    sys.exit(1)
-    #
     args = conf.comline(sys.argv[1:])
 
     if len(args) == 0:
@@ -75,18 +71,16 @@ if __name__ == '__main__':
         print ("Server initial:", resp2)
 
     resp = hand.client("vers")
+
     if conf.quiet == False:
         print ("Server ver response:", resp)
 
-    '''resp = hand.client("tout")
-    if conf.quiet == False:
-        print ("Server tout response:", resp)'''
-
     print("Wating for timeout ..")
-    time.sleep(33)
+    response = hand.getreply()
+    print ("Server timeout response:", response)
 
-    hand.client("quit")
-    hand.close()
+    #hand.client("quit")
+    #hand.close()
 
     sys.exit(0)
 

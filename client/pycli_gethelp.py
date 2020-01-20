@@ -59,7 +59,7 @@ conf = support.Config(optarr)
 
 # Send out our special buffer (short)len + (str)message
 
-def sendx(sock, message):
+'''def sendx(sock, message):
     strx = struct.pack("!h", len(message)) + message
     sock.send(strx)
 
@@ -100,6 +100,7 @@ def client(sock, message):
         print( "Received: '%s'" % response)
 
     return response
+'''
 
 # ------------------------------------------------------------------------
 
@@ -144,6 +145,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

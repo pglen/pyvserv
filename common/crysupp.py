@@ -48,25 +48,28 @@ def isprint(chh):
 # ------------------------------------------------------------------------
 # Return a hex dump formatted string
 
-def hexdump(strx, llen = 16):
+def hexdump(strin, llen = 16):
 
-    lenx = len(strx)
-    outx = ""
+    if type(strin) == str:
+        strx = bytes(strin, "cp437")
+    else:
+        strx = strin
+
+    outx = "" ;  lenx = len(strx)
 
     try:
-        for aa in range(lenx/16):
+        for aa in range(int(lenx/16)):
             outx += " "
             for bb in range(16):
                 try:
-                    outx += "%02x " % ord(strx[aa * 16 + bb])
+                    outx += "%02x " % strx[aa * 16 + bb]
                 except:
-                    pass
-                    out +=  "?? "
-                    #outx += "%02x " % strx[aa * 16 + bb]
+                    support.put_exception("hex ??")
+                    outx +=  "?? "
 
             outx += " | "
             for cc in range(16):
-                chh = strx[aa * 16 + cc]
+                chh = chr(strx[aa * 16 + cc])
                 if isprint(chh):
                     outx += "%c" % chh
                 else:
@@ -74,25 +77,25 @@ def hexdump(strx, llen = 16):
             outx += " | \n"
 
         # Print remainder on last line
-        remn = lenx % 16 ;   divi = lenx / 16
+        remn = lenx % 16 ;   divi = int(lenx / 16)
         if remn:
             outx += " "
             for dd in range(remn):
                 try:
-                    outx += "%02x " % ord(strx[divi * 16 + dd])
+                    outx += "%02x " % strx[divi * 16 + dd]
                 except:
+                    support.put_exception("hexnum ??")
                     outx +=  "?? "
-                    pass
-                    #outx += "%02x " % int(strx[divi * 16 + dd])
 
             outx += " " * ((16 - remn) * 3)
             outx += " | "
             for cc in range(remn):
-                chh = strx[divi * 16 + cc]
+                chh = chr(strx[divi * 16 + cc])
                 if isprint(chh):
                     outx += "%c" % chh
                 else:
                     outx += "."
+
             outx += " " * ((16 - remn))
             outx += " | \n"
     except:
@@ -101,16 +104,32 @@ def hexdump(strx, llen = 16):
 
     return(outx)
 
+# Generate time stamped random string
+
 def trandstr(slen):
+
     sss = ""
     rrr = Random.new().read(slen)
     for aa in rrr:
-        sss += "%x" % ord(aa)
-    sss += "%x" % int(time.time()) # % 1000000)
-    rrr = Random.new().read(slen)
-    for aa in rrr:
-        sss += "%x" % ord(aa)
+        sss += "%02x" % (aa % 255)
+    sss += "%08x" % int(time.time())
+    #print("ttt %02x" % int(time.time()))
+    rrr2 = Random.new().read(slen)
+    for aa in rrr2:
+        sss +="%02x" % (aa % 255)
     return sss
+
+# Return date embedded in random str
+
+def getrstrtme(strx):
+
+    xlen = len(strx)
+    xlen2 = xlen // 2
+    return strx[xlen2-4:xlen2+4]
+
+if __name__ == '__main__':
+    hexdump("12345")
+
 
 
 

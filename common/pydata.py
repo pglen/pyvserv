@@ -10,12 +10,11 @@ if sys.version_info[0] < 3:
 else:
     import socketserver
 
-
 sys.path.append('../bluepy')
-import bluepy
-
 sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, pysyslog
+sys.path.append('../server')
+
+import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate, bluepy
 
 # Walk thru the server (chunk) state machine
 # Chunk is our special buffer (short [16 bit])len + (str)message
@@ -32,26 +31,37 @@ class DataHandler():
     def __init__(self, pgdebug = 0):
         #print(  "DataHandler __init__")
         self.src = None; self.tout = None
-        self.timeout = 5
+        self.timeout = 7
         self.pgdebug = pgdebug
 
     def handler_timeout(self):
         self.tout.cancel()
         if self.pgdebug > 0:
-            print( "handler_timeout %s" % self.name )
-            #print( self.par.client_address, self.par.server.socket)
+            print( "in handler_timeout %s" % self.name )
+
+        response2 = "Timeout occured, disconnecting.\n"
+        #print( self.par.client_address, self.par.server.socket)
+        self.putdata(response2, "")
         # Force closing connection
-        self.par.request.send("Timeout occured, disconnecting.\n".encode("cp437"))
-        self.par.request.shutdown(socket.SHUT_RDWR)
+        time.sleep(1)
+        try:
+            self.par.request.shutdown(socket.SHUT_RDWR)
+        except:
+            pass
 
     def putdata(self, response, key, rand = True):
         ret = ""; response2 = ""
         if self.pgdebug > 7:
-            #print ("putdata '" + response + "'")
+            print ("putdata:", type(response), "'" + response + "'")
             pass
         try:
-            #response2 = response.encode("cp437")
-            response2 = response
+            #print ("putdata type:", type(response))
+
+            if type(response) == str:
+                response2 = bytes(response, "cp437")
+            else:
+                response2 = response
+
             if  key != "":
                 pass
                 #if rand:
@@ -68,7 +78,7 @@ class DataHandler():
             if sys.version_info[0] < 3:
                 strx = struct.pack("!h", len(response2)) + response2
             else:
-                strx = struct.pack("!h", len(response2)) + response2.encode()
+                strx = struct.pack("!h", len(response2)) + response2
 
             #if self.pgdebug > 9:
             #    print ("sending: '", strx ) # + strx.decode("cp437") + "'")
@@ -154,14 +164,6 @@ class xHandler():
         pass
 
 # EOF
-
-
-
-
-
-
-
-
 
 
 

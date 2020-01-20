@@ -349,7 +349,7 @@ if __name__ == '__main__':
 
     bindat = base64.b64decode(rrr)
 
-    org = [ 33, "sub", 'd', "longer str here with \' and \" all crap", 33L, 33333333.2, bindat ]
+    org = [ 33, "sub", 'd', "longer str here with \' and \" all crap", 33, 33333333.2, bindat ]
     #print ("org:\n", org)
 
     #eee = pb.encode_data("iscsfb", *org)
@@ -420,4 +420,5 @@ if __name__ == '__main__':
     print (zzzz)
 
 # eof
+
 

@@ -15,6 +15,7 @@ import pystate
 
 sys.path.append('../common')
 import support, pyservsup, pyclisup, pysyslog, pydata
+import pysfunc
 
 # Globals
 verbose = False
@@ -56,7 +57,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         mydata[self.name] = self
 
-        print("Connected " + " " + str(self.client_address))
+        if verbose:
+            print("Connected " + " " + str(self.client_address))
 
         pysyslog.syslog("Connected " + " " + str(self.client_address))
         self.datahandler.verbose = verbose
@@ -194,6 +196,10 @@ if __name__ == '__main__':
     global server
     opts = []; args = []
 
+    if sys.version_info[0] < 3:
+        print("Warning! This script was meant for python 3.x")
+        time.sleep(1)
+
     #print("This script:     ", os.path.realpath(__file__))
     #print("Exec argv:       ", sys.argv[0])
     #print("Full path argv:  ", os.path.abspath(sys.argv[0]))
@@ -260,6 +266,7 @@ if __name__ == '__main__':
             sys.exit(0)
 
     lock_process()
+    pysfunc.pgdebug = pgdebug
 
     # Port 0 would mean to select an arbitrary unused port
     HOST, PORT = "", 9999
@@ -267,7 +274,8 @@ if __name__ == '__main__':
     try:
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
     except:
-        print( "Cannot start server.", sys.exc_info()[1])
+        print( "Cannot start server. ", sys.exc_info()[1])
+        #print("Try again later.")
         terminate(None, None)
         #sys.exit(1)
 
@@ -293,9 +301,5 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
-
-
-
-
 
 

@@ -76,14 +76,20 @@ if __name__ == '__main__':
 
     resp = hand.client("akey")
     hhh = resp.split()[2]
-    #print ("Server response:", "'" + hhh + "'")
+
+    if conf.pgdebug > 2:
+        print ("Server response:", "'" + hhh + "'")
 
     resp2 = hand.getreply()
-    #print ("Server response2:",  "'" + resp2 +  "'")
+    resp3 = resp2.encode("cp437")
 
-    hh = SHA512.new(); hh.update(resp2)
+    if conf.pgdebug > 2:
+        print ("Server response2:",  "'" + resp2 +  "'")
 
-    #print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())
+    hh = SHA512.new(); hh.update(resp3)
+
+    if conf.pgdebug > 3:
+        print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())
 
     # Remember key
     hand.pkey = resp2;
@@ -102,7 +108,6 @@ if __name__ == '__main__':
 
     conf.sess_key = Random.new().read(256)
     #crysupp.trandstr(32);
-    print("session key:")
     print(crysupp.hexdump(conf.sess_key))
     #print("session key:\n'" + conf.sess_key + "'")
 
@@ -116,6 +121,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

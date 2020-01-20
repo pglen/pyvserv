@@ -31,6 +31,7 @@ def phelp():
     print( "            -p port   - Port to use (default: 9999)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
+    print( "            -s        - Showkey")
     print( "            -h        - Help")
     print( " Needs debug level or verbose to have any output.")
     sys.exit(0)
@@ -80,43 +81,61 @@ if __name__ == '__main__':
         print ("Server initial:", resp2)
 
     resp = hand.client("akey")
-    hhh = resp.split()[2]
-    #print ("Server response:", "'" + hhh + "'")
+    kkk = resp.split()[2]
+
+    #if conf.verbose:
+    #    print ("Server response:", "'" + kkk + "'")
+
+    if conf.verbose:
+        print("Got hash:", "'" + kkk + "'")
+        print()
 
     resp2 = hand.getreply()
-    #print ("Server response2:",  "'" + resp2 +  "'")
+    resp3 = resp2.encode("cp437")
 
-    hh = SHA512.new(); hh.update(resp2)
+    if conf.pgdebug > 2:
+        print ("Server response2:\n" +  "'" + resp2 +  "'\n")
 
-    #print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())
+    if conf.pgdebug > 5:
+        print ("Server response2:\n" +  "'" + resp3.hex() +  "'\n")
+
+    hhh = SHA512.new(); hhh.update(resp3)
+
+    if conf.pgdebug > 1:
+        print("Hash1:\n" + kkk, "\nHash2:\n" + hhh.hexdigest() + "\n")
 
     # Remember key
-    hand.pkey = resp2;
-
-    if hhh !=  hh.hexdigest():
+    if hhh.hexdigest() !=  kkk:
         if conf.quiet == False:
             print("Tainted key")
-            hand.pkey = ""
     else:
+        hand.pkey = resp2;
         if conf.quiet == False:
-            print("Key OK")
+             print("Key OK")
 
     if conf.showkey:
         print("Key:")
         print(hand.pkey)
 
-    hand.pubkey = RSA.importKey(hand.pkey)
+    try:
+        hand.pubkey = RSA.importKey(hand.pkey)
+        if conf.pgdebug > 3:
+            print (hand.pubkey)
+    except:
+        print("Cannot import public key.")
+        support.put_exception("import key")
 
-    print (hand.pubkey)
-
-
-    # interpret
+    # Generate communication key
+    #rstr = crysupp.trandstr(4)
+    #print("rand str len", len(rstr), "str", rstr)
+    #print("rand str time", crysupp.getrstrtme(rstr))
 
     #conf.sess_key = Random.new().read(256)
-    #crysupp.trandstr(32);
-    #print("session key:")
+    #print("session key:\n")
     #print(crysupp.hexdump(conf.sess_key))
-    #print("session key:\n'" + conf.sess_key + "'")
+    #print("session key hex:\n'" + conf.sess_key.hex() + "'")
+
+    #print(crysupp.hexdump("abcdefghijklmnopqrstuvwxyz"))
 
     hand.client("quit")
     hand.close();
@@ -124,6 +143,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 
