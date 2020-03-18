@@ -7,24 +7,28 @@ import struct, stat, base64, random, zlib
 
 from Crypto.Hash import SHA512
 
-import support
+import support, crysupp
 
-# ------------------------------------------------------------------------
-# Encode / decode arbitrary data in a string. Preserves type, data.
-# on python 2 it is 8 bit clean.
+__doc__ =   \
+'''
+Encode / decode arbitrary data in a string. Preserves type, data.
+on python 2 it is 8 bit clean.
 
-# Int Number            i
-# float Number          f
-# Character             c
-# String                s
-# Binary                b
-# Extended              x
-#
-# use: pb  = packbin(); pb.encode_data(formatstr, arr_of_data)
-# empty string will use auto detect of types
-#
+Int Number            i         float Number          f
+Character             c         String                s
+Binary                b         Extended              x
+
+use: pb  = packbin(); newdata = pb.encode_data(formatstr, arr_of_data)
+orgdata  = pb.decode_data(newdata)
+
+Empty format string string will use auto detect of types
+'''
+
+__all = ("autotype", "encode_data", "decode_data", "wrap_data", "unwrap_data", "verbose")
 
 class packbin():
+
+    verbose = 0
 
     def __init__(self):
 
@@ -194,14 +198,19 @@ class packbin():
     def autotype(self, xdata):
         aaa = ""
         for aa in xdata:
-            #print("type", aa, type(aa).__name__)
+
+            print("type", type(aa).__name__)
+
             if type(aa).__name__ == "int":
                 aaa += "i"
+                print (aa)
 
             if type(aa).__name__ == "long":
                 aaa += "l"
+                print (aa)
 
             if type(aa).__name__ == "str":
+                print(crysupp.hexdump(aa, len(aa)))
                 # see if binary
                 bbb = False
                 for bb in aa:
@@ -215,23 +224,37 @@ class packbin():
                     else:
                         aaa += "s"
 
+            # Py 2 does not have tis ... safe to test in both
+            if type(aa).__name__ == "bytes":
+                print(crysupp.hexdump(aa, len(aa)))
+                aaa += "b"
+
             if type(aa).__name__ == "float":
                 aaa += "f"
+                print (aa)
 
+        print("autotype res", aaa)
         return aaa
 
     ##########################################################################
-    # Encode
+    # Encode data into a string
+    # Pass format string as the first element. Empty string switches on
+    # autotype
 
     def encode_data(self, *formstr):
 
-        #for aa in formstr:
-        #    print("formstr", aa)
+        if self.verbose > 0:
+            print("format", formstr[0])
+
+        if self.verbose > 3:
+            for aa in formstr:
+                print("formstr", aa)
 
         localf = formstr[0]
         if  localf == "":
             localf = self.autotype(formstr[1:])
-            #print("Autotype:", localf);
+            if self.verbose > 0:
+                print("Autotype:", localf);
 
         packed_str = "pg "
 
@@ -330,95 +353,12 @@ class packbin():
 
         return sss[1]
 
-# ------------------------------------------------------------------------
-# test harness
-
 
 if __name__ == '__main__':
-
-    from Crypto import Random
-
-    rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
-            "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
-
-    print ("Should print 4 successes and a sample output")
-
-    pb = packbin()
-    #bindat = Random.new().read(64)
-    #print("bindat64:\n", base64.b64encode(bindat))
-
-    bindat = base64.b64decode(rrr)
-
-    org = [ 33, "sub", 'd', "longer str here with \' and \" all crap", 33, 33333333.2, bindat ]
-    #print ("org:\n", org)
-
-    #eee = pb.encode_data("iscsfb", *org)
-    eee = pb.encode_data("", *org)
-    #print ("eee:\n", eee)
-
-    ddd = pb.decode_data(eee)
-    #print ("ddd:\n", ddd)
-
-    if not org == ddd:
-        print ("Broken decode")
-        print ("eee:\n", eee)
-    else:
-        print ("Success ", end="")
-
-    #sys.exit(0)
-
-    org2 = [ 22, 444, "data", 123.456, 'a', eee]
-    #print ("org2:\n", org2)
-    eee2 = pb.encode_data("ilsfcx", *org2)
-    #print ("eee2:\n", eee2)
-    ddd2 = pb.decode_data(eee2)
-    #print ("ddd2:\n", ddd2)
-
-    if not org2 == ddd2:
-        print ("Broken decode")
-        print ("eee2:\n", eee2)
-    else:
-        print ("Success ", end="")
-
-    fff = zlib.compress(eee)
-    #print("compressed %.2f" % (float(len(fff)) / len(eee)) )
-    hhh = zlib.decompress(fff)
-    if not eee == hhh:
-        print ("Broken unzip")
-
-    ddd3 = pb.decode_data(eee2)
-    #print("ddd3", ddd3)
-    ggg = pb.decode_data(ddd3[5])
-    #print("ggg", ggg)
-
-    if not org == ggg:
-        print ("Broken decode")
-    else:
-        print ("Success ", end="")
-
-    www = pb.wrap_data(org)
-    #print ("www", www)
-
-    # damage the data
-    zzz = www[:100] + chr(ord(www[100]) + 1) + www[101:]
-    # OK data
-    zzz = www[:100] + www[100:]
-    #print (len(zzz), len(www), chr(ord(www[100]) + 1))
-
-
-    ooo = pb.unwrap_data(zzz)
-    oooo = pb.decode_data(ooo)
-
-    if not org == oooo:
-        print ("Broken unwrap")
-    else:
-        print ("Success ", end="")
-
-    print()
-
-    zzzz = support.breaklines(zzz, 75)
-    print (zzzz)
+    print("This was meant to be used as a module.")
 
 # eof
+
+
 
 

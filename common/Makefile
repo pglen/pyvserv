@@ -18,20 +18,18 @@
 all:
 	@echo Targets: test test3 clean
 
+#diffit:
+
 test:
 	@echo Diffs should be silent
-	@python pypacker.py >cc
+	@python2 pypacker.py >cc
 	@diff -w test.org cc
-	@python support.py >dd
-	@rm -f cc dd
+	@rm -f aa bb cc dd ee
 
 test3:
 	@echo Diffs should be silent
-	@python3  bluetest.py >cc
+	@python3 pypacker.py >cc
 	@diff -w test.org cc
-	@python3 ./bluefile.py -e -f -p 1111 Makefile aa
-	@python3 ./bluefile.py -d -f -p 1111 aa bb
-	@diff Makefile bb
 	@rm -f aa bb cc dd ee
 
 git:
@@ -45,6 +43,7 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+
 
 
 

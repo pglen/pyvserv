@@ -50,26 +50,44 @@ def isprint(chh):
 
 def hexdump(strin, llen = 16):
 
-    if type(strin) == str:
-        strx = bytes(strin, "cp437")
-    else:
+    if sys.version_info[0] < 3:
+        #strx = strin.decode("cp437")
         strx = strin
 
-    outx = "" ;  lenx = len(strx)
+        #if type(strin) == str:
+        #    strx = strin
+        #else:
+
+    else:
+        if type(strin) == str:
+            strx = bytes(strin, "cp437")
+        else:
+            strx = strin
+
+    outx = "" ;
+    lenx = len(strx)
 
     try:
         for aa in range(int(lenx/16)):
             outx += " "
             for bb in range(16):
                 try:
-                    outx += "%02x " % strx[aa * 16 + bb]
+                    if sys.version_info[0] < 3:
+                        outx += "%02x " % ord(strx[aa * 16 + bb])
+                    else:
+                        outx += "%02x " % strx[aa * 16 + bb]
+
                 except:
                     support.put_exception("hex ??")
                     outx +=  "?? "
 
             outx += " | "
             for cc in range(16):
-                chh = chr(strx[aa * 16 + cc])
+                if sys.version_info[0] < 3:
+                    chh = chr(ord(strx[aa * 16 + cc]))
+                else:
+                    chh = chr(strx[aa * 16 + cc])
+
                 if isprint(chh):
                     outx += "%c" % chh
                 else:
@@ -82,7 +100,11 @@ def hexdump(strin, llen = 16):
             outx += " "
             for dd in range(remn):
                 try:
-                    outx += "%02x " % strx[divi * 16 + dd]
+                    if sys.version_info[0] < 3:
+                        outx += "%02x " % ord(strx[divi * 16 + dd])
+                    else:
+                        outx += "%02x " % strx[divi * 16 + dd]
+                    pass
                 except:
                     support.put_exception("hexnum ??")
                     outx +=  "?? "
@@ -90,7 +112,10 @@ def hexdump(strin, llen = 16):
             outx += " " * ((16 - remn) * 3)
             outx += " | "
             for cc in range(remn):
-                chh = chr(strx[divi * 16 + cc])
+                if sys.version_info[0] < 3:
+                    chh = chr(ord(strx[divi * 16 + cc]))
+                else:
+                    chh = chr(strx[divi * 16 + cc])
                 if isprint(chh):
                     outx += "%c" % chh
                 else:
@@ -129,6 +154,8 @@ def getrstrtme(strx):
 
 if __name__ == '__main__':
     hexdump("12345")
+
+
 
 
 
