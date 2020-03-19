@@ -28,8 +28,6 @@ __all = ("autotype", "encode_data", "decode_data", "wrap_data", "unwrap_data", "
 
 class packbin():
 
-    verbose = 0
-
     def __init__(self):
 
         # -----------------------------------------------------------------------
@@ -44,6 +42,8 @@ class packbin():
                  ["b", self._got_bin, self._found_bin],
                  ["x", self._got_xtend, self._found_str],
                 ]
+
+        self.verbose = 0
 
     def _got_int(self, tt, var):
         #print ("found int", var)
@@ -67,6 +67,8 @@ class packbin():
 
     def _got_bin(self, tt, var):
         enco    = base64.b64encode(var)
+        if sys.version_info[0] > 2:
+            enco  = enco.decode("cp437")
         #print ("found bin", "'" + enco + "'")
         return "%c%d '%s' " %  (tt, len(enco), enco)
 
@@ -120,7 +122,7 @@ class packbin():
         nnn = xstr[idxx:].find(" ")
         if nnn < 0:
             print("bad encoding at ", xstr[idxx:idxx+5])
-        var = long(xstr[idxx:idxx+nnn])
+        var = int(xstr[idxx:idxx+nnn])
         #print("long:", var)
         idxx += nnn + 1;
         #print("long idxx:", idxx, "var:", var, "next:", "'" + xstr[idxx:idxx+6] + "'")
@@ -161,7 +163,7 @@ class packbin():
 
     def _found_bin(self, xstr):
         idxx = 0
-        #print ("found str:", xstr)
+        #print ("found bin:", xstr)
         idxx = 1
         nnn = xstr[idxx:].find(" ")
         if nnn < 0:
@@ -171,9 +173,9 @@ class packbin():
         if slen >= len(xstr):
             print("bad encoding at ", xstr[idxx:idxx+5])
         idxx += nnn + 2
-        sval = xstr[idxx:idxx+slen]
-        #print("bin:", "'" + sval + "'")
-        deco    = base64.b64decode(sval)
+        sval = str(xstr[idxx:idxx+slen])
+        #print("bin:",  sval )
+        deco   = base64.b64decode(sval)
         idxx += slen + 2
         #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, deco
@@ -199,18 +201,18 @@ class packbin():
         aaa = ""
         for aa in xdata:
 
-            print("type", type(aa).__name__)
+            #print("type", type(aa).__name__)
 
             if type(aa).__name__ == "int":
+                #print (aa)
                 aaa += "i"
-                print (aa)
 
             if type(aa).__name__ == "long":
+                #print (aa)
                 aaa += "l"
-                print (aa)
 
             if type(aa).__name__ == "str":
-                print(crysupp.hexdump(aa, len(aa)))
+                #print(crysupp.hexdump(aa, len(aa)))
                 # see if binary
                 bbb = False
                 for bb in aa:
@@ -226,14 +228,14 @@ class packbin():
 
             # Py 2 does not have tis ... safe to test in both
             if type(aa).__name__ == "bytes":
-                print(crysupp.hexdump(aa, len(aa)))
+                #print(crysupp.hexdump(aa, len(aa)))
                 aaa += "b"
 
             if type(aa).__name__ == "float":
+                #print (aa)
                 aaa += "f"
-                print (aa)
 
-        print("autotype res", aaa)
+        #print("autotype res", aaa)
         return aaa
 
     ##########################################################################
@@ -286,17 +288,17 @@ class packbin():
         #print ("---org:\n", dstr, "org---")
 
         if dstr[0:3] != 'pg ':
-            print("error, must begin with 'pg '")
+            print("pypacker decode: Error, must begin with 'pg '")
             return ""
 
         idx = 3
         if dstr[3:4] != 's':
-            print("error, must have format string at the beginning")
+            print("pypacker decode: Error, must have format string at the beginning")
             return ""
 
         flen = int(dstr[4])
         if flen > len(dstr) - idx:
-            raise ValueError("Bad decode: (overflow) at %d", idx)
+            raise ValueError("pypacker decode: Error, bad decode: (overflow) at %d", idx)
 
         #print("flen", flen)
         idx = 7
@@ -325,11 +327,22 @@ class packbin():
         #print ("\nddd=", xddd, "\ntstr=", self.autotype(xddd))
         sss = self.encode_data("", *xddd)
         #print ("sss", sss);
-        hh = SHA512.new(); hh.update(sss)
-        #print (hhh, sss)
+
+        hh = SHA512.new();
+
+        if sys.version_info[0] > 2:
+            hh.update(sss.encode("cp437"))
+        else:
+            hh.update(sss)
+
+        #print ("Hexdigest: ",hh.hexdigest())
         dddd = [hh.hexdigest(), sss]
         #print("dddd", dddd)
+
         ssss = self.encode_data("sx", *dddd)
+
+        if sys.version_info[0] > 2:
+            ssss  = ssss.encode("cp437")
 
         fff = zlib.compress(ssss)
         fff2 = base64.b64encode(fff)
@@ -342,22 +355,35 @@ class packbin():
         fff2 = base64.b64decode(xddd)
         fff = zlib.decompress(fff2)
 
-        #print ("\nddd=", xddd, "\ntstr=", self.autotype(xddd))
+        if sys.version_info[0] > 2:
+            fff = fff.decode("cp437")
+        #print("fff:", fff)
+
         sss = self.decode_data(fff)
         #print ("sss", sss);
-        hh = SHA512.new(); hh.update(sss[1])
-        #print (hhh, sss)
-        #print ("2digest", [hh.hexdigest(), sss[0]])
+
+        hh = SHA512.new();
+        if sys.version_info[0] > 2:
+            hh.update(sss[1].encode("cp437"))
+        else:
+            hh.update(sss[1])
+
+        #print ("Hexdigest2", hh.hexdigest())
+
         if not hh.hexdigest() == sss[0]:
             raise ValueError("Mismatching hashes on data")
 
-        return sss[1]
+        out = self.decode_data(sss[1])
+
+        return out
 
 
 if __name__ == '__main__':
     print("This was meant to be used as a module.")
 
 # eof
+
+
 
 
 
