@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
@@ -24,6 +24,7 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p port   - Port to use (default: 9999)")
+    print( "            -l level  - Log level (default: 0)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -121,6 +122,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

@@ -57,10 +57,13 @@ class DataHandler():
         try:
             #print ("putdata type:", type(response))
 
-            if type(response) == str:
-                response2 = bytes(response, "cp437")
-            else:
+            if sys.version_info[0] < 3:
                 response2 = response
+            else:
+                if type(response) == str:
+                    response2 = bytes(response, "cp437")
+                else:
+                    response2 = response
 
             if  key != "":
                 pass
@@ -164,6 +167,7 @@ class xHandler():
         pass
 
 # EOF
+
 
 
 

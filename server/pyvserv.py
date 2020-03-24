@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
@@ -22,6 +22,7 @@ verbose = False
 quiet  = False
 version = 1.0
 pgdebug = 0
+pglog = 0
 mydata = {}
 
 script_home = ""
@@ -66,16 +67,17 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.datahandler.putdata("OK pyvserv ready", "")
 
     def handle_error(request, client_address):
-        print(  "pyvserv Error", request, client_address)
+        print("pyvserv Error", request, client_address)
 
     def handle(self):
         try:
             while 1:
                 ret = self.datahandler.handle_one(self)
                 #print("handle got:", ret)
-                if ret == "": break
+                if not ret: break
                 ret2 = self.statehandler.run_state(ret)
-                if ret2: break
+                if ret2:
+                    break
         except:
             #print( sys.exc_info())
             support.put_exception("state handler")
@@ -118,6 +120,7 @@ def help():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
+    print( "            -l level  - Log level (default: 0)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -199,6 +202,7 @@ if __name__ == '__main__':
     if sys.version_info[0] < 3:
         print("Warning! This script was meant for python 3.x")
         time.sleep(1)
+        #sys.exit(0)
 
     #print("This script:     ", os.path.realpath(__file__))
     #print("Exec argv:       ", sys.argv[0])
@@ -258,6 +262,18 @@ if __name__ == '__main__':
                 support.put_exception("Command line for:")
                 sys.exit(3)
 
+        if aa[0] == "-l":
+            try:
+                pglog = int(aa[1])
+                if verbose:
+                    print( "Log level:", pglog)
+                if pglog > 10 or pglog < 0:
+                    raise(Exception(ValueError, \
+                        "Log range needs to be between 0-10"))
+            except:
+                support.put_exception("Command line for:")
+                sys.exit(3)
+
         if aa[0] == "-h": help();  exit(1)
         if aa[0] == "-v": verbose = True
         if aa[0] == "-q": quiet = True
@@ -301,5 +317,8 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
+
+
+
 
 

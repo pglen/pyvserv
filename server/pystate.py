@@ -204,7 +204,7 @@ class StateHandler():
 
         # Not found in the state table for the current state, complain
         if not got:
-            print( "Invalid or out of sequence command:", strx)
+            print( "Invalid command or out of sequence command:", strx)
             sss =  "ERR Invalid or Out of Sequence command " + strx
             #self.resp.datahandler.putdata(sss.encode("cp437"), self.resp.ekey)
             self.resp.datahandler.putdata(sss, self.resp.ekey)
@@ -213,6 +213,7 @@ class StateHandler():
         return ret
 
 # EOF
+
 
 
 

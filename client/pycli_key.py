@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
@@ -72,29 +72,32 @@ if __name__ == '__main__':
     if conf.quiet == False:
         print ("Server initial:", resp2)
 
-    resp = hand.client("key")
-    hhh = resp.split()[2]
-    #print ("Server response:", "'" + hhh + "'")
-
-    resp2 = hand.getreply()
-    #print ("Server response2:",  "'" + resp2 +  "'")
-
-    hh = SHA512.new(); hh.update(resp2)
-
-    #print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())
-
-    hand.pkey = resp2;
-
-    if hhh !=  hh.hexdigest():
-        if conf.quiet == False:
-            print("Tainted key")
+    resp = hand.client("ekey")
+    rrr = resp.split()   #[2]
+    if rrr[0] == "ERR":
+        print(resp)
     else:
-        if conf.quiet == False:
-            print("Key OK")
+        hhh = resp.split()[2]
+        print ("Server response:", "'" + hhh[0] + "'")
 
-    if conf.showkey:
-        #print("Key:")
-        print(hand.pkey)
+        resp2 = hand.getreply()
+        print ("Server response2:",  "'" + resp2 +  "'")
+
+        hh = SHA512.new(); hh.update(resp2.encode())
+        #print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())
+
+        hand.pkey = resp2;
+
+        if hhh !=  hh.hexdigest():
+            if conf.quiet == False:
+                print("Tainted key")
+        else:
+            if conf.quiet == False:
+                print("Key OK")
+
+        if conf.showkey:
+            #print("Key:")
+            print(hand.pkey)
 
     hand.client("quit")
     hand.close();
@@ -102,6 +105,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 
