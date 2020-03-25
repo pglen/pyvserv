@@ -1,6 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-import os, sys, getopt, signal, select, string, time, stat 
+import os, sys, getopt, signal, select, string, time, stat
+import platform
+import syslog as sl
 
 LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, \
 LOG_NOTICE, LOG_INFO, LOG_DEBUG = range(8)
@@ -24,22 +26,29 @@ LOG_NDELAY = 8
 LOG_NOWAIT = 16
 
 def syslog(message):
-    #print (message)
-    pass
 
-#def syslog(priority, message):
-#    pass
+    if "Linux" in platform.system():
+        #print("syslog linux")
+        sl.syslog(message)
+    else:
+        print (message)
+
+    pass
 
 def openlog(ident=sys.argv[0], logoptions=0, facility=LOG_USER):
-    pass
+    if "Linux" in platform.system():
+        sl.openlog(ident, logoptions, facility)
+    else:
+        pass
 
 def closelog():
     pass
 
 def setlogmask(maskpri):
     pass
-    
+
 #EOF
+
 
 
 
