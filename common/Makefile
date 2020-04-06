@@ -22,6 +22,14 @@ all:
 
 test:
 	@echo Diffs should be silent
+	@python3 testdump.py >> aa
+	@diff testdump.org aa
+	@python3 testpacker.py > aa
+	@diff testpacker.org aa
+	@rm -f aa
+
+test2:
+	@echo Diffs should be silent
 	@python2 pypacker.py >cc
 	@diff -w test.org cc
 	@rm -f aa bb cc dd ee
@@ -43,6 +51,7 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+
 
 
 

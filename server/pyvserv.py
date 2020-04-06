@@ -14,7 +14,9 @@ else:
 import pystate
 
 sys.path.append('../common')
-import support, pyservsup, pyclisup, pysyslog, pydata
+
+import support, pyservsup, pyclisup, pysyslog, pydata, comline
+
 import pysfunc
 
 # Globals
@@ -22,14 +24,21 @@ detach = False
 verbose = False
 quiet  = False
 version = 1.0
-pgdebug = 0
-pglog = 0
+
+#pgdebug = 0
+#pglog = 0
+
 mydata = {}
 
 dataroot = ""
 script_home = ""
+
 datadir = ".pyvserv"
 lockfile = datadir + "/lock"
+
+server = None
+
+# ------------------------------------------------------------------------
 
 class InvalidArg(Exception):
 
@@ -47,31 +56,36 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         #print(  SocketServer)
 
     def setup(self):
+
         cur_thread = threading.currentThread()
         self.name = cur_thread.getName()
         #print( "Logoff '" + usr + "'", cli)
 
-        self.verbose = verbose
-        if verbose:
+        self.verbose = conf.verbose
+
+        if self.verbose:
             print( "Connection from ", self.a2, "as", self.name)
 
         #if pgdebug > 1:
         #    put_debug("Connection from %s" % self.a2)
 
-        self.datahandler =  pydata.DataHandler(pgdebug)
-        self.datahandler.verbose = verbose
+        self.datahandler =  pydata.DataHandler(conf.pgdebug, conf.pglog)
+        self.datahandler.par = self
+        self.datahandler.verbose = conf.verbose
+
         self.statehandler = pystate.StateHandler(self)
-        self.statehandler.verbose = verbose
+        self.statehandler.verbose = conf.verbose
+        self.statehandler.pglog = conf.pglog
+        self.statehandler.pgdebug = conf.pgdebug
 
         mydata[self.name] = self
 
-        if verbose:
+        if conf.verbose:
             print("Connected " + " " + str(self.client_address))
 
-        if pglog > 0:
+        if conf.pglog > 0:
             pysyslog.syslog("Connected " + " " + str(self.client_address))
-        self.datahandler.verbose = verbose
-        self.datahandler.par = self
+
         self.datahandler.putdata("OK pyvserv ready", "")
 
     def handle_error(request, client_address):
@@ -98,7 +112,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if verbose:
             print( "Closed socket on", self.name)
 
-        if pglog > 0:
+        if conf.pglog > 0:
             pysyslog.syslog("Logoff '" + usr + "' " + cli)
 
         #server.socket.shutdown(socket.SHUT_RDWR)
@@ -122,23 +136,16 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         pass
 
-# ------------------------------------------------------------------------
 
-def help():
+def usersig(arg1, arg2):
 
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level --debug  level - Debug level. (0-10) default: 0")
-    print( "            -l level --log    level - Log level. (0-10) default: 0")
-    print( "            -r dir   --root   dir   - Data directory. default: ./")
-    print( "            -e       --detach       - Detach")
-    print( "            -v       --verbose      - Verbose")
-    print( "            -V       --version      - Version")
-    print( "            -q       --quiet        - Quiet")
-    print( "            -h       --help         - Help")
-    print()
-    sys.exit(0)
+    global mydata, server
+    #print("usersig", arg1, arg2)
+    if conf.pglog > 0:
+        pysyslog.syslog("Got user signal %d" % arg1)
+
+    print("Current clients:")
+    print( mydata)
 
 # ------------------------------------------------------------------------
 
@@ -161,7 +168,7 @@ def terminate(arg1, arg2):
     if not quiet:
         print( "Terminated pyvserv.py.")
 
-    if pglog > 0:
+    if conf.pglog > 0:
         pysyslog.syslog("Terminated Server")
     try:
         os.unlink(lockfile)
@@ -185,13 +192,19 @@ def lock_process():
     except:
         pass
 
-    if closeit:
+    pidint = 0;
 
+    try:
+        pidint = int(pidstr)
+    except:
+        pass
+
+    if closeit:
         # Examine if it is still running:
         was = False
         if pidstr != "":
             for proc in psutil.process_iter():
-                if proc.pid == int(pidstr):
+                if proc.pid == pidint:
                     was = True
         if not was:
             print("Lockfile active, no process ... breaking in")
@@ -208,10 +221,23 @@ def lock_process():
 
 # ------------------------------------------------------------------------
 
+optarr =  comline.optarr
+optarr.append ( ["e",   "detach",      0,   None, "Detach from terminal"] )
+optarr.append ( ["r:",  "dataroot",    None,   None, "Data root"] )
+optarr.append ( ["l:",  "pglog",       0,      None, "Log level (0 - 10) default = 0"] )
+
+#print (optarr)
+
+conf = comline.Config(optarr)
+
 if __name__ == '__main__':
 
-    global server
-    opts = []; args = []
+    args = conf.comline(sys.argv[1:])
+
+    #for aa in vars(conf):
+    #    print(aa, getattr(conf, aa))
+
+    #, pglog, dataroot
 
     if sys.version_info[0] < 3:
         print("Warning! This script was meant for python 3.x")
@@ -224,9 +250,11 @@ if __name__ == '__main__':
     #print("Executable name: ", sys.executable)
     #print("Script name:     ", os.__file__)
 
-    script_home = os.path.dirname(os.path.realpath(__file__)) + "/../data/"
+    script_home = os.path.dirname(os.path.realpath(__file__))
+    script_home += "/../data/"
+    script_home = os.path.realpath(script_home)
 
-    if verbose:
+    if conf.verbose:
         print ("Script home:     ", script_home)
 
     try:
@@ -244,77 +272,26 @@ if __name__ == '__main__':
         sys.exit(1)
 
     os.chdir(script_home)
-    #print("Current dir:     ", os.getcwd())
 
+    #if conf.verbose:
+    #    print("Current dir:     ", os.getcwd())
 
     # Set termination handlers, so lock will be deleted
     signal.signal(signal.SIGTERM, terminate)
     signal.signal(signal.SIGINT, terminate)
+    signal.signal(signal.SIGUSR1, usersig)
 
     sys.stdout = support.Unbuffered(sys.stdout)
     sys.stderr = support.Unbuffered(sys.stderr)
 
-    if pglog > 0:
-        pysyslog.openlog("pyvserv.py")
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "d:l:qhvVer:",
-                ["debug=", "log=", "quiet", "help", "verbose", "version", "detach", "root"])
-
-    except getopt.GetoptError as err:
-        print( "Invalid option(s) on command line:", err)
-        sys.exit(1)
-
-    #print( "opts", opts, "args", args)
-
-    for aa in opts:
-        if aa[0] == "-d":
-            try:
-                pgdebug = int(aa[1])
-                if verbose:
-                    print( "Debug level:", pgdebug)
-                if pgdebug > 10 or pgdebug < 0:
-                    raise(Exception(ValueError, \
-                        "Debug range needs to be between 0-10"))
-            except:
-                support.put_exception("Command line for:")
-                sys.exit(3)
-
-        if aa[0] == "-l" or aa[0] == "--log":
-            try:
-                pglog = int(aa[1])
-                if verbose:
-                    print( "Log level:", pglog)
-                if pglog > 10 or pglog < 0:
-                    raise(Exception(ValueError, \
-                        "Log range needs to be between 0-10"))
-            except:
-                support.put_exception("Command line for:")
-                sys.exit(3)
-
-        if aa[0] == "-r" or aa[0] == "--root":
-            try:
-                dataroot = aa[1]
-                if verbose:
-                    print( "Data root directory '%s'" % dataroot)
-                rrr = os.path.realpath(dataroot)
-                if not os.path.isdir(rrr):
-                    raise(Exception(InvalidArg, \
-                        "Data root '%s' must exist." % dataroot))
-            except:
-                support.put_exception("Command line for:")
-                sys.exit(3)
-
-        if aa[0] == "-e" or aa[0] == "--detach": detach = True
-        if aa[0] == "-h" or aa[0] == "--help": help();  exit(1)
-        if aa[0] == "-v" or aa[0] == "--verbose": verbose = True
-        if aa[0] == "-q" or aa[0] == "--quiet": quiet = True
-        if aa[0] == "-V" or aa[0] == "--version":
-            print( os.path.basename(sys.argv[0]), "Version", version)
-            sys.exit(0)
-
+    # Comline processed, go
     lock_process()
-    pysfunc.pgdebug = pgdebug
+
+    pysfunc.pgdebug = conf.pgdebug
+    pysfunc.pglog = conf.pglog
+
+    if conf.pglog > 0:
+        pysyslog.openlog("pyvserv.py")
 
     # Port 0 would mean to select an arbitrary unused port
     HOST, PORT = "", 9999
@@ -323,6 +300,9 @@ if __name__ == '__main__':
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
     except:
         print( "Cannot start server. ", sys.exc_info()[1])
+        if conf.pglog > 0:
+            pysyslog.syslog("Cannot start server " + str(sys.exc_info()[1]) )
+
         #print("Try again later.")
         terminate(None, None)
         #sys.exit(1)
@@ -344,16 +324,11 @@ if __name__ == '__main__':
         print( "Server running:", server.server_address,
                     "Running on", platform.dist()[0], platform.system())
 
-    if pglog > 0:
+    if conf.pglog > 0:
         pysyslog.syslog("Started Server")
 
     # Block
     server.serve_forever()
 
 # EOF
-
-
-
-
-
 

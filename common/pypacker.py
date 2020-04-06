@@ -14,9 +14,11 @@ __doc__ =   \
 Encode / decode arbitrary data in a string. Preserves type, data.
 on python 2 it is 8 bit clean.
 
-Int Number            i         float Number          f
+Int Number            i         Float Number          f
 Character             c         String                s
-Binary                b         Extended              x
+Binary                b
+Extended              x         encoded as new packer string
+List                  t         gets encoded as extended
 
 use: pb  = packbin(); newdata = pb.encode_data(formatstr, arr_of_data)
 orgdata  = pb.decode_data(newdata)
@@ -26,12 +28,25 @@ Empty format string string will use auto detect of types
 
 __all = ("autotype", "encode_data", "decode_data", "wrap_data", "unwrap_data", "verbose")
 
+
+class InvalidType(Exception):
+
+    def __init__(self, message):
+         self.message = message
+
+    def __str__(self):
+        return(self.message)
+
+# ------------------------------------------------------------------------
+
 class packbin():
 
     def __init__(self):
 
         # -----------------------------------------------------------------------
         # This array of functions will call the appropriate function
+        # Note the p' and 'g' are not in this type list, they denote
+        # extended list
 
         self.typeact = [
                  ["i", self._got_int, self._found_int],
@@ -40,40 +55,51 @@ class packbin():
                  ["c", self._got_char, self._found_char],
                  ["s", self._got_str, self._found_str],
                  ["b", self._got_bin, self._found_bin],
-                 ["x", self._got_xtend, self._found_str],
+                 ["t", self._got_list, self._found_list],
+                 ["x", self._got_xtend, self._found_ext],
+
+                 # No dictionary support (for now)
+                 #["d", self._got_dict, self._found_dict],
                 ]
 
         self.verbose = 0
 
+    # These functions contain the ations on encode
+
     def _got_int(self, tt, var):
-        #print ("found int", var)
+        #print ("got int", var)
         return "%c%d %d " %  (tt, 4, var)
 
     def _got_long(self, tt, var):
-        #print ("found long", var)
+        #print ("got long", var)
         return "%c%d %d " %  (tt, 8, var)
 
     def _got_float(self, tt, var):
-        #print ("found num", "'" + str(var) + "'")
+        #print ("got num", "'" + str(var) + "'")
         return "%c%d %f " %  (tt, 8, var)
 
     def _got_char(self, tt, var):
-        #print ("found char", "'" + str(var) + "'")
+        #print ("got char", "'" + str(var) + "'")
         return "%c%d %c " %  (tt, 1, var)
 
     def _got_str(self, tt, var):
-        #print ("found str", "'" + var + "'")
+        #print ("got str", "'" + var + "'")
         return "%c%d '%s' " %  (tt, len(var), var)
 
     def _got_bin(self, tt, var):
         enco    = base64.b64encode(var)
         if sys.version_info[0] > 2:
             enco  = enco.decode("cp437")
-        #print ("found bin", "'" + enco + "'")
+        #print ("got bin", "'" + enco + "'")
+        return "%c%d '%s' " %  (tt, len(enco), enco)
+
+    def _got_list(self, tt, var):
+        #print ("got list", "'" + str(var) + "'")
+        enco = self.encode_data("", *var)
         return "%c%d '%s' " %  (tt, len(enco), enco)
 
     def _got_xtend(self, tt, var):
-        #print ("found xtend", "'" + str(var) + "'")
+        #print ("got xtend", "'" + str(var) + "'")
         return "%c%d [%s] " %  (tt, len(var), var)
 
     # ------------------------------------------------------------------------
@@ -161,6 +187,24 @@ class packbin():
         #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, sval
 
+    def _found_ext(self, xstr):
+        idxx = 0
+        #print ("found ext:", xstr)
+        idxx = 1
+        nnn = xstr[idxx:].find(" ")
+        if nnn < 0:
+            print("bad encoding at ", xstr[idxx:idxx+5])
+        slen = int(xstr[idxx:idxx+nnn])
+        #print("slen", slen)
+        if slen >= len(xstr):
+            print("bad encoding at ", xstr[idxx:idxx+5])
+        idxx += nnn + 2
+        sval = xstr[idxx:idxx+slen]
+        #print("ext:", "'" + sval + "'")
+        idxx += slen + 2
+        #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
+        return idxx, sval
+
     def _found_bin(self, xstr):
         idxx = 0
         #print ("found bin:", xstr)
@@ -176,6 +220,24 @@ class packbin():
         sval = str(xstr[idxx:idxx+slen])
         #print("bin:",  sval )
         deco   = base64.b64decode(sval)
+        idxx += slen + 2
+        #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
+        return idxx, deco
+
+    def _found_list(self, xstr):
+        idxx = 0
+        #print ("found list:", xstr)
+        idxx = 1
+        nnn = xstr[idxx:].find(" ")
+        if nnn < 0:
+            print("bad encoding at ", xstr[idxx:idxx+5])
+        slen = int(xstr[idxx:idxx+nnn])
+        #print("slen", slen)
+        if slen >= len(xstr):
+            print("bad encoding at ", xstr[idxx:idxx+5])
+        idxx += nnn + 2
+        sval = str(xstr[idxx:idxx+slen])
+        deco = self.decode_data(sval)
         idxx += slen + 2
         #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, deco
@@ -200,18 +262,16 @@ class packbin():
     def autotype(self, xdata):
         aaa = ""
         for aa in xdata:
-
-            #print("type", type(aa).__name__)
-
+            #print("typename:", type(aa).__name__)
             if type(aa).__name__ == "int":
                 #print (aa)
                 aaa += "i"
 
-            if type(aa).__name__ == "long":
+            elif type(aa).__name__ == "long":
                 #print (aa)
                 aaa += "l"
 
-            if type(aa).__name__ == "str":
+            elif type(aa).__name__ == "str":
                 #print(crysupp.hexdump(aa, len(aa)))
                 # see if binary
                 bbb = False
@@ -227,13 +287,23 @@ class packbin():
                         aaa += "s"
 
             # Py 2 does not have tis ... safe to test in both
-            if type(aa).__name__ == "bytes":
+            elif type(aa).__name__ == "bytes":
                 #print(crysupp.hexdump(aa, len(aa)))
                 aaa += "b"
 
-            if type(aa).__name__ == "float":
+            elif type(aa).__name__ == "float":
                 #print (aa)
                 aaa += "f"
+            elif type(aa).__name__ == "list":
+                #print ("adding list")
+                aaa += "t"
+
+            #elif type(aa).__name__ == "dict":
+            #    print ("adding dict")
+            #    aaa += "d"
+
+            else:
+                raise InvalidType( "Unsupported type: "  + str(type(aa).__name__ ))
 
         #print("autotype res", aaa)
         return aaa
@@ -245,18 +315,18 @@ class packbin():
 
     def encode_data(self, *formstr):
 
-        if self.verbose > 0:
-            print("format", formstr[0])
+        if self.verbose > 4:
+            print("formatstr:", formstr[0])
 
         if self.verbose > 3:
             for aa in formstr:
-                print("formstr", aa)
+                print("got str:", aa)
 
         localf = formstr[0]
         if  localf == "":
             localf = self.autotype(formstr[1:])
-            if self.verbose > 0:
-                print("Autotype:", localf);
+            if self.verbose > 4:
+                print("Autotype '" + localf + "'");
 
         packed_str = "pg "
 
@@ -264,9 +334,9 @@ class packbin():
         packed_str += self._got_str("s", localf)
 
         idx = 1;
-
         for bb in localf:
             found = 0
+            #print("encoding item: ", type(formstr[idx]) )
             #print("bb", bb, end=" ")
             for cc in self.typeact:
                 if cc[0] == bb:
@@ -382,6 +452,7 @@ if __name__ == '__main__':
     print("This was meant to be used as a module.")
 
 # eof
+
 
 
 

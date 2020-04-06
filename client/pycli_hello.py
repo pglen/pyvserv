@@ -9,39 +9,17 @@ import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
 sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog
+import support, pycrypt, pyservsup, pyclisup, syslog, comline, pypacker
 
 # ------------------------------------------------------------------------
 # Functions from command line
 
-def phelp():
+optarr =  comline.optarr
+optarr.append ( ["p:",  "port",     9999,   None, "Port to use (default: 9999)"] )
 
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 9999)")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print( " Needs debug level or verbose to have any output.")
-    sys.exit(0)
+#print (optarr)
 
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", support.version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
-
-conf = support.Config(optarr)
+conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -49,7 +27,14 @@ if __name__ == '__main__':
 
     args = conf.comline(sys.argv[1:])
 
+    #for aa in vars(conf):
+    #    print(aa, getattr(conf, aa))
+
     pyclisup.verbose = conf.verbose
+
+    if conf.verbose and conf.pgdebug:
+        print("Debug level", conf.pgdebug)
+
     pyclisup.pgdebug = conf.pgdebug
 
     if len(args) == 0:
@@ -58,6 +43,7 @@ if __name__ == '__main__':
         ip = args[0]
 
     hand = pyclisup.CliSup()
+
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
@@ -66,6 +52,10 @@ if __name__ == '__main__':
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
+
+    pb = pypacker.packbin()
+    dstr = pb.unwrap_data(resp2)
+    resp2 = dstr[1]
 
     if conf.quiet == False:
         print ("Server initial:", resp2)
@@ -80,6 +70,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

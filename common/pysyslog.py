@@ -27,6 +27,8 @@ LOG_NOWAIT = 16
 
 def syslog(message):
 
+    print("loging:", message)
+
     if "Linux" in platform.system():
         #print("syslog linux")
         sl.syslog(message)
@@ -35,9 +37,11 @@ def syslog(message):
 
     pass
 
-def openlog(ident=sys.argv[0], logoptions=0, facility=LOG_USER):
+def openlog(ident=sys.argv[0], logoptions=0, facility=LOG_NOTICE):
+
     if "Linux" in platform.system():
-        sl.openlog(ident, logoptions, facility)
+        print("openlog:", ident)
+        sl.openlog(ident) #, logoptions, facility)
     else:
         pass
 
@@ -48,6 +52,7 @@ def setlogmask(maskpri):
     pass
 
 #EOF
+
 
 
 

@@ -4,8 +4,9 @@ from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random, socket
+from Crypto import Random
 
-import pydata, pyservsup
+import pydata, pyservsup, pypacker, crysupp, comline
 
 sys.path.append('../bluepy')
 
@@ -186,12 +187,22 @@ class CliSup():
         return response
 
     # ------------------------------------------------------------------------
-    # Ping Pong function with encryption.
+    # Ping Pong function with encryption and padding.
 
     def client(self, message, key = "", rand = True):
         if self.verbose:
             print( "Sending: '%s'" % message)
             sys.stdout.flush()
+
+        pb = pypacker.packbin()
+        rstr = Random.new().read(random.randint(14, 24))
+        xstr = Random.new().read(random.randint(24, 36))
+        datax = [rstr, message, xstr]
+        dstr = pb.wrap_data(datax)
+
+        #print("dstr", dstr)
+        #if pb.unwrap_data(dstr) != datax:
+        #    print("Not decoded correctly", dstr)
 
         if key != "":
             if rand:
@@ -199,13 +210,18 @@ class CliSup():
             #message = bluepy.encrypt(message, key).decode("cp437")
             message = bluepy.encrypt(message, key)
 
-        self.sendx(message)
+        self.sendx(dstr)
 
         if self.verbose and key != "":
             print( "   put: '%s'" % base64.b64encode(message),)
 
         #print("wait for answer")
         response = self.getreply()
+
+        pb = pypacker.packbin()
+        dstr = pb.unwrap_data(response)
+        #comx = dstr[1].split()
+        response = dstr[1]
 
         #self.myhandler.handle_one(self.mydathand)
 
@@ -222,3 +238,4 @@ class CliSup():
         return response
 
 # EOF
+

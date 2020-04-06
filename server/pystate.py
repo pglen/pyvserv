@@ -9,7 +9,7 @@ sys.path.append('..')
 sys.path.append('../bluepy')
 sys.path.append('../common')
 
-import support, pyservsup, pyclisup, crysupp, pysyslog, bluepy
+import support, pyservsup, pyclisup, crysupp, pysyslog, bluepy, pypacker
 
 from pysfunc import *
 
@@ -150,7 +150,6 @@ class StateHandler():
         self.resp.cwd = os.getcwd()
         self.resp.dir = ""
         self.resp.ekey = ""
-        pysyslog.openlog("pyserv.py")
 
     # --------------------------------------------------------------------
     # This is the function where outside stimulus comes in.
@@ -159,7 +158,8 @@ class StateHandler():
 
     def run_state(self, strx):
         ret = None
-        #print("Run state: '" + strx + "'")
+        if self.pgdebug > 8:
+            print("Run state data: '" + strx + "'")
         try:
             ret = self._run_state(strx)
         except:
@@ -178,9 +178,12 @@ class StateHandler():
             bluepy.bluepy.destroy(ddd)
             strx = strx2
 
-        comx = strx.split()
+        pb = pypacker.packbin()
+        dstr = pb.unwrap_data(strx)
+        comx = dstr[1].split()
+
         if self.verbose:
-            print( "Line: '"+ strx + "'")
+            print( "Line: '"+ dstr[1] + "'")
             print( "Com:", comx, "State =", self.curr_state)
 
         # Scan the state table, execute actions, set new states
@@ -213,6 +216,7 @@ class StateHandler():
         return ret
 
 # EOF
+
 
 
 

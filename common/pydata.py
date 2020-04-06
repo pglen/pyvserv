@@ -5,6 +5,8 @@ from __future__ import print_function
 import os, sys, getopt, signal, select, string, time, struct
 import socket, threading, traceback, random
 
+from Crypto import Random
+
 if sys.version_info[0] < 3:
     import SocketServer
 else:
@@ -14,7 +16,7 @@ sys.path.append('../bluepy')
 sys.path.append('../common')
 sys.path.append('../server')
 
-import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate, bluepy
+import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate, bluepy, pypacker
 
 # Walk thru the server (chunk) state machine
 # Chunk is our special buffer (short [16 bit])len + (str)message
@@ -28,16 +30,23 @@ import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate, bluepy
 
 class DataHandler():
 
-    def __init__(self, pgdebug = 0):
+    def __init__(self, pgdebug = 0, pglog = 0):
         #print(  "DataHandler __init__")
         self.src = None; self.tout = None
         self.timeout = 7
         self.pgdebug = pgdebug
+        self.pglog = pglog
 
     def handler_timeout(self):
+
         self.tout.cancel()
         if self.pgdebug > 0:
             print( "in handler_timeout %s" % self.name )
+
+        print( "handler_timeout log %d", self.pglog)
+
+        if self.pglog > 0:
+            pysyslog.syslog("Timeout on " + " " + str(self.par.client_address))
 
         response2 = "Timeout occured, disconnecting.\n"
         #print( self.par.client_address, self.par.server.socket)
@@ -51,22 +60,31 @@ class DataHandler():
 
     def putdata(self, response, key, rand = True):
         ret = ""; response2 = ""
-        if self.pgdebug > 7:
-            print ("putdata:", type(response), "'" + response + "'")
+
+        pb = pypacker.packbin()
+        rstr = Random.new().read(random.randint(14, 24))
+        xstr = Random.new().read(random.randint(24, 36))
+        datax = [rstr, response, xstr]
+        dstr = pb.wrap_data(datax)
+
+        if self.pgdebug > 8:
+            print ("server reply:", type(dstr), "'" + str(dstr) + "'")
             pass
+
         try:
-            #print ("putdata type:", type(response))
+            #print ("putdata type:", type(dstr))
 
             if sys.version_info[0] < 3:
-                response2 = response
+                response2 = dstr
             else:
-                if type(response) == str:
-                    response2 = bytes(response, "cp437")
+                if type(dstr) == str:
+                    response2 = bytes(dstr, "cp437")
                 else:
-                    response2 = response
+                    response2 = dstr
 
             if  key != "":
                 pass
+
                 #if rand:
                 #    response +=  " " * random.randint(0, 20)
                 #response2 = bluepy.bluepy.encrypt(response, key)
@@ -85,7 +103,6 @@ class DataHandler():
 
             #if self.pgdebug > 9:
             #    print ("sending: '", strx ) # + strx.decode("cp437") + "'")
-
             #print ("sending: '", strx )
 
             if sys.version_info[0] < 3:
@@ -167,6 +184,7 @@ class xHandler():
         pass
 
 # EOF
+
 
 
 

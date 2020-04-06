@@ -135,8 +135,10 @@ def trandstr(slen):
 
     sss = ""
     rrr = Random.new().read(slen)
+
     for aa in rrr:
         sss += "%02x" % (aa % 255)
+
     sss += "%08x" % int(time.time())
     #print("ttt %02x" % int(time.time()))
     rrr2 = Random.new().read(slen)
@@ -154,6 +156,7 @@ def getrstrtme(strx):
 
 if __name__ == '__main__':
     hexdump("12345")
+
 
 
 

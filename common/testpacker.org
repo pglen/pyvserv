@@ -1,0 +1,2 @@
+Should print 4 successes
+Success1 Success2 Success3 Success4 
