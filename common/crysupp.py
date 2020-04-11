@@ -46,26 +46,24 @@ def isprint(chh):
     return False
 
 # ------------------------------------------------------------------------
-# Return a hex dump formatted string
+# Return a hex dump to formatted string
 
 def hexdump(strin, llen = 16):
+
+    if type(strin) != str and type(strin) != bytes:
+        print("Cannot dump ", type(strin), "printing instead")
+        return  str(strin)
 
     if sys.version_info[0] < 3:
         #strx = strin.decode("cp437")
         strx = strin
-
-        #if type(strin) == str:
-        #    strx = strin
-        #else:
-
     else:
         if type(strin) == str:
             strx = bytes(strin, "cp437")
         else:
             strx = strin
 
-    outx = "" ;
-    lenx = len(strx)
+    outx = "" ;   lenx = len(strx)
 
     try:
         for aa in range(int(lenx/16)):
@@ -156,6 +154,7 @@ def getrstrtme(strx):
 
 if __name__ == '__main__':
     hexdump("12345")
+
 
 
 

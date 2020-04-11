@@ -28,6 +28,7 @@ class CliSup():
         if self.sock != None:
             self.mydathand  = pydata.xHandler(self.sock)
             self.myhandler  = pydata.DataHandler()
+        self.pb = pypacker.packbin()
 
     def connect(self, ip, port):
         resp2 = ""
@@ -40,7 +41,6 @@ class CliSup():
         except:
             #print( "Cannot connect to:", ip + ":" + str(port), sys.exc_info()[1])
             raise
-
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.mydathand  = pydata.xHandler(self.sock)
         self.myhandler  = pydata.DataHandler()
@@ -61,7 +61,9 @@ class CliSup():
         if sys.version_info[0] < 3:
             strx = struct.pack("!h", len(message)) + message
         else:
-            strx = struct.pack("!h", len(message)) + message.encode("cp437")
+            if type(message) == type(str):
+                 message = message.encode("cp437")
+            strx = struct.pack("!h", len(message)) + message
 
         #print("message:", strx)
         self.sock.send(strx)
@@ -184,7 +186,8 @@ class CliSup():
 
     def  getreply(self):
         response = self.myhandler.handle_one(self.mydathand)
-        return response
+        dstr = self.pb.unwrap_data(response)
+        return dstr[1]
 
     # ------------------------------------------------------------------------
     # Ping Pong function with encryption and padding.
@@ -194,11 +197,10 @@ class CliSup():
             print( "Sending: '%s'" % message)
             sys.stdout.flush()
 
-        pb = pypacker.packbin()
         rstr = Random.new().read(random.randint(14, 24))
         xstr = Random.new().read(random.randint(24, 36))
         datax = [rstr, message, xstr]
-        dstr = pb.wrap_data(datax)
+        dstr = self.pb.wrap_data(datax)
 
         #print("dstr", dstr)
         #if pb.unwrap_data(dstr) != datax:
@@ -218,13 +220,6 @@ class CliSup():
         #print("wait for answer")
         response = self.getreply()
 
-        pb = pypacker.packbin()
-        dstr = pb.unwrap_data(response)
-        #comx = dstr[1].split()
-        response = dstr[1]
-
-        #self.myhandler.handle_one(self.mydathand)
-
         if self.verbose and key != "":
             print( "get: '%s'" % base64.b64encode(response))
         if key != "":
@@ -238,4 +233,5 @@ class CliSup():
         return response
 
 # EOF
+
 

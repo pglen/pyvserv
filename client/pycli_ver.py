@@ -10,7 +10,7 @@ import  random, stat
 
 sys.path.append('..')
 sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog
+import support, pycrypt, pyservsup, pyclisup, syslog, comline
 
 version = "1,0"
 
@@ -44,7 +44,7 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = support.Config(optarr)
+conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -71,8 +71,8 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    if conf.quiet == False:
-        print ("Server initial:", resp2)
+    #if conf.quiet == False:
+    #    print ("Server initial:", resp2)
 
     resp = hand.client("ver")
     if conf.quiet == False:
@@ -84,6 +84,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

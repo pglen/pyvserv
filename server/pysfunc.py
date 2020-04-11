@@ -14,7 +14,6 @@ import support, pyservsup, pyclisup, crysupp, pysyslog, pystate
 
 # Globals
 
-version = 1.0
 pgdebug = 0
 
 # ------------------------------------------------------------------------
@@ -135,7 +134,7 @@ def get_pwd_func(self, strx):
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_ver_func(self, strx):
-    response = "OK Version " + str(version)
+    response = "OK Version %s" % pyservsup.version
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_hello_func(self, strx):
@@ -187,14 +186,19 @@ def get_user_func(self, strx):
     self.resp.user = strx[1]
     self.resp.datahandler.putdata("OK Enter pass for '" + self.resp.user + "'", self.resp.ekey)
 
+# ------------------------------------------------------------------------
+
 def get_sess_func(self, strx):
 
-    #if(strx != ""):
-    #print("got session key")
-    #print(crysupp.hexdump(strx))
-    #print("session key end")
+    #print("get_sess_func", strx)
 
-    self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
+    if len(strx) == 1:
+        self.resp.datahandler.putdata("ERR no session key provided.", self.resp.ekey)
+    else:
+        print("got session key ")
+        print(crysupp.hexdump(strx[1]))
+        print("session key end")
+        self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
 
     '''try:
     except:
@@ -421,6 +425,7 @@ def get_help_func(self, strx):
             hstr = "ERR no help for command '" + strx[1] + "'"
 
     self.resp.datahandler.putdata(hstr, self.resp.ekey)
+
 
 
 

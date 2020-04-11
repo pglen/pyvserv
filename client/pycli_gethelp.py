@@ -9,7 +9,7 @@ import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
 sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog
+import support, pycrypt, pyservsup, pyclisup, syslog, comline
 
 # ------------------------------------------------------------------------
 # Globals
@@ -55,7 +55,7 @@ optarr = \
     ["V",   None,       None,    pversion],  \
     ["h",   None,       None,    phelp]      \
 
-conf = support.Config(optarr)
+conf = comline.Config(optarr)
 
 # Send out our special buffer (short)len + (str)message
 
@@ -106,10 +106,6 @@ def client(sock, message):
 
 if __name__ == '__main__':
 
-    '''if  sys.version_info[0] < 3:
-        print("Needs python 3 or better.")
-        sys.exit(1)'''
-
     args = conf.comline(sys.argv[1:])
 
     pyclisup.verbose = conf.verbose
@@ -145,6 +141,8 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
+
 
 
 

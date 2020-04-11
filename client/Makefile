@@ -14,6 +14,7 @@ test:
 	-./pycli_hello.py
 	-./pycli_ver.py
 	-./pycli_gethelp.py
+	-./pycli_akey.py
 
 test2:
 	-./pycli_key.py
@@ -41,6 +42,7 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+
 
 
 

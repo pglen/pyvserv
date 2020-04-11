@@ -12,7 +12,7 @@ from Crypto import Random
 
 sys.path.append('../common')
 import support, pycrypt, pyservsup, pyclisup
-import pysyslog, crysupp, pypacker
+import pysyslog, crysupp, pypacker, comline
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -46,7 +46,7 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = support.Config(optarr)
+conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -72,8 +72,8 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    if conf.quiet == False:
-        print ("Server initial:", resp2)
+    #if conf.quiet == False:
+    #    print ("Server initial:", resp2)
 
     resp = hand.client("akey")
     hhh = resp.split()[2]
@@ -81,8 +81,11 @@ if __name__ == '__main__':
     if conf.pgdebug > 2:
         print ("Server response:", "'" + hhh + "'")
 
+    pb = pypacker.packbin()
+
     resp2 = hand.getreply()
-    resp3 = resp2.encode("cp437")
+    resp2a = resp2.encode("cp437")
+    resp3 = pb.unwrap_data(resp2a)[1]
 
     if conf.pgdebug > 2:
         print ("Server response2:",  "'" + resp2 +  "'")
@@ -108,12 +111,9 @@ if __name__ == '__main__':
         print(hand.pkey)
 
     conf.sess_key = Random.new().read(256)
-    #crysupp.trandstr(32);
-    print(crysupp.hexdump(conf.sess_key))
-    #print("session key:\n'" + conf.sess_key + "'")
-
-    resp = hand.client("sess", "", False)
-
+    #print("session key:\n')
+    #print(crysupp.hexdump(conf.sess_key))
+    resp = hand.client("sess", conf.sess_key, False)
     print("Sess Response:", resp)
 
     hand.client("quit")
@@ -122,9 +122,5 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
-
-
-
-
 
 

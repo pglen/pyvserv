@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
@@ -16,8 +16,9 @@ from Crypto.Hash import SHA
 from Crypto import Random
 
 sys.path.append('../common')
+
 import support, pycrypt, pyservsup, pyclisup
-import pysyslog, crysupp, pypacker
+import pysyslog, crysupp, pypacker, comline
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -51,7 +52,7 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = support.Config(optarr)
+conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -90,16 +91,17 @@ if __name__ == '__main__':
         print("Got hash:", "'" + kkk + "'")
         print()
 
+    pb = pypacker.packbin()
+
     resp2 = hand.getreply()
-    resp3 = resp2.encode("cp437")
 
     if conf.pgdebug > 2:
         print ("Server response2:\n" +  "'" + resp2 +  "'\n")
 
     if conf.pgdebug > 5:
-        print ("Server response2:\n" +  "'" + resp3.hex() +  "'\n")
+        print ("Server response3:\n" +  "'" + resp2 +  "'\n")
 
-    hhh = SHA512.new(); hhh.update(resp3)
+    hhh = SHA512.new(); hhh.update(resp2)
 
     if conf.pgdebug > 1:
         print("Hash1:\n" + kkk, "\nHash2:\n" + hhh.hexdigest() + "\n")
@@ -109,7 +111,7 @@ if __name__ == '__main__':
         if conf.quiet == False:
             print("Tainted key")
     else:
-        hand.pkey = resp2;
+        hand.pkey = resp2
         if conf.quiet == False:
              print("Key OK")
 
@@ -143,6 +145,7 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
+
 
 
 

@@ -6,6 +6,8 @@ import os, sys, string, time, traceback, bcrypt
 
 # Globals and configurables
 
+version = "1.0"
+
 buffsize = 4096
 passfile =  ".pyserv/passwd.secret"
 keyfile = ".pyserv/keys.secret"
@@ -206,6 +208,7 @@ if __name__ == '__main__':
 
 
 # EOF
+
 
 
 

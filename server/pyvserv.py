@@ -23,7 +23,6 @@ import pysfunc
 detach = False
 verbose = False
 quiet  = False
-version = 1.0
 
 #pgdebug = 0
 #pglog = 0
@@ -56,6 +55,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         #print(  SocketServer)
 
     def setup(self):
+        global mydata
 
         cur_thread = threading.currentThread()
         self.name = cur_thread.getName()
@@ -86,7 +86,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if conf.pglog > 0:
             pysyslog.syslog("Connected " + " " + str(self.client_address))
 
-        self.datahandler.putdata("OK pyvserv ready", "")
+        # Connected, acknowledge
+        self.datahandler.putdata("OK pyvserv %s ready" % pyservsup.version, "")
+
 
     def handle_error(request, client_address):
         print("pyvserv Error", request, client_address)
@@ -105,6 +107,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             support.put_exception("state handler")
 
     def finish(self):
+
+        global mydata
+
         cli = str(mydata[self.name].client_address)
         usr = str(mydata[self.name].user)
         #print( "Logoff '" + usr + "'", cli)
@@ -130,10 +135,8 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
         self._BaseServer__shutdown_request = True
         if verbose:
             print( "Stop called")
-
         #self.shutdown()
         #self.server_close()
-
         pass
 
 
@@ -174,6 +177,10 @@ def terminate(arg1, arg2):
         os.unlink(lockfile)
     except:
         print("Cannot unlink lockfile.")
+
+    # Attempt to unhook all pending clients
+
+
 
     sys.exit(2)
 
@@ -331,4 +338,5 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
+
 

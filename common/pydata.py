@@ -36,6 +36,7 @@ class DataHandler():
         self.timeout = 7
         self.pgdebug = pgdebug
         self.pglog = pglog
+        self.pb = pypacker.packbin()
 
     def handler_timeout(self):
 
@@ -61,11 +62,10 @@ class DataHandler():
     def putdata(self, response, key, rand = True):
         ret = ""; response2 = ""
 
-        pb = pypacker.packbin()
         rstr = Random.new().read(random.randint(14, 24))
         xstr = Random.new().read(random.randint(24, 36))
         datax = [rstr, response, xstr]
-        dstr = pb.wrap_data(datax)
+        dstr = self.pb.wrap_data(datax)
 
         if self.pgdebug > 8:
             print ("server reply:", type(dstr), "'" + str(dstr) + "'")
@@ -184,6 +184,7 @@ class xHandler():
         pass
 
 # EOF
+
 
 
 

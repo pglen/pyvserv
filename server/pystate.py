@@ -163,7 +163,7 @@ class StateHandler():
         try:
             ret = self._run_state(strx)
         except:
-            support.put_exception("in run state:")
+            support.put_exception("While in run state:")
             #print( sys.exc_info())
         return ret
 
@@ -216,6 +216,7 @@ class StateHandler():
         return ret
 
 # EOF
+
 
 
 
