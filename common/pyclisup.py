@@ -190,7 +190,8 @@ class CliSup():
         return dstr[1]
 
     # ------------------------------------------------------------------------
-    # Ping Pong function with encryption and padding.
+    # Ping Pong function with encryption and padding. message is a
+    # collection of data to send
 
     def client(self, message, key = "", rand = True):
         if self.verbose:
@@ -207,10 +208,11 @@ class CliSup():
         #    print("Not decoded correctly", dstr)
 
         if key != "":
-            if rand:
-                message = message + " " * random.randint(0, 20)
+            pass
+            #if rand:
+            #    message = message + " " * random.randint(0, 20)
             #message = bluepy.encrypt(message, key).decode("cp437")
-            message = bluepy.encrypt(message, key)
+            #message = bluepy.encrypt(message, key)
 
         self.sendx(dstr)
 
@@ -233,5 +235,6 @@ class CliSup():
         return response
 
 # EOF
+
 
 

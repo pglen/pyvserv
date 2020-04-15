@@ -74,12 +74,13 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    hand.client("quit")
+    hand.client(["quit"])
     hand.close()
 
     sys.exit(0)
 
 # EOF
+
 
 
 

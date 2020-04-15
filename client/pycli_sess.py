@@ -26,6 +26,7 @@ def phelp():
     print( "            -p port   - Port to use (default: 9999)")
     print( "            -l level  - Log level (default: 0)")
     print( "            -v        - Verbose")
+    print( "            -s        - Showkey")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
     print( " Needs debug level or verbose to have any output.")
@@ -75,52 +76,61 @@ if __name__ == '__main__':
     #if conf.quiet == False:
     #    print ("Server initial:", resp2)
 
-    resp = hand.client("akey")
-    hhh = resp.split()[2]
+    resp = hand.client(["akey"])
+    kkk = resp.split()[2]
 
-    if conf.pgdebug > 2:
-        print ("Server response:", "'" + hhh + "'")
+    #if conf.verbose:
+    #    print ("Server response:", "'" + kkk + "'")
 
-    pb = pypacker.packbin()
+    if conf.verbose:
+        print("Got hash:", "'" + kkk + "'")
+        print()
 
     resp2 = hand.getreply()
-    resp2a = resp2.encode("cp437")
-    resp3 = pb.unwrap_data(resp2a)[1]
 
     if conf.pgdebug > 2:
-        print ("Server response2:",  "'" + resp2 +  "'")
+        print ("Server response2:\n" +  "'" + resp2.decode("cp437") +  "'\n")
 
-    hh = SHA512.new(); hh.update(resp3)
+    hhh = SHA512.new(); hhh.update(resp2)
 
-    if conf.pgdebug > 3:
-        print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())
+    if conf.pgdebug > 1:
+        print("Hash1:\n" + kkk, "\nHash2:\n" + hhh.hexdigest() + "\n")
 
     # Remember key
-    hand.pkey = resp2;
-
-    if hhh !=  hh.hexdigest():
+    if hhh.hexdigest() !=  kkk:
         if conf.quiet == False:
             print("Tainted key")
-            hand.pkey = ""
     else:
+        hand.pkey = resp2
         if conf.quiet == False:
-            print("Key OK")
+             print("Key OK")
+
+    if conf.pgdebug > 2:
+        print ("Server response:", "'" + hhh.hexdigest() + "'")
 
     if conf.showkey:
-        #print("Key:")
+        print("Key:")
         print(hand.pkey)
 
+    # Generate communication key
     conf.sess_key = Random.new().read(256)
-    #print("session key:\n')
-    #print(crysupp.hexdump(conf.sess_key))
-    resp = hand.client("sess", conf.sess_key, False)
+    sss = SHA512.new(); sss.update(conf.sess_key)
+    #conf.sess_key += b"'" # TEST damage it
+
+    if conf.pgdebug > 3:
+        print("Session key dump:")
+        print(crysupp.hexdump(conf.sess_key))
+
+    resp = hand.client(["sess", conf.sess_key, sss.hexdigest()], "", False)
     print("Sess Response:", resp)
 
-    hand.client("quit")
+    hand.client(["quit"])
     hand.close();
 
     sys.exit(0)
 
 # EOF
+
+
 
 

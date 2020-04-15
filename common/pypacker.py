@@ -417,6 +417,9 @@ class packbin():
         fff = zlib.compress(ssss)
         fff2 = base64.b64encode(fff)
 
+        #if sys.version_info[0] > 2:
+        #fff2 = fff2.decode("cp437")
+
         return fff2
 
     # Unrap data in a hash, de  base64, decompress,
@@ -452,6 +455,7 @@ if __name__ == '__main__':
     print("This was meant to be used as a module.")
 
 # eof
+
 
 
 

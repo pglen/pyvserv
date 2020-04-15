@@ -180,7 +180,7 @@ class StateHandler():
 
         pb = pypacker.packbin()
         dstr = pb.unwrap_data(strx)
-        comx = dstr[1].split()
+        comx = dstr[1] #.split()
 
         if self.verbose:
             print( "Line: '"+ dstr[1] + "'")
@@ -216,6 +216,7 @@ class StateHandler():
         return ret
 
 # EOF
+
 
 
 

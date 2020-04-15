@@ -131,16 +131,21 @@ if __name__ == '__main__':
     if conf.quiet == False:
         print ("Server initial:", resp2)
 
-    resp = hand.client("help " + conf.subhelp)
+    cmd = ["help"]
+    if conf.subhelp:
+        cmd.append(conf.subhelp)
+    resp = hand.client(cmd)
+
     if conf.quiet == False:
         print ("Server response:", resp)
 
-    hand.client("quit")
+    hand.client(["quit"])
     hand.close();
 
     sys.exit(0)
 
 # EOF
+
 
 
 

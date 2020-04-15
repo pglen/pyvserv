@@ -190,19 +190,25 @@ def get_user_func(self, strx):
 
 def get_sess_func(self, strx):
 
-    #print("get_sess_func", strx)
+    if pgdebug > 1:
+        print("get_sess_func", strx)
 
     if len(strx) == 1:
         self.resp.datahandler.putdata("ERR no session key provided.", self.resp.ekey)
     else:
-        print("got session key ")
-        print(crysupp.hexdump(strx[1]))
-        print("session key end")
-        self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
+        sss = SHA512.new(); sss.update(strx[1])
 
-    '''try:
-    except:
-        self.resp.datahandler.putdata("ERR cannot open keyfile.", self.resp.ekey)'''
+        if pgdebug > 3:
+            print("got session key ")
+            print(crysupp.hexdump(strx[1]))
+
+        if pgdebug > 2:
+            print("Hashes:", strx[2], sss.hexdigest())
+
+        if strx[2] == sss.hexdigest():
+            self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
+        else:
+            self.resp.datahandler.putdata("ERR session key check faied.", self.resp.ekey)
 
 
 def get_akey_func(self, strx):
@@ -425,6 +431,7 @@ def get_help_func(self, strx):
             hstr = "ERR no help for command '" + strx[1] + "'"
 
     self.resp.datahandler.putdata(hstr, self.resp.ekey)
+
 
 
 

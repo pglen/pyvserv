@@ -68,7 +68,7 @@ class Config:
         #except getopt.GetoptError, err:
         except:
             print( "Invalid option(s) on command line:", err)
-            put_exception("comline")
+            #support.put_exception("comline")
             return ()
 
         #print( "opts", opts, "args", args)
@@ -91,6 +91,7 @@ class Config:
                         if self.optarr[bb][3] != None:
                             self.optarr[bb][3]()
         return args
+
 
 
 

@@ -74,16 +74,17 @@ if __name__ == '__main__':
     #if conf.quiet == False:
     #    print ("Server initial:", resp2)
 
-    resp = hand.client("ver")
+    resp = hand.client(["ver"])
     if conf.quiet == False:
         print ("Server response:", resp)
 
-    hand.client("quit")
+    hand.client(["quit"])
     hand.close()
 
     sys.exit(0)
 
 # EOF
+
 
 
 
