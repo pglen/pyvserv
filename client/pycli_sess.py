@@ -9,8 +9,6 @@ from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
-#from crysupp import *
-
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -188,9 +186,4 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
-
-
-
-
-
 

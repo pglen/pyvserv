@@ -44,7 +44,7 @@ Quick start:
 
   open terminal window
   navigate to server subdir
-  type ./pyserv.py
+  type ./pyvserv.py
 
   open another terminal window
   navigate to client subdir
@@ -59,7 +59,10 @@ The following should be printed on command line:
  The best way to learn about the operation of the server is to look at the
 sample client examples in the client source tree. (Files named pycli_*)
 
-All tests are base on python2, some modules function on both py2 and py3.
+All tests are base on python3, most modules function on both py2 and py3.
+
+Peter Glen
+
 
 
 
