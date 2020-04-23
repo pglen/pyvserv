@@ -21,10 +21,10 @@ all:
 # the .so targets
 
 bluepy_c.so:  bluepy_c.c bluepoint2.c
-	python buildme.py
+	@python buildme.py
 
 bluepy3_c.so: bluepy_c.c  bluepoint2.c
-	python3 buildme3.py
+	@python3 buildme3.py
 
 # Building modules:
 
@@ -63,6 +63,7 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+
 
 
 

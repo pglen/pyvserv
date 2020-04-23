@@ -5,6 +5,11 @@ On Ubuntu:
     pip install pycrypto
     pip install bcrypt
 
+  ... or ...
+
+    apt install python3-psutil
+    apt install python3-crypto
+
 On msys the following dependencies where needed:
 
     pacman -S mingw-w64-i686-gcc
@@ -27,6 +32,7 @@ On Fedora:
     sudo yum install pycrypto
 
 # EOF
+
 
 
 

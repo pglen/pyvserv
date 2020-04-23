@@ -59,7 +59,7 @@ class DataHandler():
         except:
             pass
 
-    def putdata(self, response, key, rand = True):
+    def putdata(self, response, key = "", rand = True):
         ret = ""; response2 = ""
 
         rstr = Random.new().read(random.randint(14, 24))
@@ -83,13 +83,13 @@ class DataHandler():
                     response2 = dstr
 
             if  key != "":
-                pass
-
+                #print("Encrypting", dstr)
                 #if rand:
                 #    response +=  " " * random.randint(0, 20)
                 #response2 = bluepy.bluepy.encrypt(response, key)
                 #response2 = response
                 #bluepy.bluepy.destroy(response)
+                pass
 
             if self.tout: self.tout.cancel()
             self.tout = threading.Timer(self.timeout, self.handler_timeout)
@@ -112,7 +112,9 @@ class DataHandler():
                 ret = self.par.request.send(strx)
 
         except:
-            support.put_exception("While in Put Data:")
+            support.put_exception("While in Put Data:" + str(response))
+            ret = -1
+
         return ret
 
     def getdata(self, amount):
@@ -184,6 +186,7 @@ class xHandler():
         pass
 
 # EOF
+
 
 
 

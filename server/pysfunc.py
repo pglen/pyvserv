@@ -2,7 +2,13 @@
 
 from __future__ import print_function
 
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto.PublicKey import RSA
+from Crypto.Hash import SHA
 from Crypto.Hash import SHA512
+from Crypto import Random
+
 import os, sys, getopt, signal, select, string, time, stat
 
 sys.path.append('..')
@@ -191,44 +197,97 @@ def get_user_func(self, strx):
 def get_sess_func(self, strx):
 
     if pgdebug > 1:
-        print("get_sess_func", strx)
+        print("get_sess_func() called")
+    if pgdebug > 5:
+        print("strx", strx)
 
-    if len(strx) == 1:
-        self.resp.datahandler.putdata("ERR no session key provided.", self.resp.ekey)
-    else:
-        sss = SHA512.new(); sss.update(strx[1])
+    if len(strx) < 4:
+        self.resp.datahandler.putdata("ERR not enough arguments.", self.resp.ekey)
+        return
 
-        if pgdebug > 3:
-            print("got session key ")
-            print(crysupp.hexdump(strx[1]))
+    if pgdebug > 4:
+        print("got session key ")
+        print(crysupp.hexdump(strx[3]))
 
-        if pgdebug > 2:
-            print("Hashes:", strx[2], sss.hexdigest())
+    sss = SHA512.new(); sss.update(strx[3])
+    if pgdebug > 3:
+        print("Hashes:", strx[2], sss.hexdigest())
 
-        if strx[2] == sss.hexdigest():
-            self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
-        else:
-            self.resp.datahandler.putdata("ERR session key check faied.", self.resp.ekey)
+    # Arrived safely?
+    if strx[2] != sss.hexdigest():
+        self.resp.datahandler.putdata("ERR session key damaged on transport.", self.resp.ekey)
+        return
 
+    dsize = SHA.digest_size
+    sentinel = Random.new().read(dsize)
+    message2 = self.priv_cipher.decrypt(strx[3], sentinel)
+
+    # Decoded OK?
+    ttt = SHA512.new(); ttt.update(message2)
+    if pgdebug > 3:
+        print("Hashes2:", strx[1], ttt.hexdigest())
+
+    if ttt.hexdigest() != strx[1]:
+        self.resp.datahandler.putdata("ERR session key damaged on decoding.", self.resp.ekey)
+        return
+    #self.resp.datahandler.putdata("ERR session key check failed.", self.resp.ekey)
+
+    self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
+    self.resp.ekey = message2
+
+# ------------------------------------------------------------------------
 
 def get_akey_func(self, strx):
 
+    if pgdebug > 1:
+        print("get_akey_func() called")
+
     self.keyfroot = support.pickkey()
+
+    if pgdebug > 2:
+       print("self.keyfroot", self.keyfroot)
+
     try:
+        # Do public import
         fp = open(support.keydir + self.keyfroot + ".pub", "rb")
-        keyx = fp.read()
+        self.keyx = fp.read()
         fp.close()
 
-        if pgdebug > 2:
-            print("Key read: \n'" + keyx.decode("cp437") + "'\n")
-            #print("Key read: \n'" + keyx.hex() + "'\n")
+        try:
+            self.pubkey = RSA.importKey(self.keyx)
+        except:
+            print("Cannot create key:", self.keyx[:12], sys.exc_info()[1])
+            support.put_exception("import  key")
+            self.resp.datahandler.putdata("ERR Canot create public key", self.resp.ekey)
+            return
 
-        hh = SHA512.new(); hh.update(keyx)
+        if pgdebug > 5:
+            print("Key read: \n'" + keyx.decode("cp437") + "'\n")
+
+        # Do private import; we are handleing it here, so key signals errors
+        fp2 = open(support.keydir + self.keyfroot + ".pem", "rb")
+        self.keyx2 = fp2.read()
+        fp2.close()
+
+        try:
+            self.privkey = RSA.importKey(self.keyx2)
+            self.priv_cipher = PKCS1_v1_5.new(self.privkey)
+        except:
+            print("Cannot create private key:", self.keyx2[:12], sys.exc_info()[1])
+            support.put_exception("import private key")
+            self.resp.datahandler.putdata("ERR Cannot create private key", self.resp.ekey)
+            return
+
+        if pgdebug > 5:
+            print("Key read: \n'" + keyx.decode("cp437") + "'\n")
+
+        hh = SHA512.new(); hh.update(self.keyx)
         if pgdebug > 1:
             print("Key digest: \n'" + hh.hexdigest() + "'\n")
 
+        # Deliver the answer in two parts:
         self.resp.datahandler.putdata("OK Hash: %s " % hh.hexdigest(), self.resp.ekey)
-        self.resp.datahandler.putdata(keyx, self.resp.ekey)
+        self.resp.datahandler.putdata(self.keyx, self.resp.ekey)
     except:
         print("Cannot read key:", self.keyfroot, sys.exc_info()[1])
         support.put_exception("read key")
@@ -431,6 +490,7 @@ def get_help_func(self, strx):
             hstr = "ERR no help for command '" + strx[1] + "'"
 
     self.resp.datahandler.putdata(hstr, self.resp.ekey)
+
 
 
 

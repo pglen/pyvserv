@@ -174,9 +174,9 @@ class StateHandler():
         if self.resp.ekey != "":
             #ddd  = strx.encode("cp437")
             ddd  = strx
-            strx2 = bluepy.bluepy.decrypt(ddd, self.resp.ekey)
-            bluepy.bluepy.destroy(ddd)
-            strx = strx2
+            #strx2 = bluepy.bluepy.decrypt(ddd, self.resp.ekey)
+            #bluepy.bluepy.destroy(ddd)
+            #strx = strx2
 
         pb = pypacker.packbin()
         dstr = pb.unwrap_data(strx)
@@ -216,6 +216,7 @@ class StateHandler():
         return ret
 
 # EOF
+
 
 
 

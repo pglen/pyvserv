@@ -120,13 +120,18 @@ class CliSup():
             buff = fh.read(pyservsup.buffsize)
             if len(buff) == 0:
                 break
+
             if key != "":
-                buff = bluepy.encrypt(buff, key)
+                #buff = bluepy.encrypt(buff, key)
+                pass
+
             self.sendx(buff)
         response = self.myhandler.handle_one(self.mydathand)
 
         if key != "":
-            response = bluepy.decrypt(response, key)
+            #response = bluepy.decrypt(response, key)
+            pass
+
         if self.verbose:
             print( "Received: '%s'" % response)
         return True
@@ -163,7 +168,8 @@ class CliSup():
             data = self.myhandler.handle_one(self.mydathand)
             #print("got data", data)
             if key != "":
-                data = bluepy.decrypt(data, key)
+                #data = bluepy.decrypt(data, key)
+                pass
             try:
                 fh.write(data)
             except:
@@ -184,8 +190,15 @@ class CliSup():
             return
         return True
 
-    def  getreply(self):
+    def  getreply(self, key = "", rand = True):
         response = self.myhandler.handle_one(self.mydathand)
+        if self.verbose:
+            print( "Got response:", response)
+
+        if key:
+            pass
+            print("decrypting with session key")
+
         dstr = self.pb.unwrap_data(response)
         return dstr[1]
 
@@ -209,6 +222,8 @@ class CliSup():
 
         if key != "":
             pass
+            print("encrypting with session key:\n", crysupp.hexdump(key[:16]) )
+
             #if rand:
             #    message = message + " " * random.randint(0, 20)
             #message = bluepy.encrypt(message, key).decode("cp437")
@@ -216,18 +231,21 @@ class CliSup():
 
         self.sendx(dstr)
 
-        if self.verbose and key != "":
-            print( "   put: '%s'" % base64.b64encode(message),)
+        #if self.verbose and key != "":
+        #    print( "   put: '%s'" % base64.b64encode(message),)
 
         #print("wait for answer")
         response = self.getreply()
 
-        if self.verbose and key != "":
-            print( "get: '%s'" % base64.b64encode(response))
+        #if self.verbose and key != "":
+        #    print( "get: '%s'" % base64.b64encode(response))
+
         if key != "":
             #response = pycrypt.xdecrypt(response, key)
             #response = bluepy.decrypt(response, key)
+            print("decrypting with session key:\n", crysupp.hexdump(key[:16]) )
             pass
+
         if self.verbose:
             print( "Rec: '%s'" % response)
             sys.stdout.flush()
@@ -235,6 +253,7 @@ class CliSup():
         return response
 
 # EOF
+
 
 
 

@@ -9,6 +9,11 @@ import os, sys, string, time,  traceback, getopt, random, glob
 
 version = 1.0
 keydir = '../keys/'
+random.seed()
+
+for aa in range(random.randint(1, 10)):
+    rr = random.randint(0, 100)
+    #print("rr", rr)
 
 # ------------------------------------------------------------------------
 # A more informative exception print
@@ -234,8 +239,4 @@ if __name__ == '__main__':
         print(aa)
 
     #print ("filearr:", lr.filearr)
-
-
-
-
 

@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     if conf.showkey:
         print("Key:")
-        print(hand.pkey)
+        print(hand.pkey.decode("cp437"))
 
     try:
         hand.pubkey = RSA.importKey(hand.pkey)
@@ -121,12 +121,15 @@ if __name__ == '__main__':
         print("Cannot import public key.")
         support.put_exception("import key")
 
+    print("Got ", hand.pubkey, "size =", hand.pubkey.size())
+
     hand.client(["quit"])
     hand.close();
 
     sys.exit(0)
 
 # EOF
+
 
 
 

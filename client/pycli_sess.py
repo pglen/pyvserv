@@ -8,6 +8,13 @@ from __future__ import print_function
 from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
+
+#from crysupp import *
+
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto.PublicKey import RSA
+from Crypto.Hash import SHA
 from Crypto import Random
 
 sys.path.append('../common')
@@ -73,63 +80,116 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
+    resp3 = hand.client(["hello",] , "", False)
+    print("Hello Response:", resp3)
+
     #if conf.quiet == False:
     #    print ("Server initial:", resp2)
 
     resp = hand.client(["akey"])
-    kkk = resp.split()[2]
+    kkk = resp.split()
+
+    if kkk[0] != "OK":
+        print("Error on getting key:", resp)
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
 
     #if conf.verbose:
     #    print ("Server response:", "'" + kkk + "'")
 
     if conf.verbose:
-        print("Got hash:", "'" + kkk + "'")
+        print("Got hash:", "'" + kkk[1] + "'")
         print()
 
     resp2 = hand.getreply()
 
-    if conf.pgdebug > 2:
+    if conf.pgdebug > 4:
         print ("Server response2:\n" +  "'" + resp2.decode("cp437") +  "'\n")
 
     hhh = SHA512.new(); hhh.update(resp2)
 
-    if conf.pgdebug > 1:
-        print("Hash1:\n" + kkk, "\nHash2:\n" + hhh.hexdigest() + "\n")
+    if conf.pgdebug > 3:
+        print("Hash1:  '" + kkk[2] + "'")
+        print("Hash2:  '" + hhh.hexdigest() + "'")
 
     # Remember key
-    if hhh.hexdigest() !=  kkk:
-        if conf.quiet == False:
-            print("Tainted key")
-    else:
-        hand.pkey = resp2
-        if conf.quiet == False:
-             print("Key OK")
+    if hhh.hexdigest() !=  kkk[2]:
+        print("Tainted key, aborting.")
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
+
+    hand.pkey = resp2
+    if conf.quiet == False:
+         print("Key OK")
 
     if conf.pgdebug > 2:
         print ("Server response:", "'" + hhh.hexdigest() + "'")
 
-    if conf.showkey:
+    if conf.showkey or conf.pgdebug > 5:
         print("Key:")
         print(hand.pkey)
 
+    try:
+        hand.pubkey = RSA.importKey(hand.pkey)
+        if conf.pgdebug > 4:
+            print (hand.pubkey)
+    except:
+        print("Cannot import public key.")
+        support.put_exception("import key")
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
+
+    if conf.pgdebug > 1:
+        print("Got ", hand.pubkey, "size =", hand.pubkey.size())
+
     # Generate communication key
-    conf.sess_key = Random.new().read(256)
+    conf.sess_key = Random.new().read(512)
     sss = SHA512.new(); sss.update(conf.sess_key)
-    #conf.sess_key += b"'" # TEST damage it
+
+    if conf.pgdebug > 1:
+        print("Session key dump:")
+        print(crysupp.hexdump(conf.sess_key[:16]))
+
+    cipher = PKCS1_v1_5.new(hand.pubkey)
+    #print ("cipher", cipher.can_encrypt())
+
+    sess_keyx = cipher.encrypt(conf.sess_key)
+    ttt = SHA512.new(); ttt.update(sess_keyx)
 
     if conf.pgdebug > 3:
-        print("Session key dump:")
-        print(crysupp.hexdump(conf.sess_key))
+        print("sess_keyx")
+        print(crysupp.hexdump(sess_keyx))
 
-    resp = hand.client(["sess", conf.sess_key, sss.hexdigest()], "", False)
-    print("Sess Response:", resp)
+    resp = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
+    #print("Sess Response:", resp)
 
-    hand.client(["quit"])
+    kkk = resp.split()
+
+    if kkk[0] != "OK":
+        print("Error on setting session:", resp)
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
+
+    # Make a note of the session key
+    print("Sess Key ACCEPTED OK")
+
+    # Session estabilished, try a simple command
+    #resp3 = hand.client(["hello",] , conf.sess_key, False)
+    resp3 = hand.client(["hello",] , "", False)
+    print("Hello Response:", resp3)
+
+    hand.client(["quit",])
     hand.close();
 
     sys.exit(0)
 
 # EOF
+
+
 
 
 
