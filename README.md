@@ -10,10 +10,10 @@ instructing the server to use an encryption key.
  PyvServ contains key exchange protocol, so the new session keys
 can be transmitted securely, even with zero knowledge.
 
- PyvServ internally generates random keys, and spools aymmetric key generation,
+ PyvServ internally generates random keys, and spools asymmetric key generation,
 so communication data is always distinctive.
 
- Project still in motion, not much is usable yet.
+ Project is still in motion, not much is usable yet.
 
 ### Working so far:
 
@@ -27,16 +27,16 @@ so communication data is always distinctive.
 #### Partially Working:
 
     Server.     subdir: server      -- Server has 50% of the commands done
-    Client.     subdir: client
+    Client.     subdir: client      -- quarter of the commands
     Test Suite. subdir: test
 
     Studies.    subdir: study       -- testing subsystems
                 subdir: pycrypto    -- test crypto functions
 
-#### Versioning.
+#### Version-ing.
 
   The 'C' module has a date API, that is generated automatically. Use it to
-distinguish algorythm versioning.
+distinguish algorithm version.
 
     print( "Builddate: ",  bluepy.builddate())
 
