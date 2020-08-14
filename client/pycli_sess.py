@@ -120,7 +120,10 @@ if __name__ == '__main__':
 
     hand.pkey = resp2
     if conf.quiet == False:
-         print("Key OK")
+         print("Key response:", kkk[0], kkk[2][:16], "...")
+
+    if conf.pgdebug > 4:
+         print(hand.pkey)
 
     if conf.pgdebug > 2:
         print ("Server response:", "'" + hhh.hexdigest() + "'")
@@ -173,12 +176,13 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Make a note of the session key
-    print("Sess Key ACCEPTED OK")
+    print("Sess Key ACCEPTED:",  resp)
 
     # Session estabilished, try a simple command
-    #resp3 = hand.client(["hello",] , conf.sess_key, False)
+    #resp3 = hand.client(["hello",], conf.sess_key, False)
+
     resp3 = hand.client(["hello",] , "", False)
-    print("Hello Response:", resp3)
+    print("Post session Hello Response:", resp3)
 
     hand.client(["quit",])
     hand.close();

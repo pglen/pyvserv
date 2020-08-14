@@ -158,13 +158,12 @@ class StateHandler():
 
     def run_state(self, strx):
         ret = None
-        if self.pgdebug > 8:
+        if self.pgdebug > 2:
             print("Run state data: '" + strx + "'")
         try:
             ret = self._run_state(strx)
         except:
             support.put_exception("While in run state:")
-            #print( sys.exc_info())
         return ret
 
     def _run_state(self, strx):
@@ -182,33 +181,43 @@ class StateHandler():
         dstr = pb.unwrap_data(strx)
         comx = dstr[1] #.split()
 
-        if self.verbose:
-            print( "Line: '"+ dstr[1] + "'")
-            print( "Com:", comx, "State =", self.curr_state)
+        if self.pgdebug > 3:
+            print( "Incoming Line: ", dstr)
 
+        if self.verbose:
+            print( "Com:", "'" + comx[0] + "'", "State =", self.curr_state)
+
+        got = False; comok = False
         # Scan the state table, execute actions, set new states
         for aa in state_table:
             # See if command is in state or all_in is in effect
             # or auth_in and stat > auth is in effect -- use early out
-            cond = aa[1] == self.curr_state
-            if not cond:
-                cond = cond or (aa[1] == auth_in and self.curr_state >= in_idle)
-            if not cond:
-                cond = cond or aa[1] == all_in
-            if cond:
-                if comx[0] == aa[0]:
-                    # Execute relevant function
-                    ret = aa[3](self, comx)
-                    # Only set state if not all_in / auth_in
-                    if aa[2] != none_in:
-                        self.curr_state = aa[2]
-                    got = True
-                    break
+            if comx[0] == aa[0]:
+                comok = True
+                if self.pgdebug > 3:
+                    print("Found command, executing:", aa[0])
+
+                cond = aa[1] == self.curr_state
+                if not cond:
+                    cond = cond or (aa[1] == auth_in and self.curr_state >= in_idle)
+                if not cond:
+                    cond = cond or aa[1] == all_in
+                if cond:
+                        # Execute relevant function
+                        ret = aa[3](self, comx)
+                        # Only set state if not all_in / auth_in
+                        if aa[2] != none_in:
+                            self.curr_state = aa[2]
+                        got = True
+                        break
 
         # Not found in the state table for the current state, complain
         if not got:
-            print( "Invalid command or out of sequence command:", strx)
-            sss =  "ERR Invalid or Out of Sequence command " + strx
+            #print( "Invalid command or out of sequence command ", "'" + comx[0] + "'")
+            if comok:
+                sss =  "ERR Invalid command " + "'" + comx[0] + "'"
+            else:
+                sss =  "ERR Out of Sequence command " + "'" + comx[0] + "'"
             #self.resp.datahandler.putdata(sss.encode("cp437"), self.resp.ekey)
             self.resp.datahandler.putdata(sss, self.resp.ekey)
             # Do not quit, just signal the error
@@ -216,23 +225,3 @@ class StateHandler():
         return ret
 
 # EOF
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

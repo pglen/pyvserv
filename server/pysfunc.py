@@ -196,8 +196,9 @@ def get_user_func(self, strx):
 
 def get_sess_func(self, strx):
 
-    if pgdebug > 1:
+    if pgdebug > 4:
         print("get_sess_func() called")
+
     if pgdebug > 5:
         print("strx", strx)
 
@@ -207,10 +208,13 @@ def get_sess_func(self, strx):
 
     if pgdebug > 4:
         print("got session key ")
+
+    if pgdebug > 6:
         print(crysupp.hexdump(strx[3]))
 
     sss = SHA512.new(); sss.update(strx[3])
-    if pgdebug > 3:
+
+    if pgdebug > 5:
         print("Hashes:", strx[2], sss.hexdigest())
 
     # Arrived safely?
@@ -224,12 +228,14 @@ def get_sess_func(self, strx):
 
     # Decoded OK?
     ttt = SHA512.new(); ttt.update(message2)
-    if pgdebug > 3:
+
+    if pgdebug > 5:
         print("Hashes2:", strx[1], ttt.hexdigest())
 
     if ttt.hexdigest() != strx[1]:
         self.resp.datahandler.putdata("ERR session key damaged on decoding.", self.resp.ekey)
         return
+
     #self.resp.datahandler.putdata("ERR session key check failed.", self.resp.ekey)
 
     self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)

@@ -10,7 +10,9 @@ import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
 sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog
+
+import support, pycrypt, pyservsup, pyclisup
+import pysyslog, crysupp, pypacker, comline
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -43,7 +45,7 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = support.Config(optarr)
+conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
