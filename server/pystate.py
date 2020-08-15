@@ -3,13 +3,15 @@
 from __future__ import print_function
 
 from Crypto.Hash import SHA512
-import os, sys, getopt, signal, select, string, time, stat
+import os, sys, getopt, signal, select, string, time, stat, base64
 
-sys.path.append('..')
+#sys.path.append('..')
+
 sys.path.append('../bluepy')
-sys.path.append('../common')
+import bluepy
 
-import support, pyservsup, pyclisup, crysupp, pysyslog, bluepy, pypacker
+sys.path.append('../common')
+import support, pyservsup, pyclisup, crysupp, pysyslog, pypacker
 
 from pysfunc import *
 
@@ -163,7 +165,7 @@ class StateHandler():
         try:
             ret = self._run_state(strx)
         except:
-            support.put_exception("While in run state:")
+            support.put_exception("While in run state:" + str(self.curr_state))
         return ret
 
     def _run_state(self, strx):
@@ -171,14 +173,15 @@ class StateHandler():
 
         # If encrypted, process it
         if self.resp.ekey != "":
-            #ddd  = strx.encode("cp437")
-            ddd  = strx
-            #strx2 = bluepy.bluepy.decrypt(ddd, self.resp.ekey)
-            #bluepy.bluepy.destroy(ddd)
+            ddd =  base64.b64decode(strx)
+            strx2 = bluepy.decrypt(ddd, self.resp.ekey)
+            #bluepy.destroy(ddd)
             #strx = strx2
+        else:
+            strx2 = strx
 
         pb = pypacker.packbin()
-        dstr = pb.unwrap_data(strx)
+        dstr = pb.unwrap_data(strx2)
         comx = dstr[1] #.split()
 
         if self.pgdebug > 3:

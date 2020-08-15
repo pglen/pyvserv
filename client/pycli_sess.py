@@ -179,9 +179,9 @@ if __name__ == '__main__':
     print("Sess Key ACCEPTED:",  resp)
 
     # Session estabilished, try a simple command
-    #resp3 = hand.client(["hello",], conf.sess_key, False)
+    resp3 = hand.client(["hello",], conf.sess_key, False)
 
-    resp3 = hand.client(["hello",] , "", False)
+    #resp3 = hand.client(["hello",] , "", False)
     print("Post session Hello Response:", resp3)
 
     hand.client(["quit",])

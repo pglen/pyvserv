@@ -213,26 +213,21 @@ class CliSup():
 
         rstr = Random.new().read(random.randint(14, 24))
         xstr = Random.new().read(random.randint(24, 36))
+
         datax = [rstr, message, xstr]
         dstr = self.pb.wrap_data(datax)
 
-        #print("dstr", dstr)
-        #if pb.unwrap_data(dstr) != datax:
-        #    print("Not decoded correctly", dstr)
-
         if key != "":
-            pass
             print("encrypting with session key:\n", crysupp.hexdump(key[:16]) )
-
-            #if rand:
-            #    message = message + " " * random.randint(0, 20)
-            #message = bluepy.encrypt(message, key).decode("cp437")
-            #message = bluepy.encrypt(message, key)
-
-        self.sendx(dstr)
+            dstr2 = bluepy.encrypt(dstr, key)
+            dstr3 = base64.b64encode(dstr2)
+        else:
+            dstr3 = dstr
 
         #if self.verbose and key != "":
-        #    print( "   put: '%s'" % base64.b64encode(message),)
+        #    print( "   put: '%s'" % base64.b64encode(dstr),)
+
+        self.sendx(dstr3)
 
         #print("wait for answer")
         response = self.getreply()
@@ -241,16 +236,21 @@ class CliSup():
         #    print( "get: '%s'" % base64.b64encode(response))
 
         if key != "":
+            print("decrypting with session key:\n", crysupp.hexdump(key[:16]) )
+            dstr4 = base64.b64encode(response)
+            dstr5 = bluepy.encrypt(dstr4, key)
+
             #response = pycrypt.xdecrypt(response, key)
             #response = bluepy.decrypt(response, key)
-            print("decrypting with session key:\n", crysupp.hexdump(key[:16]) )
             pass
+        else:
+            dstr5 = response
 
         if self.verbose:
             print( "Rec: '%s'" % response)
             sys.stdout.flush()
 
-        return response
+        return dstr5
 
 # EOF
 

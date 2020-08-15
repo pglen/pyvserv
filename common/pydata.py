@@ -74,26 +74,22 @@ class DataHandler():
         try:
             #print ("putdata type:", type(dstr))
 
-            if sys.version_info[0] < 3:
-                response2 = dstr
+            if type(dstr) == type(str):
+                response2 = bytes(dstr, "cp437")
             else:
-                if type(dstr) == str:
-                    response2 = bytes(dstr, "cp437")
-                else:
-                    response2 = dstr
+                response2 = dstr
 
             if  key != "":
-                #print("Encrypting", dstr)
-                #if rand:
-                #    response +=  " " * random.randint(0, 20)
-                #response2 = bluepy.bluepy.encrypt(response, key)
-                #response2 = response
-                #bluepy.bluepy.destroy(response)
-                pass
+                xresponse = bluepy.encrypt(response, key)
+                response2 = base64.b64encode(xresponse)
 
-            if self.tout: self.tout.cancel()
+            if self.tout:
+                self.tout.cancel()
             self.tout = threading.Timer(self.timeout, self.handler_timeout)
             self.tout.start()
+
+            #if self.pgdebug > 2:
+            #    print ("assemble:", type(response2), response2 )
 
             # Send out our special buffer (short)len + (str)message
             if sys.version_info[0] < 3:
@@ -101,18 +97,13 @@ class DataHandler():
             else:
                 strx = struct.pack("!h", len(response2)) + response2
 
-            #if self.pgdebug > 9:
+            #if self.pgdebug > 2:
             #    print ("sending: '", strx ) # + strx.decode("cp437") + "'")
-            #print ("sending: '", strx )
 
-            if sys.version_info[0] < 3:
-                ret = self.par.request.send(strx)
-            else:
-                #ret = self.par.request.send(strx.encode())
-                ret = self.par.request.send(strx)
+            ret = self.par.request.send(strx)
 
         except:
-            support.put_exception("While in Put Data:" + str(response))
+            support.put_exception("While in Put Data: " + str(response))
             ret = -1
 
         return ret

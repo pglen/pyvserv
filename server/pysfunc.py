@@ -196,8 +196,8 @@ def get_user_func(self, strx):
 
 def get_sess_func(self, strx):
 
-    if pgdebug > 4:
-        print("get_sess_func() called")
+    #if pgdebug > 4:
+    #    print("get_sess_func() called")
 
     if pgdebug > 5:
         print("strx", strx)
@@ -207,7 +207,7 @@ def get_sess_func(self, strx):
         return
 
     if pgdebug > 4:
-        print("got session key ")
+        print("Got session key.")
 
     if pgdebug > 6:
         print(crysupp.hexdump(strx[3]))
