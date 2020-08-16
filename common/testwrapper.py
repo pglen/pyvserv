@@ -10,7 +10,7 @@ from Crypto.Hash import SHA512
 
 import support, pypacker
 
-key = "" #"1235"
+key = "1234"
 
 rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
         "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="

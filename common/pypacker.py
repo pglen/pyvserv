@@ -7,6 +7,7 @@ import struct, stat, base64, random, zlib
 
 from Crypto.Hash import SHA512
 from Crypto import Random
+#from Crypto import StrongRandom
 
 import support, crysupp, support
 
@@ -403,10 +404,10 @@ class   wrapper():
     def __init__(self):
         self.pb = packbin()
         self.rr = Random.new()
-        print(self.rr.__doc__)
-        # seed random
+
+        # Seed random;
         for aa in range(10):
-            self.rr.read(16)
+            self.rr.read(5)
 
     # Wrap data in a hash, compress, base64
     def wrap_data(self, key, xddd):
@@ -414,7 +415,7 @@ class   wrapper():
         randx = [self.rr.read(16)]
         randx += xddd
 
-        print ("  Carrier:", support.hexstr(randx[0]));
+        #print ("  Carrier:", support.hexstr(randx[0]));
 
         #print ("\nddd=", xddd, "\ntstr=", self.autotype(xddd))
         sss = self.pb.encode_data("", *randx)
