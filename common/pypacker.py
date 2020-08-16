@@ -6,8 +6,12 @@ import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random, zlib
 
 from Crypto.Hash import SHA512
+from Crypto import Random
 
-import support, crysupp
+import support, crysupp, support
+
+sys.path.append('../bluepy')
+import bluepy
 
 __doc__ =   \
 '''
@@ -391,11 +395,30 @@ class packbin():
 
         return arr
 
+# ------------------------------------------------------------------------
+# Wrap everything into an encrypted buffer
+
+class   wrapper():
+
+    def __init__(self):
+        self.pb = packbin()
+        self.rr = Random.new()
+        print(self.rr.__doc__)
+        # seed random
+        for aa in range(10):
+            self.rr.read(16)
+
     # Wrap data in a hash, compress, base64
-    def wrap_data(self, xddd):
+    def wrap_data(self, key, xddd):
+
+        randx = [self.rr.read(16)]
+        randx += xddd
+
+        print ("  Carrier:", support.hexstr(randx[0]));
 
         #print ("\nddd=", xddd, "\ntstr=", self.autotype(xddd))
-        sss = self.encode_data("", *xddd)
+        sss = self.pb.encode_data("", *randx)
+
         #print ("sss", sss);
 
         hh = SHA512.new();
@@ -405,17 +428,26 @@ class packbin():
         else:
             hh.update(sss)
 
-        #print ("Hexdigest: ",hh.hexdigest())
+        # test: damage the data
+        #sss = sss[:110] + chr(ord(sss[10]) + 1) + sss[111:]
+
+        #print ("  Hexdigest: ",hh.hexdigest())
         dddd = [hh.hexdigest(), sss]
         #print("dddd", dddd)
 
-        ssss = self.encode_data("sx", *dddd)
+        ssss = self.pb.encode_data("", *dddd)
 
         if sys.version_info[0] > 2:
             ssss  = ssss.encode("cp437")
 
         fff = zlib.compress(ssss)
-        fff2 = base64.b64encode(fff)
+
+        if key:
+            fff3 = bluepy.encrypt(fff, key)
+        else:
+            fff3 = fff
+
+        fff2 = base64.b64encode(fff3)
 
         #if sys.version_info[0] > 2:
         #fff2 = fff2.decode("cp437")
@@ -423,43 +455,39 @@ class packbin():
         return fff2
 
     # Unrap data in a hash, de  base64, decompress,
-    def unwrap_data(self, xddd):
+    def unwrap_data(self, key, xddd):
 
         fff2 = base64.b64decode(xddd)
-        fff = zlib.decompress(fff2)
+
+        if key:
+            fff3 = bluepy.decrypt(fff2, key)
+        else:
+            fff3 = fff2
+
+        fff = zlib.decompress(fff3)
 
         if sys.version_info[0] > 2:
             fff = fff.decode("cp437")
-        #print("fff:", fff)
 
-        sss = self.decode_data(fff)
-        #print ("sss", sss);
+        #print("fff:", fff)
+        sss = self.pb.decode_data(fff)
 
         hh = SHA512.new();
         if sys.version_info[0] > 2:
-            hh.update(sss[1].encode("cp437"))
-        else:
-            hh.update(sss[1])
+            sss[1] = sss[1].encode("cp437")
+        hh.update(sss[1])
 
-        #print ("Hexdigest2", hh.hexdigest())
-
+        #print ("  Hexdigest2:", hh.hexdigest())
         if not hh.hexdigest() == sss[0]:
-            raise ValueError("Mismatching hashes on data")
+            raise ValueError("Mismatching hashes on wrapped data")
 
-        out = self.decode_data(sss[1])
+        out = self.pb.decode_data(sss[1])
+        #print ("  Carrier:", support.hexstr(out[0]));
 
-        return out
+        return out[1:]
 
 
 if __name__ == '__main__':
     print("This was meant to be used as a module.")
 
 # eof
-
-
-
-
-
-
-
-

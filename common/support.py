@@ -66,6 +66,23 @@ def put_exception2(xstr):
     put_debug(cumm)
     #syslog.syslog("%s %s %s" % (xstr, a, b))
 
+def hexstr(strin):
+    outx = ""
+    if sys.version_info[0] < 3:
+        strx = strin
+    else:
+        if type(strin) == str:
+            strx = bytes(strin, "cp437")
+        else:
+            strx = strin
+
+    for aa in range(len(strx)):
+        if sys.version_info[0] < 3:
+            outx += "%02x " % ord(strx[aa])
+        else:
+            outx += "%02x " % strx[aa]
+    return outx
+
 # ------------------------------------------------------------------------
 # Helper functions.
 # Escape spaces to %20 and misc chars

@@ -19,6 +19,7 @@ if __name__ == '__main__':
             "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
 
     pb = pypacker.packbin();
+
     '''
     pb.verbose = 3
 
@@ -69,8 +70,7 @@ if __name__ == '__main__':
     else:
         print("MISMATCH:")
 
-    #print ("Should print 4 successes and a sample output")
-    print ("Should print 4 successes")
+    #print ("Should print 3 successes")
     #iscsifb
     #eee = pb.encode_data("iscsfb", *org)
 
@@ -86,7 +86,8 @@ if __name__ == '__main__':
         print ("Broken decode")
         print ("eee:\n", eee)
     else:
-        print ("Success1 ", end="")
+        pass
+        #print ("Success1 ", end="")
 
     org2 = [ 22, 444, "data", 123.456, 'a', eee]
     #print ("org2:\n", org2)
@@ -100,7 +101,8 @@ if __name__ == '__main__':
         print ("Broken decode")
         print ("eee2:\n", eee2)
     else:
-        print ("Success2 ", end="")
+        pass
+        #print ("Success2 ", end="")
 
     if sys.version_info[0] > 2:
         eee  = eee.encode("cp437")
@@ -124,39 +126,6 @@ if __name__ == '__main__':
     if not org == ggg:
         print ("Broken decode")
     else:
-        print ("Success3 ", end="")
+        print ("Success")
 
-    www = pb.wrap_data(org)
-
-    #if sys.version_info[0] > 2:
-    #    www  = eee.decode("cp437")
-
-    # damage the data
-    #www = www[:110] + chr(ord(www[10]) + 1) + www[111:]
-    #print ("www", www)
-
-    ooo = pb.unwrap_data(www)
-    if not org == ooo:
-        print ("Broken unwrap")
-    else:
-        print ("Success4 ", end="")
-
-    #zzzz = support.breaklines(ooo, 75)
-    #print (zzzz)
-    print()
-
-    '''oooo = pb.decode_data(ooo)
-    if not org == oooo:
-        print ("Broken unwrap final")
-    else:
-        print ("Success5 ", end="")
-    '''
-
-
-
-
-
-
-
-
-
+# EOF
