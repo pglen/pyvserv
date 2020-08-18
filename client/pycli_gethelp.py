@@ -129,7 +129,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if conf.quiet == False:
-        print ("Server initial:", resp2)
+        print ("Server initial:", resp2[1])
 
     cmd = ["help"]
     if conf.subhelp:
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     resp = hand.client(cmd)
 
     if conf.quiet == False:
-        print ("Server response:", resp)
+        print ("Server response:", resp[1])
 
     hand.client(["quit"])
     hand.close();

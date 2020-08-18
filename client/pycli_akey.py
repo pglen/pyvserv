@@ -16,8 +16,7 @@ from Crypto.Hash import SHA
 from Crypto import Random
 
 sys.path.append('../common')
-
-import support, pycrypt, pyservsup, pyclisup
+import support, pycrypt, pyservsup, pyclisup, pywrap
 import pysyslog, crysupp, pypacker, comline
 
 # ------------------------------------------------------------------------
@@ -79,10 +78,13 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if conf.quiet == False:
-        print ("Server initial:", resp2)
+        print ("Server initial:", resp2[1])
 
     resp = hand.client(["akey"])
-    kkk = resp.split()[2]
+    kkk = resp[1].split()[2]
+
+    if conf.pgdebug > 2:
+        print("kkk", kkk)
 
     if conf.verbose:
         print("got response: ", resp[0])
@@ -93,9 +95,9 @@ if __name__ == '__main__':
     resp2 = hand.getreply()
 
     if conf.pgdebug > 2:
-        print ("Server response2:\n" +  "'" + resp2.decode("cp437") +  "'\n")
+        print ("Server response2:\n" +  "'" + resp2[1].decode("cp437") +  "'\n")
 
-    hhh = SHA512.new(); hhh.update(resp2)
+    hhh = SHA512.new(); hhh.update(resp2[1])
 
     if conf.pgdebug > 1:
         print("Hash1:\n" + kkk, "\nHash2:\n" + hhh.hexdigest() + "\n")
@@ -105,7 +107,7 @@ if __name__ == '__main__':
         if conf.quiet == False:
             print("Tainted key")
     else:
-        hand.pkey = resp2
+        hand.pkey = resp2[1]
         if conf.quiet == False:
              print("Key OK")
 

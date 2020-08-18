@@ -8,9 +8,8 @@ from __future__ import print_function
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
-sys.path.append('..')
 sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog, comline
+import support, pycrypt, pyservsup, pyclisup, syslog, comline, pypacker
 
 version = "1,0"
 
@@ -68,6 +67,7 @@ if __name__ == '__main__':
     try:
         resp2 = hand.connect(ip, conf.port)
     except:
+        support.put_exception("On connect")
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
@@ -75,8 +75,9 @@ if __name__ == '__main__':
     #    print ("Server initial:", resp2)
 
     resp = hand.client(["ver"])
+
     if conf.quiet == False:
-        print ("Server response:", resp)
+        print ("Server response:", resp[1])
 
     hand.client(["quit"])
     hand.close()

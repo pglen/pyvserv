@@ -8,9 +8,9 @@ import struct, stat, base64, random, zlib
 from Crypto import Random
 from Crypto.Hash import SHA512
 
-import support, pypacker
+import support, pypacker, pywrap
 
-key = "1234"
+key = "" #"1234"
 
 rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
         "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
@@ -28,11 +28,10 @@ if __name__ == '__main__':
 
     #print("org", org);
 
-    wr = pypacker.wrapper()
+    wr = pywrap.wrapper()
     www = wr.wrap_data(key, org)
 
-    print(" ----- ", www)
-
+    #print(" ----- ", www)
     # test: damage the data
     #www = www[:110] + chr(ord(www[10]) + 1) + www[111:]
 

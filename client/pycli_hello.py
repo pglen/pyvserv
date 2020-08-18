@@ -50,17 +50,21 @@ if __name__ == '__main__':
     try:
         resp2 = hand.connect(ip, conf.port)
     except:
+        #support.put_exception("On connect")
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
     if conf.quiet == False:
-        print ("Server initial:", resp2)
+        print ("Server initial:", resp2[1])
 
     resp = hand.client(["hello"])
     if conf.quiet == False:
-        print ("Server response:", resp)
+        print ("Server response:", resp[1])
 
-    hand.client(["quit"])
+    resp2 = hand.client(["quit"])
+    if conf.quiet == False:
+        print ("Server quit response:", resp2[1])
+
     hand.close();
 
     sys.exit(0)

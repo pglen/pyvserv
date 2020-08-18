@@ -72,20 +72,20 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if conf.quiet == False:
-        print ("Server initial:", resp2)
+        print ("Server initial:", resp2[1])
 
-    resp = hand.client("ekey")
-    rrr = resp.split()   #[2]
+    resp = hand.client(["ekey"])
+    print(resp[1])
+
+    rrr = resp[1].split()
     if rrr[0] == "ERR":
-        print(resp)
-    else:
-        hhh = resp.split()[2]
-        print ("Server response:", "'" + hhh[0] + "'")
+        print(resp[1])
 
+    elif rrr[0] == "OK":
         resp2 = hand.getreply()
-        print ("Server response2:",  "'" + resp2 +  "'")
+        print ("Server response2:",  "'" + resp2[1] +  "'")
 
-        hh = SHA512.new(); hh.update(resp2.encode())
+        hh = SHA512.new(); hh.update(resp2[1].encode())
         #print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())
 
         hand.pkey = resp2;
@@ -100,6 +100,8 @@ if __name__ == '__main__':
         if conf.showkey:
             #print("Key:")
             print(hand.pkey)
+    else:
+        print("Invalid response:", "'" + resp[1] + "'")
 
     hand.client("quit")
     hand.close();

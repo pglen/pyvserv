@@ -16,8 +16,21 @@ from Crypto.Hash import SHA
 from Crypto import Random
 
 sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup
-import pysyslog, crysupp, pypacker, comline
+import support, pycrypt, pyservsup, pyclisup, syslog
+import comline, pypacker, crysupp
+
+sys.path.append('../bluepy')
+import bluepy
+
+'''
+# test encrypt with large keys
+rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
+        "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
+sss = bluepy.encrypt(rrr, conf.sess_key)
+ttt = bluepy.decrypt(sss, conf.sess_key)
+print (rrr)
+print (ttt)
+'''
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -73,22 +86,22 @@ if __name__ == '__main__':
     hand.pgdebug = conf.pgdebug
 
     try:
-        resp2 = hand.connect(ip, conf.port)
+        respc = hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
     resp3 = hand.client(["hello",] , "", False)
-    print("Hello Response:", resp3)
+    print("Hello Response:", resp3[1])
 
     #if conf.quiet == False:
     #    print ("Server initial:", resp2)
 
     resp = hand.client(["akey"])
-    kkk = resp.split()
+    kkk = resp[1].split()
 
     if kkk[0] != "OK":
-        print("Error on getting key:", resp)
+        print("Error on getting key:", resp[1])
         hand.client(["quit"])
         hand.close();
         sys.exit(0)
@@ -97,15 +110,16 @@ if __name__ == '__main__':
     #    print ("Server response:", "'" + kkk + "'")
 
     if conf.verbose:
-        print("Got hash:", "'" + kkk[1] + "'")
-        print()
+        #print("Got hash:", "'" + kkk[1] + "'")
+        #print()
+        pass
 
     resp2 = hand.getreply()
 
     if conf.pgdebug > 4:
-        print ("Server response2:\n" +  "'" + resp2.decode("cp437") +  "'\n")
+        print ("Server response2:\n" +  "'" + resp2[1].decode("cp437") +  "'\n")
 
-    hhh = SHA512.new(); hhh.update(resp2)
+    hhh = SHA512.new(); hhh.update(resp2[1])
 
     if conf.pgdebug > 3:
         print("Hash1:  '" + kkk[2] + "'")
@@ -118,9 +132,9 @@ if __name__ == '__main__':
         hand.close();
         sys.exit(0)
 
-    hand.pkey = resp2
+    hand.pkey = resp2[1]
     if conf.quiet == False:
-         print("Key response:", kkk[0], kkk[2][:16], "...")
+         print("Key response:", kkk[0], kkk[2][:32], "...")
 
     if conf.pgdebug > 4:
          print(hand.pkey)
@@ -164,25 +178,25 @@ if __name__ == '__main__':
         print("sess_keyx")
         print(crysupp.hexdump(sess_keyx))
 
-    resp = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
-    #print("Sess Response:", resp)
+    #resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
+    resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
 
-    kkk = resp.split()
+    #print("Sess Response:", resp3[1])
+
+    kkk = resp3[1].split()
 
     if kkk[0] != "OK":
-        print("Error on setting session:", resp)
+        print("Error on setting session:", resp3[1])
         hand.client(["quit"])
         hand.close();
         sys.exit(0)
 
     # Make a note of the session key
-    print("Sess Key ACCEPTED:",  resp)
+    print("Sess Key ACCEPTED:",  resp3[1])
 
     # Session estabilished, try a simple command
-    resp3 = hand.client(["hello",], conf.sess_key, False)
-
-    #resp3 = hand.client(["hello",] , "", False)
-    print("Post session Hello Response:", resp3)
+    resp4 = hand.client(["hello",], sess_keyx, False)
+    print("Post session Hello Response:", resp4[1])
 
     hand.client(["quit",])
     hand.close();

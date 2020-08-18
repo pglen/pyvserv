@@ -10,6 +10,7 @@ from Crypto.Hash import SHA512
 
 import support, pypacker
 
+
 # ------------------------------------------------------------------------
 # Test harness
 
@@ -19,31 +20,24 @@ if __name__ == '__main__':
             "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
 
     pb = pypacker.packbin();
+    pb.verbose = 0
 
     '''
-    pb.verbose = 3
-
     zorg = { 334 : "subx", 'x' : 123 }
     xorg = ["val1", "val2", "val3"]
     yorg = ["1", "2", "3"]
-
     sorg_var = [ 334, "subx", 'x', xorg, yorg]
     #sorg_var = [ 334, "subx", 'x', xorg, zorg]
-
     if pb.verbose > 2:
         print ("sorg_var:\n", sorg_var)
-
     eee_var = pb.encode_data("", *sorg_var)
     if pb.verbose > 2:
         print ("eee_var type", type(eee_var).__name__, ":\n", eee_var)
-
     fff_var = pb.decode_data(eee_var)
     if pb.verbose > 2:
         print ("fff_var:\n", fff_var)
-
     if  sorg_var != fff_var:
         print("Error on compare")
-
     #sys.exit(0)
     '''
 
@@ -59,6 +53,8 @@ if __name__ == '__main__':
     eee = pb.encode_data("", *org)
     if pb.verbose > 2:
         print("eee:\n", "{" + eee + "}")
+
+    #print ("eee", eee)
 
     ddd = pb.decode_data(eee)
     if pb.verbose > 2:

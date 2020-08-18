@@ -11,7 +11,8 @@ sys.path.append('../bluepy')
 import bluepy
 
 sys.path.append('../common')
-import support, pyservsup, pyclisup, crysupp, pysyslog, pypacker
+import support, pyservsup, pyclisup, crysupp, pysyslog
+import pypacker, pywrap
 
 from pysfunc import *
 
@@ -152,6 +153,7 @@ class StateHandler():
         self.resp.cwd = os.getcwd()
         self.resp.dir = ""
         self.resp.ekey = ""
+        self.wr = pywrap.wrapper()
 
     # --------------------------------------------------------------------
     # This is the function where outside stimulus comes in.
@@ -160,34 +162,41 @@ class StateHandler():
 
     def run_state(self, strx):
         ret = None
-        if self.pgdebug > 2:
+
+        if self.pgdebug > 5:
             print("Run state data: '" + strx + "'")
         try:
             ret = self._run_state(strx)
         except:
-            support.put_exception("While in run state:" + str(self.curr_state))
+            support.put_exception("While in run state(): " + str(self.curr_state))
+            sss =  "ERR on processing request."
+            self.resp.datahandler.putdata(sss, self.resp.ekey)
+            ret = False
         return ret
 
     def _run_state(self, strx):
         got = False; ret = True
 
-        # If encrypted, process it
-        if self.resp.ekey != "":
-            ddd =  base64.b64decode(strx)
-            strx2 = bluepy.decrypt(ddd, self.resp.ekey)
-            #bluepy.destroy(ddd)
-            #strx = strx2
-        else:
-            strx2 = strx
+        if self.pgdebug > 8:
+            print( "Incoming strx: ", type(strx), strx)
 
-        pb = pypacker.packbin()
-        dstr = pb.unwrap_data(strx2)
-        comx = dstr[1] #.split()
+        dstr = ""
+        try:
+            #dstr = self.wr.unwrap_data(self.resp.ekey, strx)
+            dstr = self.wr.unwrap_data("", strx)
+        except:
+            sss =  "ERR cannot unwrap / decode data."
+            #support.put_exception("While in _run state(): " + str(self.curr_state))
+            print("pystate.py %s" % (sss,));
+            self.resp.datahandler.putdata(sss, self.resp.ekey)
+            return False
 
         if self.pgdebug > 3:
             print( "Incoming Line: ", dstr)
 
-        if self.verbose:
+        comx = dstr[1] #.split()
+
+        if self.pgdebug > 1:
             print( "Com:", "'" + comx[0] + "'", "State =", self.curr_state)
 
         got = False; comok = False

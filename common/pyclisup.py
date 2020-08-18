@@ -6,11 +6,7 @@ import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random, socket
 from Crypto import Random
 
-import pydata, pyservsup, pypacker, crysupp, comline
-
-sys.path.append('../bluepy')
-
-import bluepy
+import pydata, pyservsup, pypacker, crysupp, comline, pywrap
 
 # -----------------------------------------------------------------------
 # Globals
@@ -24,11 +20,16 @@ class CliSup():
     def __init__(self, sock = None):
         self.sock = sock
         self.verbose = False
-        self.debug = False
+        self.pgdebug = 0
         if self.sock != None:
             self.mydathand  = pydata.xHandler(self.sock)
             self.myhandler  = pydata.DataHandler()
-        self.pb = pypacker.packbin()
+        self.wr = pywrap.wrapper()
+        self.rr = Random.new()
+        # Seed random;
+        for aa in range(10):
+            self.rr.read(5)
+
 
     def connect(self, ip, port):
         resp2 = ""
@@ -58,6 +59,9 @@ class CliSup():
 
     def sendx(self, message):
 
+        if self.pgdebug > 0:
+            print("sending message:", message  )
+
         if sys.version_info[0] < 3:
             strx = struct.pack("!h", len(message)) + message
         else:
@@ -65,7 +69,6 @@ class CliSup():
                  message = message.encode("cp437")
             strx = struct.pack("!h", len(message)) + message
 
-        #print("message:", strx)
         self.sock.send(strx)
 
     # ------------------------------------------------------------------------
@@ -121,18 +124,11 @@ class CliSup():
             if len(buff) == 0:
                 break
 
-            if key != "":
-                #buff = bluepy.encrypt(buff, key)
-                pass
-
             self.sendx(buff)
+
         response = self.myhandler.handle_one(self.mydathand)
 
-        if key != "":
-            #response = bluepy.decrypt(response, key)
-            pass
-
-        if self.verbose:
+        if self.pgdebug > 2:
             print( "Received: '%s'" % response)
         return True
 
@@ -167,9 +163,7 @@ class CliSup():
             need = max(need, 0)
             data = self.myhandler.handle_one(self.mydathand)
             #print("got data", data)
-            if key != "":
-                #data = bluepy.decrypt(data, key)
-                pass
+
             try:
                 fh.write(data)
             except:
@@ -192,65 +186,50 @@ class CliSup():
 
     def  getreply(self, key = "", rand = True):
         response = self.myhandler.handle_one(self.mydathand)
-        if self.verbose:
-            print( "Got response:", response)
 
-        if key:
-            pass
-            print("decrypting with session key")
+        if self.pgdebug > 3:
+            print( "Got reply:", response)
 
-        dstr = self.pb.unwrap_data(response)
-        return dstr[1]
+        dstr = self.wr.unwrap_data(key, response)
+        return dstr
 
     # ------------------------------------------------------------------------
     # Ping Pong function with encryption and padding. message is a
     # collection of data to send
 
     def client(self, message, key = "", rand = True):
-        if self.verbose:
-            print( "Sending: '%s'" % message)
-            sys.stdout.flush()
 
-        rstr = Random.new().read(random.randint(14, 24))
-        xstr = Random.new().read(random.randint(24, 36))
+        if type(message) != type([]):
+            raise(TypeError, "Argument one to client() must be list")
 
+        if self.pgdebug > 0:
+            print( "   message:", message)
+            #print("    key",  key)
+
+        rstr = self.rr.read(random.randint(14, 24))
+        xstr = self.rr.read(random.randint(24, 36))
         datax = [rstr, message, xstr]
-        dstr = self.pb.wrap_data(datax)
 
-        if key != "":
-            print("encrypting with session key:\n", crysupp.hexdump(key[:16]) )
-            dstr2 = bluepy.encrypt(dstr, key)
-            dstr3 = base64.b64encode(dstr2)
-        else:
-            dstr3 = dstr
+        dstr = self.wr.wrap_data(key, datax)
 
-        #if self.verbose and key != "":
-        #    print( "   put: '%s'" % base64.b64encode(dstr),)
+        if self.pgdebug > 7:
+            print( "   put: '%s'" % dstr)
 
-        self.sendx(dstr3)
+        if self.pgdebug > 8:
+            dstr2 = self.wr.unwrap_data(key, dstr)
+            print( "   unwrap: ", dstr2)
 
-        #print("wait for answer")
+        self.sendx(dstr)
+
+        #if self.pgdebug > 0:
+        #    print("    waiting for answer ...")
+
         response = self.getreply()
 
-        #if self.verbose and key != "":
-        #    print( "get: '%s'" % base64.b64encode(response))
+        if self.pgdebug > 0:
+            print( "    get: '%s'" % response)
 
-        if key != "":
-            print("decrypting with session key:\n", crysupp.hexdump(key[:16]) )
-            dstr4 = base64.b64encode(response)
-            dstr5 = bluepy.encrypt(dstr4, key)
-
-            #response = pycrypt.xdecrypt(response, key)
-            #response = bluepy.decrypt(response, key)
-            pass
-        else:
-            dstr5 = response
-
-        if self.verbose:
-            print( "Rec: '%s'" % response)
-            sys.stdout.flush()
-
-        return dstr5
+        return response
 
 # EOF
 

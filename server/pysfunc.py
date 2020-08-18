@@ -268,7 +268,7 @@ def get_akey_func(self, strx):
             return
 
         if pgdebug > 5:
-            print("Key read: \n'" + keyx.decode("cp437") + "'\n")
+            print("Key read: \n'" + self.keyx.decode("cp437") + "'\n")
 
         # Do private import; we are handleing it here, so key signals errors
         fp2 = open(support.keydir + self.keyfroot + ".pem", "rb")
@@ -285,7 +285,7 @@ def get_akey_func(self, strx):
             return
 
         if pgdebug > 5:
-            print("Key read: \n'" + keyx.decode("cp437") + "'\n")
+            print("Key read: \n'" + self.keyx.decode("cp437") + "'\n")
 
         hh = SHA512.new(); hh.update(self.keyx)
         if pgdebug > 1:

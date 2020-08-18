@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from __future__ import print_function
 
@@ -97,7 +97,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         try:
             while 1:
                 ret = self.datahandler.handle_one(self)
-                #print("handle got:", ret)
                 if not ret: break
                 ret2 = self.statehandler.run_state(ret)
                 if ret2:
@@ -114,6 +113,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         usr = str(mydata[self.name].user)
         #print( "Logoff '" + usr + "'", cli)
         del mydata[self.name]
+
         if verbose:
             print( "Closed socket on", self.name)
 
@@ -263,6 +263,8 @@ if __name__ == '__main__':
 
     if conf.verbose:
         print ("Script home:     ", script_home)
+        if conf.pgdebug:
+            print ("Debug level:     ", conf.pgdebug)
 
     try:
         if not os.path.isdir(script_home):

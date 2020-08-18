@@ -16,7 +16,8 @@ sys.path.append('../bluepy')
 sys.path.append('../common')
 sys.path.append('../server')
 
-import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate, bluepy, pypacker
+import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate, bluepy
+import pypacker, pywrap
 
 # Walk thru the server (chunk) state machine
 # Chunk is our special buffer (short [16 bit])len + (str)message
@@ -36,7 +37,7 @@ class DataHandler():
         self.timeout = 7
         self.pgdebug = pgdebug
         self.pglog = pglog
-        self.pb = pypacker.packbin()
+        self.wr = pywrap.wrapper()
 
     def handler_timeout(self):
 
@@ -60,15 +61,16 @@ class DataHandler():
             pass
 
     def putdata(self, response, key = "", rand = True):
+
         ret = ""; response2 = ""
 
         rstr = Random.new().read(random.randint(14, 24))
         xstr = Random.new().read(random.randint(24, 36))
         datax = [rstr, response, xstr]
-        dstr = self.pb.wrap_data(datax)
+        dstr = self.wr.wrap_data(key, datax)
 
-        if self.pgdebug > 8:
-            print ("server reply:", type(dstr), "'" + str(dstr) + "'")
+        if self.pgdebug > 3:
+            print ("server reply:", dstr)
             pass
 
         try:
@@ -78,10 +80,6 @@ class DataHandler():
                 response2 = bytes(dstr, "cp437")
             else:
                 response2 = dstr
-
-            if  key != "":
-                xresponse = bluepy.encrypt(response, key)
-                response2 = base64.b64encode(xresponse)
 
             if self.tout:
                 self.tout.cancel()
@@ -103,7 +101,10 @@ class DataHandler():
             ret = self.par.request.send(strx)
 
         except:
-            support.put_exception("While in Put Data: " + str(response))
+            sss = "While in Put Data: " + str(response)
+            support.put_exception(sss)
+            self.resp.datahandler.putdata(sss) #, self.resp.ekey)
+
             ret = -1
 
         return ret
@@ -131,7 +132,7 @@ class DataHandler():
         try:
             cur_thread = threading.currentThread()
             self.name = cur_thread.getName()
-            state = 0; xlen = []; data = ""; ldata = ""
+            state = 0; xlen = []; newdata = ""; ldata = ""
             while 1:
                 if state == 0:
                     xdata = self.getdata(max(2-len(ldata), 0))
@@ -143,13 +144,13 @@ class DataHandler():
                         #if self.pgdebug > 7:
                         #    print( "db got len =", xlen)
                 elif state == 1:
-                    data2 = self.getdata(max(xlen[0]-len(data), 0))
+                    data2 = self.getdata(max(xlen[0]-len(newdata), 0))
                     if len(data2) == 0:
                         break
-                    data += data2
+                    newdata += data2
                     #if self.pgdebug > 7:
                     #    print( "db got data, len =", len(data2))
-                    if len(data) == xlen[0]:
+                    if len(newdata) == xlen[0]:
                         state = 3
                 elif state == 3:
                     # Done, return buffer
@@ -160,12 +161,15 @@ class DataHandler():
                         print( "Unkown state")
             if self.tout: self.tout.cancel()
         except:
-            support.put_exception("While in Handshake:")
+            support.put_exception("While in Handshake: ")
 
         #if self.pgdebug > 8:
-        #    print("got data: '" + data + "'")
+        #    print("got data: '" + newdata + "'")
 
-        return data #.decode("cp437")
+        #return newdata.encode("cp437")
+        #return bytes(newdata, "cp437")
+        return newdata
+
 
 # Create a class with the needed members to send / recv
 # This way we can call the same routines as the SockServer class
