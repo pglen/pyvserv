@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from __future__ import print_function
 
@@ -11,13 +11,10 @@ import  random, stat
 sys.path.append('../common')
 import support, pycrypt, pyservsup, pyclisup, syslog, comline, pypacker
 
-# ------------------------------------------------------------------------
-# Functions from command line
+version = "1.0"
 
 optarr =  comline.optarr
-optarr.append ( ["p:",  "port",     9999,   None, "Port to use (default: 9999)"] )
-
-#print (optarr)
+optarr.append ( ["p:",  "port",  9999,   None, "Port to use (default: 9999)"] )
 
 conf = comline.Config(optarr)
 
@@ -25,21 +22,7 @@ conf = comline.Config(optarr)
 
 if __name__ == '__main__':
 
-    if sys.version_info[0] < 3:
-        print("Warning! This script was meant for python 3.x")
-        time.sleep(1)
-
     args = conf.comline(sys.argv[1:])
-
-    #for aa in vars(conf):
-    #    print(aa, getattr(conf, aa))
-
-    pyclisup.verbose = conf.verbose
-
-    if conf.verbose and conf.pgdebug:
-        print("Debug level", conf.pgdebug)
-
-    pyclisup.pgdebug = conf.pgdebug
 
     if len(args) == 0:
         ip = '127.0.0.1'
@@ -47,29 +30,26 @@ if __name__ == '__main__':
         ip = args[0]
 
     hand = pyclisup.CliSup()
-
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
     try:
         resp2 = hand.connect(ip, conf.port)
     except:
-        #support.put_exception("On connect")
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    if conf.quiet == False:
-        print ("Server initial:", resp2[1])
+    print ("Server initial:", resp2[1])
 
-    resp = hand.client(["hello"])
-    if conf.quiet == False:
-        print ("Server response:", resp[1])
+    vresp = hand.client(["vers"])
+    print ("Server vers response:", vresp[1])
 
-    resp2 = hand.client(["quit"])
-    if conf.quiet == False:
-        print ("Server quit response:", resp2[1])
+    cresp = hand.client(["crap this com"])
+    print ("Server crap response:", cresp[1])
 
-    hand.close();
+    qresp = hand.client(["quit"])
+    #hand.close()
+    print ("Server quit response:", qresp[1])
 
     sys.exit(0)
 

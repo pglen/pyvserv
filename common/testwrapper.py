@@ -10,7 +10,8 @@ from Crypto.Hash import SHA512
 
 import support, pypacker, pywrap
 
-key = "" #"1234"
+#key = b"12345"
+key = Random.new().read(512)
 
 rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
         "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
@@ -25,10 +26,11 @@ org = [ 33, "sub", 'd', "longer str here with \' and \" all crap",  33, 33333333
 if __name__ == '__main__':
 
     #print ("Should print success")
-
     #print("org", org);
 
     wr = pywrap.wrapper()
+    #wr.pgdebug = 2
+
     www = wr.wrap_data(key, org)
 
     #print(" ----- ", www)
@@ -37,15 +39,16 @@ if __name__ == '__main__':
 
     #print("www", www);
 
-    ooo = wr.unwrap_data(key, www)
+    ooo = wr.unwrap_data(key, www.decode("cp437"))
 
     #print("ooo", ooo);
 
-    if not org == ooo:
+    if org != ooo:
         print ("Broken unwrap")
     else:
         print ("Success ", end="")
-
+        #print(org)
+        #print(ooo)
     print()
 
 # EOF

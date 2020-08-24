@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
@@ -48,6 +48,10 @@ conf = comline.Config(optarr)
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
+
+    if sys.version_info[0] < 3:
+        print("Warning! This script was meant for python 3.x")
+        time.sleep(1)
 
     #if  sys.version_info[0] < 3:
     #    print("Needs python 3 or better.")

@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-import os, sys, string, time,  traceback, getopt, random, glob
+import os, sys, string, time,  traceback, getopt, random, glob, base64
 
 # ------------------------------------------------------------------------
 # Globals
@@ -245,6 +245,61 @@ class listrec():
         self._relarr.append(self._rel)
         self.filearr = []
         self._listit()
+
+# ------------------------------------------------------------------------
+
+def unlock_process(lockfile):
+    try:
+        os.unlink(lockfile)
+    except:
+        pass
+        print("Cannot unlink lockfile.")
+
+
+
+def lock_process(lockfile):
+
+    closeit = 0; pidstr = ""
+    pid = os.getpid()
+
+    try:
+        fh = open(lockfile, "r")
+        if fh:
+            pidstr = fh.read()
+            fh.close()
+            closeit = 1
+    except:
+        pass
+
+    pidint = 0;
+
+    try:
+        pidint = int(pidstr)
+    except:
+        pass
+
+    if closeit:
+        # Examine if it is still running:
+        was = False
+        if pidstr != "":
+            for proc in psutil.process_iter():
+                if proc.pid == pidint:
+                    was = True
+        if not was:
+            print("Lockfile active, no process ... breaking in")
+            os.unlink(lockfile)
+        else:
+            print("Server running already.")
+            #if verbose:
+            #    print("Lockfile '%s' pid '%s'" % (lockfile, pidstr))
+            sys.exit(2)
+
+    fh = open(lockfile, "w");
+    fh.write( str() );
+    fh.close()
+
+def shortdump(msg, strx):
+    print(msg, str(base64.b64encode(strx[:12])) + " ... " + str(base64.b64encode(strx[-12:])))
 
 if __name__ == '__main__':
     lr = listrec("..")

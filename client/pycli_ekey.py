@@ -51,6 +51,10 @@ conf = comline.Config(optarr)
 
 if __name__ == '__main__':
 
+    if sys.version_info[0] < 3:
+        print("Warning! This script was meant for python 3.x")
+        time.sleep(1)
+
     args = conf.comline(sys.argv[1:])
 
     pyclisup.verbose = conf.verbose
@@ -75,15 +79,15 @@ if __name__ == '__main__':
         print ("Server initial:", resp2[1])
 
     resp = hand.client(["ekey"])
-    print(resp[1])
+
+    #print(resp)
 
     rrr = resp[1].split()
     if rrr[0] == "ERR":
         print(resp[1])
-
     elif rrr[0] == "OK":
         resp2 = hand.getreply()
-        print ("Server response2:",  "'" + resp2[1] +  "'")
+        print ("Server response2:",  "'" + resp2 +  "'")
 
         hh = SHA512.new(); hh.update(resp2[1].encode())
         #print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())

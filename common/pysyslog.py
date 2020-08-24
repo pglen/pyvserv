@@ -2,7 +2,7 @@
 
 import os, sys, getopt, signal, select, string, time, stat
 import platform
-import syslog as sl
+import syslog as slog
 
 LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, \
 LOG_NOTICE, LOG_INFO, LOG_DEBUG = range(8)
@@ -27,21 +27,20 @@ LOG_NOWAIT = 16
 
 def syslog(message):
 
-    print("loging:", message)
+    #print("loging:", message)
 
     if "Linux" in platform.system():
         #print("syslog linux")
-        sl.syslog(message)
+        slog.syslog(message)
     else:
         print (message)
-
     pass
 
 def openlog(ident=sys.argv[0], logoptions=0, facility=LOG_NOTICE):
 
     if "Linux" in platform.system():
-        print("openlog:", ident)
-        sl.openlog(ident) #, logoptions, facility)
+        #print("openlog:", ident)
+        slog.openlog(ident) #, logoptions, facility)
     else:
         pass
 

@@ -45,7 +45,7 @@ class DataHandler():
         if self.pgdebug > 0:
             print( "in handler_timeout %s" % self.name )
 
-        print( "handler_timeout log %d", self.pglog)
+        #print( "handler_timeout log %d", self.pglog)
 
         if self.pglog > 0:
             pysyslog.syslog("Timeout on " + " " + str(self.par.client_address))
@@ -76,7 +76,7 @@ class DataHandler():
         try:
             #print ("putdata type:", type(dstr))
 
-            if type(dstr) == type(str):
+            if type(dstr) == type(""):
                 response2 = bytes(dstr, "cp437")
             else:
                 response2 = dstr
@@ -110,6 +110,7 @@ class DataHandler():
         return ret
 
     def getdata(self, amount):
+
         #if self.pgdebug > 7:
         #    print("getting data:", amount)
 

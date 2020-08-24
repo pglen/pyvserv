@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
@@ -33,9 +33,9 @@ dataroot = ""
 script_home = ""
 
 datadir = ".pyvserv"
-lockfile = datadir + "/lock"
+lockfname = datadir + "/lock"
 
-server = None
+#server = None
 
 # ------------------------------------------------------------------------
 
@@ -161,77 +161,30 @@ def terminate(arg1, arg2):
         print( mydata)
 
     try:
+        server.socket.shutdown(socket.SHUT_RDWR)
+        server.socket.close()
         server.shutdown()
     except:
+        #print("Shutdown exception")
         pass
-
-    #server.socket.shutdown(socket.SHUT_RDWR)
-    #server.socket.close()
 
     if not quiet:
         print( "Terminated pyvserv.py.")
 
     if conf.pglog > 0:
         pysyslog.syslog("Terminated Server")
-    try:
-        os.unlink(lockfile)
-    except:
-        print("Cannot unlink lockfile.")
+
+    support.unlock_process(lockfname)
 
     # Attempt to unhook all pending clients
-
-
-
     sys.exit(2)
-
-
-def lock_process():
-
-    closeit = 0; pidstr = ""
-    pid = os.getpid()
-
-    try:
-        fh = open(lockfile, "r")
-        if fh:
-            pidstr = fh.read()
-            fh.close()
-            closeit = 1
-    except:
-        pass
-
-    pidint = 0;
-
-    try:
-        pidint = int(pidstr)
-    except:
-        pass
-
-    if closeit:
-        # Examine if it is still running:
-        was = False
-        if pidstr != "":
-            for proc in psutil.process_iter():
-                if proc.pid == pidint:
-                    was = True
-        if not was:
-            print("Lockfile active, no process ... breaking in")
-            os.unlink(lockfile)
-        else:
-            print("Server running already.")
-            if verbose:
-                print("Lockfile '%s' pid '%s'" % (lockfile, pidstr))
-            sys.exit(2)
-
-    fh = open(lockfile, "w");
-    fh.write( str() );
-    fh.close()
 
 # ------------------------------------------------------------------------
 
 optarr =  comline.optarr
-optarr.append ( ["e",   "detach",      0,   None, "Detach from terminal"] )
-optarr.append ( ["r:",  "dataroot",    None,   None, "Data root"] )
-optarr.append ( ["l:",  "pglog",       0,      None, "Log level (0 - 10) default = 0"] )
+optarr.append ( ["e",   "detach",      0,       None, "Detach from terminal"] )
+optarr.append ( ["r:",  "dataroot",    None,    None, "Data root"] )
+optarr.append ( ["l:",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
 
 #print (optarr)
 
@@ -239,23 +192,25 @@ conf = comline.Config(optarr)
 
 if __name__ == '__main__':
 
-    args = conf.comline(sys.argv[1:])
-
-    #for aa in vars(conf):
-    #    print(aa, getattr(conf, aa))
-
-    #, pglog, dataroot
+    global server
 
     if sys.version_info[0] < 3:
         print("Warning! This script was meant for python 3.x")
         time.sleep(1)
         #sys.exit(0)
 
-    #print("This script:     ", os.path.realpath(__file__))
-    #print("Exec argv:       ", sys.argv[0])
-    #print("Full path argv:  ", os.path.abspath(sys.argv[0]))
-    #print("Executable name: ", sys.executable)
-    #print("Script name:     ", os.__file__)
+    args = conf.comline(sys.argv[1:])
+
+    #for aa in vars(conf):
+    #    print(aa, getattr(conf, aa))
+    #, pglog, dataroot
+
+    if conf.verbose:
+        print("This script:     ", os.path.realpath(__file__))
+        print("Exec argv:       ", sys.argv[0])
+        print("Full path argv:  ", os.path.abspath(sys.argv[0]))
+        print("Executable name: ", sys.executable)
+        print("Script name:     ", os.__file__)
 
     script_home = os.path.dirname(os.path.realpath(__file__))
     script_home += "/../data/"
@@ -294,7 +249,7 @@ if __name__ == '__main__':
     sys.stderr = support.Unbuffered(sys.stderr)
 
     # Comline processed, go
-    lock_process()
+    support.lock_process(lockfname)
 
     pysfunc.pgdebug = conf.pgdebug
     pysfunc.pglog = conf.pglog

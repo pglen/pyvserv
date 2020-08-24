@@ -127,7 +127,7 @@ state_table = [
             ("udel",    auth_in,    none_in,    get_udel_func,  udel_help),
             ("ver",     all_in,     none_in,    get_ver_func,   vers_help),
             ("vers",    all_in,     none_in,    get_ver_func,   vers_help),
-            ("hello",   initial,    none_in,    get_hello_func, hello_help),
+            ("hello",   all_in,     none_in,    get_hello_func, hello_help),
             ("quit",    all_in,     none_in,    get_exit_func,  quit_help),
             ("exit",    all_in,     none_in,    get_exit_func,  quit_help),
             ("help",    all_in,     none_in,    get_help_func,  help_help),
@@ -154,6 +154,7 @@ class StateHandler():
         self.resp.dir = ""
         self.resp.ekey = ""
         self.wr = pywrap.wrapper()
+        self.wr.pgdebug = 2
 
     # --------------------------------------------------------------------
     # This is the function where outside stimulus comes in.
@@ -182,8 +183,8 @@ class StateHandler():
 
         dstr = ""
         try:
-            #dstr = self.wr.unwrap_data(self.resp.ekey, strx)
-            dstr = self.wr.unwrap_data("", strx)
+            dstr = self.wr.unwrap_data(self.resp.ekey, strx)
+            #dstr = self.wr.unwrap_data("", strx)
         except:
             sss =  "ERR cannot unwrap / decode data."
             #support.put_exception("While in _run state(): " + str(self.curr_state))

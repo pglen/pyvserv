@@ -26,16 +26,25 @@ class   wrapper():
     def __init__(self):
         self.pb = pypacker.packbin()
         self.rr = Random.new()
-
+        self.pgdebug = 0
         # Seed random;
         for aa in range(10):
             self.rr.read(5)
 
         #print("py version", sys.version_info[0])
 
-
     # Wrap data in a hash, compress, base64
     def wrap_data(self, key, xddd):
+
+        #print("wrap_data:", type(key), type(xddd))
+
+        if sys.version_info[0] > 2:
+            if  type(key) == type(""):
+                key = bytes(key, "cp437")
+
+        if self.pgdebug > 1:
+            support.shortdump("wrap_data key:", key)
+            #print("wrap_data key:", base64.b64encode(key[:12]), base64.b64encode(key[-12:]))
 
         randx = [self.rr.read(16)]
         randx += xddd
@@ -45,7 +54,8 @@ class   wrapper():
         #print ("\nddd=", xddd, "\ntstr=", self.autotype(xddd))
         sss = self.pb.encode_data("", *randx)
 
-        #print ("sss", sss);
+        if self.pgdebug > 2:
+            print ("sss", sss);
 
         hh = SHA512.new();
 
@@ -70,41 +80,53 @@ class   wrapper():
 
         if key:
             fff3 = bluepy.encrypt(fff, key)
+            #fff3d = bluepy.decrypt(fff3, key)
         else:
             fff3 = bluepy.encrypt(fff, defkey)
+            #fff3d = bluepy.decrypt(fff3, defkey)
 
-        fff2 = base64.b64encode(fff3)
+        #if fff != fff3d:
+        #    raise(ValueError("Encyption Verification failed"))
 
-        #if sys.version_info[0] > 2:
-        #   fff2 = fff2.decode("cp437")
-        return fff2
+        return fff3
 
+    # --------------------------------------------------------------------
     # Unrap data in a hash, de  base64, decompress,
     def unwrap_data(self, key, xddd):
 
-        #print("unwrap_data", type(xddd), xddd)
+        #print("unwrap_data:", type(key), type(xddd))
 
         if sys.version_info[0] > 2:
-            if type(xddd) == type(str):
+            if  type(key) == type(""):
+                key = key.encode("cp437")
+
+        if self.pgdebug > 1:
+            print("unwrap_data key:", base64.b64encode(key[:12]), base64.b64encode(key[-12:]))
+
+        if sys.version_info[0] > 2:
+            if type(xddd) != type(""):
                 xddd = xddd.decode("cp437")
 
-        fff2 = base64.b64decode(xddd)
+        #fff2 = base64.b64decode(xddd)
+        fff2 = xddd.encode("cp437")
 
         if key:
             fff3 = bluepy.decrypt(fff2, key)
+            #fff3e = bluepy.encrypt(fff3, key)
         else:
             fff3 = bluepy.decrypt(fff2, defkey)
+            #fff3e = bluepy.encrypt(fff3, defkey)
 
-        fff = None
-        try:
-            fff = zlib.decompress(fff3)
-        except:
-            raise(ValueError("Cannot unzip received data"))
+        #if fff2 != fff3e:
+        #    raise(ValueError("Decryption Verification failed"))
+
+        fff = zlib.decompress(fff3)
 
         if sys.version_info[0] > 2:
             fff = fff.decode("cp437")
 
-        #print("fff:", fff)
+        if self.pgdebug > 2:
+            print("fff:", fff)
 
         sss = self.pb.decode_data(fff)
 

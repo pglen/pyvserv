@@ -9,7 +9,7 @@ from Crypto.Hash import SHA
 from Crypto.Hash import SHA512
 from Crypto import Random
 
-import os, sys, getopt, signal, select, string, time, stat
+import os, sys, getopt, signal, select, string, time, stat, base64
 
 sys.path.append('..')
 sys.path.append('../bluepy')
@@ -207,15 +207,9 @@ def get_sess_func(self, strx):
         return
 
     if pgdebug > 4:
-        print("Got session key.")
-
-    if pgdebug > 6:
-        print(crysupp.hexdump(strx[3]))
+        print("Got session key command.")
 
     sss = SHA512.new(); sss.update(strx[3])
-
-    if pgdebug > 5:
-        print("Hashes:", strx[2], sss.hexdigest())
 
     # Arrived safely?
     if strx[2] != sss.hexdigest():
@@ -229,17 +223,20 @@ def get_sess_func(self, strx):
     # Decoded OK?
     ttt = SHA512.new(); ttt.update(message2)
 
-    if pgdebug > 5:
-        print("Hashes2:", strx[1], ttt.hexdigest())
+    if pgdebug > 2:
+        print("Hash1:", strx[1])
+        print("Hash2:",   ttt.hexdigest())
 
     if ttt.hexdigest() != strx[1]:
         self.resp.datahandler.putdata("ERR session key damaged on decoding.", self.resp.ekey)
         return
 
-    #self.resp.datahandler.putdata("ERR session key check failed.", self.resp.ekey)
-
     self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
     self.resp.ekey = message2
+    key =  self.resp.ekey
+
+    if pgdebug > 1:
+        support.shortdump("session key:", key)
 
 # ------------------------------------------------------------------------
 

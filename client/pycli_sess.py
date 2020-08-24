@@ -106,12 +106,8 @@ if __name__ == '__main__':
         hand.close();
         sys.exit(0)
 
-    #if conf.verbose:
-    #    print ("Server response:", "'" + kkk + "'")
-
     if conf.verbose:
-        #print("Got hash:", "'" + kkk[1] + "'")
-        #print()
+        print("Got hash:", "'" + kkk[1] + "'")
         pass
 
     resp2 = hand.getreply()
@@ -164,24 +160,23 @@ if __name__ == '__main__':
     conf.sess_key = Random.new().read(512)
     sss = SHA512.new(); sss.update(conf.sess_key)
 
-    if conf.pgdebug > 1:
-        print("Session key dump:")
-        print(crysupp.hexdump(conf.sess_key[:16]))
-
     cipher = PKCS1_v1_5.new(hand.pubkey)
     #print ("cipher", cipher.can_encrypt())
+
+    if conf.pgdebug > 2:
+        support.shortdump("conf.sess_key", conf.sess_key )
 
     sess_keyx = cipher.encrypt(conf.sess_key)
     ttt = SHA512.new(); ttt.update(sess_keyx)
 
-    if conf.pgdebug > 3:
-        print("sess_keyx")
-        print(crysupp.hexdump(sess_keyx))
+    if conf.pgdebug > 2:
+        support.shortdump("sess_keyx", sess_keyx )
 
-    #resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
+    #print("Key Hexdigest", ttt.hexdigest()[:16])
+
     resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
 
-    #print("Sess Response:", resp3[1])
+    print("Sess Response:", resp3[1])
 
     kkk = resp3[1].split()
 
@@ -193,12 +188,13 @@ if __name__ == '__main__':
 
     # Make a note of the session key
     print("Sess Key ACCEPTED:",  resp3[1])
+    print("Post session, all is encrypted")
 
     # Session estabilished, try a simple command
-    resp4 = hand.client(["hello",], sess_keyx, False)
-    print("Post session Hello Response:", resp4[1])
+    resp4 = hand.client(["hello",], conf.sess_key)
+    print("Hello Response:", resp4[1])
 
-    hand.client(["quit",])
+    hand.client(["quit",],conf.sess_key)
     hand.close();
 
     sys.exit(0)

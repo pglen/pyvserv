@@ -8,7 +8,6 @@ from __future__ import print_function
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
-sys.path.append('..')
 sys.path.append('../common')
 import support, pycrypt, pyservsup, pyclisup, syslog, comline, pypacker
 
@@ -40,28 +39,21 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    pb = pypacker.packbin()
-    dstr = pb.unwrap_data(resp2)
-    resp2 = dstr[1]
+    print ("Server initial:", resp2[1])
+
+    resp = hand.client(["vers"])
 
     if conf.quiet == False:
-        print ("Server initial:", resp2)
-
-    resp = hand.client("vers")
-
-    if conf.quiet == False:
-        print ("Server ver response:", resp)
+        print ("Server ver response:", resp[1])
 
     print("Wating for timeout ..")
     response = hand.getreply()
 
-    dstr = pb.unwrap_data(response)
-    response = dstr[1]
+    print ("Server timeout response:", response[1])
 
-    print ("Server timeout response:", response)
-
-    #hand.client("quit")
+    #qr = hand.client(["quit"])
     #hand.close()
+    #print ("Server quit response:", qr[1])
 
     sys.exit(0)
 

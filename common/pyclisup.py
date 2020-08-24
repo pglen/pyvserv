@@ -25,11 +25,11 @@ class CliSup():
             self.mydathand  = pydata.xHandler(self.sock)
             self.myhandler  = pydata.DataHandler()
         self.wr = pywrap.wrapper()
+        #self.wr.pgdebug = 2
         self.rr = Random.new()
         # Seed random;
         for aa in range(10):
             self.rr.read(5)
-
 
     def connect(self, ip, port):
         resp2 = ""
@@ -65,7 +65,7 @@ class CliSup():
         if sys.version_info[0] < 3:
             strx = struct.pack("!h", len(message)) + message
         else:
-            if type(message) == type(str):
+            if type(message) == type(""):
                  message = message.encode("cp437")
             strx = struct.pack("!h", len(message)) + message
 
@@ -224,7 +224,7 @@ class CliSup():
         #if self.pgdebug > 0:
         #    print("    waiting for answer ...")
 
-        response = self.getreply()
+        response = self.getreply(key)
 
         if self.pgdebug > 0:
             print( "    get: '%s'" % response)

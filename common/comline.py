@@ -18,11 +18,14 @@ def phelp():
 
     print()
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
+    print()
     print( "Options:")
 
     for aa in optarr:
         pad = " " * (9 - len(aa[1]))
         print("        ", "-" + aa[0][0], " ", aa[1], pad, " - ", aa[4])
+
+    print()
 
     sys.exit(0)
 
@@ -31,11 +34,11 @@ def phelp():
 # Add colon ':' to option with argument.
 
 optarr = [\
-    ["d:",  "pgdebug",  0,      None, "Debug level 0-10" ],             \
-    ["v",   "verbose",  0,      None, "Verbose"],                       \
-    ["q",   "quiet",    0,      None, "Quiet"],                         \
-    ["V",   "version",  None,   pversion, "Print Version"],             \
-    ["h",   "help",     None,   phelp, "Show Help"]                     \
+    ["d:",  "pgdebug",  0,      None,       "Debug level 0-10" ], \
+    ["v",   "verbose",  0,      None,       "Verbose"],           \
+    ["q",   "quiet",    0,      None,       "Quiet"],             \
+    ["V",   "version",  None,   pversion,   "Print Version"],     \
+    ["h",   "help",     None,   phelp,      "Show Help"]          \
     ]
 
 # ------------------------------------------------------------------------
