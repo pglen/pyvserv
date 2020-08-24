@@ -41,11 +41,14 @@ if __name__ == '__main__':
 
     print ("Server initial:", resp2[1])
 
-    vresp = hand.client(["vers"])
-    print ("Server vers response:", vresp[1])
-
-    cresp = hand.client(["crap this com"])
+    cresp = hand.client(["crap", "this com"])
     print ("Server crap response:", cresp[1])
+
+    cresp = hand.client(["sess", "out of order"])
+    print ("Server sess response:", cresp[1])
+
+    cresp = hand.client(["sess", "out of order"])
+    print ("Server sess response:", cresp[1])
 
     qresp = hand.client(["quit"])
     #hand.close()

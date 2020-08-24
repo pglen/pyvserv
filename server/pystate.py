@@ -21,10 +21,10 @@ from pysfunc import *
 # 1.) States
 
 initial     = 0
-auth_user   = 1
-auth_akey   = 2
-auth_key    = 3
-auth_sess   = 4
+auth_akey   = 1
+auth_sess   = 2
+auth_user   = 3
+auth_key    = 4
 auth_pass   = 5
 in_idle     = 6
 got_fname   = 7
@@ -113,20 +113,19 @@ xxxx_help  = "Usage: no data"
 
 state_table = [
             # Command ; start_state ; end_state ; action func   ; help func
-            ("user",    initial,    auth_pass,  get_user_func,  user_help),
-            ("pass",    auth_pass,  none_in,    get_pass_func,  pass_help),
+            ("user",    auth_sess,  auth_user,  get_user_func,  user_help),
+            ("pass",    auth_user,  auth_pass,  get_pass_func,  pass_help),
             ("akey",    initial,    auth_key,   get_akey_func,  akey_help),
             ("xkey",    all_in,     none_in,    get_xkey_func,  ekey_help),
             ("ekey",    all_in,     none_in,    get_ekey_func,  ekey_help),
             ("sess",    auth_key,   auth_sess,  get_sess_func,  sess_help),
-            ("file",    in_idle,    got_fname,  get_fname_func, file_help),
+            ("file",    auth_sess,  got_fname,  get_fname_func, file_help),
             ("fget",    in_idle,    in_idle,    get_fget_func,  fget_help),
             ("data",    got_fname,  in_idle,    get_data_func,  data_help),
             ("uadd",    auth_in,    none_in,    get_uadd_func,  uadd_help),
             ("kadd",    auth_in,    none_in,    get_kadd_func,  kadd_help),
             ("udel",    auth_in,    none_in,    get_udel_func,  udel_help),
             ("ver",     all_in,     none_in,    get_ver_func,   vers_help),
-            ("vers",    all_in,     none_in,    get_ver_func,   vers_help),
             ("hello",   all_in,     none_in,    get_hello_func, hello_help),
             ("quit",    all_in,     none_in,    get_exit_func,  quit_help),
             ("exit",    all_in,     none_in,    get_exit_func,  quit_help),
@@ -154,7 +153,7 @@ class StateHandler():
         self.resp.dir = ""
         self.resp.ekey = ""
         self.wr = pywrap.wrapper()
-        self.wr.pgdebug = 2
+        #self.wr.pgdebug = 2
 
     # --------------------------------------------------------------------
     # This is the function where outside stimulus comes in.
@@ -227,7 +226,7 @@ class StateHandler():
         # Not found in the state table for the current state, complain
         if not got:
             #print( "Invalid command or out of sequence command ", "'" + comx[0] + "'")
-            if comok:
+            if not comok:
                 sss =  "ERR Invalid command " + "'" + comx[0] + "'"
             else:
                 sss =  "ERR Out of Sequence command " + "'" + comx[0] + "'"
