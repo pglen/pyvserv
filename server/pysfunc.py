@@ -245,7 +245,12 @@ def get_akey_func(self, strx):
     if pgdebug > 1:
         print("get_akey_func() called")
 
-    self.keyfroot = support.pickkey()
+    try:
+        self.keyfroot = support.pickkey()
+    except:
+        print("No keys generated yet.", sys.exc_info()[1])
+        support.put_exception("no keys  key")
+        self.resp.datahandler.putdata("ERR no keys yet. Run keygen", self.resp.ekey)
 
     if pgdebug > 2:
        print("self.keyfroot", self.keyfroot)
@@ -261,7 +266,7 @@ def get_akey_func(self, strx):
         except:
             print("Cannot create key:", self.keyx[:12], sys.exc_info()[1])
             support.put_exception("import  key")
-            self.resp.datahandler.putdata("ERR Canot create public key", self.resp.ekey)
+            self.resp.datahandler.putdata("ERR Cannot create public key", self.resp.ekey)
             return
 
         if pgdebug > 5:

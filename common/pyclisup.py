@@ -20,6 +20,7 @@ class CliSup():
     def __init__(self, sock = None):
         self.sock = sock
         self.verbose = False
+        self.comm = ""
         self.pgdebug = 0
         if self.sock != None:
             self.mydathand  = pydata.xHandler(self.sock)
@@ -68,6 +69,12 @@ class CliSup():
             if type(message) == type(""):
                  message = message.encode("cp437")
             strx = struct.pack("!h", len(message)) + message
+
+        if self.comm:
+            fp = open(self.comm, "a+")
+
+            fp.write(strx.decode("cp437"))
+            fp.close()
 
         self.sock.send(strx)
 

@@ -43,11 +43,13 @@ def phelp():
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p port   - Port to use (default: 9999)")
     print( "            -l level  - Log level (default: 0)")
+    print( "            -c file   - Save comm to file")
+    print( "            -s        - Showkey")
     print( "            -v        - Verbose")
-    print( "            -s file   - Save comm to file")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
-    print( " Needs debug level or verbose to have any output.")
+    #print( " Needs debug level or verbose to have any output.")
+    print()
     sys.exit(0)
 
 def pversion():
@@ -58,10 +60,11 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
     ["p:",  "port",     9999,   None],      \
+    ["c:",  "comm",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
+    ["s",   "showkey",  "",     None],      \
     ["t",   "test",     "x",    None],      \
-    ["s:",  "scomm",  "",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -73,10 +76,8 @@ if __name__ == '__main__':
 
     args = conf.comline(sys.argv[1:])
 
-
-    print(conf.scomm)
-
-    sys.exit(0)
+    if conf.comm:
+        print("Save to filename", conf.comm)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -89,6 +90,7 @@ if __name__ == '__main__':
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
+    hand.comm  = conf.comm
 
     try:
         respc = hand.connect(ip, conf.port)
@@ -144,7 +146,7 @@ if __name__ == '__main__':
         print ("Server response:", "'" + hhh.hexdigest() + "'")
 
     if conf.showkey or conf.pgdebug > 5:
-        print("Key:")
+        #print("Key:")
         print(hand.pkey)
 
     try:

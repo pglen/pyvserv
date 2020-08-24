@@ -38,16 +38,18 @@ if __name__ == '__main__':
 
     while(True):
         cnt += 1;
-        print ("Key %d ... " % cnt, end=""); sys.stdout.flush()
-        genkey.genkey()
+        print ("Key %d ... " % cnt, end="");    sys.stdout.flush()
+        genkey.genkey(8192)
         print ("OK. ")
 
         if cnt > 100:
             time.sleep(1000)
         elif cnt > 10:
             time.sleep(100)
-        else:
+        elif cnt > 5:
             time.sleep(10)
+        else:
+            time.sleep(0.2)
 
 #if __name__ == '__main__':
 #    print( "Generated file: ", "'" + fff + "'")

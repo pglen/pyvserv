@@ -32,6 +32,7 @@ clean:
 	@make -C common clean
 	@rm -f aa bb cc pyvserv.deb
 	@rm -r ./build-tmp
+	@rm -r ./data/keys
 
 md5:
 

@@ -1,4 +1,0 @@
-py
-pytest
-wheel
-cffi

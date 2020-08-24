@@ -8,7 +8,7 @@ import os, sys, string, time,  traceback, getopt, random, glob, base64
 # Globals
 
 version = 1.0
-keydir = '../keys/'
+keydir = '../data/keys/'
 random.seed()
 
 for aa in range(random.randint(1, 10)):
@@ -177,6 +177,10 @@ class Unbuffered(object):
 def pickkey():
 
     dl = os.listdir(keydir)
+    if dl == 0:
+        print("No keys yet")
+        raise (Valuerror("No keys generated yet"))
+
     dust = random.randint(0, len(dl)-1)
     eee = os.path.splitext(os.path.basename(dl[dust]))
     #print("picking key", eee[0])

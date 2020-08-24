@@ -15,28 +15,44 @@ def genfname():
     rsize = 2; sss = ""
     rrr = Random.new().read(rsize)
     for aa in rrr:
-        sss += "%x" % ord(aa)
+        sss += "%x" % ord(str(aa)[0])
+
     sss += "%x" % int(time.time()) # % 1000000)
+
     rrr = Random.new().read(rsize)
     for aa in rrr:
-        sss += "%x" % ord(aa)
+        sss += "%x" % ord(str(aa)[0])
+
+    #print("fname", sss)
+
     return sss
 
-def genkey():
+    #sss.decode("cp437")
 
-    #key = RSA.generate(2048)
-    key = RSA.generate(4096)
+def genkey(keylen):
+
+    key = RSA.generate(keylen)
     #print ("Generated:", key, key.size())
 
     fff  = genfname()
-    f = open(keydir + fff + '.pem','w')
-    f.write(key.exportKey('PEM'))
-    f.close()
+    f2 = open(keydir + fff + '.pem','w')
+
+    if sys.version_info[0] > 2:
+        f2.write(key.exportKey('PEM').decode("cp437"))
+    else:
+        f2.write(key.exportKey('PEM'))
+    f2.close()
 
     pkey = key.publickey()
     f3 = open(keydir + fff + '.pub','w')
-    f3.write(pkey.exportKey('PEM'))
+
+    if sys.version_info[0] > 2:
+        f3.write(pkey.exportKey('PEM').decode("cp437"))
+    else:
+        f3.write(pkey.exportKey('PEM'))
     f3.close()
+
+    return fff
 
 keydir = './keys/'
 
@@ -59,8 +75,8 @@ if __name__ == '__main__':
 
     #print("Current dir:     ", os.getcwd())
     print ("Started gen ... ", end=""); sys.stdout.flush()
-    genkey();
-    print(" done.")
+    fname = genkey(8192)
+    print(fname + " .pem .pub")
 
 
 #if __name__ == '__main__':
