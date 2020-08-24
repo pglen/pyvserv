@@ -1,0 +1,577 @@
+    Search by Module
+    Search by Word
+    Project Search
+
+    Java
+    C++
+    Python
+    Scala
+
+report this ad
+More from Crypto.Random
+
+    .new()
+    .get_random_bytes()
+    .atfork()
+
+report this ad
+Related Methods
+
+    sys.exit()
+    sys.argv()
+    re.compile()
+    time.time()
+    time.sleep()
+    os.remove()
+    logging.getLogger()
+    random.randint()
+    threading.Thread()
+    json.loads()
+    json.dumps()
+    socket.socket()
+    socket.SOCK_STREAM
+    base64.b64encode()
+    base64.b64decode()
+    argparse.ArgumentParser()
+    hashlib.sha256()
+    Crypto.Cipher.AES.MODE_CBC
+    Crypto.Cipher.AES.new()
+    Crypto.Cipher.AES.block_size()
+
+Related Modules
+
+    os
+    sys
+    re
+    time
+    logging
+    datetime
+    random
+    socket
+    subprocess
+    threading
+    base64
+    hashlib
+    json
+    argparse
+    Crypto.Cipher.AES
+
+Python Crypto.Random.new() Examples
+
+The following are 30 code examples for showing how to use Crypto.Random.new(). These examples are extracted from open source projects. You can vote up the ones you like or vote down the ones you don't like, and go to the original project or source file by following the links above each example.
+
+You may want to check out the right sidebar which shows the related API usage.
+
+You may also want to check out all available functions/classes of the module Crypto.Random , or try the search function .
+Example 1
+Project: vault   Author: gabfl   File: Encryption.py    License: MIT License	6 votes	vote down vote up
+
+def encrypt(self, secret):
+        """
+            Encrypt a secret
+        """
+
+        # generate IV
+        IV = CryptoRandom.new().read(AES.block_size)
+
+        # Retrieve AES instance
+        aes = self.get_aes(IV)
+
+        # calculate needed padding
+        padding = AES.block_size - len(secret) % AES.block_size
+
+        # Python 2.x: secret += chr(padding) * padding
+        secret += bytes([padding]) * padding
+
+        # store the IV at the beginning and encrypt
+        data = IV + aes.encrypt(secret)
+
+        # Reset salted key
+        self.set_salt()
+
+        # Return base 64 encoded bytes
+        return base64.b64encode(data)
+
+Example 2
+Project: earthengine   Author: mortcanty   File: AllOrNothing.py    License: MIT License	6 votes	vote down vote up
+
+def __init__(self, ciphermodule, mode=None, IV=None):
+        """AllOrNothing(ciphermodule, mode=None, IV=None)
+
+        ciphermodule is a module implementing the cipher algorithm to
+        use.  It must provide the PEP272 interface.
+
+        Note that the encryption key is randomly generated
+        automatically when needed.  Optional arguments mode and IV are
+        passed directly through to the ciphermodule.new() method; they
+        are the feedback mode and initialization vector to use.  All
+        three arguments must be the same for the object used to create
+        the digest, and to undigest'ify the message blocks.
+        """
+
+        self.__ciphermodule = ciphermodule
+        self.__mode = mode
+        self.__IV = IV
+        self.__key_size = ciphermodule.key_size
+        if not isInt(self.__key_size) or self.__key_size==0:
+            self.__key_size = 16
+
+Example 3
+Project: earthengine   Author: mortcanty   File: test_pkcs1_pss.py    License: MIT License	6 votes	vote down vote up
+
+def testSign1(self):
+                for i in range(len(self._testData)):
+                        # Build the key
+                        comps = [ long(rws(self._testData[i][0][x]),16) for x in ('n','e','d') ]
+                        key = MyKey(RSA.construct(comps))
+                        # Hash function
+                        h = self._testData[i][4].new()
+                        # Data to sign
+                        h.update(t2b(self._testData[i][1]))
+                        # Salt
+                        test_salt = t2b(self._testData[i][3])
+                        key._randfunc = lambda N: test_salt
+                        # The real test
+                        signer = PKCS.new(key)
+                        self.failUnless(signer.can_sign())
+                        s = signer.sign(h)
+                        self.assertEqual(s, t2b(self._testData[i][2]))
+
+Example 4
+Project: earthengine   Author: mortcanty   File: test_pkcs1_pss.py    License: MIT License	6 votes	vote down vote up
+
+def testVerify1(self):
+               for i in range(len(self._testData)):
+                        # Build the key
+                        comps = [ long(rws(self._testData[i][0][x]),16) for x in ('n','e') ]
+                        key = MyKey(RSA.construct(comps))
+                        # Hash function
+                        h = self._testData[i][4].new()
+                        # Data to sign
+                        h.update(t2b(self._testData[i][1]))
+                        # Salt
+                        test_salt = t2b(self._testData[i][3])
+                        # The real test
+                        key._randfunc = lambda N: test_salt
+                        verifier = PKCS.new(key)
+                        self.failIf(verifier.can_sign())
+                        result = verifier.verify(h, t2b(self._testData[i][2]))
+                        self.failUnless(result)
+
+Example 5
+Project: earthengine   Author: mortcanty   File: test_pkcs1_15.py    License: MIT License	6 votes	vote down vote up
+
+def testSign1(self):
+                for i in range(len(self._testData)):
+                        row = self._testData[i]
+                        # Build the key
+                        if isStr(row[0]):
+                                key = RSA.importKey(row[0])
+                        else:
+                                comps = [ long(rws(row[0][x]),16) for x in ('n','e','d') ]
+                                key = RSA.construct(comps)
+                        h = row[3].new()
+                        # Data to sign can either be in hex form or not
+                        try:
+                            h.update(t2b(row[1]))
+                        except:
+                            h.update(b(row[1]))
+                        # The real test
+                        signer = PKCS.new(key)
+                        self.failUnless(signer.can_sign())
+                        s = signer.sign(h)
+                        self.assertEqual(s, t2b(row[2]))
+
+Example 6
+Project: earthengine   Author: mortcanty   File: test_pkcs1_15.py    License: MIT License	6 votes	vote down vote up
+
+def testVerify1(self):
+                for i in range(len(self._testData)):
+                        row = self._testData[i]
+                        # Build the key
+                        if isStr(row[0]):
+                                key = RSA.importKey(row[0]).publickey()
+                        else:
+                                comps = [ long(rws(row[0][x]),16) for x in ('n','e') ]
+                                key = RSA.construct(comps)
+                        h = row[3].new()
+                        # Data to sign can either be in hex form or not
+                        try:
+                            h.update(t2b(row[1]))
+                        except:
+                            h.update(b(row[1]))
+                        # The real test
+                        verifier = PKCS.new(key)
+                        self.failIf(verifier.can_sign())
+                        result = verifier.verify(h, t2b(row[2]))
+                        self.failUnless(result)
+
+Example 7
+Project: earthengine   Author: mortcanty   File: test_pkcs1_oaep.py    License: MIT License	6 votes	vote down vote up
+
+def testEncryptDecrypt1(self):
+                # Helper function to monitor what's requested from RNG
+                global asked
+                def localRng(N):
+                    global asked
+                    asked += N
+                    return self.rng(N)
+                # Verify that OAEP is friendly to all hashes
+                for hashmod in (MD2,MD5,SHA1,SHA256,RIPEMD):
+                    # Verify that encrypt() asks for as many random bytes
+                    # as the hash output size
+                    asked = 0
+                    pt = self.rng(40)
+                    self.key1024._randfunc = localRng
+                    cipher = PKCS.new(self.key1024, hashmod)
+                    ct = cipher.encrypt(pt)
+                    self.assertEqual(cipher.decrypt(ct), pt)
+                    self.failUnless(asked > hashmod.digest_size)
+
+Example 8
+Project: earthengine   Author: mortcanty   File: test_pkcs1_15.py    License: MIT License	6 votes	vote down vote up
+
+def testEncrypt1(self):
+                for test in self._testData:
+                        # Build the key
+                        key = RSA.importKey(test[0])
+                        # RNG that takes its random numbers from a pool given
+                        # at initialization
+                        class randGen:
+                            def __init__(self, data):
+                                self.data = data
+                                self.idx = 0
+                            def __call__(self, N):
+                                r = self.data[self.idx:N]
+                                self.idx += N
+                                return r
+                        # The real test
+                        key._randfunc = randGen(t2b(test[3]))
+                        cipher = PKCS.new(key)
+                        ct = cipher.encrypt(b(test[1]))
+                        self.assertEqual(ct, t2b(test[2]))
+
+Example 9
+Project: Python-Scripts   Author: bing0o   File: crypto.py    License: GNU General Public License v3.0	6 votes	vote down vote up
+
+def decrypt(key, filename):
+	chunksize = 64 * 1024
+	outputFile = filename.split('.hacklab')[0]
+
+
+	with open(filename, 'rb') as infile:
+		filesize = int(infile.read(16))
+		IV = infile.read(16)
+		decryptor = AES.new(key, AES.MODE_CBC, IV)
+
+		with open(outputFile, 'wb') as outfile:
+
+			while True:
+				chunk = infile.read(chunksize)
+
+				if len(chunk) == 0:
+					break
+
+				chunk = str(decryptor.decrypt(chunk))
+				chunk = chunk.replace("0000hack1lab0000", "")
+				outfile.write(chunk)
+			outfile.truncate(filesize)
+
+Example 10
+Project: plugin.video.netflix   Author: CastagnaIT   File: credentials.py    License: MIT License	6 votes	vote down vote up
+
+def encrypt_credential(raw):
+    """
+    Encodes data
+
+    :param data: Data to be encoded
+    :type data: str
+    :returns:  string -- Encoded data
+    """
+    # pylint: disable=invalid-name,import-error
+    import base64
+    try:  # The crypto package depends on the library installed (see Wiki)
+        from Crypto import Random
+        from Crypto.Cipher import AES
+        from Crypto.Util import Padding
+    except ImportError:
+        from Cryptodome import Random
+        from Cryptodome.Cipher import AES
+        from Cryptodome.Util import Padding
+    raw = bytes(Padding.pad(data_to_pad=raw.encode('utf-8'), block_size=__BLOCK_SIZE__))
+    iv = Random.new().read(AES.block_size)
+    cipher = AES.new(get_crypt_key(), AES.MODE_CBC, iv)
+    return base64.b64encode(iv + cipher.encrypt(raw)).decode('utf-8')
+
+Example 11
+Project: plugin.video.netflix   Author: CastagnaIT   File: credentials.py    License: MIT License	6 votes	vote down vote up
+
+def decrypt_credential(enc, secret=None):
+    """
+    Decodes data
+
+    :param data: Data to be decoded
+    :type data: str
+    :returns:  string -- Decoded data
+    """
+    # pylint: disable=invalid-name,import-error
+    import base64
+    try:  # The crypto package depends on the library installed (see Wiki)
+        from Crypto.Cipher import AES
+        from Crypto.Util import Padding
+    except ImportError:
+        from Cryptodome.Cipher import AES
+        from Cryptodome.Util import Padding
+    enc = base64.b64decode(enc)
+    iv = enc[:AES.block_size]
+    cipher = AES.new(secret or get_crypt_key(), AES.MODE_CBC, iv)
+    decoded = Padding.unpad(
+        padded_data=cipher.decrypt(enc[AES.block_size:]),
+        block_size=__BLOCK_SIZE__)
+    return decoded
+
+Example 12
+Project: backblaze-b2   Author: mtingers   File: backblazeb2.py    License: MIT License	6 votes	vote down vote up
+
+def decrypt(in_file, out_file, password, key_length=32):
+    bs = AES.block_size
+    salt = in_file.read(bs)[len('Salted__'):]
+    key, iv = derive_key_and_iv(password, salt, key_length, bs)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    next_chunk = ''
+    finished = False
+    while not finished:
+        chunk, next_chunk = next_chunk, cipher.decrypt(in_file.read(1024 * bs))
+        if len(next_chunk) == 0:
+            padding_length = ord(chunk[-1])
+            chunk = chunk[:-padding_length]
+            finished = True
+        out_file.write(chunk)
+
+
+# A stupid way to calculate size of encrypted file and sha1
+# B2 requires a header with the sha1 but urllib2 must have the header before streaming
+# the data. This means we must read the file once to calculate the sha1, then read it again
+# for streaming the data on upload.
+
+Example 13
+Project: backblaze-b2   Author: mtingers   File: backblazeb2.py    License: MIT License	6 votes	vote down vote up
+
+def calc_encryption_sha_and_length(in_file, password, salt, key_length, key,
+                                   iv):
+    bs = AES.block_size
+    size = 0
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    sha = hashlib.sha1()
+    sha.update('Salted__' + salt)
+    size += len('Salted__' + salt)
+    finished = False
+    while not finished:
+        chunk = in_file.read(1024 * bs)
+        if len(chunk) == 0 or len(chunk) % bs != 0:
+            padding_length = (bs - len(chunk) % bs) or bs
+            chunk += padding_length * chr(padding_length)
+            finished = True
+        chunk = cipher.encrypt(chunk)
+        sha.update(chunk)
+        size += len(chunk)
+    return sha.hexdigest(), size
+
+Example 14
+Project: clove   Author: Lamden   File: wallet.py    License: GNU General Public License v3.0	6 votes	vote down vote up
+
+def decrypt_private_key(encrypted_private_key: bytes, password: str) -> str:
+        '''
+        Decrypt private key with the password.
+
+        Args:
+            encrypted_private_key (bytes): encrypted private key
+            password (str): password to decrypt private key with
+
+        Returns:
+            str: decrypted private key
+        '''
+        encrypted_private_key = base64.b64decode(encrypted_private_key)
+        iv = encrypted_private_key[:AES.block_size]
+        cipher = AES.new(sha256(bytes(password.encode('utf-8'))).digest(), AES.MODE_CFB, iv)
+        private_key = cipher.decrypt(encrypted_private_key[AES.block_size:])
+        return str(private_key, 'ascii')
+
+Example 15
+Project: Safejumper-for-Desktop   Author: proxysh   File: AllOrNothing.py    License: GNU General Public License v2.0	6 votes	vote down vote up
+
+def __init__(self, ciphermodule, mode=None, IV=None):
+        """AllOrNothing(ciphermodule, mode=None, IV=None)
+
+        ciphermodule is a module implementing the cipher algorithm to
+        use.  It must provide the PEP272 interface.
+
+        Note that the encryption key is randomly generated
+        automatically when needed.  Optional arguments mode and IV are
+        passed directly through to the ciphermodule.new() method; they
+        are the feedback mode and initialization vector to use.  All
+        three arguments must be the same for the object used to create
+        the digest, and to undigest'ify the message blocks.
+        """
+
+        self.__ciphermodule = ciphermodule
+        self.__mode = mode
+        self.__IV = IV
+        self.__key_size = ciphermodule.key_size
+        if not isInt(self.__key_size) or self.__key_size==0:
+            self.__key_size = 16
+
+Example 16
+Project: vault   Author: gabfl   File: test_Encryption.py    License: MIT License	5 votes	vote down vote up
+
+def test_get_aes(self):
+        IV = CryptoRandom.new().read(AES.block_size)
+        self.assertIsInstance(self.enc2.get_aes(IV), Cipher._mode_cbc.CbcMode)
+
+Example 17
+Project: vault   Author: gabfl   File: Encryption.py    License: MIT License	5 votes	vote down vote up
+
+def digest_key(self):
+        """
+            Use SHA-256 over our key to get a proper-sized AES key
+        """
+
+        # Add optional salt to key
+        key = self.key
+        if self.salted_key:
+            key = self.salted_key
+
+        return SHA256.new(key).digest()
+
+Example 18
+Project: vault   Author: gabfl   File: Encryption.py    License: MIT License	5 votes	vote down vote up
+
+def get_aes(self, IV):
+        """
+            AES instance
+        """
+
+        return AES.new(self.digest_key(), AES.MODE_CBC, IV)
+
+Example 19
+Project: arches   Author: archesproject   File: arches_crypto.py    License: GNU Affero General Public License v3.0	5 votes	vote down vote up
+
+def encrypt(self, raw):
+        raw = self._pad(raw)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return base64.b64encode(iv + cipher.encrypt(raw))
+
+Example 20
+Project: arches   Author: archesproject   File: arches_crypto.py    License: GNU Affero General Public License v3.0	5 votes	vote down vote up
+
+def decrypt(self, enc):
+        enc = base64.b64decode(enc)
+        iv = enc[: AES.block_size]
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return self._unpad(cipher.decrypt(enc[AES.block_size :])).decode("utf-8")
+
+Example 21
+Project: PyOne   Author: abbeyokgo   File: aes.py    License: Mozilla Public License 2.0	5 votes	vote down vote up
+
+def encrypt(self,message):
+        salt = Random.new().read(8)
+        key_iv = self.bytes_to_key(self.key, salt, 32+16)
+        key = key_iv[:32]
+        iv = key_iv[32:]
+        aes = AES.new(key, AES.MODE_CBC, iv)
+        return base64.b64encode(b"Salted__" + salt + aes.encrypt(self.pad(message)))
+
+Example 22
+Project: PyOne   Author: abbeyokgo   File: aes.py    License: Mozilla Public License 2.0	5 votes	vote down vote up
+
+def decrypt(self,encrypted):
+        encrypted = base64.b64decode(encrypted)
+        assert encrypted[0:8] == b"Salted__"
+        salt = encrypted[8:16]
+        key_iv = self.bytes_to_key(self.key, salt, 32+16)
+        key = key_iv[:32]
+        iv = key_iv[32:]
+        aes = AES.new(key, AES.MODE_CBC, iv)
+        return self.unpad(aes.decrypt(encrypted[16:]))
+
+Example 23
+Project: rekall   Author: google   File: crypto.py    License: GNU General Public License v2.0	5 votes	vote down vote up
+
+def verify(self, message, signature):
+        hash = SHA256.new(message)
+        signer = PKCS1_v1_5.new(self._value)
+        return signer.verify(hash, signature)
+
+Example 24
+Project: rekall   Author: google   File: crypto.py    License: GNU General Public License v2.0	5 votes	vote down vote up
+
+def client_id(self):
+        return "C.%s" % (SHA256.new(self._value.publickey().exportKey(
+            "PEM")).hexdigest()[:16])
+
+Example 25
+Project: rekall   Author: google   File: crypto.py    License: GNU General Public License v2.0	5 votes	vote down vote up
+
+def __repr__(self):
+        digest = SHA256.new(self.to_primitive()).hexdigest()
+        return "<%s (%s)>" % (self.__class__.__name__, digest)
+
+Example 26
+Project: rekall   Author: google   File: crypto.py    License: GNU General Public License v2.0	5 votes	vote down vote up
+
+def sign(self, message):
+        hash = SHA256.new(message)
+        signer = PKCS1_v1_5.new(self._value)
+        return signer.sign(hash)
+
+Example 27
+Project: pyrainbird   Author: jbarrancos   File: encryption.py    License: MIT License	5 votes	vote down vote up
+
+def decrypt(encrypted_data, decrypt_key):
+    iv = bytes(encrypted_data[32:48])
+    encrypted_data = bytes(encrypted_data[48 : len(encrypted_data)])
+
+    m = SHA256.new()
+    m.update(to_bytes(decrypt_key))
+
+    symmetric_key = m.digest()
+    symmetric_key = symmetric_key[:32]
+
+    aes_decryptor = AES.new(symmetric_key, AES.MODE_CBC, iv)
+    return aes_decryptor.decrypt(encrypted_data)
+
+Example 28
+Project: pyrainbird   Author: jbarrancos   File: encryption.py    License: MIT License	5 votes	vote down vote up
+
+def encrypt(data, encryptkey):
+    tocodedata = data + "\x00\x10"
+    m = SHA256.new()
+    m.update(to_bytes(encryptkey))
+    b = m.digest()
+    iv = Random.new().read(16)
+    c = to_bytes(_add_padding(tocodedata))
+    m = SHA256.new()
+    m.update(to_bytes(data))
+    b2 = m.digest()
+
+    eas_encryptor = AES.new(b, AES.MODE_CBC, iv)
+    encrypteddata = eas_encryptor.encrypt(c)
+    return b2 + iv + encrypteddata
+
+Example 29
+Project: earthengine   Author: mortcanty   File: Chaffing.py    License: MIT License	5 votes	vote down vote up
+
+def _randnum(self, size):
+        from Crypto import Random
+        return Random.new().read(size)
+
+Example 30
+Project: earthengine   Author: mortcanty   File: AllOrNothing.py    License: MIT License	5 votes	vote down vote up
+
+def _inventkey(self, key_size):
+        # Return key_size random bytes
+        from Crypto import Random
+        return Random.new().read(key_size)
+
+    AboutPrivacyContact
