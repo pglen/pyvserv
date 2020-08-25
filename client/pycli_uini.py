@@ -8,6 +8,7 @@ import random, stat
 
 sys.path.append('../common')
 import support, pycrypt, pyservsup, pyclisup, syslog
+import comline, pypacker, crysupp
 
 # ------------------------------------------------------------------------
 # Globals
@@ -41,7 +42,7 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = support.Config(optarr)
+conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -68,10 +69,10 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    hand.client("ver")
-    ret = hand.client("uini peter 1234")
-    print (ret)
-    hand.client("quit")
+    hand.client(["ver"])
+    ret = hand.client(["uini", "peter", "1234"])
+    print (ret[1])
+    hand.client(["quit",])
     hand.close();
 
     sys.exit(0)

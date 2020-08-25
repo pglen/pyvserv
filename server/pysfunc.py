@@ -347,7 +347,7 @@ def get_uadd_func(self, strx):
 def get_uini_func(self, strx):
     # Test for local client
     if str(self.resp.client_address[0]) != "127.0.0.1":
-        response = "ERR must connect from loopback for uni"
+        response = "ERR must connect from loopback for user ini"
     elif len(strx) < 3:
         response = "ERR must specify user name and pass"
     else:

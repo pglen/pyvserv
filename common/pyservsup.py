@@ -12,6 +12,13 @@ buffsize = 4096
 passfile =  ".pyserv/passwd.secret"
 keyfile = ".pyserv/keys.secret"
 
+class   Globals:
+
+    def __init__(self):
+        self._datadir = "/.pyvserv"
+        self._keydir = "/.pyvserv"
+        pass
+
 # ------------------------------------------------------------------------
 # Save key to local file. Return err code and cause.
 #   kadd = 0 -> Authenticate

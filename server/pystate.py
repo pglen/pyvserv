@@ -136,7 +136,7 @@ state_table = [
             ("pwd",     auth_in,    none_in,    get_pwd_func,   pwdd_help),
             ("stat",    auth_in,    none_in,    get_stat_func,  stat_help),
             ("tout",    auth_in,    none_in,    get_tout_func,  tout_help),
-            #("uini",    all_in,     none_in,    get_uini_func,  uini_help),
+            ("uini",    all_in,     none_in,    get_uini_func,  uini_help),
             #("kini",    all_in,     none_in,    get_kini_func,  kini_help),
             ]
 # ------------------------------------------------------------------------

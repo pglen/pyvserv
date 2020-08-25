@@ -19,23 +19,18 @@ import support, pyservsup, pyclisup, pysyslog, pydata, comline
 
 import pysfunc
 
+
 # Globals
 detach = False
 verbose = False
 quiet  = False
 
-#pgdebug = 0
-#pglog = 0
 
 mydata = {}
 
-dataroot = ""
-script_home = ""
-
-datadir = ".pyvserv"
-lockfname = datadir + "/lock"
-
-#server = None
+globals = pyservsup.    Globals()
+globals.dataroot = ""
+globals.script_home = ""
 
 # ------------------------------------------------------------------------
 
@@ -174,7 +169,7 @@ def terminate(arg1, arg2):
     if conf.pglog > 0:
         pysyslog.syslog("Terminated Server")
 
-    support.unlock_process(lockfname)
+    support.unlock_process(globals.lockfname)
 
     # Attempt to unhook all pending clients
     sys.exit(2)
@@ -196,7 +191,7 @@ if __name__ == '__main__':
 
     if sys.version_info[0] < 3:
         print("Warning! This script was meant for python 3.x")
-        time.sleep(1)
+        time.sleep(.1)
         #sys.exit(0)
 
     args = conf.comline(sys.argv[1:])
@@ -207,35 +202,55 @@ if __name__ == '__main__':
 
     if conf.verbose:
         print("This script:     ", os.path.realpath(__file__))
-        print("Exec argv:       ", sys.argv[0])
         print("Full path argv:  ", os.path.abspath(sys.argv[0]))
-        print("Executable name: ", sys.executable)
-        print("Script name:     ", os.__file__)
+        print("Script name:     ", __file__)
+        #print("Exec argv:       ", sys.argv[0])
 
-    script_home = os.path.dirname(os.path.realpath(__file__))
-    script_home += "/../data/"
-    script_home = os.path.realpath(script_home)
+    globals.script_home = os.path.dirname(os.path.realpath(__file__))
+    globals.script_home += "/../data/"
+    globals.script_home = os.path.realpath(globals.script_home)
+
+    globals.verbose = conf.verbose
+    globals.pgdebug = conf.pgdebug
 
     if conf.verbose:
-        print ("Script home:     ", script_home)
-        if conf.pgdebug:
+        print("Script home:     ", globals.script_home)
+
+    if conf.pgdebug:
             print ("Debug level:     ", conf.pgdebug)
 
     try:
-        if not os.path.isdir(script_home):
-            os.mkdir(script_home)
+        if not os.path.isdir(globals.script_home):
+            os.mkdir(globals.script_home)
     except:
         print( "Cannot make script home dir", sys.exc_info())
         sys.exit(1)
 
+    globals.datadir = globals.script_home + globals._datadir
+
     try:
+        if not os.path.isdir(globals.datadir):
+            os.mkdir(globals.datadir)
+    except:
+        print( "Cannot make data dir", globals.datadir, sys.exc_info())
+        sys.exit(1)
+
+    globals.lockfname = globals.datadir + "/lockfile"
+
+    if conf.verbose:
+        print("Data Dir:        ", globals.datadir)
+        print("Lockfile:        ", globals.lockfname)
+
+    '''try:
         if not os.path.isdir(script_home + datadir):
             os.mkdir(script_home + datadir)
     except:
-        print( "Cannot make data dir", sys.exc_info())
-        sys.exit(1)
+        print( "Cannot make config dir", sys.exc_info())
+        sys.exit(1)'''
 
-    os.chdir(script_home)
+
+    # Change directory to the data dir
+    os.chdir(globals.script_home)
 
     #if conf.verbose:
     #    print("Current dir:     ", os.getcwd())
@@ -249,7 +264,7 @@ if __name__ == '__main__':
     sys.stderr = support.Unbuffered(sys.stderr)
 
     # Comline processed, go
-    support.lock_process(lockfname)
+    support.lock_process(globals.lockfname)
 
     pysfunc.pgdebug = conf.pgdebug
     pysfunc.pglog = conf.pglog

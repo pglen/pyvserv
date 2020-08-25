@@ -44,8 +44,8 @@ if __name__ == '__main__':
     cresp = hand.client(["crap", "this com"])
     print ("Server crap response:", cresp[1])
 
-    cresp = hand.client(["sess", "out of order"])
-    print ("Server sess response:", cresp[1])
+    cresp = hand.client(["ls", "out of order"])
+    print ("Server ls response:", cresp[1])
 
     cresp = hand.client(["sess", "out of order"])
     print ("Server sess response:", cresp[1])

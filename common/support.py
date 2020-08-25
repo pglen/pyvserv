@@ -176,7 +176,6 @@ class Unbuffered(object):
 
 def pickkey():
 
-    dl = os.listdir(keydir)
     if dl == 0:
         print("No keys yet")
         raise (Valuerror("No keys generated yet"))
@@ -258,8 +257,6 @@ def unlock_process(lockfile):
     except:
         pass
         print("Cannot unlink lockfile.")
-
-
 
 def lock_process(lockfile):
 
