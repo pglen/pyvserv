@@ -2,22 +2,26 @@
 
 from __future__ import print_function
 
-import os, sys, string, time, traceback, bcrypt
+import os, sys, string, time, traceback, bcrypt, random
 
 # Globals and configurables
 
 version = "1.0"
 
 buffsize = 4096
-passfile =  ".pyserv/passwd.secret"
-keyfile = ".pyserv/keys.secret"
 
 class   Globals:
 
     def __init__(self):
-        self._datadir = "/.pyvserv"
-        self._keydir = "/.pyvserv"
-        pass
+        self._datadir   =  "/.pyvserv"
+        self._keydir    =  "/.pyvserv"
+        self._passfile  =  "/passwd.secret"
+        self._keyfile   =  "/keys.secret"
+
+globals = Globals()
+
+#globals.dataroot = ""
+#globals.script_home = ""
 
 # ------------------------------------------------------------------------
 # Save key to local file. Return err code and cause.
@@ -99,7 +103,7 @@ def kauth(namex, keyx, kadd = False):
             except:
                 ret = -1, "Cannot remove from " + pname3
             try:
-                os.rename(pname3, passfile)
+                os.rename(pname3, globals.passfile)
             except:
                 ret = -1, "Cannot rename from " + pname3
                 return ret
@@ -130,12 +134,12 @@ def auth(userx, upass, uadd = False):
 
     fields = ""; dup = False
     try:
-        fh = open(passfile, "r")
+        fh = open(globals.passfile, "r")
     except:
         try:
-            fh = open(passfile, "w+")
+            fh = open(globals.passfile, "w+")
         except:
-            return -1, "Cannot open pass file " + passfile
+            return -1, "Cannot open pass file " + globals.passfile
 
     passdb = fh.readlines()
     for line in passdb:
@@ -148,12 +152,12 @@ def auth(userx, upass, uadd = False):
     if not dup:
         if uadd == 1:
             try:
-                fh2 = open(passfile, "r+")
+                fh2 = open(globals.passfile, "r+")
             except:
                 try:
-                    fh2 = open(passfile, "w+")
+                    fh2 = open(globals.passfile, "w+")
                 except:
-                    ret = 0, "Cannot open " + passfile + " for writing"
+                    ret = 0, "Cannot open " + globals.passfile + " for writing"
                     return ret
             fh2.seek(0, os.SEEK_END)
             upass2 = bcrypt.hashpw(upass.encode("cp437"), bcrypt.gensalt())
@@ -167,7 +171,7 @@ def auth(userx, upass, uadd = False):
         if uadd == 2:
             delok = 0
             # Delete userx
-            pname3 = passfile + ".tmp"
+            pname3 = globals.passfile + ".tmp"
             try:
                 fh3 = open(pname3, "r+")
             except:
@@ -188,11 +192,11 @@ def auth(userx, upass, uadd = False):
             fh3.close()
             # Rename
             try:
-                os.remove(passfile)
+                os.remove(globals.passfile)
             except:
-                ret = 0, "Cannot remove " + passfile
+                ret = 0, "Cannot remove " + globals.passfile
             try:
-                os.rename(pname3, passfile)
+                os.rename(pname3, globals.passfile)
             except:
                 ret = 0, "Cannot rename from " + pname3
                 return ret
@@ -204,11 +208,26 @@ def auth(userx, upass, uadd = False):
             c2 = bcrypt.hashpw(upass.encode("cp437"), fields[1].encode("cp437"))
             #print ("upass", c2, "org:", fields[1].rstrip().encode("cp437"))
             if c2 == fields[1].rstrip().encode("cp437"):
-                print ("Auth OK")
+                #print ("Auth OK")
                 ret = 1, "Authenicated"
             else:
                 ret = 0, "Bad User or Bad Pass"
     return ret
+
+# Return basename for key file
+
+def pickkey(keydir):
+
+    #print("Getting keys", keydir)
+    dl = os.listdir(keydir)
+    if dl == 0:
+        print("No keys yet")
+        raise (Valuerror("No keys generated yet"))
+
+    dust = random.randint(0, len(dl)-1)
+    eee = os.path.splitext(os.path.basename(dl[dust]))
+    #print("picking key", eee[0])
+    return eee[0]
 
 if __name__ == '__main__':
     print( "test")

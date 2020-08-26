@@ -8,7 +8,6 @@ import os, sys, string, time,  traceback, getopt, random, glob, base64
 # Globals
 
 version = 1.0
-keydir = '../data/keys/'
 random.seed()
 
 for aa in range(random.randint(1, 10)):
@@ -171,20 +170,6 @@ class Unbuffered(object):
    def __getattr__(self, attr):
        return getattr(self.stream, attr)
 
-
-# Return basename for key file
-
-def pickkey():
-
-    if dl == 0:
-        print("No keys yet")
-        raise (Valuerror("No keys generated yet"))
-
-    dust = random.randint(0, len(dl)-1)
-    eee = os.path.splitext(os.path.basename(dl[dust]))
-    #print("picking key", eee[0])
-    return eee[0]
-
 def  breaklines(xstr, xlen):
     ystr = ""
     for aa in range(len(xstr)):
@@ -257,6 +242,7 @@ def unlock_process(lockfile):
     except:
         pass
         print("Cannot unlink lockfile.")
+
 
 def lock_process(lockfile):
 

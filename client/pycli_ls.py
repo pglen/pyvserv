@@ -204,6 +204,9 @@ if __name__ == '__main__':
     cresp = hand.client(["ls", "out of order"], conf.sess_key)
     print ("Server ls response:", cresp[1])
 
+    cresp = hand.client(["stat", "zeros_crypted"], conf.sess_key)
+    print ("Server stat response:", cresp[1])
+
     hand.client(["quit",],conf.sess_key)
     hand.close();
 

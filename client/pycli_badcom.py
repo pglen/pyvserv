@@ -50,6 +50,12 @@ if __name__ == '__main__':
     cresp = hand.client(["sess", "out of order"])
     print ("Server sess response:", cresp[1])
 
+    cresp = hand.client(["user", "peter"])
+    print ("Server user response:", cresp[1])
+
+    cresp = hand.client(["pass", "12345"])
+    print ("Server pass response:", cresp[1])
+
     qresp = hand.client(["quit"])
     #hand.close()
     print ("Server quit response:", qresp[1])

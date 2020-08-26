@@ -19,7 +19,6 @@ import support, pyservsup, pyclisup, pysyslog, pydata, comline
 
 import pysfunc
 
-
 # Globals
 detach = False
 verbose = False
@@ -27,10 +26,6 @@ quiet  = False
 
 
 mydata = {}
-
-globals = pyservsup.    Globals()
-globals.dataroot = ""
-globals.script_home = ""
 
 # ------------------------------------------------------------------------
 
@@ -75,8 +70,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         mydata[self.name] = self
 
-        if conf.verbose:
-            print("Connected " + " " + str(self.client_address))
+        #if conf.verbose:
+        #    print("Connected " + " " + str(self.client_address))
 
         if conf.pglog > 0:
             pysyslog.syslog("Connected " + " " + str(self.client_address))
@@ -169,7 +164,7 @@ def terminate(arg1, arg2):
     if conf.pglog > 0:
         pysyslog.syslog("Terminated Server")
 
-    support.unlock_process(globals.lockfname)
+    support.unlock_process(pyservsup.globals.lockfname)
 
     # Attempt to unhook all pending clients
     sys.exit(2)
@@ -206,51 +201,47 @@ if __name__ == '__main__':
         print("Script name:     ", __file__)
         #print("Exec argv:       ", sys.argv[0])
 
-    globals.script_home = os.path.dirname(os.path.realpath(__file__))
-    globals.script_home += "/../data/"
-    globals.script_home = os.path.realpath(globals.script_home)
+    pyservsup.globals.script_home = os.path.dirname(os.path.realpath(__file__))
+    pyservsup.globals.script_home += "/../data/"
+    pyservsup.globals.script_home = os.path.realpath(pyservsup.globals.script_home)
 
-    globals.verbose = conf.verbose
-    globals.pgdebug = conf.pgdebug
+    pyservsup.globals.verbose = conf.verbose
+    pyservsup.globals.pgdebug = conf.pgdebug
 
     if conf.verbose:
-        print("Script home:     ", globals.script_home)
+        print("Script home:     ", pyservsup.globals.script_home)
 
     if conf.pgdebug:
             print ("Debug level:     ", conf.pgdebug)
 
     try:
-        if not os.path.isdir(globals.script_home):
-            os.mkdir(globals.script_home)
+        if not os.path.isdir(pyservsup.globals.script_home):
+            os.mkdir(pyservsup.globals.script_home)
     except:
         print( "Cannot make script home dir", sys.exc_info())
         sys.exit(1)
 
-    globals.datadir = globals.script_home + globals._datadir
+    pyservsup.globals.datadir = pyservsup.globals.script_home + pyservsup.globals._datadir
 
     try:
-        if not os.path.isdir(globals.datadir):
-            os.mkdir(globals.datadir)
+        if not os.path.isdir(pyservsup.globals.datadir):
+            os.mkdir(pyservsup.globals.datadir)
     except:
-        print( "Cannot make data dir", globals.datadir, sys.exc_info())
+        print( "Cannot make data dir", pyservsup.globals.datadir, sys.exc_info())
         sys.exit(1)
 
-    globals.lockfname = globals.datadir + "/lockfile"
+    pyservsup.globals.lockfname = pyservsup.globals.datadir + "/lockfile"
+    pyservsup.globals.passfile = pyservsup.globals.datadir + pyservsup.globals._passfile
+    pyservsup.globals.keyfile = pyservsup.globals.datadir + pyservsup.globals._keyfile
 
     if conf.verbose:
-        print("Data Dir:        ", globals.datadir)
-        print("Lockfile:        ", globals.lockfname)
-
-    '''try:
-        if not os.path.isdir(script_home + datadir):
-            os.mkdir(script_home + datadir)
-    except:
-        print( "Cannot make config dir", sys.exc_info())
-        sys.exit(1)'''
-
+        print("Data Dir:        ", pyservsup.globals.datadir)
+        print("Lockfile:        ", pyservsup.globals.lockfname)
+        print("Passfile:        ", pyservsup.globals.passfile)
+        print("Keyfile:         ", pyservsup.globals.keyfile)
 
     # Change directory to the data dir
-    os.chdir(globals.script_home)
+    os.chdir(pyservsup.globals.script_home)
 
     #if conf.verbose:
     #    print("Current dir:     ", os.getcwd())
@@ -264,7 +255,7 @@ if __name__ == '__main__':
     sys.stderr = support.Unbuffered(sys.stderr)
 
     # Comline processed, go
-    support.lock_process(globals.lockfname)
+    support.lock_process(pyservsup.globals.lockfname)
 
     pysfunc.pgdebug = conf.pgdebug
     pysfunc.pglog = conf.pglog

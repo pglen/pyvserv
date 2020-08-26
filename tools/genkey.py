@@ -12,6 +12,7 @@ from Crypto.Hash import SHA
 from Crypto import Random
 
 def genfname():
+
     rsize = 2; sss = ""
     rrr = Random.new().read(rsize)
     for aa in rrr:
@@ -56,6 +57,8 @@ def genkey(keylen):
 
 keydir = './keys/'
 
+rstr = Random.new().read(random.randint(14, 24))
+
 if __name__ == '__main__':
 
     script_home = os.path.dirname(os.path.realpath(__file__)) + "/../data/"
@@ -77,6 +80,7 @@ if __name__ == '__main__':
     print ("Started gen ... ", end=""); sys.stdout.flush()
     fname = genkey(8192)
     print(fname + " .pem .pub")
+
 
 
 #if __name__ == '__main__':

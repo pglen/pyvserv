@@ -18,8 +18,6 @@ import bluepy
 sys.path.append('../common')
 import support, pyservsup, pyclisup, crysupp, pysyslog, pystate
 
-# Globals
-
 pgdebug = 0
 
 # ------------------------------------------------------------------------
@@ -32,13 +30,14 @@ def get_lsd_func(self, strx):
     except:
        pass
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
-    dname2 = pyservsup.dirclean(dname2)
+
+    dname2 = support.dirclean(dname2)
     try:
         ddd = os.listdir(dname2)
         for aa in ddd:
             if stat.S_ISDIR(os.stat(aa)[stat.ST_MODE]):
                 # Escape spaces
-                sss += pyservsup.escape(aa) + " "
+                sss += support.escape(aa) + " "
         response = "OK " + sss
     except:
         #support.put_exception("lsd")
@@ -46,13 +45,18 @@ def get_lsd_func(self, strx):
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_ls_func(self, strx):
+
     dname = ""; sss = ""
+    if len(strx) < 2:
+        strx.append(".")
     try:
         dname = pyservsup.unescape(strx[1]);
     except:
         pass
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
-    dname2 = pyservsup.dirclean(dname2)
+    dname2 = support.dirclean(dname2)
+    #print("dname2", dname2)
+
     try:
         ddd = os.listdir(dname2)
         for aa in ddd:
@@ -60,9 +64,9 @@ def get_ls_func(self, strx):
                 aaa = dname2 + "/" + aa
                 if not stat.S_ISDIR(os.stat(aaa)[stat.ST_MODE]):
                     # Escape spaces
-                    sss += pyservsup.escape(aa) + " "
+                    sss += support.escape(aa) + " "
             except:
-                print( "Cannot stat ", aaa)
+                print( "Cannot stat ", aaa, str(sys.exc_info()[1]) )
 
         response = "OK " + sss
     except:
@@ -78,7 +82,7 @@ def get_fget_func(self, strx):
         return
     dname = pyservsup.unescape(strx[1]);
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
-    dname2 = pyservsup.dirclean(dname2)
+    dname2 = support.dirclean(dname2)
     flen = 0
     try:
         flen = os.stat(dname2)[stat.ST_SIZE]
@@ -134,7 +138,7 @@ def get_xkey_func(self, strx):
 
 def get_pwd_func(self, strx):
     dname2 = self.resp.dir
-    dname2 = pyservsup.dirclean(dname2)
+    dname2 = support.dirclean(dname2)
     if dname2 == "": dname2 = "/"
     response = "OK " +  dname2
     self.resp.datahandler.putdata(response, self.resp.ekey)
@@ -156,9 +160,9 @@ def get_cd_func(self, strx):
         else:
             self.resp.dir += "/" + dname
 
-        self.resp.dir = pyservsup.dirclean(self.resp.dir)
+        self.resp.dir = support.dirclean(self.resp.dir)
         dname2 = self.resp.cwd + "/" + self.resp.dir
-        dname2 = pyservsup.dirclean(dname2)
+        dname2 = support.dirclean(dname2)
         if os.path.isdir(dname2):
             response = "OK " + self.resp.dir
         else:
@@ -186,11 +190,12 @@ def get_stat_func(self, strx):
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_user_func(self, strx):
-    if len(strx) == 1:
+    if len(strx) < 2:
         self.resp.datahandler.putdata("ERR must specify user name", self.resp.ekey)
         return
     self.resp.user = strx[1]
-    self.resp.datahandler.putdata("OK Enter pass for '" + self.resp.user + "'", self.resp.ekey)
+    #self.resp.datahandler.putdata("OK Enter pass for '" + self.resp.user + "'", self.resp.ekey)
+    self.resp.datahandler.putdata("OK send pass ...", self.resp.ekey)
 
 # ------------------------------------------------------------------------
 
@@ -245,8 +250,10 @@ def get_akey_func(self, strx):
     if pgdebug > 1:
         print("get_akey_func() called")
 
+    ddd = os.path.abspath("keys")
+
     try:
-        self.keyfroot = support.pickkey()
+        self.keyfroot = pyservsup.pickkey(ddd)
     except:
         print("No keys generated yet.", sys.exc_info()[1])
         support.put_exception("no keys  key")
@@ -257,7 +264,7 @@ def get_akey_func(self, strx):
 
     try:
         # Do public import
-        fp = open(support.keydir + self.keyfroot + ".pub", "rb")
+        fp = open(ddd + "/" + self.keyfroot + ".pub", "rb")
         self.keyx = fp.read()
         fp.close()
 
@@ -273,7 +280,7 @@ def get_akey_func(self, strx):
             print("Key read: \n'" + self.keyx.decode("cp437") + "'\n")
 
         # Do private import; we are handleing it here, so key signals errors
-        fp2 = open(support.keydir + self.keyfroot + ".pem", "rb")
+        fp2 = open(ddd + "/" + self.keyfroot + ".pem", "rb")
         self.keyx2 = fp2.read()
         fp2.close()
 
@@ -302,22 +309,28 @@ def get_akey_func(self, strx):
         self.resp.datahandler.putdata("ERR cannot open keyfile.", self.resp.ekey)
 
 def get_pass_func(self, strx):
+
+    #print("get_pass_func")
+
     ret = ""
     # Make sure there is a trace of the attempt
     stry = "Logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
-    print( stry        )
+    #if(verbose)
+    #    print(stry)
+
     pysyslog.syslog(stry)
-    if not os.path.isfile(pyservsup.passfile):
-        ret = "ERR " + "No initial users yet"
+
+    if not os.path.isfile(pyservsup.globals.passfile):
+        ret = "ERR " + "No initial user(s) yet"
     else:
         xret = pyservsup.auth(self.resp.user, strx[1])
         if xret[0] == 3:
             ret = "ERR No such user"
         elif xret[0] == 1:
             #self.resp.passwd = bluepy.bluepy.encrypt(strx[1], "1234")
-            ret = "OK Authenticated"
-            self.curr_state = in_idle
+            ret = "OK " + self.resp.user + " Authenticated."
+            #self.curr_state = in_idle
         else:
             stry = "Error on logon  '" + self.resp.user + "' " + \
                     str(self.resp.client_address)
@@ -327,7 +340,7 @@ def get_pass_func(self, strx):
     self.resp.datahandler.putdata(ret, self.resp.ekey)
 
 def get_uadd_func(self, strx):
-    if not os.path.isfile(pyservsup.passfile):
+    if not os.path.isfile(pyservsup.globals.passfile):
         response = "ERR " + "No initial users yet"
     elif len(strx) < 3:
         response = "ERR must specify user name and pass"
@@ -352,7 +365,7 @@ def get_uini_func(self, strx):
         response = "ERR must specify user name and pass"
     else:
         # See if there is a password file
-        if os.path.isfile(pyservsup.passfile):
+        if os.path.isfile(pyservsup.globals.passfile):
             response = "ERR " + "Initial user already exists"
         else:
             ret = pyservsup.auth(strx[1], strx[2], 1)
@@ -408,7 +421,7 @@ def get_kadd_func(self, strx):
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_udel_func(self, strx):
-    if not os.path.isfile(pyservsup.passfile):
+    if not os.path.isfile(pyservsup.globals.passfile):
         response = "ERR " + "No users yet"
     elif len(strx) < 3:
         response = "ERR must specify user name and pass"

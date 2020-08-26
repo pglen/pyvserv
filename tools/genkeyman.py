@@ -5,17 +5,21 @@ from __future__ import print_function
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random
 
-'''from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
-from Crypto import Random'''
+#from Crypto.PublicKey import RSA
+#from Crypto.Cipher import PKCS1_v1_5
+#from Crypto.PublicKey import RSA
+#from Crypto.Hash import SHA
+
+from Crypto import Random
 
 import genkey
 
 keydir = './keys/'
 
 if __name__ == '__main__':
+
+    # Randomize
+    rstr = Random.new().read(random.randint(14, 64))
 
     script_home = os.path.dirname(os.path.realpath(__file__)) + "/../data/"
     #print ("Script home:     ", script_home)
