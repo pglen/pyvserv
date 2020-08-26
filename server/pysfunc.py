@@ -192,7 +192,7 @@ def get_stat_func(self, strx):
 def get_user_func(self, strx):
     if len(strx) < 2:
         self.resp.datahandler.putdata("ERR must specify user name", self.resp.ekey)
-        return
+        return True
     self.resp.user = strx[1]
     #self.resp.datahandler.putdata("OK Enter pass for '" + self.resp.user + "'", self.resp.ekey)
     self.resp.datahandler.putdata("OK send pass ...", self.resp.ekey)
@@ -310,15 +310,11 @@ def get_akey_func(self, strx):
 
 def get_pass_func(self, strx):
 
-    #print("get_pass_func")
+    ret = "";  retval = True
 
-    ret = ""
     # Make sure there is a trace of the attempt
     stry = "Logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
-    #if(verbose)
-    #    print(stry)
-
     pysyslog.syslog(stry)
 
     if not os.path.isfile(pyservsup.globals.passfile):
@@ -326,18 +322,23 @@ def get_pass_func(self, strx):
     else:
         xret = pyservsup.auth(self.resp.user, strx[1])
         if xret[0] == 3:
+            stry = "No such user  '" + self.resp.user + "' " + \
+                    str(self.resp.client_address)
+            pysyslog.syslog(stry)
             ret = "ERR No such user"
         elif xret[0] == 1:
-            #self.resp.passwd = bluepy.bluepy.encrypt(strx[1], "1234")
+            stry = "Successful logon  '" + self.resp.user + "' " + \
+                    str(self.resp.client_address)
+            pysyslog.syslog(stry)
             ret = "OK " + self.resp.user + " Authenticated."
-            #self.curr_state = in_idle
+            retval = False
         else:
             stry = "Error on logon  '" + self.resp.user + "' " + \
                     str(self.resp.client_address)
-            print( stry        )
             pysyslog.syslog(stry)
             ret = "ERR " + xret[1]
     self.resp.datahandler.putdata(ret, self.resp.ekey)
+    return retval
 
 def get_uadd_func(self, strx):
     if not os.path.isfile(pyservsup.globals.passfile):

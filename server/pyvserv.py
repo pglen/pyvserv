@@ -40,6 +40,12 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def __init__(self, a1, a2, a3):
         self.a2 = a2
+        self.fname = ""
+        self.user = ""
+        self.cwd = os.getcwd()
+        self.dir = ""
+        self.ekey = ""
+
         #print("init", a1, a2, a3)
         socketserver.BaseRequestHandler.__init__(self, a1, a2, a3)
         #print(  SocketServer)
@@ -59,14 +65,16 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         #if pgdebug > 1:
         #    put_debug("Connection from %s" % self.a2)
 
-        self.datahandler =  pydata.DataHandler(conf.pgdebug, conf.pglog)
-        self.datahandler.par = self
-        self.datahandler.verbose = conf.verbose
-
         self.statehandler = pystate.StateHandler(self)
         self.statehandler.verbose = conf.verbose
         self.statehandler.pglog = conf.pglog
         self.statehandler.pgdebug = conf.pgdebug
+
+        self.datahandler =  pydata.DataHandler()
+        self.datahandler.pgdebug = conf.pgdebug
+        self.datahandler.pglog = conf.pglog
+        self.datahandler.verbose = conf.verbose
+        self.datahandler.par = self
 
         mydata[self.name] = self
 
@@ -90,6 +98,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 if not ret: break
                 ret2 = self.statehandler.run_state(ret)
                 if ret2:
+                    response2 = "Too many tries, disconnecting.\n"
+                    self.datahandler.putdata("ERR " + response2, self.statehandler.resp.ekey)
                     break
         except:
             #print( sys.exc_info())

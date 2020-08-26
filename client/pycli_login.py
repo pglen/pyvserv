@@ -204,16 +204,23 @@ if __name__ == '__main__':
     cresp = hand.client(["user", "peter"], conf.sess_key)
     print ("Server user response:", cresp[1])
 
+    cresp = hand.client(["pass", "12345"], conf.sess_key)
+    print ("Server pass response:", cresp[1])
+
+    cresp = hand.client(["pass", "12345"], conf.sess_key)
+    print ("Server pass response:", cresp[1])
+
+    cresp = hand.client(["pass", "12345"], conf.sess_key)
+    print ("Server pass response:", cresp[1])
+
+    cresp = hand.client(["pass", "12345"], conf.sess_key)
+    print ("Server pass response:", cresp[1])
+
     cresp = hand.client(["pass", "1234"], conf.sess_key)
     print ("Server pass response:", cresp[1])
 
-    cresp = hand.client(["ls", "1234"], conf.sess_key)
-    print ("Server ls response:", cresp[1])
-
-    cresp = hand.client(["stat", "zeros_crypted"], conf.sess_key)
-    print ("Server stat response:", cresp[1])
-
-    hand.client(["quit",],conf.sess_key)
+    cresp = hand.client(["quit",],conf.sess_key)
+    print ("Server quit response:", cresp[1])
     hand.close();
 
     sys.exit(0)

@@ -147,11 +147,7 @@ class StateHandler():
         # Fill in class globals
         self.curr_state = initial
         self.resp = resp
-        self.resp.fname = ""
-        self.resp.user = ""
-        self.resp.cwd = os.getcwd()
-        self.resp.dir = ""
-        self.resp.ekey = ""
+        self.badpass = 0
         self.wr = pywrap.wrapper()
         #self.wr.pgdebug = 2
 
@@ -175,7 +171,7 @@ class StateHandler():
         return ret
 
     def _run_state(self, strx):
-        got = False; ret = True
+        got = False; ret = False
 
         if self.pgdebug > 8:
             print( "Incoming strx: ", type(strx), strx)
@@ -216,11 +212,17 @@ class StateHandler():
                     cond = cond or aa[1] == all_in
                 if cond:
                         # Execute relevant function
-                        ret = aa[3](self, comx)
+                        ret2 = aa[3](self, comx)
+                        #print(ret2, comx[0])
                         # Only set state if not all_in / auth_in
-                        if aa[2] != none_in:
+                        if not ret2 and aa[2] != none_in:
                             self.curr_state = aa[2]
                         got = True
+
+                        if comx[0] == "pass" and ret2:
+                            self.badpass += 1
+                        if self.badpass > 2:
+                            ret = True
                         break
 
         # Not found in the state table for the current state, complain

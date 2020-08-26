@@ -31,12 +31,12 @@ import pypacker, pywrap
 
 class DataHandler():
 
-    def __init__(self, pgdebug = 0, pglog = 0):
+    def __init__(self):
         #print(  "DataHandler __init__")
         self.src = None; self.tout = None
         self.timeout = 7
-        self.pgdebug = pgdebug
-        self.pglog = pglog
+        self.pgdebug = 0
+        self.pglog = 0
         self.wr = pywrap.wrapper()
 
     def handler_timeout(self):
@@ -50,15 +50,23 @@ class DataHandler():
         if self.pglog > 0:
             pysyslog.syslog("Timeout on " + " " + str(self.par.client_address))
 
+        #print(dir(self))
+        #print(dir(self.par))
+
         response2 = "Timeout occured, disconnecting.\n"
         #print( self.par.client_address, self.par.server.socket)
-        self.putdata(response2, "")
+        try:
+            print("ekey", self.par.ekey)
+            self.putdata(response2, self.par.ekey)
+        except:
+            support.put_exception("putdata")
+
         # Force closing connection
         time.sleep(1)
         try:
             self.par.request.shutdown(socket.SHUT_RDWR)
         except:
-            pass
+            support.put_exception("shutdown")
 
     def putdata(self, response, key = "", rand = True):
 
@@ -103,7 +111,7 @@ class DataHandler():
         except:
             sss = "While in Put Data: " + str(response)
             support.put_exception(sss)
-            self.resp.datahandler.putdata(sss) #, self.resp.ekey)
+            #self.resp.datahandler.putdata(sss, self.statehand.resp.ekey)
 
             ret = -1
 
@@ -177,8 +185,9 @@ class DataHandler():
 #
 
 class xHandler():
-    def __init__(self, socket):
+    def __init__(self, socket, key = ""):
         self.request = socket
+        self.key = key
         pass
 
 # EOF

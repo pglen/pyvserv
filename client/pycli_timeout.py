@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     print ("Server initial:", resp2[1])
 
-    resp = hand.client(["vers"])
+    resp = hand.client(["ver"])
 
     if conf.quiet == False:
         print ("Server ver response:", resp[1])

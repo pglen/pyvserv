@@ -201,7 +201,14 @@ if __name__ == '__main__':
     resp4 = hand.client(["hello",], conf.sess_key)
     print("Hello Response:", resp4[1])
 
-    cresp = hand.client(["ls", "out of order"], conf.sess_key)
+    cresp = hand.client(["user", "peter"], conf.sess_key)
+    print ("Server user response:", cresp[1])
+
+    cresp = hand.client(["pass", "1234"], conf.sess_key)
+    print ("Server pass response:", cresp[1])
+
+
+    cresp = hand.client(["ls",], conf.sess_key)
     print ("Server ls response:", cresp[1])
 
     cresp = hand.client(["stat", "zeros_crypted"], conf.sess_key)
