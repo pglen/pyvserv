@@ -74,7 +74,6 @@ if __name__ == '__main__':
     resp3 = hand.client(["hello",] , "", False)
     print("Hello Response:", resp3[1])
 
-
     resp3 = pyclisup.start_session(hand, conf)
     print("Sess Response:", resp3[1])
 
@@ -91,20 +90,25 @@ if __name__ == '__main__':
     if resp[1].split()[0] != "OK":
         raise ValueError("Not authorized", resp[1])
 
-    resp = hand.client(["uadd", "peter2", "1234"], conf.sess_key)
-    print("uadd Response:", resp[1])
+    resp = hand.client(["udel", "peter2", "1234"], conf.sess_key)
+    print("udel Response:", resp[1])
     if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
+        raise ValueError("udel peter2 error", resp[1])
 
-    resp = hand.client(["uadd", "peter3", "1234"], conf.sess_key)
-    print("uadd Response:", resp[1])
+    resp = hand.client(["udel", "peter3", "1234"], conf.sess_key)
+    print("udel Response:", resp[1])
     if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
+        raise ValueError("udel user error", resp[1])
 
-    resp = hand.client(["uadd", "peter4", "1234"], conf.sess_key)
-    print("uadd Response:", resp[1])
+    resp = hand.client(["udel", "peter4", "1234"], conf.sess_key)
+    print("udel Response:", resp[1])
     if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
+        raise ValueError("udel user error", resp[1])
+
+    resp = hand.client(["udel", "peter", "1234"], conf.sess_key)
+    print("udel Response:", resp[1])
+    if resp[1].split()[0] != "OK":
+        raise ValueError("udel user error", resp[1])
 
     hand.client(["quit"], conf.sess_key)
 

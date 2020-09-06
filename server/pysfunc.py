@@ -165,7 +165,6 @@ def get_cd_func(self, strx):
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 
-
 def get_ver_func(self, strx):
     response = "OK Version %s" % pyservsup.version
     self.resp.datahandler.putdata(response, self.resp.ekey)
@@ -329,7 +328,7 @@ def get_pass_func(self, strx):
     if not os.path.isfile(pyservsup.globals.passfile):
         ret = "ERR " + "No initial user(s) yet"
     else:
-        xret = pyservsup.auth(self.resp.user, strx[1])
+        xret = pyservsup.passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
         if xret[0] == 3:
             stry = "No such user  '" + self.resp.user + "' " + \
                     str(self.resp.client_address)
@@ -353,48 +352,56 @@ def get_chpass_func(self, strx):
 
     ret = "";  retval = True
 
+    if len(strx) < 2:
+        self.resp.datahandler.putdata("ERR must specify new_pass", self.resp.ekey)
+        return True
+
+    #print("chpass", strx[1], strx[2])
+
     # Make sure there is a trace of the attempt
-    stry = "Logon  '" + self.resp.user + "' " + \
+    stry = "chpass  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
     pysyslog.syslog(stry)
 
-    if not os.path.isfile(pyservsup.globals.passfile):
-        ret = "ERR " + "No initial user(s) yet"
-    else:
-        xret = pyservsup.auth(self.resp.user, strx[1], 0, 3)
+    #xret = pyservsup.passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
+    #if xret[0] != 1:
+    #    self.resp.datahandler.putdata("ERR old pass must match", self.resp.ekey)
+    #    return True
 
-        if xret[0] == 5:
-            stry = "Pass changed '" + self.resp.user + "' " + \
-                    str(self.resp.client_address)
-            pysyslog.syslog(stry)
-            ret = "OK Pass changed"
-        elif xret[0] == 3:
-            stry = "No such user  '" + self.resp.user + "' " + \
-                    str(self.resp.client_address)
-            pysyslog.syslog(stry)
-            ret = "ERR No such user"
-        elif xret[0] == 1:
-            stry = "Successful logon  '" + self.resp.user + "' " + \
-                    str(self.resp.client_address)
-            pysyslog.syslog(stry)
-            ret = "OK " + self.resp.user + " Authenticated."
-            retval = False
-        else:
-            stry = "Error on logon  '" + self.resp.user + "' " + \
-                    str(self.resp.client_address)
-            pysyslog.syslog(stry)
-            ret = "ERR " + xret[1]
+    xret = pyservsup.passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_CHPASS)
+
+    if xret[0] == 5:
+        stry = "Pass changed '" + self.resp.user + "' " + \
+                str(self.resp.client_address)
+        pysyslog.syslog(stry)
+        ret = "OK Pass changed"
+    elif xret[0] == 3:
+        stry = "No such user  '" + self.resp.user + "' " + \
+                str(self.resp.client_address)
+        pysyslog.syslog(stry)
+        ret = "ERR No such user"
+    elif xret[0] == 1:
+        stry = "Successful logon  '" + self.resp.user + "' " + \
+                str(self.resp.client_address)
+        pysyslog.syslog(stry)
+        ret = "OK " + self.resp.user + " Authenticated."
+        retval = False
+    else:
+        stry = "Error on logon  '" + self.resp.user + "' " + \
+                str(self.resp.client_address)
+        pysyslog.syslog(stry)
+        ret = "ERR " + xret[1]
     self.resp.datahandler.putdata(ret, self.resp.ekey)
     return retval
 
 def get_uadd_func(self, strx):
-    if not os.path.isfile(pyservsup.globals.passfile):
-        response = "ERR " + "No initial users yet"
-    elif len(strx) < 3:
+
+    #print("uadd", strx)
+    if len(strx) < 3:
         response = "ERR must specify user name and pass"
     else:
-        # See if there is a user by this name
-        ret = pyservsup.auth(strx[1], strx[2], 0, 1)
+        # Add this user in not exist
+        ret = pyservsup.passwd.auth(strx[1], strx[2], 0, pyservsup.USER_ADD)
         if ret[0] == 0:
             response = "ERR " + ret[1]
         elif ret[0] == 1:
@@ -403,6 +410,7 @@ def get_uadd_func(self, strx):
             response = "OK added user '" + strx[1] + "'"
         else:
             response = "ERR " + ret[1]
+
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_uini_func(self, strx):
@@ -412,7 +420,7 @@ def get_uini_func(self, strx):
     elif len(strx) < 3:
         response = "ERR must specify user name and pass"
     else:
-        ret = pyservsup.auth(strx[1], strx[2], 1, 1)
+        ret = pyservsup.passwd.auth(strx[1], strx[2], 1, pyservsup.USER_ADD)
         if ret[0] == 0:
             response = "ERR " + ret[1]
         elif ret[0] == 1:
@@ -465,19 +473,20 @@ def get_kadd_func(self, strx):
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_udel_func(self, strx):
-    if not os.path.isfile(pyservsup.globals.passfile):
-        response = "ERR " + "No users yet"
-    elif len(strx) < 3:
+
+    if len(strx) < 3:
         response = "ERR must specify user name and pass"
     else:
         # Delete user
-        ret = pyservsup.auth(strx[1], strx[2], 0, 2)
+        ret = pyservsup.passwd.auth(strx[1], strx[2], 0, pyservsup.USER_DEL)
+
         if ret[0] == 0:
             response = "ERR " + ret[1]
         elif ret[0] == 4:
             response = "OK deleted user '" + strx[1] + "'"
         else:
             response = "ERR " + ret[1]
+
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_fname_func(self, strx):

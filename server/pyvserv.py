@@ -23,7 +23,7 @@ import pysfunc
 detach = False
 verbose = False
 quiet  = False
-
+version = "1.0"
 
 mydata = {}
 
@@ -85,7 +85,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             pysyslog.syslog("Connected " + " " + str(self.client_address))
 
         # Connected, acknowledge
-        self.datahandler.putdata("OK pyvserv %s ready" % pyservsup.version, "")
+        self.datahandler.putdata("OK pyvserv %s ready" % version, "")
 
 
     def handle_error(request, client_address):
