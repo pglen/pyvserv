@@ -24,14 +24,10 @@ pgdebug = 0
 # State transition and action functions
 
 def get_lsd_func(self, strx):
-    dname = ""; sss = ""
-    try:
-       dname = strx[1];
-    except:
-       pass
-    dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
-
+    sss = ""
+    dname2 = self.resp.cwd + "/" + self.resp.dir + "/"
     dname2 = support.dirclean(dname2)
+
     try:
         ddd = os.listdir(dname2)
         for aa in ddd:
@@ -40,7 +36,7 @@ def get_lsd_func(self, strx):
                 sss += support.escape(aa) + " "
         response = "OK " + sss
     except:
-        #support.put_exception("lsd")
+        support.put_exception("lsd")
         response = "ERR " + str(sys.exc_info()[1] )
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
@@ -50,7 +46,7 @@ def get_ls_func(self, strx):
     if len(strx) < 2:
         strx.append(".")
     try:
-        dname = pyservsup.unescape(strx[1]);
+        dname = support.unescape(strx[1]);
     except:
         pass
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
@@ -80,7 +76,7 @@ def get_fget_func(self, strx):
         response = "ERR Must specify file name"
         self.resp.datahandler.putdata(response, self.resp.ekey)
         return
-    dname = pyservsup.unescape(strx[1]);
+    dname = support.unescape(strx[1]);
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
     dname2 = support.dirclean(dname2)
     flen = 0
@@ -143,20 +139,14 @@ def get_pwd_func(self, strx):
     response = "OK " +  dname2
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
-def get_ver_func(self, strx):
-    response = "OK Version %s" % pyservsup.version
-    self.resp.datahandler.putdata(response, self.resp.ekey)
-
-def get_hello_func(self, strx):
-    response = "OK Hello"
-    self.resp.datahandler.putdata(response, self.resp.ekey)
-
 def get_cd_func(self, strx):
     org = self.resp.dir
     try:
-        dname = pyservsup.unescape(strx[1]);
+        dname = support.unescape(strx[1]);
         if dname == "..":
-            self.resp.dir = pyservsup.chup(self.resp.dir)
+            self.resp.dir = support.chup(self.resp.dir)
+        elif dname[0] == "/":
+            self.resp.dir = dname
         else:
             self.resp.dir += "/" + dname
 
@@ -174,19 +164,39 @@ def get_cd_func(self, strx):
         response = "ERR Must specify directory name"
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
+
+
+def get_ver_func(self, strx):
+    response = "OK Version %s" % pyservsup.version
+    self.resp.datahandler.putdata(response, self.resp.ekey)
+
+def get_hello_func(self, strx):
+    response = "OK Hello"
+    self.resp.datahandler.putdata(response, self.resp.ekey)
+
 def get_stat_func(self, strx):
     fname = ""; aaa = " "
+    #print("stat_func", strx[1])
+
+    dname = support.unescape(strx[1]);
+    #print("stat_func", strx[1], dname)
+
+    dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
+    dname2 = support.dirclean(dname2)
+
     try:
-        fname = strx[1]; sss = os.stat(strx[1])
+        sss = os.stat(dname2)
         for aa in sss:
             aaa += str(aa) + " "
-        response = "OK " + fname + aaa
+        response = "OK " + strx[1] + aaa
     except OSError:
-        support.put_exception("cd")
-        print( sys.exc_info())
+        support.put_exception("stat")
+        #print( sys.exc_info())
         response = "ERR " + str(sys.exc_info()[1] )
     except:
         response = "ERR Must specify file name"
+        #print( sys.exc_info())
+
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_user_func(self, strx):
@@ -238,10 +248,9 @@ def get_sess_func(self, strx):
 
     self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
     self.resp.ekey = message2
-    key =  self.resp.ekey
 
     if pgdebug > 1:
-        support.shortdump("session key:", key)
+        support.shortdump("session key:", self.resp.ekey )
 
 # ------------------------------------------------------------------------
 
@@ -340,6 +349,44 @@ def get_pass_func(self, strx):
     self.resp.datahandler.putdata(ret, self.resp.ekey)
     return retval
 
+def get_chpass_func(self, strx):
+
+    ret = "";  retval = True
+
+    # Make sure there is a trace of the attempt
+    stry = "Logon  '" + self.resp.user + "' " + \
+                str(self.resp.client_address)
+    pysyslog.syslog(stry)
+
+    if not os.path.isfile(pyservsup.globals.passfile):
+        ret = "ERR " + "No initial user(s) yet"
+    else:
+        xret = pyservsup.auth(self.resp.user, strx[1], 0, 3)
+
+        if xret[0] == 5:
+            stry = "Pass changed '" + self.resp.user + "' " + \
+                    str(self.resp.client_address)
+            pysyslog.syslog(stry)
+            ret = "OK Pass changed"
+        elif xret[0] == 3:
+            stry = "No such user  '" + self.resp.user + "' " + \
+                    str(self.resp.client_address)
+            pysyslog.syslog(stry)
+            ret = "ERR No such user"
+        elif xret[0] == 1:
+            stry = "Successful logon  '" + self.resp.user + "' " + \
+                    str(self.resp.client_address)
+            pysyslog.syslog(stry)
+            ret = "OK " + self.resp.user + " Authenticated."
+            retval = False
+        else:
+            stry = "Error on logon  '" + self.resp.user + "' " + \
+                    str(self.resp.client_address)
+            pysyslog.syslog(stry)
+            ret = "ERR " + xret[1]
+    self.resp.datahandler.putdata(ret, self.resp.ekey)
+    return retval
+
 def get_uadd_func(self, strx):
     if not os.path.isfile(pyservsup.globals.passfile):
         response = "ERR " + "No initial users yet"
@@ -347,7 +394,7 @@ def get_uadd_func(self, strx):
         response = "ERR must specify user name and pass"
     else:
         # See if there is a user by this name
-        ret = pyservsup.auth(strx[1], strx[2], 1)
+        ret = pyservsup.auth(strx[1], strx[2], 0, 1)
         if ret[0] == 0:
             response = "ERR " + ret[1]
         elif ret[0] == 1:
@@ -365,19 +412,15 @@ def get_uini_func(self, strx):
     elif len(strx) < 3:
         response = "ERR must specify user name and pass"
     else:
-        # See if there is a password file
-        if os.path.isfile(pyservsup.globals.passfile):
-            response = "ERR " + "Initial user already exists"
+        ret = pyservsup.auth(strx[1], strx[2], 1, 1)
+        if ret[0] == 0:
+            response = "ERR " + ret[1]
+        elif ret[0] == 1:
+            response = "ERR user already exists, no change. Use pass function "
+        elif ret[0] == 2:
+            response = "OK added initial user '" + strx[1] + "'"
         else:
-            ret = pyservsup.auth(strx[1], strx[2], 1)
-            if ret[0] == 0:
-                response = "ERR " + ret[1]
-            elif ret[0] == 1:
-                response = "ERR user already exists, no pass changed "
-            elif ret[0] == 2:
-                response = "OK added user '" + strx[1] + "'"
-            else:
-                response = "ERR " + ret[1]
+            response = "ERR " + ret[1]
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_kini_func(self, strx):
@@ -428,7 +471,7 @@ def get_udel_func(self, strx):
         response = "ERR must specify user name and pass"
     else:
         # Delete user
-        ret = pyservsup.auth(strx[1], strx[2], 2)
+        ret = pyservsup.auth(strx[1], strx[2], 0, 2)
         if ret[0] == 0:
             response = "ERR " + ret[1]
         elif ret[0] == 4:

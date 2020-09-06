@@ -70,6 +70,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     hand.client(["ver"])
+
     ret = hand.client(["uini", "peter", "1234"])
     print (ret[1])
     hand.client(["quit",])

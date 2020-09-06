@@ -8,6 +8,13 @@ from Crypto import Random
 
 import pydata, pyservsup, pypacker, crysupp, comline, pywrap
 
+from Crypto.Hash import SHA512
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto.PublicKey import RSA
+from Crypto.Hash import SHA
+from Crypto import Random
+
 # -----------------------------------------------------------------------
 # Globals
 
@@ -237,6 +244,99 @@ class CliSup():
             print( "    get: '%s'" % response)
 
         return response
+
+
+# ------------------------------------------------------------------------
+#
+
+def start_session(hand, conf):
+
+    resp = hand.client(["akey"])
+    kkk = resp[1].split()
+
+    if kkk[0] != "OK":
+        print("Error on getting key:", resp[1])
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
+
+    if conf.verbose:
+        print("Got hash:", "'" + kkk[1] + "'")
+        pass
+
+    resp2 = hand.getreply()
+
+    if conf.pgdebug > 4:
+        print ("Server response2:\n" +  "'" + resp2[1].decode("cp437") +  "'\n")
+
+    hhh = SHA512.new(); hhh.update(resp2[1])
+
+    if conf.pgdebug > 3:
+        print("Hash1:  '" + kkk[2] + "'")
+        print("Hash2:  '" + hhh.hexdigest() + "'")
+
+    # Remember key
+    if hhh.hexdigest() !=  kkk[2]:
+        print("Tainted key, aborting.")
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
+
+    hand.pkey = resp2[1]
+
+    #print("Key response:", kkk[0], kkk[2][:32], "...")
+
+    if conf.pgdebug > 4:
+         print(hand.pkey)
+
+    if conf.pgdebug > 2:
+        print ("Server response:", "'" + hhh.hexdigest() + "'")
+
+    try:
+        hand.pubkey = RSA.importKey(hand.pkey)
+        if conf.pgdebug > 4:
+            print (hand.pubkey)
+    except:
+        print("Cannot import public key.")
+        support.put_exception("import key")
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
+
+    if conf.pgdebug > 1:
+        print("Got ", hand.pubkey, "size =", hand.pubkey.size())
+
+    # Generate communication key
+    conf.sess_key = Random.new().read(512)
+    sss = SHA512.new(); sss.update(conf.sess_key)
+
+    cipher = PKCS1_v1_5.new(hand.pubkey)
+    #print ("cipher", cipher.can_encrypt())
+
+    if conf.pgdebug > 2:
+        support.shortdump("conf.sess_key", conf.sess_key )
+
+    sess_keyx = cipher.encrypt(conf.sess_key)
+    ttt = SHA512.new(); ttt.update(sess_keyx)
+
+    if conf.pgdebug > 2:
+        support.shortdump("sess_keyx", sess_keyx )
+
+    #print("Key Hexdigest", ttt.hexdigest()[:16])
+
+    resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
+
+    print("Sess Response:", resp3[1])
+
+    kkk = resp3[1].split()
+
+    if kkk[0] != "OK":
+        print("Error on setting session:", resp3[1])
+        hand.client(["quit"])
+        hand.close();
+        return None
+
+    return kkk
 
 # EOF
 

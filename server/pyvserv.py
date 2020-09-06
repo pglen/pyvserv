@@ -128,7 +128,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
-    #def __init__(self):
+    #def __init__(self, arg1, arg2):
     #    self._BaseServer__shutdown_request = True
 
     def stop(self):
@@ -287,6 +287,7 @@ if __name__ == '__main__':
         terminate(None, None)
         #sys.exit(1)
 
+    server.allow_reuse_address = True
     ip, port = server.server_address
     server.allow_reuse_address = True
     server.verbose = verbose

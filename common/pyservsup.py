@@ -23,11 +23,25 @@ globals = Globals()
 #globals.dataroot = ""
 #globals.script_home = ""
 
+def _xjoin(iterx, charx):
+    sss = ""
+    try:
+        for aa in iterx:
+            if sss != "":
+                sss += charx
+            if type(aa) != str:
+                aa = aa.decode("cp437")
+            sss += aa
+    except:
+        print(sys.exc_info())
+    return sss
+
 # ------------------------------------------------------------------------
 # Save key to local file. Return err code and cause.
 #   kadd = 0 -> Authenticate
 #   kadd = 1 -> add
 #   kadd = 2 -> delete
+#   kadd = 3 -> chpass
 #
 # Return negative for error
 #        0 for key added
@@ -115,12 +129,63 @@ def kauth(namex, keyx, kadd = False):
             ret = -1, "Invalid opcode"
     return ret
 
+#userflag = (
+#        USER_AUTH = 0, USER_ADD = 1, USER_DEL = 2,
+#)
+
+def _chpass(passdb, userx, upass):
+
+    renok = 0
+
+    # Filter onto temp file
+    pname3 = globals.passfile + ".tmp"
+    try:
+        fh3 = open(pname3, "r+")
+    except:
+        try:
+            fh3 = open(pname3, "w+")
+        except:
+            ret = (0, "Cannot open " + pname3 + " for writing")
+            return ret
+
+    for line in passdb:
+        fields = line.split(",")
+        if fields[0] == userx:
+            upass2 = bcrypt.hashpw(upass.encode("cp437"), bcrypt.gensalt())
+            fields[2] = upass2
+        line2 = _xjoin(fields, ",")
+        fh3.write(line2)
+    fh3.close()
+
+    # Rename
+    try:
+        os.remove(globals.passfile)
+        renok = True
+    except:
+        ret = 0, "Cannot remove " + globals.passfile
+    try:
+        os.rename(pname3, globals.passfile)
+    except:
+        ret = 0, "Cannot rename from " + pname3
+        return ret
+
+    if renok:
+        ret = 5, "New Pass set"
+    else:
+        ret = 0, "Pass NOT set"
+
+    return ret
+
 # ------------------------------------------------------------------------
 # Authenticate from local file. Return err code and cause.
 #
 #   uadd = 0 -> Authenticate
 #   uadd = 1 -> add
 #   uadd = 2 -> delete
+#   uadd = 3 -> chpass
+#
+#   flags = 0 -> none
+#   flags = 1 -> uini user
 #
 # Return negative for error
 #        0 for user added
@@ -129,8 +194,9 @@ def kauth(namex, keyx, kadd = False):
 #        2 for duplicate
 #        3 for no user
 #        4 for user deleted
+#        5 for user pass changed
 
-def auth(userx, upass, uadd = False):
+def  auth(userx, upass, flags = 0, uadd = 0):
 
     fields = ""; dup = False
     try:
@@ -139,7 +205,7 @@ def auth(userx, upass, uadd = False):
         try:
             fh = open(globals.passfile, "w+")
         except:
-            return -1, "Cannot open pass file " + globals.passfile
+            return -1, "Cannot open / create pass file " + globals.passfile
 
     passdb = fh.readlines()
     for line in passdb:
@@ -161,14 +227,16 @@ def auth(userx, upass, uadd = False):
                     return ret
             fh2.seek(0, os.SEEK_END)
             upass2 = bcrypt.hashpw(upass.encode("cp437"), bcrypt.gensalt())
-            print ("upass2", upass2)
-            fh2.write(userx + "," + upass2.decode("cp437") + "\n")
+            fh2.write(userx + "," + str(flags) + "," + upass2.decode("cp437") + "\n")
             fh2.close()
             ret = 2, "Saved pass"
         else:
             ret = 3, "No such user"
     else:
-        if uadd == 2:
+        if uadd == 3:
+            ret = _chpass(passdb, userx, upass)
+
+        elif uadd == 2:
             delok = 0
             # Delete userx
             pname3 = globals.passfile + ".tmp"
@@ -184,7 +252,7 @@ def auth(userx, upass, uadd = False):
             fh3.write(passdb[0])
             for line in passdb[1:]:
                 fields = line.split(",")
-                if fields[0] == userx:
+                if fields[0] == userx and (fields[1] and 0x1) != 0:
                     delok = 1
                     pass
                 else:
@@ -203,11 +271,11 @@ def auth(userx, upass, uadd = False):
             if delok:
                 ret = 4, "User deleted"
             else:
-                ret = 0, "User NOT deleted (possibly uini user)"
+                ret = 0, "User NOT deleted (uini user)"
         else:
-            c2 = bcrypt.hashpw(upass.encode("cp437"), fields[1].encode("cp437"))
-            #print ("upass", c2, "org:", fields[1].rstrip().encode("cp437"))
-            if c2 == fields[1].rstrip().encode("cp437"):
+            c2 = bcrypt.hashpw(upass.encode("cp437"), fields[2].encode("cp437"))
+            #print ("upass", c2, "org:", fields[2].rstrip().encode("cp437"))
+            if c2 == fields[2].rstrip().encode("cp437"):
                 #print ("Auth OK")
                 ret = 1, "Authenicated"
             else:

@@ -288,6 +288,30 @@ def lock_process(lockfile):
 def shortdump(msg, strx):
     print(msg, str(base64.b64encode(strx[:12])) + " ... " + str(base64.b64encode(strx[-12:])))
 
+# ------------------------------------------------------------------------
+def mode2str(mode):
+
+    #print mode, oct(mode), hex(mode)
+
+    dstr = " "
+    if mode & 0x4000:
+        dstr = "d"
+
+    estr = ""
+    for aa in range(3):
+        xstr = ""
+        if mode & 0x4: xstr += "r"
+        else:        xstr += "-"
+        if mode & 0x2: xstr += "w"
+        else:        xstr += "-"
+        if mode & 0x1: xstr += "x"
+        else:        xstr += "-"
+        mode = mode >> 3
+        estr = xstr + estr  # Reverse
+
+    estr = dstr + estr
+    return estr
+
 if __name__ == '__main__':
     lr = listrec("..")
     lr.noext = [".pyc", ".o", ".so", ".pem", ".pub", ]

@@ -56,7 +56,7 @@ class DataHandler():
         response2 = "Timeout occured, disconnecting.\n"
         #print( self.par.client_address, self.par.server.socket)
         try:
-            print("ekey", self.par.ekey)
+            #print("ekey", self.par.ekey)
             self.putdata(response2, self.par.ekey)
         except:
             support.put_exception("putdata")
@@ -66,7 +66,7 @@ class DataHandler():
         try:
             self.par.request.shutdown(socket.SHUT_RDWR)
         except:
-            support.put_exception("shutdown")
+            support.put_exception("on sending  timeout shutdown")
 
     def putdata(self, response, key = "", rand = True):
 
@@ -75,9 +75,13 @@ class DataHandler():
         rstr = Random.new().read(random.randint(14, 24))
         xstr = Random.new().read(random.randint(24, 36))
         datax = [rstr, response, xstr]
+
+        #print ("server key reply:", key[:16])
+        #print ("server dats:", datax[:16])
+
         dstr = self.wr.wrap_data(key, datax)
 
-        if self.pgdebug > 3:
+        if self.pgdebug > 2:
             print ("server reply:", dstr)
             pass
 
@@ -88,11 +92,6 @@ class DataHandler():
                 response2 = bytes(dstr, "cp437")
             else:
                 response2 = dstr
-
-            if self.tout:
-                self.tout.cancel()
-            self.tout = threading.Timer(self.timeout, self.handler_timeout)
-            self.tout.start()
 
             #if self.pgdebug > 2:
             #    print ("assemble:", type(response2), response2 )
@@ -108,10 +107,18 @@ class DataHandler():
 
             ret = self.par.request.send(strx)
 
+            if self.tout:
+                self.tout.cancel()
+            self.tout = threading.Timer(self.timeout, self.handler_timeout)
+            self.tout.start()
+
         except:
             sss = "While in Put Data: " + str(response)
             support.put_exception(sss)
             #self.resp.datahandler.putdata(sss, self.statehand.resp.ekey)
+
+            if self.tout:
+                self.tout.cancel()
 
             ret = -1
 
@@ -136,7 +143,7 @@ class DataHandler():
     # Receive our special buffer (short)len + (str)message
 
     def handle_one(self, par):
-        #print("Handle_one", par)
+        #print("Handle_one", par, par.ekey[:16])
         self.par = par
         try:
             cur_thread = threading.currentThread()
@@ -185,9 +192,9 @@ class DataHandler():
 #
 
 class xHandler():
-    def __init__(self, socket, key = ""):
+    def __init__(self, socket, ekey = ""):
         self.request = socket
-        self.key = key
+        self.ekey = ekey
         pass
 
 # EOF

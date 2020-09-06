@@ -69,14 +69,15 @@ def get_tout_func(self, strx):
 # ------------------------------------------------------------------------
 # Help stings
 
-user_help  = "Usage: user logon_name"
-akey_help  = "Usage: akey -- get asymmetric key"
-pass_help  = "Usage: pass logon_pass"
-file_help  = "Usage: file fname -- Specify name for upload"
-fget_help  = "Usage: fget fname -- Download (get) file"
-uadd_help  = "Usage: uadd user_name user_pass -- Create new user"
-kadd_help  = "Usage: kadd key_name key_val -- Add new encryption key"
-uini_help  = "Usage: uini user_name user_pass -- Create initial user. "\
+user_help   = "Usage: user logon_name"
+akey_help   = "Usage: akey -- get asymmetric key"
+pass_help   = "Usage: pass logon_pass"
+chpass_help = "Usage: chpass newpass"
+file_help   = "Usage: file fname -- Specify name for upload"
+fget_help   = "Usage: fget fname -- Download (get) file"
+uadd_help   = "Usage: uadd user_name user_pass -- Create new user"
+kadd_help   = "Usage: kadd key_name key_val -- Add new encryption key"
+uini_help   = "Usage: uini user_name user_pass -- Create initial user. "\
                 "Must be from local net."
 kini_help  = "Usage: kini key_name key_pass -- Create initial key. " \
                 "Must be from local net."
@@ -115,6 +116,7 @@ state_table = [
             # Command ; start_state ; end_state ; action func   ; help func
             ("user",    auth_sess,  auth_user,  get_user_func,  user_help),
             ("pass",    auth_user,  auth_pass,  get_pass_func,  pass_help),
+            ("chpass",  auth_pass,  none_in,    get_chpass_func,  chpass_help),
             ("akey",    initial,    auth_key,   get_akey_func,  akey_help),
             ("xkey",    all_in,     none_in,    get_xkey_func,  ekey_help),
             ("ekey",    all_in,     none_in,    get_ekey_func,  ekey_help),
