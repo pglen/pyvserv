@@ -11,8 +11,10 @@ import support, pyclisup, crysupp, pysyslog, pystate
 
 version = "1.0"
 
-USER_AUTH = 0; USER_ADD = 1; USER_DEL = 2; USER_CHPASS = 3;
+USER_AUTH = 0; USER_ADD = 1; USER_DEL = 2; USER_CHPASS = 3; USER_CHMOD = 4;
 PERM_NONE = 0; PERM_INI = 1; PERM_ADMIN = 2; PERM_DIS = 4; PERM_NON = 8;
+
+RESET_MODE  = 0x80;
 
 class   Globals:
 
@@ -117,6 +119,7 @@ class Passwd():
             os.remove(globals.passfile)
         except:
             ret = 0, "Cannot remove " + globals.passfile
+            return ret
         try:
             os.rename(pname3, globals.passfile)
         except:
@@ -159,6 +162,7 @@ class Passwd():
             renok = True
         except:
             ret = 0, "Cannot remove " + globals.passfile
+            return ret
         try:
             os.rename(pname3, globals.passfile)
         except:
@@ -169,6 +173,55 @@ class Passwd():
             ret = 5, "New Pass set"
         else:
             ret = 0, "Pass NOT set"
+
+        return ret
+
+    def     _chmod(self, passdb, userx, umode):
+
+        modeok = 0
+
+        # Filter onto temp file
+        pname3 = globals.passfile + ".tmp"
+        try:
+            fh3 = open(pname3, "r+")
+        except:
+            try:
+                fh3 = open(pname3, "w+")
+            except:
+                ret = (0, "Cannot open " + pname3 + " for writing")
+                return ret
+
+        for line in passdb:
+            fields = line.split(",")
+            if fields[0] == userx:
+                fff = int(fields[1])
+                if umode & RESET_MODE:
+                    fff &= ~umode
+                else:
+                    fff |= umode
+                fields[1] = str(fff)
+
+            line2 = self._xjoin(fields, ",")
+            fh3.write(line2)
+        fh3.close()
+
+        # Rename
+        try:
+            os.remove(globals.passfile)
+            modeok = True
+        except:
+            ret = 0, "Cannot remove " + globals.passfile
+            return ret
+        try:
+            os.rename(pname3, globals.passfile)
+        except:
+            ret = 0, "Cannot rename from " + pname3
+            return ret
+
+        if modeok:
+            ret = 8, "New Mode set"
+        else:
+            ret = 0, "Mode NOT set"
 
         return ret
 
@@ -195,6 +248,7 @@ class Passwd():
     #        5 for user pass changed
     #        6 Duplicate user
     #        7 Permission OK
+    #        8 chmod OK
 
     def  auth(self, userx, upass, flags = "", uadd = 0):
 
@@ -241,6 +295,15 @@ class Passwd():
         else:
             if uadd == USER_CHPASS:
                 ret = self._chpass(passdb, userx, upass)
+
+            elif uadd == USER_CHMOD:
+                #print("Change mode", hex(flags))
+                ret = self._chmod(passdb, userx, flags)
+                #if flags & RESET_MODE:
+                #    ret = 8, "User disabled"
+                #else:
+                #    ret = 8, "User Enabled"
+
             elif uadd == USER_DEL:
                 c2 = bcrypt.hashpw(upass.encode("cp437"), fields[2].encode("cp437"))
                 #print ("upass", c2, "org:", fields[2].rstrip().encode("cp437"))

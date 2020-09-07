@@ -81,7 +81,9 @@ uini_help   = "Usage: uini user_name user_pass -- Create initial user. "\
                 "Must be from local net."
 kini_help  = "Usage: kini key_name key_pass -- Create initial key. " \
                 "Must be from local net."
-udel_help  = "Usage: udel user_name user_pass -- Delete user"
+uena_help  = "Usage: uena user_name  flag --  enable / disable user"
+aadd_help  = "Usage: aadd user_name user_pass -- create admin user"
+udel_help  = "Usage: udel user_name -- Delete user"
 data_help  = "Usage: data datalen -- Specify length of file to follow"
 vers_help  = "Usage: ver -- Get protocol version. alias: vers"
 hello_help = "Usage: hello -- Say Hello - test connectivity."
@@ -104,7 +106,7 @@ stat_help  = "Usage: stat fname  -- Get file stat. Field list:\n"\
 "   10. ST_CTIME Time of last metadata change."
 tout_help  = "Usage: tout new_val -- Set / Reset timeout in seconds"
 ekey_help  = "Usage: ekey encryption_key -- Set encryption key "
-sess_help  = "Usage: sess session data -- Set session key "
+sess_help  = "Usage: sess session data -- Start session "
 xxxx_help  = "Usage: no data"
 
 # ------------------------------------------------------------------------
@@ -132,6 +134,8 @@ state_table = [
             ("file",    auth_pass,  got_fname,  get_fname_func, file_help),
             ("fget",    auth_pass,  in_idle,    get_fget_func,  fget_help),
             ("uadd",    auth_pass,  none_in,    get_uadd_func,  uadd_help),
+            ("uena",    auth_pass,  none_in,    get_uena_func,  uena_help),
+            ("aadd",    auth_pass,  none_in,    get_aadd_func,  aadd_help),
             ("udel",    auth_pass,  none_in,    get_udel_func,  udel_help),
             ("ls",      auth_pass,  none_in,    get_ls_func,    lsls_help),
             ("lsd",     auth_pass,  none_in,    get_lsd_func,   lsld_help),

@@ -325,26 +325,30 @@ def get_pass_func(self, strx):
                 str(self.resp.client_address)
     pysyslog.syslog(stry)
 
-    if not os.path.isfile(pyservsup.globals.passfile):
-        ret = "ERR " + "No initial user(s) yet"
+    ret = pyservsup.passwd.perms(self.resp.user)
+    if int(ret[2]) & pyservsup.PERM_DIS:
+        response = "ERR this user is temporarily disabled"
+        self.resp.datahandler.putdata(response, self.resp.ekey)
+        return retval
+
+    xret = pyservsup.passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
+    if xret[0] == 3:
+        stry = "No such user  '" + self.resp.user + "' " + \
+                str(self.resp.client_address)
+        pysyslog.syslog(stry)
+        ret = "ERR No such user"
+    elif xret[0] == 1:
+        stry = "Successful logon  '" + self.resp.user + "' " + \
+                str(self.resp.client_address)
+        pysyslog.syslog(stry)
+        ret = "OK " + self.resp.user + " Authenticated."
+        retval = False
     else:
-        xret = pyservsup.passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
-        if xret[0] == 3:
-            stry = "No such user  '" + self.resp.user + "' " + \
-                    str(self.resp.client_address)
-            pysyslog.syslog(stry)
-            ret = "ERR No such user"
-        elif xret[0] == 1:
-            stry = "Successful logon  '" + self.resp.user + "' " + \
-                    str(self.resp.client_address)
-            pysyslog.syslog(stry)
-            ret = "OK " + self.resp.user + " Authenticated."
-            retval = False
-        else:
-            stry = "Error on logon  '" + self.resp.user + "' " + \
-                    str(self.resp.client_address)
-            pysyslog.syslog(stry)
-            ret = "ERR " + xret[1]
+        stry = "Error on logon  '" + self.resp.user + "' " + \
+                str(self.resp.client_address)
+        pysyslog.syslog(stry)
+        ret = "ERR " + xret[1]
+
     self.resp.datahandler.putdata(ret, self.resp.ekey)
     return retval
 
@@ -423,6 +427,74 @@ def get_uadd_func(self, strx):
         response = "ERR " + ret[1]
 
     self.resp.datahandler.putdata(response, self.resp.ekey)
+
+def get_aadd_func(self, strx):
+
+    retval = 0
+
+    # Are we allowed to add users?
+    ret = pyservsup.passwd.perms(self.resp.user)
+    if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
+        response = "ERR only admin can add/delete users"
+        self.resp.datahandler.putdata(response, self.resp.ekey)
+        return retval
+
+    if len(strx) < 3:
+        response = "ERR must specify user name and pass"
+        self.resp.datahandler.putdata(ret, self.resp.ekey)
+        return retval
+
+    # Add this user in not exist
+    ret = pyservsup.passwd.auth(strx[1], strx[2], pyservsup.PERM_ADMIN, pyservsup.USER_ADD)
+    if ret[0] == 0:
+        response = "ERR " + ret[1]
+    elif ret[0] == 1:
+        response = "ERR user already exists, no changes "
+    elif ret[0] == 2:
+        response = "OK added user '" + strx[1] + "'"
+    else:
+        response = "ERR " + ret[1]
+
+    self.resp.datahandler.putdata(response, self.resp.ekey)
+
+
+def get_uena_func(self, strx):
+
+    retval = 0
+
+    # Are we allowed to add users?
+    ret = pyservsup.passwd.perms(self.resp.user)
+    if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
+        response = "ERR only admin can modify users"
+        self.resp.datahandler.putdata(response, self.resp.ekey)
+        return retval
+
+    if len(strx) < 2:
+        response = "ERR must specify user name and flag"
+        self.resp.datahandler.putdata(response, self.resp.ekey)
+        return retval
+
+    if strx[2] == "enable":
+        mode = pyservsup.PERM_DIS  | pyservsup.RESET_MODE
+    elif strx[2] == "disable":
+        mode = pyservsup.PERM_DIS
+    else:
+        response = "ERR must specify 'enable' or 'disable'"
+        self.resp.datahandler.putdata(response, self.resp.ekey)
+        return retval
+
+    # Add this user in not exist
+    ret = pyservsup.passwd.auth(strx[1], strx[2], mode, pyservsup.USER_CHMOD)
+
+    if ret[0] == 0:
+        response = "ERR " + ret[1]
+    elif ret[0] == 8:
+        response = "OK user '" + strx[1] + "' " + strx[2] + "d"
+    else:
+        response = "ERR " + ret[1]
+
+    self.resp.datahandler.putdata(response, self.resp.ekey)
+
 
 def get_uini_func(self, strx):
     # Test for local client
