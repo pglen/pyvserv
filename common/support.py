@@ -98,6 +98,8 @@ def escape(strx):
             aaa += "%%%x" % ord(aa)
         elif aa == "\'":
             aaa += "%%%x" % ord(aa)
+        elif aa == ",":
+            aaa += "%%%x" % ord(aa)
         else:
             aaa += aa
     return aaa

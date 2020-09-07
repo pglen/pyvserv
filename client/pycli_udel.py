@@ -95,20 +95,20 @@ if __name__ == '__main__':
     if resp[1].split()[0] != "OK":
         raise ValueError("udel peter2 error", resp[1])
 
-    resp = hand.client(["udel", "peter3", "1234"], conf.sess_key)
+    resp = hand.client(["udel", "peter3,comma", "1234"], conf.sess_key)
     print("udel Response:", resp[1])
     if resp[1].split()[0] != "OK":
         raise ValueError("udel user error", resp[1])
 
-    resp = hand.client(["udel", "peter4", "1234"], conf.sess_key)
+    resp = hand.client(["udel", "peter4 space", "1234"], conf.sess_key)
     print("udel Response:", resp[1])
     if resp[1].split()[0] != "OK":
         raise ValueError("udel user error", resp[1])
 
-    resp = hand.client(["udel", "peter", "1234"], conf.sess_key)
-    print("udel Response:", resp[1])
-    if resp[1].split()[0] != "OK":
-        raise ValueError("udel user error", resp[1])
+    #resp = hand.client(["udel", "peter", "1234"], conf.sess_key)
+    #print("udel Response:", resp[1])
+    #if resp[1].split()[0] != "OK":
+    #    raise ValueError("udel user error", resp[1])
 
     hand.client(["quit"], conf.sess_key)
 

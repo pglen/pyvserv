@@ -12,6 +12,7 @@ import support, pyclisup, crysupp, pysyslog, pystate
 version = "1.0"
 
 USER_AUTH = 0; USER_ADD = 1; USER_DEL = 2; USER_CHPASS = 3;
+PERM_NONE = 0; PERM_INI = 1; PERM_ADMIN = 2; PERM_DIS = 4; PERM_NON = 8;
 
 class   Globals:
 
@@ -181,6 +182,8 @@ class Passwd():
     #
     #   flags = 0 -> none
     #   flags = 1 -> uini user
+    #   flags = 2 -> admin user
+    #   flags = 4 -> disabled
     #
     # Return negative for error
     #        0 for user added
@@ -191,10 +194,13 @@ class Passwd():
     #        4 for user deleted
     #        5 for user pass changed
     #        6 Duplicate user
+    #        7 Permission OK
 
-    def  auth(self, userx, upass, flags = 0, uadd = 0):
+    def  auth(self, userx, upass, flags = "", uadd = 0):
 
         self._lock()
+
+        userx = support.escape(userx)
 
         fields = ""; haveusr = False
         try:
@@ -238,7 +244,7 @@ class Passwd():
             elif uadd == USER_DEL:
                 c2 = bcrypt.hashpw(upass.encode("cp437"), fields[2].encode("cp437"))
                 #print ("upass", c2, "org:", fields[2].rstrip().encode("cp437"))
-                if int(fields[1]) != 0:
+                if int(fields[1]) & PERM_INI == PERM_INI:
                     ret = 0, "Cannot delete uini user"
                 elif c2 == fields[2].rstrip().encode("cp437"):
                     ret = self._deluser(passdb, userx, upass)
@@ -260,6 +266,33 @@ class Passwd():
                 ret = 0, "Bad auth command issued"
 
         self._unlock()
+        return ret
+
+    def     perms(self, userx):
+
+        self._lock()
+
+        fields = ""; haveusr = False
+        try:
+            fh = open(globals.passfile, "r")
+        except:
+            try:
+                fh = open(globals.passfile, "w+")
+            except:
+                self._unlock()
+                return -1, "Cannot open / create pass file " + globals.passfile
+
+        passdb = fh.readlines()
+        for line in passdb:
+            fields = line.split(",")
+            if fields[0] == userx:
+                haveusr = True
+                break
+            fh.close()
+
+        ret = 7, "User permissions:", fields[1]
+        self._unlock()
+
         return ret
 
 passwd = Passwd()

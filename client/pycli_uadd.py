@@ -96,12 +96,12 @@ if __name__ == '__main__':
     if resp[1].split()[0] != "OK":
         raise ValueError("add user error", resp[1])
 
-    resp = hand.client(["uadd", "peter3", "1234"], conf.sess_key)
+    resp = hand.client(["uadd", "peter3,comma", "1234"], conf.sess_key)
     print("uadd Response:", resp[1])
     if resp[1].split()[0] != "OK":
         raise ValueError("add user error", resp[1])
 
-    resp = hand.client(["uadd", "peter4", "1234"], conf.sess_key)
+    resp = hand.client(["uadd", "peter4 space", "1234"], conf.sess_key)
     print("uadd Response:", resp[1])
     if resp[1].split()[0] != "OK":
         raise ValueError("add user error", resp[1])

@@ -396,20 +396,31 @@ def get_chpass_func(self, strx):
 
 def get_uadd_func(self, strx):
 
+    retval = 0
     #print("uadd", strx)
+
+    # Are we allowed to add users?
+    ret = pyservsup.passwd.perms(self.resp.user)
+    if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
+        response = "ERR only admin can add/delete users"
+        self.resp.datahandler.putdata(response, self.resp.ekey)
+        return retval
+
     if len(strx) < 3:
         response = "ERR must specify user name and pass"
+        self.resp.datahandler.putdata(ret, self.resp.ekey)
+        return retval
+
+    # Add this user in not exist
+    ret = pyservsup.passwd.auth(strx[1], strx[2], 0, pyservsup.USER_ADD)
+    if ret[0] == 0:
+        response = "ERR " + ret[1]
+    elif ret[0] == 1:
+        response = "ERR user already exists, no changes "
+    elif ret[0] == 2:
+        response = "OK added user '" + strx[1] + "'"
     else:
-        # Add this user in not exist
-        ret = pyservsup.passwd.auth(strx[1], strx[2], 0, pyservsup.USER_ADD)
-        if ret[0] == 0:
-            response = "ERR " + ret[1]
-        elif ret[0] == 1:
-            response = "ERR user already exists, no changes "
-        elif ret[0] == 2:
-            response = "OK added user '" + strx[1] + "'"
-        else:
-            response = "ERR " + ret[1]
+        response = "ERR " + ret[1]
 
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
@@ -420,7 +431,9 @@ def get_uini_func(self, strx):
     elif len(strx) < 3:
         response = "ERR must specify user name and pass"
     else:
-        ret = pyservsup.passwd.auth(strx[1], strx[2], 1, pyservsup.USER_ADD)
+        ret = pyservsup.passwd.auth(strx[1], strx[2],
+                    pyservsup.PERM_INI | pyservsup.PERM_ADMIN,
+                        pyservsup.USER_ADD)
         if ret[0] == 0:
             response = "ERR " + ret[1]
         elif ret[0] == 1:
@@ -474,18 +487,29 @@ def get_kadd_func(self, strx):
 
 def get_udel_func(self, strx):
 
+    retval = 0
+     # Are we allowed to add users?
+    ret = pyservsup.passwd.perms(self.resp.user)
+    if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
+        response = "ERR only admin can add/delete users"
+        self.resp.datahandler.putdata(response, self.resp.ekey)
+        return retval
+
     if len(strx) < 3:
         response = "ERR must specify user name and pass"
-    else:
-        # Delete user
-        ret = pyservsup.passwd.auth(strx[1], strx[2], 0, pyservsup.USER_DEL)
+        self.resp.datahandler.putdata(response, self.resp.ekey)
+        return retval
 
-        if ret[0] == 0:
-            response = "ERR " + ret[1]
-        elif ret[0] == 4:
-            response = "OK deleted user '" + strx[1] + "'"
-        else:
-            response = "ERR " + ret[1]
+    # Delete user
+    ret = pyservsup.passwd.auth(strx[1], strx[2],
+                    pyservsup.PERM_NONE, pyservsup.USER_DEL)
+
+    if ret[0] == 0:
+        response = "ERR " + ret[1]
+    elif ret[0] == 4:
+        response = "OK deleted user '" + strx[1] + "'"
+    else:
+        response = "ERR " + ret[1]
 
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
