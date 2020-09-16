@@ -302,8 +302,12 @@ if __name__ == '__main__':
     server_thread.start()
 
     if not quiet:
-        print( "Server running:", server.server_address,
-                    "Running on", platform.dist()[0], platform.system())
+        strx = ""
+        import distro
+        for aa in distro.linux_distribution():
+            strx += str(aa) + " "
+        print("Server running:", server.server_address)
+        print("Running on", platform.system(), strx)
 
     if conf.pglog > 0:
         pysyslog.syslog("Started Server")
