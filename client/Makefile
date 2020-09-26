@@ -1,4 +1,4 @@
-# Use to build modules
+# Use to build and test modules
 
 .PHONY: test
 
@@ -10,22 +10,25 @@ server:
 	@-cd ../server; python ./pyvserv.py &
 
 test:
-	-./pycli_ping.py
-	-./pycli_hello.py
-	-./pycli_ver.py
-	-./pycli_gethelp.py
-	-./pycli_akey.py
+	-python3 ./pycli_ping.py
+	-python3 ./pycli_hello.py
+	-python3 ./pycli_ver.py
+	-python3 ./pycli_gethelp.py
+	-python3 ./pycli_akey.py
+	-python3 ./pycli_sess.py
+	#-python3 ./pycli_pass.py
+	#-python3 ./pycli_ls.py
 
 test2:
-	-./pycli_key.py
-    #@-./pycli_kadd.py -q
-	#@-./pycli_kini.py -q
-	#@-./pycli_uadd.py -q
-	#@-./pycli_uini.py -q
-	#@-./pycli_down.py -q
-	#@-./pycli_enc.py -q
-	#@-./pycli_up.py -q
-	#@-./killserv.sh
+	#@-python3 ./pycli_key.py
+	#@-python3 ./pycli_kadd.py -q
+	#@-python3 ./pycli_kini.py -q
+	#@-python3 ./pycli_uadd.py -q
+	#@-python3 ./pycli_uini.py -q
+	#@-python3 ./pycli_down.py -q
+	#@-python3 ./pycli_enc.py -q
+	#@-python3 ./pycli_up.py -q
+	#@-python3 ./killserv.sh
 
 # "ps xa | grep "pyserv.py" | grep python")
 #	@-cd ../server; python ./pyserv.py &

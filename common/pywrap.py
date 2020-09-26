@@ -18,9 +18,6 @@ import bluepy
 
 defkey = "12345678"
 
-#print(time.process_time)
-#if hasattr(time, process_time):
-
 import inspect
 if inspect.isbuiltin(time.process_time):
     time.clock = time.process_time
