@@ -203,7 +203,8 @@ class CliSup():
         response = self.myhandler.handle_one(self.mydathand)
 
         if self.pgdebug > 3:
-            print( "Got reply:", response)
+            print( "Got reply:")
+            print (crysupp.hexdump(response, len(response)))
 
         dstr = self.wr.unwrap_data(key, response)
         return dstr

@@ -19,6 +19,8 @@ On Ubuntu:
     pip install pycrypto
     pip install bcrypt
 
+    (pip3 if newer Linux)
+
   ... or ...
 
     apt install python3-psutil
