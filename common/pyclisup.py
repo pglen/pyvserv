@@ -34,6 +34,8 @@ class CliSup():
             self.mydathand  = pydata.xHandler(self.sock)
             self.myhandler  = pydata.DataHandler()
         self.wr = pywrap.wrapper()
+        self.pb = pypacker.packbin()
+
         #self.wr.pgdebug = 2
         self.rr = Random.new()
         # Seed random;
@@ -68,7 +70,7 @@ class CliSup():
 
     def sendx(self, message):
 
-        if self.pgdebug > 0:
+        if self.pgdebug > 5:
             print("sending message:", message  )
 
         if sys.version_info[0] < 3:
@@ -240,12 +242,17 @@ class CliSup():
         #if self.pgdebug > 0:
         #    print("    waiting for answer ...")
 
-        response = self.getreply(key)
+        resp = self.getreply(key)
+
+        if self.pgdebug > 1:
+            print("resp:", resp)
+
+        response = self.pb.decode_data(resp[1])
 
         if self.pgdebug > 0:
             print( "    get: '%s'" % response)
 
-        return response
+        return response[0]
 
 
 # ------------------------------------------------------------------------

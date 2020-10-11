@@ -47,8 +47,9 @@ class   wrapper():
                 key = bytes(key, "cp437")
 
         if self.pgdebug > 1:
-            support.shortdump("wrap_data key:", key)
-            #print("wrap_data key:", base64.b64encode(key[:12]), base64.b64encode(key[-12:]))
+            #support.shortdump("wrap_data key:", key)
+            print("wrap_data key:", base64.b64encode(key[:12]), base64.b64encode(key[-12:]))
+            print("xdd", xddd)
 
         randx = [self.rr.read(16)]
         randx += xddd
@@ -106,6 +107,7 @@ class   wrapper():
 
         if self.pgdebug > 1:
             print("unwrap_data key:", base64.b64encode(key[:12]), base64.b64encode(key[-12:]))
+            print("unwrap_data data:", xddd)
 
         if sys.version_info[0] > 2:
             if type(xddd) != type(""):

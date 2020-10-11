@@ -19,7 +19,7 @@ if __name__ == '__main__':
             "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
 
     pb = pypacker.packbin();
-    pb.verbose = 5
+    pb.verbose = 0
 
     #bindat = Random.new().read(64)
     #print("bindat64:\n", base64.b64encode(bindat))
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     else:
         print("MISMATCH:")
 
-    sys.exit(0)
+    #sys.exit(0)
 
     #print ("Should print 3 successes")
     #iscsifb
@@ -104,6 +104,6 @@ if __name__ == '__main__':
     if not org == ggg:
         print ("Broken decode")
     else:
-        print ("Success")
+        print ("Success, compare OK")
 
 # EOF

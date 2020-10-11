@@ -84,8 +84,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if conf.pglog > 0:
             pysyslog.syslog("Connected " + " " + str(self.client_address))
 
+        response = self.statehandler.pb.encode_data("", ["OK", "pyvserv %s ready" % version])
+
         # Connected, acknowledge
-        self.datahandler.putdata("OK pyvserv %s ready" % version, "")
+        self.datahandler.putdata(response, "")
 
 
     def handle_error(request, client_address):

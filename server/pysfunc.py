@@ -166,11 +166,11 @@ def get_cd_func(self, strx):
 
 
 def get_ver_func(self, strx):
-    response = "OK Version %s" % pyservsup.version
+    response = self.pb.encode_data(self.resp.ekey, ["OK", "Version %s" % pyservsup.version])
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_hello_func(self, strx):
-    response = "OK Hello"
+    response =  self.pb.encode_data("", ["OK", "Hello"])
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_stat_func(self, strx):
@@ -265,7 +265,8 @@ def get_akey_func(self, strx):
     except:
         print("No keys generated yet.", sys.exc_info()[1])
         support.put_exception("no keys  key")
-        self.resp.datahandler.putdata("ERR no keys yet. Run keygen", self.resp.ekey)
+        response =  self.pb.encode_data("", ["ERR", "No keys yet. Run keygen"])
+        self.resp.datahandler.putdata(response, self.resp.ekey)
 
     if pgdebug > 2:
        print("self.keyfroot", self.keyfroot)
@@ -309,8 +310,9 @@ def get_akey_func(self, strx):
             print("Key digest: \n'" + hh.hexdigest() + "'\n")
 
         # Deliver the answer in two parts:
-        self.resp.datahandler.putdata("OK Hash: %s " % hh.hexdigest(), self.resp.ekey)
-        self.resp.datahandler.putdata(self.keyx, self.resp.ekey)
+        response =  self.pb.encode_data("", ["OK", "Hash:", "%s" % hh.hexdigest(), self.keyx])
+        self.resp.datahandler.putdata(response, self.resp.ekey)
+
     except:
         print("Cannot read key:", self.keyfroot, sys.exc_info()[1])
         support.put_exception("read key")

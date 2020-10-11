@@ -47,7 +47,6 @@ if __name__ == '__main__':
         ip = args[0]
 
     hand = pyclisup.CliSup()
-
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
@@ -59,15 +58,16 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if conf.quiet == False:
-        print ("Server initial:", resp2[1])
+        respini = hand.pb.decode_data(resp2[1])[0]
+        print ("Server initial:", respini)
 
     resp = hand.client(["hello"])
     if conf.quiet == False:
-        print ("Server response:", resp[1])
+        print("resp", resp)
 
     resp2 = hand.client(["quit"])
     if conf.quiet == False:
-        print ("Server quit response:", resp2[1])
+        print ("Server quit response:", resp2)
 
     hand.close();
 

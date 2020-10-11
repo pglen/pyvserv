@@ -16,21 +16,33 @@ import bluepy
 
 __doc__ =   \
 '''
-Encode / decode arbitrary data in a string. Preserves type, data.
-on python 2 it is 8 bit clean.
+Encode / Decode arbitrary data in a string.
+Preserves type, data.
+On python 2/3 it is 8 bit clean.
 
-Int Number            i         Float Number          f
-Character             c         String                s
+Int Number            i
+Float Number          f
+Character             c
+String                s
 Binary                b
-Extended              x         encoded as new packer string
-List                  l         gets encoded as extended
-Tuple                 t         gets encoded as extended
 
-use: pb  = packbin(); newdata = pb.encode_data(formatstr, arr_of_data)
+List                  a         (array) gets encoded as extended
+Tuple                 t         gets encoded as extended
+Dict                  d         gets encoded as extended
+
+Extended              x         encoded as new packer string
+
+Usage:
+
+pb  = packbin()
+newdata  = pb.encode_data(formatstr, arr_of_data)
 orgdata  = pb.decode_data(newdata)
 
-Empty format string string will use auto detect of types
+Empty format string will use auto detected types
+
 '''
+
+# Exports
 
 __all = ("autotype", "encode_data", "decode_data", "wrap_data", "unwrap_data", "verbose")
 
@@ -129,6 +141,7 @@ class packbin():
         #print ("found int:", xstr)
         if xstr[1:3] != "1 ":
             print("bad encoding at ", xstr[idxx:idxx+5])
+            raise(ValueError("Bad encoding at char '%s'" % xstr[idxx:idxx+5]))
             return idxx, var
 
         idxx = 3
@@ -214,7 +227,7 @@ class packbin():
         if nnn < 0:
             print("bad encoding at ", xstr[idxx:idxx+5])
         slen = int(xstr[idxx:idxx+nnn])
-        print("slen=", slen)
+        #print("slen=", slen)
         if slen >= len(xstr):
             print("bad encoding at ", xstr[idxx:idxx+5])
         idxx += nnn + 2
@@ -417,12 +430,22 @@ class packbin():
 
         return packed_str
 
+    #def __decode_data(self, dstr):
+    #    decode_data(self, dstr):
+
+        #print ("---org:\n", dstr, "org---")
+
     ##########################################################################
     # Encode data into a string
     # Pass format string as the first element. Empty string switches on
     # autotype
 
     def encode_data(self, *formstr):
+
+        #print("type", type(formstr[1]), len(formstr[1]))
+        #if type(formstr[1]).__name__ == "NoneType":
+        #    raise ValueError("Cannot encode, must be an iterable")
+
         rrr = self.__encode_data("pg ", *formstr)
         return rrr
 

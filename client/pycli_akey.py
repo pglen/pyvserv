@@ -78,36 +78,30 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if conf.quiet == False:
-        print ("Server initial:", resp2[1])
+        print ("Server initial:", hand.pb.decode_data(resp2[1])[0])
 
     resp = hand.client(["akey"])
-    kkk = resp[1].split()[2]
-
-    if conf.pgdebug > 2:
-        print("kkk", kkk)
 
     if conf.verbose:
-        print("got response: ", resp[0])
+        print("got response: ", resp[0:3])
 
     if conf.pgdebug > 2:
-        print("Got hash:", "'" + kkk + "'")
-
-    resp2 = hand.getreply()
+        print("Got hash:", "'" + resp[2] + "'")
 
     if conf.pgdebug > 2:
-        print ("Server response2:\n" +  "'" + resp2[1].decode("cp437") +  "'\n")
+        print ("Server pub key response:\n" +  "'" + str(resp[3]) +  "'\n")
 
-    hhh = SHA512.new(); hhh.update(resp2[1])
+    hhh = SHA512.new(); hhh.update(resp[3])
+    ddd = hhh.hexdigest()
 
     if conf.pgdebug > 1:
-        print("Hash1:\n" + kkk, "\nHash2:\n" + hhh.hexdigest() + "\n")
+        print("Hash1:\n" + resp[2], "\nHash2:\n" + ddd + "\n")
 
     # Remember key
-    if hhh.hexdigest() !=  kkk:
-        if conf.quiet == False:
-            print("Tainted key")
+    if ddd !=  resp[2]:
+        print("Tainted key")
     else:
-        hand.pkey = resp2[1]
+        hand.pkey = resp[3]
         if conf.quiet == False:
              print("Key OK")
 

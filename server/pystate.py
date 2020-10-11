@@ -45,7 +45,8 @@ none_in      = 120
 
 def get_exit_func(self, strx):
     #print( "get_exit_func", strx)
-    self.resp.datahandler.putdata("OK Bye", self.resp.ekey)
+    response =  self.pb.encode_data("", ["OK", "Bye"])
+    self.resp.datahandler.putdata(response, self.resp.ekey)
     #self.resp.datahandler.par.shutdown(socket.SHUT_RDWR)
 
     # Cancel **after** sending bye
@@ -155,7 +156,9 @@ class StateHandler():
         self.resp = resp
         self.badpass = 0
         self.wr = pywrap.wrapper()
-        #self.wr.pgdebug = 2
+        self.pb = pypacker.packbin()
+
+        self.wr.pgdebug = 0
 
     # --------------------------------------------------------------------
     # This is the function where outside stimulus comes in.

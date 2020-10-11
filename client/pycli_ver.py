@@ -81,7 +81,7 @@ if __name__ == '__main__':
     resp = hand.client(["ver"])
 
     if conf.quiet == False:
-        print ("Server response:", resp[1])
+        print ("Server response:", resp)
 
     hand.client(["quit"])
     hand.close()
