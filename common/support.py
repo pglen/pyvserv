@@ -82,6 +82,17 @@ def hexstr(strin):
             outx += "%02x " % strx[aa]
     return outx
 
+# Flatten iterable into a string
+
+def list2str(strin, sep = " "):
+    strx = ""
+    for aa in strin:
+        strx += str(aa)
+        if aa != strin[-1]:
+            strx += sep
+
+    return strx
+
 # ------------------------------------------------------------------------
 # Helper functions.
 # Escape spaces to %20 and misc chars

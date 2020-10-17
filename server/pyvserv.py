@@ -242,18 +242,28 @@ if __name__ == '__main__':
         print( "Cannot make data dir", pyservsup.globals.datadir, sys.exc_info())
         sys.exit(1)
 
-    pyservsup.globals.lockfname = pyservsup.globals.datadir + "/lockfile"
+    pyservsup.globals.lockfname = pyservsup.globals.datadir + "lockfile"
     pyservsup.globals.passfile = pyservsup.globals.datadir + pyservsup.globals._passfile
     pyservsup.globals.keyfile = pyservsup.globals.datadir + pyservsup.globals._keyfile
+    pyservsup.globals.idfile = pyservsup.globals.datadir + pyservsup.globals._idfile
 
     if conf.verbose:
         print("Data Dir:        ", pyservsup.globals.datadir)
         print("Lockfile:        ", pyservsup.globals.lockfname)
         print("Passfile:        ", pyservsup.globals.passfile)
         print("Keyfile:         ", pyservsup.globals.keyfile)
+        print("IDfile:          ", pyservsup.globals.idfile)
 
     # Change directory to the data dir
     os.chdir(pyservsup.globals.script_home)
+
+    iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
+    if not iii:
+        print("Cannot read / create site ID, exiting.")
+        sys.exit(1)
+
+    print("MainSiteID:", iii)
+    pyservsup.globals.siteid = iii
 
     #if conf.verbose:
     #    print("Current dir:     ", os.getcwd())
@@ -309,7 +319,8 @@ if __name__ == '__main__':
         for aa in distro.linux_distribution():
             strx += str(aa) + " "
         print("Server running:", server.server_address)
-        print("Running on", platform.system(), strx)
+        pyver = support.list2str(sys.version_info[0:3], ".")
+        print("Running python", platform.python_version(), "on", platform.system(), strx)
 
     if conf.pglog > 0:
         pysyslog.syslog("Started Server")

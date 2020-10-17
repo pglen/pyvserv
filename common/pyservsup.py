@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-import os, sys, string, time, traceback, bcrypt, random
+import os, sys, string, time, traceback, bcrypt, random, uuid, datetime, base64
 
 sys.path.append('../common')
 import support, pyclisup, crysupp, pysyslog, pystate
@@ -19,12 +19,73 @@ RESET_MODE  = 0x80;
 class   Globals:
 
     def __init__(self):
-        self._datadir   =  "/.pyvserv"
-        self._keydir    =  "/.pyvserv"
-        self._passfile  =  "/passwd.secret"
-        self._keyfile   =  "/keys.secret"
+        self._datadir   =  os.sep + ".pyvserv" + os.sep
+        self._keydir    =  os.sep + ".pyvserv" + os.sep
+        self._passfile  =  "passwd.secret"
+        self._keyfile   =  "keys.secret"
+        self._idfile    =  "pyservid.init"
+        self.siteid     =  None
 
 globals = Globals()
+
+# ------------------------------------------------------------------------
+# This will create the server's UUID
+
+def  create_read_idfile(fname):
+
+    # Create globals file, read it if exists
+    if  not os.path.isfile(fname):
+        try:
+            nnn = datetime.datetime.today()
+            fp = open(fname, "w+")
+            fp.write("# Server Identification String for pyvserv.py.\n#     !!! DO NOT DELETE !!!\n")
+            fp.write("# Server ID created on: " + str(nnn) + "\n\n")
+            iii = uuid.uuid4()
+            fp.write(str(iii) + "\n")
+            iii2 = uuid.uuid4()
+            fp.write(str(iii2) + "\n\n")
+            fp.close()
+
+            xxx = str(iii) + "\n" + str(iii2) + "\n"
+            yyy = base64.b64encode(xxx.encode("cp437"))
+
+            fp3 = open(fname + ".backup", "w+")
+            fp3.write("# Server ID backup as Base64 of the two NL terminated UUIDs\n")
+            fp3.write("# ID created on: " + str(nnn) + "\n\n")
+            fp3.write("-------- BASE64 BEG --------\n" +
+                        yyy.decode("cp437") +
+                    "\n-------- BASE64 END --------\n")
+            fp3.close()
+
+        except:
+            print("Cannot create server ID file")
+            raise
+
+    uuuu = None
+    fp2 = open(fname)
+    strx = fp2.read()
+    for aa in strx.split("\n"):
+        if len(aa):
+            # Skip spaces
+            idx = 0
+            for bb in aa:
+                if bb == " ":
+                    idx += 1
+                else:
+                    break
+
+            # Comments
+            if aa[idx] == "#":
+                continue
+            try:
+                uuuu = uuid.UUID(aa[idx:])
+            except:
+                #print("Badly formed UUID");
+                pass
+            break
+    fp2.close
+
+    return uuuu
 
 # ------------------------------------------------------------------------
 # This class will maintain a passwd database, similar to

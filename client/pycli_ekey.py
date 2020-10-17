@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     resp = hand.client(["ekey"])
 
-    #print(resp)
+    print("resp", resp)
 
     rrr = resp[1].split()
     if rrr[0] == "ERR":

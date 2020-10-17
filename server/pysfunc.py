@@ -170,7 +170,7 @@ def get_ver_func(self, strx):
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_hello_func(self, strx):
-    response =  self.pb.encode_data("", ["OK", "Hello"])
+    response =  self.pb.encode_data("", ["OK", "Hello", str(pyservsup.globals.siteid)])
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_stat_func(self, strx):

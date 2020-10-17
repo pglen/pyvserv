@@ -98,8 +98,8 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client(["hello",] , "", False)
-    print("Hello Response: ", resp3[1])
+    resp3 = hand.client(["hello", "world"] , "", False)
+    print("Hello Response: ", resp3)
 
     #if conf.quiet == False:
     #    print ("Server initial:", resp2)

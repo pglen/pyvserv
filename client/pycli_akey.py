@@ -83,12 +83,12 @@ if __name__ == '__main__':
     resp = hand.client(["akey"])
 
     if conf.verbose:
-        print("got response: ", resp[0:3])
+        print("got response to akey: ", resp[:-1])
 
     if conf.pgdebug > 2:
         print("Got hash:", "'" + resp[2] + "'")
 
-    if conf.pgdebug > 2:
+    if conf.pgdebug > 3:
         print ("Server pub key response:\n" +  "'" + str(resp[3]) +  "'\n")
 
     hhh = SHA512.new(); hhh.update(resp[3])

@@ -61,14 +61,17 @@ if __name__ == '__main__':
         ip = args[0]
 
     hand = pyclisup.CliSup()
-    #hand.verbose = conf.verbose
-    #hand.pgdebug = conf.pgdebug
+    hand.verbose = conf.verbose
+    hand.pgdebug = conf.pgdebug
     hand.quiet = conf.quiet
 
     try:
         resp2 = hand.connect(ip, conf.port)
         if conf.quiet == False:
-            print ("Server initial:", resp2[1])
+            #print ("Server initial:", resp2[1])
+            respini = hand.pb.decode_data(resp2[1])[0]
+            print ("Server initial:", respini)
+
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
@@ -79,15 +82,3 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
-
-
-
-
-
-
-
-
-
-
-
-
