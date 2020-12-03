@@ -16,6 +16,8 @@ sys.path.append('../bluepy')
 sys.path.append('../common')
 sys.path.append('../server')
 
+sys.path.append('../../pycommon')
+
 import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate, bluepy
 import pypacker, pywrap
 

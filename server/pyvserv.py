@@ -14,6 +14,7 @@ else:
 import pystate
 
 sys.path.append('../common')
+sys.path.append('../../pycommon')
 
 import support, pyservsup, pyclisup, pysyslog, pydata, comline
 

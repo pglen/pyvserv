@@ -6,6 +6,7 @@ import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random, socket
 from Crypto import Random
 
+sys.path.append('../../pycommon')
 import pydata, pyservsup, pypacker, crysupp, comline, pywrap
 
 from Crypto.Hash import SHA512
@@ -14,7 +15,6 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
-
 
 # -----------------------------------------------------------------------
 # Globals

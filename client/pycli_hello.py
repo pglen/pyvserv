@@ -9,6 +9,8 @@ import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
 sys.path.append('../common')
+sys.path.append('../../pycommon')
+
 import support, pycrypt, pyservsup, pyclisup, syslog, comline, pypacker
 
 # ------------------------------------------------------------------------

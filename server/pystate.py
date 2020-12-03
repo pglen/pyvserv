@@ -11,6 +11,8 @@ sys.path.append('../bluepy')
 import bluepy
 
 sys.path.append('../common')
+sys.path.append('../../pycommon')
+
 import support, pyservsup, pyclisup, crysupp, pysyslog
 import pypacker, pywrap
 
