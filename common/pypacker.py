@@ -11,8 +11,8 @@ from Crypto import Random
 
 import support, crysupp, support
 
-sys.path.append('../bluepy')
-import bluepy
+#sys.path.append('../bluepy')
+#import bluepy
 
 __doc__ =   \
 '''

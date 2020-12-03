@@ -1,0 +1,22 @@
+class CairoHelper():
+class   ComboBox(Gtk.ComboBox):
+class Led(Gtk.DrawingArea):
+class   LetterSel(Gtk.VBox):
+class Lights(Gtk.Frame):
+class ListBox(Gtk.TreeView):
+class Menu():
+class MenuButt(Gtk.DrawingArea):
+class   RadioGroup(Gtk.Frame):
+class Rectangle():
+class ScrollListBox(Gtk.Frame):
+class   SeparatorMenuItem(Gtk.SeparatorMenuItem):
+class   SimpleEdit(Gtk.TextView):
+class   SimpleSel(Gtk.Label):
+class   SimpleTree(Gtk.TreeView):
+class Spacer(Gtk.Label):
+class   TextRow(Gtk.HBox):
+class WideButt(Gtk.Button):
+class   xHBox(Gtk.HBox):
+class xSpacer(Gtk.HBox):
+class   xVBox(Gtk.VBox):
+    # This was killed in favour of self implemented Rectangle class
