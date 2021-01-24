@@ -203,7 +203,7 @@ class StateHandler():
 
         comx = dstr[1] #.split()
 
-        if self.pgdebug > 1:
+        if self.pgdebug > 3:
             print( "Com:", "'" + comx[0] + "'", "State =", self.curr_state)
 
         got = False; comok = False
@@ -213,7 +213,7 @@ class StateHandler():
             # or auth_in and stat > auth is in effect -- use early out
             if comx[0] == aa[0]:
                 comok = True
-                if self.pgdebug >= 3:
+                if self.pgdebug > 3:
                     print("Found command, executing:", aa[0])
 
                 cond = aa[1] == self.curr_state

@@ -165,13 +165,29 @@ def get_cd_func(self, strx):
         response = "ERR Must specify directory name"
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
+# ------------------------------------------------------------------------
 
 def get_ver_func(self, strx):
-    response = self.pb.encode_data(self.resp.ekey, ["OK", "Version %s" % pyservsup.version])
+    if pgdebug > 1:
+        print( "get_ver_func()", strx)
+    res = []
+    res.append("OK");    res.append("Version %s" % pyservsup.version)
+    response = self.pb.encode_data("", res)
+    if pgdebug > 2:
+        print( "get_ver_func->output", "'" + response + "'")
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_hello_func(self, strx):
-    response =  self.pb.encode_data("", ["OK", "Hello", str(pyservsup.globals.siteid)])
+
+    if pgdebug > 1:
+        print( "get_hello_func()", strx)
+
+    strres = ["OK", "Hello", str(pyservsup.globals.siteid)]
+    response =  self.pb.encode_data("", strres)
+
+    if pgdebug > 2:
+        print( "get_hello_func->output", "'" + response + "'")
+
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_stat_func(self, strx):
@@ -238,7 +254,7 @@ def get_sess_func(self, strx):
     # Decoded OK?
     ttt = SHA512.new(); ttt.update(message2)
 
-    if pgdebug > 2:
+    if pgdebug > 3:
         print("Hash1:", strx[1])
         print("Hash2:",   ttt.hexdigest())
 
@@ -307,7 +323,7 @@ def get_akey_func(self, strx):
             print("Key read: \n'" + self.keyx.decode("cp437") + "'\n")
 
         hh = SHA512.new(); hh.update(self.keyx)
-        if pgdebug > 1:
+        if pgdebug > 3:
             print("Key digest: \n'" + hh.hexdigest() + "'\n")
 
         # Deliver the answer in two parts:
@@ -649,24 +665,31 @@ def get_data_func(self, strx):
 
 def get_help_func(self, strx):
 
-    #print( "get_help_func", strx)
-    hstr = "OK "
+    if pgdebug > 1:
+        print( "get_help_func()", strx)
+
+    harr = []
     if len(strx) == 1:
+        harr.append ("OK")
         for aa in pystate.state_table:
-            hstr += aa[0] + " "
+            harr.append(aa[0])
     else:
         for aa in pystate.state_table:
             if strx[1] == aa[0]:
-                hstr = "OK " + aa[4]
+                harr.append(aa[4])
                 break
-        if hstr == "OK ":
-            hstr = "ERR no help for command '" + strx[1] + "'"
 
-    self.resp.datahandler.putdata(hstr, self.resp.ekey)
+        #if hstr == "OK ":
+        #    hstr = ["ERR no help for command",  "'" + strx[1] + "'"]
 
+    #print("harr", harr)
+    #self.pb.debug = 2
 
+    response = self.pb.encode_data("", harr)
 
+    if pgdebug > 2:
+        print( "get_help_func->output", "[" + response + "]")
 
+    self.resp.datahandler.putdata(response, self.resp.ekey)
 
-
-
+# EOF

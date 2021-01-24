@@ -83,7 +83,7 @@ class DataHandler():
 
         dstr = self.wr.wrap_data(key, datax)
 
-        if self.pgdebug > 2:
+        if self.pgdebug > 5:
             print ("server reply:", dstr)
             pass
 

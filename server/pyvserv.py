@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time
 import tarfile, subprocess, struct, platform
-import socket, threading, psutil
+import socket, threading, psutil, tracemalloc
 
 if sys.version_info[0] < 3:
     import SocketServer as socketserver
@@ -13,8 +13,10 @@ else:
 
 import pystate
 
-sys.path.append('../common')
-sys.path.append('../../pycommon')
+base = os.path.dirname(os.path.realpath(__file__))
+print("base", base)
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base,  '../../pycommon'))
 
 import support, pyservsup, pyclisup, pysyslog, pydata, comline
 
@@ -95,6 +97,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         print("pyvserv Error", request, client_address)
 
     def handle(self):
+
+        if conf.mem:
+            tracemalloc.start()
+
         try:
             while 1:
                 ret = self.datahandler.handle_one(self)
@@ -107,6 +113,21 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         except:
             #print( sys.exc_info())
             support.put_exception("state handler")
+
+        if self.verbose:
+            print( "Connection severed")
+
+        if conf.mem:
+            #print( "Memory trace")
+            snapshot = tracemalloc.take_snapshot()
+            top_stats = snapshot.statistics('lineno')
+
+            print("[ Top 10 ]")
+            for stat in top_stats[:10]:
+                print(stat)
+
+        #if conf.pglog > 0:
+        #    pysyslog.syslog("Disconn " + " " + str(self.client_address))
 
     def finish(self):
 
@@ -188,6 +209,7 @@ optarr =  comline.optarr
 optarr.append ( ["e",   "detach",      0,       None, "Detach from terminal"] )
 optarr.append ( ["r:",  "dataroot",    None,    None, "Data root"] )
 optarr.append ( ["l:",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
+optarr.append ( ["m",   "mem",         0,       None, "Show memory trace."] )
 
 #print (optarr)
 
@@ -215,7 +237,7 @@ if __name__ == '__main__':
         #print("Exec argv:       ", sys.argv[0])
 
     pyservsup.globals.script_home = os.path.dirname(os.path.realpath(__file__))
-    pyservsup.globals.script_home += "/../data/"
+    pyservsup.globals.script_home += os.sep + ".." + os.sep + "data" + os.sep
     pyservsup.globals.script_home = os.path.realpath(pyservsup.globals.script_home)
 
     pyservsup.globals.verbose = conf.verbose

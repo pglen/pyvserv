@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
@@ -131,15 +131,17 @@ if __name__ == '__main__':
     if conf.quiet == False:
         print ("Server initial:", resp2[1])
 
-    cmd = ["help"]
-    if conf.subhelp:
-        cmd.append(conf.subhelp)
-    resp = hand.client(cmd)
+    cmd = ["help",]
+
+    #if conf.subhelp:
+    #    cmd.append(conf.subhelp)
+
+    resp = hand.client(["help"])
 
     if conf.quiet == False:
-        print ("Server response:", resp[1])
+        print ("Server response:", resp)
 
-    hand.client(["quit"])
+    hand.client(["quit"],)
     hand.close();
 
     sys.exit(0)

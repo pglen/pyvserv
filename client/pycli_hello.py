@@ -52,6 +52,8 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
+    #print("dir", pypacker.__doc__)
+
     try:
         resp2 = hand.connect(ip, conf.port)
     except:
