@@ -99,15 +99,13 @@ if __name__ == '__main__':
         sys.exit(1)
 
     resp3 = hand.client(["hello",] , "", False)
-    print("Hello Response:", resp3[1])
-
-    #if conf.quiet == False:
-    #    print ("Server initial:", resp2)
+    print("Hello Response:", resp3)
 
     resp = hand.client(["akey"])
-    kkk = resp[1].split()
 
-    if kkk[0] != "OK":
+    print("akey response", resp)
+
+    if resp[0] != "OK":
         print("Error on getting key:", resp[1])
         hand.client(["quit"])
         hand.close();
@@ -183,7 +181,7 @@ if __name__ == '__main__':
 
     resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
 
-    print("Sess Response:", resp3[1])
+    print("Sess Response:", resp3)
 
     kkk = resp3[1].split()
 

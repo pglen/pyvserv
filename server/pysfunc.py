@@ -327,7 +327,7 @@ def get_akey_func(self, strx):
             print("Key digest: \n'" + hh.hexdigest() + "'\n")
 
         # Deliver the answer in two parts:
-        response =  self.pb.encode_data("", ["OK", "Hash:", "%s" % hh.hexdigest(), self.keyx])
+        response =  self.pb.encode_data("", ["OK", "%s" % hh.hexdigest(), self.keyx])
         self.resp.datahandler.putdata(response, self.resp.ekey)
 
     except:

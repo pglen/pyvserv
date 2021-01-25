@@ -82,26 +82,28 @@ if __name__ == '__main__':
 
     resp = hand.client(["akey"])
 
+    #print("resp", resp)
+
     if conf.verbose:
         print("got response to akey: ", resp[:-1])
 
     if conf.pgdebug > 2:
-        print("Got hash:", "'" + resp[2] + "'")
+        print("Got hash:", "'" + resp[1] + "'")
 
     if conf.pgdebug > 3:
-        print ("Server pub key response:\n" +  "'" + str(resp[3]) +  "'\n")
+        print ("Server pub key response:\n" +  "'" + str(resp[2]) +  "'\n")
 
-    hhh = SHA512.new(); hhh.update(resp[3])
+    hhh = SHA512.new(); hhh.update(resp[2])
     ddd = hhh.hexdigest()
 
     if conf.pgdebug > 1:
         print("Hash1:\n" + resp[2], "\nHash2:\n" + ddd + "\n")
 
     # Remember key
-    if ddd !=  resp[2]:
+    if ddd !=  resp[1]:
         print("Tainted key")
     else:
-        hand.pkey = resp[3]
+        hand.pkey = resp[2]
         if conf.quiet == False:
              print("Key OK")
 
