@@ -40,6 +40,7 @@ class DataHandler():
         self.pgdebug = 0
         self.pglog = 0
         self.wr = pywrap.wrapper()
+        self.pb = pypacker.packbin()
 
     def handler_timeout(self):
 
@@ -69,6 +70,13 @@ class DataHandler():
             self.par.request.shutdown(socket.SHUT_RDWR)
         except:
             support.put_exception("on sending  timeout shutdown")
+
+    def putencode(self, ddd, key = "", rand = True):
+        if type(ddd) == str:
+            raise(ValuError, "Argument must be an iterable")
+
+        response = self.pb.encode_data("", ddd)
+        self.putdata(response, key, rand)
 
     def putdata(self, response, key = "", rand = True):
 

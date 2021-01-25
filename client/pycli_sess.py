@@ -99,11 +99,11 @@ if __name__ == '__main__':
         sys.exit(1)
 
     resp3 = hand.client(["hello",] , "", False)
-    print("Hello Response:", resp3)
+    if conf.verbose:
+        print("Hello Response:", resp3)
 
     resp = hand.client(["akey"])
-
-    print("akey response", resp)
+    #print("akey response", resp)
 
     if resp[0] != "OK":
         print("Error on getting key:", resp[1])
@@ -112,30 +112,31 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if conf.verbose:
-        print("Got hash:", "'" + kkk[1] + "'")
+        print("Got hash:", "'" + resp[1] + "'")
         pass
 
-    resp2 = hand.getreply()
+    #resp2 = hand.getreply()
 
     if conf.pgdebug > 4:
         print ("Server response2:\n" +  "'" + resp2[1].decode("cp437") +  "'\n")
 
-    hhh = SHA512.new(); hhh.update(resp2[1])
+    hhh = SHA512.new(); hhh.update(resp[2])
 
     if conf.pgdebug > 3:
-        print("Hash1:  '" + kkk[2] + "'")
+        print("Hash1:  '" + resp[1] + "'")
         print("Hash2:  '" + hhh.hexdigest() + "'")
 
     # Remember key
-    if hhh.hexdigest() !=  kkk[2]:
+    if hhh.hexdigest() !=  resp[1]:
         print("Tainted key, aborting.")
         hand.client(["quit"])
         hand.close();
         sys.exit(0)
 
-    hand.pkey = resp2[1]
-    if conf.quiet == False:
-         print("Key response:", kkk[0], kkk[2][:32], "...")
+    hand.pkey = resp[2]
+
+    #if conf.quiet == False:
+    #     print("Key response:", resp[0], resp[2][:32], "...")
 
     if conf.pgdebug > 4:
          print(hand.pkey)
@@ -158,8 +159,8 @@ if __name__ == '__main__':
         hand.close();
         sys.exit(0)
 
-    if conf.pgdebug > 1:
-        print("Got ", hand.pubkey, "size =", hand.pubkey.size())
+    #if conf.pgdebug > 1:
+    print("Got pub key", hand.pubkey, "size =", hand.pubkey.size())
 
     # Generate communication key
     conf.sess_key = Random.new().read(512)
@@ -179,21 +180,19 @@ if __name__ == '__main__':
 
     #print("Key Hexdigest", ttt.hexdigest()[:16])
 
+    #resp3 = hand.client(["sess",], "", False) 3 error responses
     resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
 
-    print("Sess Response:", resp3)
+    #print("Sess Response:", resp3)
 
-    kkk = resp3[1].split()
-
-    if kkk[0] != "OK":
+    if resp3[0] != "OK":
         print("Error on setting session:", resp3[1])
         hand.client(["quit"])
         hand.close();
         sys.exit(0)
 
     # Make a note of the session key
-    print("Sess Key ACCEPTED:",  resp3[1])
-    print("Post session, all is encrypted")
+    print(resp3[1], "all is encrypted.")
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
@@ -205,4 +204,3 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
-

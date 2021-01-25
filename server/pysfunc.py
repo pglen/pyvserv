@@ -172,23 +172,17 @@ def get_ver_func(self, strx):
         print( "get_ver_func()", strx)
     res = []
     res.append("OK");    res.append("Version %s" % pyservsup.version)
-    response = self.pb.encode_data("", res)
     if pgdebug > 2:
-        print( "get_ver_func->output", "'" + response + "'")
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+        print( "get_ver_func->output", "'" + res + "'")
+    self.resp.datahandler.putencode(res, self.resp.ekey)
 
 def get_hello_func(self, strx):
-
     if pgdebug > 1:
         print( "get_hello_func()", strx)
-
     strres = ["OK", "Hello", str(pyservsup.globals.siteid)]
-    response =  self.pb.encode_data("", strres)
-
     if pgdebug > 2:
-        print( "get_hello_func->output", "'" + response + "'")
-
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+        print( "get_hello_func->output", "'" + strres + "'")
+    self.resp.datahandler.putencode(strres, self.resp.ekey)
 
 def get_stat_func(self, strx):
     fname = ""; aaa = " "
@@ -234,7 +228,7 @@ def get_sess_func(self, strx):
         print("strx", strx)
 
     if len(strx) < 4:
-        self.resp.datahandler.putdata("ERR not enough arguments.", self.resp.ekey)
+        self.resp.datahandler.putencode(["ERR", "not enough arguments."], self.resp.ekey)
         return
 
     if pgdebug > 4:
@@ -244,7 +238,7 @@ def get_sess_func(self, strx):
 
     # Arrived safely?
     if strx[2] != sss.hexdigest():
-        self.resp.datahandler.putdata("ERR session key damaged on transport.", self.resp.ekey)
+        self.resp.datahandler.putencode(["ERR", "session key damaged on transport."], self.resp.ekey)
         return
 
     dsize = SHA.digest_size
@@ -259,10 +253,10 @@ def get_sess_func(self, strx):
         print("Hash2:",   ttt.hexdigest())
 
     if ttt.hexdigest() != strx[1]:
-        self.resp.datahandler.putdata("ERR session key damaged on decoding.", self.resp.ekey)
+        self.resp.datahandler.putencode(["ERR", "session key damaged on decoding."], self.resp.ekey)
         return
 
-    self.resp.datahandler.putdata("OK Session estabilished.", self.resp.ekey)
+    self.resp.datahandler.putencode(["OK", "Session estabilished."], self.resp.ekey)
     self.resp.ekey = message2
 
     if pgdebug > 1:
@@ -282,8 +276,8 @@ def get_akey_func(self, strx):
     except:
         print("No keys generated yet.", sys.exc_info()[1])
         support.put_exception("no keys  key")
-        response =  self.pb.encode_data("", ["ERR", "No keys yet. Run keygen"])
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        rrr = ["ERR", "No keys yet. Run keygen"]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
     if pgdebug > 2:
        print("self.keyfroot", self.keyfroot)
@@ -299,7 +293,7 @@ def get_akey_func(self, strx):
         except:
             print("Cannot create key:", self.keyx[:12], sys.exc_info()[1])
             support.put_exception("import  key")
-            self.resp.datahandler.putdata("ERR Cannot create public key", self.resp.ekey)
+            self.resp.datahandler.putencode("ERR Cannot create public key", self.resp.ekey)
             return
 
         if pgdebug > 5:
@@ -316,7 +310,7 @@ def get_akey_func(self, strx):
         except:
             print("Cannot create private key:", self.keyx2[:12], sys.exc_info()[1])
             support.put_exception("import private key")
-            self.resp.datahandler.putdata("ERR Cannot create private key", self.resp.ekey)
+            self.resp.datahandler.putencode("ERR Cannot create private key", self.resp.ekey)
             return
 
         if pgdebug > 5:
@@ -327,13 +321,13 @@ def get_akey_func(self, strx):
             print("Key digest: \n'" + hh.hexdigest() + "'\n")
 
         # Deliver the answer in two parts:
-        response =  self.pb.encode_data("", ["OK", "%s" % hh.hexdigest(), self.keyx])
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        rrr = ["OK", "%s" % hh.hexdigest(), self.keyx]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
     except:
         print("Cannot read key:", self.keyfroot, sys.exc_info()[1])
         support.put_exception("read key")
-        self.resp.datahandler.putdata("ERR cannot open keyfile.", self.resp.ekey)
+        self.resp.datahandler.putencode("ERR cannot open keyfile.", self.resp.ekey)
 
 def get_pass_func(self, strx):
 
@@ -679,17 +673,9 @@ def get_help_func(self, strx):
                 harr.append(aa[4])
                 break
 
-        #if hstr == "OK ":
-        #    hstr = ["ERR no help for command",  "'" + strx[1] + "'"]
-
-    #print("harr", harr)
-    #self.pb.debug = 2
-
-    response = self.pb.encode_data("", harr)
-
     if pgdebug > 2:
-        print( "get_help_func->output", "[" + response + "]")
+        print( "get_help_func->output", "[" + harr + "]")
 
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+    self.resp.datahandler.putencode(harr, self.resp.ekey)
 
 # EOF
