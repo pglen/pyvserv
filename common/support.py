@@ -2,7 +2,8 @@
 
 from __future__ import print_function
 
-import os, sys, string, time,  traceback, getopt, random, glob, base64
+import os, sys, string, time,  traceback, getopt
+import random, glob, base64, datetime
 
 # ------------------------------------------------------------------------
 # Globals
@@ -306,7 +307,7 @@ def mode2str(mode):
 
     #print mode, oct(mode), hex(mode)
 
-    dstr = " "
+    dstr = "-"
     if mode & 0x4000:
         dstr = "d"
 

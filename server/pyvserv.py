@@ -86,11 +86,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         if conf.pglog > 0:
             pysyslog.syslog("Connected " + " " + str(self.client_address))
-
-        response = self.statehandler.pb.encode_data("", ["OK", "pyvserv %s ready" % version])
-
+        response =  ["OK", "pyvserv %s ready" % version]
         # Connected, acknowledge
-        self.datahandler.putdata(response, "")
+        self.datahandler.putencode(response, "")
 
 
     def handle_error(request, client_address):
@@ -107,8 +105,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 if not ret: break
                 ret2 = self.statehandler.run_state(ret)
                 if ret2:
-                    response2 = "Too many tries, disconnecting.\n"
-                    self.datahandler.putdata("ERR " + response2, self.statehandler.resp.ekey)
+                    response2 = ["err", "Too many tries, disconnecting."]
+                    self.datahandler.putencode(response2, self.statehandler.resp.ekey)
                     break
         except:
             #print( sys.exc_info())

@@ -3,11 +3,13 @@
 from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random, socket
+import struct, stat, base64, random, socket, datetime
+
 from Crypto import Random
 
 sys.path.append('../../pycommon')
-import pydata, pyservsup, pypacker, crysupp, comline, pywrap
+import pydata, pyservsup, pypacker, crysupp
+import support, comline, pywrap
 
 from Crypto.Hash import SHA512
 from Crypto.PublicKey import RSA
@@ -211,6 +213,33 @@ class CliSup():
         dstr = self.wr.unwrap_data(key, response)
         return dstr
 
+    ''' Stat return values are as in python os.stat() + OK and name prefix
+    "OK", fname (1),
+    st_mode (2), st_ino, st_dev, st_nlink
+    st_uid, st_gid, st_size (8)
+    st_atime (9), st_mtime, st_ctime
+    st_atime_ns
+    st_mtime_ns
+    st_ctime_ns '''
+
+    def listfiles(self, hand, cresp, key = ""):
+
+        for aa in cresp:
+            #bb = support.unescape(aa)
+            cresp2 = hand.client(["stat", aa], key)
+            #print("cresp2", cresp2)
+            if cresp2[0] != "OK":
+                print("Bad entry from remote", cresp2)
+            else:
+                ddd = datetime.datetime.fromtimestamp(int(cresp2[10]))
+                print ("%s %-24s %-8d %s" %
+                    (
+                    support.mode2str(int(cresp2[2])), support.unescape(cresp2[1]),
+                            int(cresp2[8]), ddd)
+                    )
+                #int(cresp2[9]), int(cresp2[10]), int(cresp2[11])
+                #print(ddd)
+
     # ------------------------------------------------------------------------
     # Ping Pong function with encryption and padding. message is a
     # collection of data to send
@@ -254,46 +283,39 @@ class CliSup():
 
         return response[0]
 
-
 # ------------------------------------------------------------------------
-#
+#  Starts session - exec 'akey' and 'sess'
 
 def start_session(hand, conf):
 
     resp = hand.client(["akey"])
-    kkk = resp[1].split()
 
-    if kkk[0] != "OK":
+    if resp[0] != "OK":
         print("Error on getting key:", resp[1])
         hand.client(["quit"])
         hand.close();
         sys.exit(0)
 
     if conf.verbose:
-        print("Got hash:", "'" + kkk[1] + "'")
+        print("Got hash:", "'" + resp[1] + "'")
         pass
 
-    resp2 = hand.getreply()
-
-    if conf.pgdebug > 4:
-        print ("Server response2:\n" +  "'" + resp2[1].decode("cp437") +  "'\n")
-
-    hhh = SHA512.new(); hhh.update(resp2[1])
+    hhh = SHA512.new(); hhh.update(resp[2])
 
     if conf.pgdebug > 3:
-        print("Hash1:  '" + kkk[2] + "'")
+        print("Hash1:  '" + resp[1] + "'")
         print("Hash2:  '" + hhh.hexdigest() + "'")
 
     # Remember key
-    if hhh.hexdigest() !=  kkk[2]:
+    if hhh.hexdigest() !=  resp[1]:
         print("Tainted key, aborting.")
         hand.client(["quit"])
         hand.close();
         sys.exit(0)
 
-    hand.pkey = resp2[1]
+    hand.pkey = resp[2]
 
-    #print("Key response:", kkk[0], kkk[2][:32], "...")
+    #print("Key response:", resp[0], resp[2][:32], "...")
 
     if conf.pgdebug > 4:
          print(hand.pkey)
@@ -335,17 +357,15 @@ def start_session(hand, conf):
 
     resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
 
-    print("Sess Response:", resp3[1])
+    #print("Sess Response:", resp3[1])
 
-    kkk = resp3[1].split()
-
-    if kkk[0] != "OK":
+    if resp3[0] != "OK":
         print("Error on setting session:", resp3[1])
         hand.client(["quit"])
         hand.close();
         return None
 
-    return kkk
+    return resp3
 
 # EOF
 

@@ -16,8 +16,9 @@ test:
 	-python3 ./pycli_gethelp.py
 	-python3 ./pycli_akey.py
 	-python3 ./pycli_sess.py
-	#-python3 ./pycli_pass.py
-	#-python3 ./pycli_ls.py
+	-python3 ./pycli_pass.py
+	-python3 ./pycli_ls.py
+	-python3 ./pycli_lsd.py
 
 test2:
 	#@-python3 ./pycli_key.py

@@ -7,7 +7,7 @@ from __future__ import print_function
 
 from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
-import  random, stat
+import  random, stat, datetime
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
@@ -120,33 +120,47 @@ if __name__ == '__main__':
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
-    cresp = hand.client(["user", "peter"], conf.sess_key)
-    print ("Server user response:", cresp[1])
+    cresp = hand.client(["user", "admin"], conf.sess_key)
+    #print ("Server user response:", cresp[1])
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    print ("Server pass response:", cresp[1])
+    #print ("Server pass response:", cresp[1])
 
-    cresp = hand.client(["ls",], conf.sess_key)
-    print ("Server  ls response:", cresp[1])
+    cresp = hand.client(["ls", ], conf.sess_key)
+
+    print ("Server  ls response:", cresp)
+
+    if cresp[0] != "OK":
+        print("Error on listing directory:", cresp[1])
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        sys.exit(0)
 
     ''' Stat return values are as in python os.stat() + OK and name prefix
-    "OK", fname,
-    st_mode, st_ino, st_dev, st_nlink
-    st_uid, st_gid, st_size
-    st_atime, st_mtime, st_ctime
+    "OK", fname (1),
+    st_mode (2), st_ino, st_dev, st_nlink
+    st_uid, st_gid, st_size (8)
+    st_atime (9), st_mtime, st_ctime
     st_atime_ns
     st_mtime_ns
     st_ctime_ns '''
 
     print ("Server stat response:")
-    for aa in cresp[1].split()[1:]:
+    for aa in cresp[1:]:
+        bb = support.unescape(aa)
         cresp2 = hand.client(["stat", aa], conf.sess_key)
-        sss = cresp2[1].split()
-        print ("%s %-24s %-8d %d.%d" %
-            (
-            support.mode2str(int(sss[2])),
-                support.unescape(sss[1]),
-                    int(sss[8]), int(sss[6]), int(sss[7]) ))
+        #print("cresp2", cresp2)
+        if cresp2[0] != "OK":
+            print("Bad entry from remote", cresp2)
+        else:
+            ddd = datetime.datetime.fromtimestamp(int(cresp2[10]))
+            print ("%s %-24s %-8d %s" %
+                (
+                support.mode2str(int(cresp2[2])), support.unescape(cresp2[1]),
+                        int(cresp2[8]), ddd)
+                )
+            #int(cresp2[9]), int(cresp2[10]), int(cresp2[11])
+            #print(ddd)
 
     hand.client(["quit",],conf.sess_key)
     hand.close();

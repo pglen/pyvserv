@@ -29,17 +29,20 @@ def get_lsd_func(self, strx):
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/"
     dname2 = support.dirclean(dname2)
 
+    response = ["OK"]
+
     try:
         ddd = os.listdir(dname2)
         for aa in ddd:
             if stat.S_ISDIR(os.stat(aa)[stat.ST_MODE]):
                 # Escape spaces
-                sss += support.escape(aa) + " "
-        response = "OK " + sss
+                response.append(aa) # += support.escape(aa) + " "
+        #response = ["OK" + sss]
     except:
         support.put_exception("lsd")
-        response = "ERR " + str(sys.exc_info()[1] )
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ["ERR" + str(sys.exc_info()[1] )]
+
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_ls_func(self, strx):
 
@@ -52,8 +55,10 @@ def get_ls_func(self, strx):
         pass
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
     dname2 = support.dirclean(dname2)
+
     #print("dname2", dname2)
 
+    response = ["OK"]
     try:
         ddd = os.listdir(dname2)
         for aa in ddd:
@@ -61,15 +66,16 @@ def get_ls_func(self, strx):
                 aaa = dname2 + "/" + aa
                 if not stat.S_ISDIR(os.stat(aaa)[stat.ST_MODE]):
                     # Escape spaces
-                    sss += support.escape(aa) + " "
+                    response.append(aa) #support.escape(aa))
             except:
                 print( "Cannot stat ", aaa, str(sys.exc_info()[1]) )
 
-        response = "OK " + sss
     except:
         support.put_exception("ls ")
-        response = "ERR No such directory"
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ["ERR", "No such directory."]
+
+    #print("response", response)
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_fget_func(self, strx):
     dname = ""
@@ -137,8 +143,8 @@ def get_pwd_func(self, strx):
     dname2 = self.resp.dir
     dname2 = support.dirclean(dname2)
     if dname2 == "": dname2 = "/"
-    response = "OK " +  dname2
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+    response = ["OK",  dname2]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_cd_func(self, strx):
     org = self.resp.dir
@@ -155,15 +161,15 @@ def get_cd_func(self, strx):
         dname2 = self.resp.cwd + "/" + self.resp.dir
         dname2 = support.dirclean(dname2)
         if os.path.isdir(dname2):
-            response = "OK " + self.resp.dir
+            response = ["OK ", self.resp.dir]
         else:
             # Back out
             self.resp.dir = org
-            response = "ERR Directory does not exist"
+            response = ["ERR", "Directory does not exist"]
     except:
         support.put_exception("cd")
-        response = "ERR Must specify directory name"
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ["ERR", "Must specify directory name"]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 # ------------------------------------------------------------------------
 
@@ -184,7 +190,9 @@ def get_hello_func(self, strx):
         print( "get_hello_func->output", "'" + strres + "'")
     self.resp.datahandler.putencode(strres, self.resp.ekey)
 
+
 def get_stat_func(self, strx):
+
     fname = ""; aaa = " "
     #print("stat_func", strx[1])
 
@@ -194,28 +202,30 @@ def get_stat_func(self, strx):
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
     dname2 = support.dirclean(dname2)
 
+    response = ["OK"]
+    response.append(strx[1])
+
     try:
         sss = os.stat(dname2)
         for aa in sss:
-            aaa += str(aa) + " "
-        response = "OK " + strx[1] + aaa
+            response.append(str(aa))
+
     except OSError:
         support.put_exception("stat")
         #print( sys.exc_info())
-        response = "ERR " + str(sys.exc_info()[1] )
+        response = ["ERR", str(sys.exc_info()[1]) ]
     except:
-        response = "ERR Must specify file name"
+        response = ["ERR", "Must specify file name"]
         #print( sys.exc_info())
 
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_user_func(self, strx):
     if len(strx) < 2:
-        self.resp.datahandler.putdata("ERR must specify user name", self.resp.ekey)
+        self.resp.datahandler.putencode(["ERR", "must specify user name"], self.resp.ekey)
         return True
     self.resp.user = strx[1]
-    #self.resp.datahandler.putdata("OK Enter pass for '" + self.resp.user + "'", self.resp.ekey)
-    self.resp.datahandler.putdata("OK send pass ...", self.resp.ekey)
+    self.resp.datahandler.putencode(["OK", "send pass ..."], self.resp.ekey)
 
 # ------------------------------------------------------------------------
 
@@ -293,7 +303,8 @@ def get_akey_func(self, strx):
         except:
             print("Cannot create key:", self.keyx[:12], sys.exc_info()[1])
             support.put_exception("import  key")
-            self.resp.datahandler.putencode("ERR Cannot create public key", self.resp.ekey)
+            rrr = ["ERR", "Cannot create public key"]
+            self.resp.datahandler.putencode(rrr, self.resp.ekey)
             return
 
         if pgdebug > 5:
@@ -310,7 +321,8 @@ def get_akey_func(self, strx):
         except:
             print("Cannot create private key:", self.keyx2[:12], sys.exc_info()[1])
             support.put_exception("import private key")
-            self.resp.datahandler.putencode("ERR Cannot create private key", self.resp.ekey)
+            rrr = ["ERR", "Cannot create private key"]
+            self.resp.datahandler.putencode(rrr, self.resp.ekey)
             return
 
         if pgdebug > 5:
@@ -327,7 +339,8 @@ def get_akey_func(self, strx):
     except:
         print("Cannot read key:", self.keyfroot, sys.exc_info()[1])
         support.put_exception("read key")
-        self.resp.datahandler.putencode("ERR cannot open keyfile.", self.resp.ekey)
+        rrr = ["ERR", "cannot open keyfile."]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
 def get_pass_func(self, strx):
 
@@ -340,29 +353,30 @@ def get_pass_func(self, strx):
 
     ret = pyservsup.passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_DIS:
-        response = "ERR this user is temporarily disabled"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        rrr = ["ERR", "this user is temporarily disabled"]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return retval
 
     xret = pyservsup.passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
+    rrr = []
     if xret[0] == 3:
         stry = "No such user  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        ret = "ERR No such user"
+        rrr = ["ERR", "No such user"]
     elif xret[0] == 1:
         stry = "Successful logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        ret = "OK " + self.resp.user + " Authenticated."
+        rrr = ["OK ", self.resp.user + " Authenticated."]
         retval = False
     else:
         stry = "Error on logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        ret = "ERR " + xret[1]
+        rrr = ["ERR ",  xret[1]]
 
-    self.resp.datahandler.putdata(ret, self.resp.ekey)
+    self.resp.datahandler.putencode(rrr, self.resp.ekey)
     return retval
 
 def get_chpass_func(self, strx):

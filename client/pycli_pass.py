@@ -120,14 +120,17 @@ if __name__ == '__main__':
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
-    cresp = hand.client(["user", "peter"], conf.sess_key)
+    cresp = hand.client(["user", "admin"], conf.sess_key)
     print ("Server user response:", cresp[1])
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
     print ("Server pass response:", cresp[1])
 
-    cresp = hand.client(["chpass", "1234"], conf.sess_key)
-    print ("Server chpass response:", cresp[1])
+    #cresp = hand.client(["chpass", "1234"], conf.sess_key)
+    #print ("Server chpass response:", cresp[1])
+
+    hand.client(["quit",],conf.sess_key)
+    hand.close();
 
     sys.exit(0)
 

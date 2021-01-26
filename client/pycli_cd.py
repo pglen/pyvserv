@@ -7,7 +7,7 @@ from __future__ import print_function
 
 from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
-import  random, stat
+import  random, stat, datetime
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
@@ -122,11 +122,11 @@ if __name__ == '__main__':
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
-    cresp = hand.client(["user", "peter"], conf.sess_key)
-    print ("Server user response:", cresp[1])
+    cresp = hand.client(["user", "admin"], conf.sess_key)
+    print ("Server user response:", cresp)
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    print ("Server pass response:", cresp[1])
+    print ("Server pass response:", cresp)
 
     #///////////////////////////////////////////////////////////////////////
 
@@ -136,10 +136,10 @@ if __name__ == '__main__':
     cresp = hand.client(["pwd",], conf.sess_key)
     print ("Server pwd response:", cresp[1])
 
-    cresp = hand.client(["ls",], conf.sess_key)
-    if cresp[1][:2] != "OK":
-        errexit(hand, "Error on ls command", cresp[1])
-    print ("Server ls response:", cresp[1])
+    cresp = hand.client(["lsd",], conf.sess_key)
+    if cresp[0] != "OK":
+        errexit(hand, "Error on lsd command", cresp)
+    print ("Server ls response:", cresp)
 
     cresp = hand.client(["cd", "keysx"], conf.sess_key)
     print ("Server cd response:", cresp[1])
@@ -148,10 +148,10 @@ if __name__ == '__main__':
     print ("Server cd response:", cresp[1])
 
     cresp = hand.client(["ls",], conf.sess_key)
-    if cresp[1][:2] != "OK":
-        errexit(hand, "Error on ls command", cresp[1])
+    if cresp[0] != "OK":
+        errexit(hand, "Error on ls command", cresp)
 
-    print ("Server ls after cd response:", cresp[1])
+    print ("Server ls after cd response:", cresp)
 
     ''' Stat return values are as in python os.stat() + OK and name prefix
     "OK", fname,
@@ -163,21 +163,18 @@ if __name__ == '__main__':
     st_ctime_ns '''
 
     print ("Server stat response:")
-    for aa in cresp[1].split()[1:]:
-        cresp2 = hand.client(["stat", aa], conf.sess_key)
-        sss = cresp2[1].split()
-        print ("%s %-24s %-8d %d.%d" %
-            (support.mode2str(int(sss[2])),
-                support.unescape(sss[1]),
-                    int(sss[8]), int(sss[6]), int(sss[7]) ))
+    hand.listfiles(hand, cresp[1:], conf.sess_key)
 
     cresp = hand.client(["cd", "/"], conf.sess_key)
-    print ("Server cd response:", cresp[1])
+    print ("Server cd response:", cresp)
 
     cresp = hand.client(["ls",], conf.sess_key)
-    if cresp[1][:2] != "OK":
+
+    if cresp[0] != "OK":
         errexit(hand, "Error on ls command", cresp[1])
-    print ("Server ls after cd / response:", cresp[1])
+
+    print ("Server ls after cd / response:")
+    print (cresp)
 
     hand.client(["quit",],conf.sess_key)
     hand.close();

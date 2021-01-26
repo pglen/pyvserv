@@ -56,11 +56,11 @@ class DataHandler():
         #print(dir(self))
         #print(dir(self.par))
 
-        response2 = "Timeout occured, disconnecting.\n"
+        rrr = ["ERR", "Timeout occured, disconnecting."]
         #print( self.par.client_address, self.par.server.socket)
         try:
             #print("ekey", self.par.ekey)
-            self.putdata(response2, self.par.ekey)
+            self.putencode(rrr, self.par.ekey)
         except:
             support.put_exception("putdata")
 
