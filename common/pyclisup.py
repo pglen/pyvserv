@@ -7,7 +7,11 @@ import struct, stat, base64, random, socket, datetime
 
 from Crypto import Random
 
-sys.path.append('../../pycommon')
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../bluepy'))
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base,  '../../pycommon'))
+
 import pydata, pyservsup, pypacker, crysupp
 import support, comline, pywrap
 

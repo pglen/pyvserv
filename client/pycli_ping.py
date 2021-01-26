@@ -8,7 +8,11 @@ from __future__ import print_function
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
-sys.path.append('../common')
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../bluepy'))
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base,  '../../pycommon'))
+
 import support, pycrypt, pyservsup, pyclisup, syslog, comline, pypacker
 
 version = "1,0"

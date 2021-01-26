@@ -5,14 +5,12 @@ from __future__ import print_function
 from Crypto.Hash import SHA512
 import os, sys, getopt, signal, select, string, time, stat, base64
 
-#sys.path.append('..')
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../bluepy'))
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base,  '../../pycommon'))
 
-sys.path.append('../bluepy')
 import bluepy
-
-sys.path.append('../common')
-sys.path.append('../../pycommon')
-
 import support, pyservsup, pyclisup, crysupp, pysyslog
 import pypacker, pywrap
 

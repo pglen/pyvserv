@@ -11,12 +11,13 @@ from Crypto import Random
 
 import os, sys, getopt, signal, select, string, time, stat, base64
 
-sys.path.append('..')
-sys.path.append('../bluepy')
-import bluepy
+base = os.path.dirname(os.path.realpath(__file__))
+#print("base", base)
+sys.path.append(os.path.join(base, '../bluepy'))
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base,  '../../pycommon'))
 
-sys.path.append('../common')
-sys.path.append('../../pycommon')
+import bluepy
 import support, pyservsup, pyclisup, crysupp, pysyslog, pystate
 
 pgdebug = 0

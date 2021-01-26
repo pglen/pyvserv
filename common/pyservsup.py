@@ -4,7 +4,12 @@ from __future__ import print_function
 
 import os, sys, string, time, traceback, bcrypt, random, uuid, datetime, base64
 
-sys.path.append('../common')
+base = os.path.dirname(os.path.realpath(__file__))
+#print("base", base)
+sys.path.append(os.path.join(base, '../bluepy'))
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base,  '../../pycommon'))
+
 import support, pyclisup, crysupp, pysyslog, pystate
 
 # Globals and configurables

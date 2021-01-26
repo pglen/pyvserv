@@ -12,13 +12,14 @@ if sys.version_info[0] < 3:
 else:
     import socketserver
 
-sys.path.append('../bluepy')
-sys.path.append('../common')
-sys.path.append('../server')
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../bluepy'))
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base, '../server'))
+sys.path.append(os.path.join(base,  '../../pycommon'))
 
-sys.path.append('../../pycommon')
-
-import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate, bluepy
+import bluepy
+import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate
 import pypacker, pywrap
 
 # Walk thru the server (chunk) state machine

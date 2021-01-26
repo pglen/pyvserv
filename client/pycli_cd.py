@@ -15,12 +15,14 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
 
-sys.path.append('../common')
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../bluepy'))
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base,  '../../pycommon'))
+
 import support, pycrypt, pyservsup, pyclisup, syslog
 import comline, pypacker, crysupp
-
-sys.path.append('../bluepy')
-import bluepy
+#import bluepy
 
 '''
 # test encrypt with large keys
