@@ -24,16 +24,6 @@ import support, pycrypt, pyservsup, pyclisup, syslog
 import comline, pypacker, crysupp
 import bluepy
 
-'''
-# test encrypt with large keys
-rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
-        "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
-sss = bluepy.encrypt(rrr, conf.sess_key)
-ttt = bluepy.decrypt(sss, conf.sess_key)
-print (rrr)
-print (ttt)
-'''
-
 # ------------------------------------------------------------------------
 # Functions from command line
 
@@ -104,9 +94,6 @@ if __name__ == '__main__':
     print("Hello Response:", resp3[1])
 
     ret = pyclisup.start_session(hand, conf)
-
-    #if ret[0] == "OK":
-    #    print("Sess Key ACCEPTED:",  ret[1])
 
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])

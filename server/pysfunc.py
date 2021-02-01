@@ -2,6 +2,8 @@
 
 from __future__ import print_function
 
+import os, sys, getopt, signal, select, string, time, stat, base64
+
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -9,16 +11,13 @@ from Crypto.Hash import SHA
 from Crypto.Hash import SHA512
 from Crypto import Random
 
-import os, sys, getopt, signal, select, string, time, stat, base64
-
 base = os.path.dirname(os.path.realpath(__file__))
-#print("base", base)
 sys.path.append(os.path.join(base, '../bluepy'))
 sys.path.append(os.path.join(base, '../common'))
 sys.path.append(os.path.join(base,  '../../pycommon'))
 
-import bluepy
 import support, pyservsup, pyclisup, crysupp, pysyslog, pystate
+import bluepy
 
 pgdebug = 0
 
@@ -81,8 +80,8 @@ def get_ls_func(self, strx):
 def get_fget_func(self, strx):
     dname = ""
     if len(strx) == 1:
-        response = "ERR Must specify file name"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ["ERR", "Must specify file name"]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     dname = support.unescape(strx[1]);
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
@@ -90,22 +89,29 @@ def get_fget_func(self, strx):
     flen = 0
     try:
         flen = os.stat(dname2)[stat.ST_SIZE]
-        fh = open(dname2)
+        fh = open(dname2, "rb")
     except:
         support.put_exception("cd")
-        response = "ERR Cannot open file '" + dname + "'"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = "ERR", ["Cannot open file ", dname]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-    response = "OK " + str(flen)
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+    response = ["OK", str(flen)]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
     # Loop, break when file end or transmission error
+
     while 1:
         buff = fh.read(pyservsup.buffsize)
-        if len(buff) == 0:
-            break
-        ret = self.resp.datahandler.putdata(buff, self.resp.ekey, False)
+        blen = len(buff)
+        try:
+            ret = self.resp.datahandler.putencode([str(blen), buff,], self.resp.ekey, False)
+        except:
+            break;
+
         if ret == 0:
             break
+        if blen == 0:
+            break
+
     # Lof and set state to IDLE
     xstr = "Sent file: '" + dname + \
                 "' " + str(flen) + " bytes"
@@ -616,29 +622,29 @@ def get_udel_func(self, strx):
 def get_fname_func(self, strx):
     try:
         self.resp.fname = strx[1]
-        response = "OK Send file '" + self.resp.fname + "'"
+        response = ["OK", "Send file", self.resp.fname]
     except:
-        response = "ERR Must specify file name"
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ["ERR",  "Must specify file name"]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_data_func(self, strx):
     if self.resp.fname == "":
-        response = "ERR No filename for data"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ["ERR", "No filename for data"]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     try:
        self.resp.dlen = int(strx[1])
     except:
-        response = "ERR Must specify file name"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ["ERR", "Must specify file name"]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     try:
-        fh = open(self.resp.fname, "w")
+        fh = open(self.resp.fname, "wb")
     except:
-        response = "ERR Cannot save file on server"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ["ERR", "Cannot save file on server"]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-    self.resp.datahandler.putdata("OK Send data", self.resp.ekey)
+    self.resp.datahandler.putencode(["OK", "Send data"], self.resp.ekey)
 
     # Consume buffers until we got all
     mylen = 0

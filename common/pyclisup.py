@@ -94,6 +94,19 @@ class CliSup():
 
         self.sock.send(strx)
 
+    def recvx(self, key):
+        resp = self.getreply(key)
+
+        if self.pgdebug > 1:
+            print("resp:", resp)
+
+        response = self.pb.decode_data(resp[1])
+
+        if self.pgdebug > 0:
+            print( "    get: '%s'" % response)
+
+        return response[0]
+
     # ------------------------------------------------------------------------
     # Set encryption key. New key returned. Raises ValuError.
 
@@ -125,34 +138,19 @@ class CliSup():
         if self.verbose:
             print( "Sending ", fname, "to", toname)
 
-        response = ""
         try:
             flen = os.stat(fname)[stat.ST_SIZE]
-            fh = open(fname)
+            fh = open(fname, "rb")
         except:
             print( "Cannot open file", sys.exc_info()[1])
             return
-        resp = client("file " + toname, key)
-        tmp = resp.split()
-        if len(tmp) < 2 or tmp[0] != "OK":
-            print( "Cannot send file command", resp)
-            return
+        resp = client(["file", fname, toname,], key)
+        print("file resp", resp)
+
         resp = client("data " + str(flen), key)
-        tmp = resp.split()
-        if len(tmp) < 2 or tmp[0] != "OK":
-            print( "Cannot send data command", resp)
-            return
-        while 1:
-            buff = fh.read(pyservsup.buffsize)
-            if len(buff) == 0:
-                break
+        print("data resp", resp)
 
-            self.sendx(buff)
 
-        response = self.myhandler.handle_one(self.mydathand)
-
-        if self.pgdebug > 2:
-            print( "Received: '%s'" % response)
         return True
 
     # ------------------------------------------------------------------------
@@ -162,50 +160,32 @@ class CliSup():
 
         if self.verbose:
             print( "getting ", fname, "to", toname)
+
         try:
-            fh = open(toname, "w")
+            fh = open(toname, "wb+")
         except:
             print( "Cannot create local file: '" + toname + "'")
             return
-        response = client( "fget " + fname, key)
-        aaa = response.split(" ")
-        if len(aaa) < 2:
-            fh.close()
-            if self.verbose:
-                print( "Invalid response, server said: ", response)
-            return
-        if aaa[0] == "ERR":
-            fh.close()
-            if self.verbose:
-                print( "Server said: ", response)
-            return
-        mylen = 0; flen = int(aaa[1])
-        #print( "getting", flen,)
-        while mylen < flen:
-            need = min(pyservsup.buffsize,  flen - mylen)
-            need = max(need, 0)
-            data = self.myhandler.handle_one(self.mydathand)
-            #print("got data", data)
 
+        cresp = self.client(["fget", fname], key)
+        if self.verbose:
+            print ("Server  fget response:", cresp)
+
+        while(True):
+            response = self.recvx(key)
+            if self.verbose:
+                print("resp", response)
+            if response[0] == "0":
+                break
             try:
-                fh.write(data)
+                fh.write(response[1])
             except:
-                if self.verbose:
-                    print( "Cannot write to local file: '" + toname + "'")
+                #if self.verbose:
+                print( "Cannot write to local file: '" + toname + "'", sys.exc_info())
                 fh.close()
                 return
-            mylen += len(data)
-            # Faulty transport, abort
-            if len(data) == 0:
-                break
         fh.close()
-        if self.verbose:
-            print( "Got data, len =", mylen)
-        if  mylen != flen:
-            if self.verbose:
-                print( "Faulty amount of data arrived")
-            return
-        return True
+
 
     def  getreply(self, key = "", rand = True):
         response = self.myhandler.handle_one(self.mydathand)
@@ -275,17 +255,16 @@ class CliSup():
         #if self.pgdebug > 0:
         #    print("    waiting for answer ...")
 
-        resp = self.getreply(key)
+        response =  self.recvx(key)
 
+        '''resp = self.getreply(key)
         if self.pgdebug > 1:
             print("resp:", resp)
-
         response = self.pb.decode_data(resp[1])
-
         if self.pgdebug > 0:
             print( "    get: '%s'" % response)
-
-        return response[0]
+        '''
+        return response
 
 # ------------------------------------------------------------------------
 #  Starts session - exec 'akey' and 'sess'

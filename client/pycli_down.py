@@ -6,8 +6,14 @@
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-sys.path.append('../common')
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../bluepy'))
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base,  '../../pycommon'))
+
 import support, pycrypt, pyservsup, pyclisup, syslog
+import comline, pypacker, crysupp
+import bluepy
 
 # ------------------------------------------------------------------------
 # Globals
@@ -37,24 +43,25 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
     ["p:",  "port",     9999,   None],      \
+    ["f:",  "file",     9999,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = pyclisup.Config(optarr)
+conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    '''if  sys.version_info[0] < 3:
-        print("Needs( python 3 or better."))
-        sys.exit(1)'''
-
-
     args = conf.comline(sys.argv[1:])
+
+    #print(dir(conf))
+
+    #if conf.comm:
+    #    print("Save to filename", conf.comm)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -64,28 +71,50 @@ if __name__ == '__main__':
     else:
         ip = args[0]
 
-    s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    init_handler(s1)
+    hand = pyclisup.CliSup()
+    hand.verbose = conf.verbose
+    hand.pgdebug = conf.pgdebug
+
+    #hand.comm  = conf.comm
 
     try:
-        s1.connect((ip, conf.port))
+        respc = hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    xkey = set_key(s1, "1234", "")
+    resp3 = hand.client(["hello",] , "", False)
+    print("Hello Response:", resp3[1])
 
-    client(s1, "user peter", xkey)
-    client(s1, "pass 1234", xkey)
+    ret = pyclisup.start_session(hand, conf)
 
-    getfile(s1, "aa", "aa2", xkey)
-    #getfile(s1, "bb", "bb2", xkey)
+    if ret[0] != "OK":
+        print("Error on setting session:", resp3[1])
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
 
-    xkey = set_key(s1, "2345", xkey)
+    # Make a note of the session key
+    #print("Sess Key ACCEPTED:",  resp3[1])
+    print("Post session, all is encrypted")
 
-    client(s1, "ver", xkey)
-    client(s1, "quit", xkey)
-    s1.close();
+    # Session estabilished, try a simple command
+    #resp4 = hand.client(["hello",], conf.sess_key)
+    #print("Hello Response:", resp4[1])
+
+    cresp = hand.client(["user", "admin"], conf.sess_key)
+    #print ("Server user response:", cresp[1])
+
+    cresp = hand.client(["pass", "1234"], conf.sess_key)
+    #print ("Server pass response:", cresp[1])
+
+    cresp = hand.client(["ls", ], conf.sess_key)
+    print ("Server  ls response:", cresp)
+
+    hand.getfile("bigfile", "bigfile_local", conf.sess_key)
+
+    cresp = hand.client(["quit", ], conf.sess_key)
+    print ("Server quit response:", cresp)
 
     sys.exit(0)
 

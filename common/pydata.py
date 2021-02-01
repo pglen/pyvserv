@@ -124,14 +124,13 @@ class DataHandler():
             self.tout.start()
 
         except:
-            sss = "While in Put Data: " + str(response)
+            sss = "While in Put Data: " + str(response)[:24]
             support.put_exception(sss)
             #self.resp.datahandler.putdata(sss, self.statehand.resp.ekey)
-
             if self.tout:
                 self.tout.cancel()
-
             ret = -1
+            raise
 
         return ret
 
