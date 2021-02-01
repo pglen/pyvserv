@@ -31,8 +31,8 @@ clean:
 	@make -C server clean
 	@make -C common clean
 	@rm -f aa bb cc pyvserv.deb
-	@rm -r ./build-tmp
-	@rm -r ./data/keys
+	@rm -rf ./build-tmp
+	@rm -rf ./data/keys
 
 md5:
 
