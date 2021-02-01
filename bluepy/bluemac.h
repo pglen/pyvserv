@@ -11,7 +11,8 @@
         aa = str[loop];                             \
         aa = aa op hector[loop2];                   \
         loop2++;                                    \
-        if(loop2 >= sizeof(hector)) {loop2 = 0;}    \
+        if(loop2 >= (int)sizeof(hector))            \
+            {loop2 = 0;}                            \
         str[loop] = aa;                             \
         }
 

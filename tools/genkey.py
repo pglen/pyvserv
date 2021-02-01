@@ -11,6 +11,9 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
 
+# Deprecated, pad it
+time.clock = time.process_time
+
 def genfname():
 
     rsize = 2; sss = ""
@@ -79,8 +82,8 @@ if __name__ == '__main__':
     #print("Current dir:     ", os.getcwd())
     print ("Started gen ... ", end=""); sys.stdout.flush()
     fname = genkey(8192)
+    #fname = genkey(4096)
     print(fname + " .pem .pub")
-
 
 
 #if __name__ == '__main__':

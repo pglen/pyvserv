@@ -3,7 +3,7 @@
 .PHONY: test clean
 
 all:
-	@echo Targets: all git build build3 test clean deb
+	@echo Targets: all git build build3 test clean deb cleankeys
 
 git:
 	git add .
@@ -32,6 +32,8 @@ clean:
 	@make -C common clean
 	@rm -f aa bb cc pyvserv.deb
 	@rm -rf ./build-tmp
+
+cleankeys:
 	@rm -rf ./data/keys
 
 md5:
