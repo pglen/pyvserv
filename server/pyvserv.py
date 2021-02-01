@@ -293,7 +293,10 @@ if __name__ == '__main__':
     # Set termination handlers, so lock will be deleted
     signal.signal(signal.SIGTERM, terminate)
     signal.signal(signal.SIGINT, terminate)
-    signal.signal(signal.SIGUSR1, usersig)
+    try:
+        signal.signal(signal.SIGUSR1, usersig)
+    except:
+        print("User signal may not be available.")
 
     sys.stdout = support.Unbuffered(sys.stdout)
     sys.stderr = support.Unbuffered(sys.stderr)
