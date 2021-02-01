@@ -13,7 +13,7 @@ sys.path.append(os.path.join(base, '../bluepy'))
 sys.path.append(os.path.join(base, '../common'))
 sys.path.append(os.path.join(base,  '../../pycommon'))
 
-import support, pycrypt, pyservsup, pyclisup, syslog, comline, pypacker
+import support, pycrypt, pyservsup, pyclisup, pysyslog, comline, pypacker
 
 # ------------------------------------------------------------------------
 # Functions from command line
