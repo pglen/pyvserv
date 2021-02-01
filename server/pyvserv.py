@@ -339,10 +339,14 @@ if __name__ == '__main__':
     server_thread.start()
 
     if not quiet:
-        strx = ""
-        import distro
-        for aa in distro.linux_distribution():
-            strx += str(aa) + " "
+        strx = "Win or Unknown."
+        try:
+            import distro
+            for aa in distro.linux_distribution():
+                strx += str(aa) + " "
+        except:
+            pass
+
         print("Server running:", server.server_address)
         pyver = support.list2str(sys.version_info[0:3], ".")
         print("Running python", platform.python_version(), "on", platform.system(), strx)
