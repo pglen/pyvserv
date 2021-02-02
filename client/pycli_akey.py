@@ -81,8 +81,10 @@ if __name__ == '__main__':
         print ("Server initial:", hand.pb.decode_data(resp2[1])[0])
 
     resp = hand.client(["akey"])
+    if resp[0] != "OK":
+        print("key resp", resp)
+        sys.exit(1)
 
-    #print("resp", resp)
 
     if conf.verbose:
         print("got response to akey: ", resp[:-1])

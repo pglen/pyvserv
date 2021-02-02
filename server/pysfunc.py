@@ -295,6 +295,7 @@ def get_akey_func(self, strx):
         support.put_exception("no keys  key")
         rrr = ["ERR", "No keys yet. Run keygen"]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
+        return
 
     if pgdebug > 2:
        print("self.keyfroot", self.keyfroot)
@@ -308,9 +309,9 @@ def get_akey_func(self, strx):
         try:
             self.pubkey = RSA.importKey(self.keyx)
         except:
-            print("Cannot create key:", self.keyx[:12], sys.exc_info()[1])
+            print("Cannot read key:", self.keyx[:12], sys.exc_info()[1])
             support.put_exception("import  key")
-            rrr = ["ERR", "Cannot create public key"]
+            rrr = ["ERR", "Cannot read public key"]
             self.resp.datahandler.putencode(rrr, self.resp.ekey)
             return
 

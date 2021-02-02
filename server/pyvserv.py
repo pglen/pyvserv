@@ -91,7 +91,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         # Connected, acknowledge
         self.datahandler.putencode(response, "")
 
-
     def handle_error(request, client_address):
         print("pyvserv Error", request, client_address)
 
@@ -99,7 +98,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         if conf.mem:
             tracemalloc.start()
-
         try:
             while 1:
                 ret = self.datahandler.handle_one(self)
@@ -114,7 +112,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             support.put_exception("state handler")
 
         if self.verbose:
-            print( "Connection severed")
+            print( "Connection closed on", self.name)
 
         if conf.mem:
             #print( "Memory trace")
@@ -278,6 +276,15 @@ if __name__ == '__main__':
 
     # Change directory to the data dir
     os.chdir(pyservsup.globals.script_home)
+
+    try:
+        ddd = os.path.abspath("keys")
+        keyfroot = pyservsup.pickkey(ddd)
+    except:
+        print("No keys generated yet. Please run tools/genkey.py first.")
+        if conf.verbose:
+            print("exc", sys.exc_info())
+        sys.exit(1)
 
     iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
     if not iii:
