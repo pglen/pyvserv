@@ -281,7 +281,7 @@ if __name__ == '__main__':
         ddd = os.path.abspath("keys")
         keyfroot = pyservsup.pickkey(ddd)
     except:
-        print("No keys generated yet. Please run tools/genkey.py first.")
+        print("No keys generated yet. Please run ../tools/genkey.py first.")
         if conf.verbose:
             print("exc", sys.exc_info())
         sys.exit(1)
