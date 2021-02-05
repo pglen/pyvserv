@@ -184,7 +184,16 @@ def get_ver_func(self, strx):
     if pgdebug > 1:
         print( "get_ver_func()", strx)
     res = []
-    res.append("OK");    res.append("Version %s" % pyservsup.version)
+    res.append("OK");    res.append("%s" % pyservsup.version)
+    if pgdebug > 2:
+        print( "get_ver_func->output", "'" + res + "'")
+    self.resp.datahandler.putencode(res, self.resp.ekey)
+
+def get_id_func(self, strx):
+    if pgdebug > 1:
+        print( "get_id_func()", strx)
+    res = []
+    res.append("OK");    res.append("%s" % pyservsup.globals.siteid)
     if pgdebug > 2:
         print( "get_ver_func->output", "'" + res + "'")
     self.resp.datahandler.putencode(res, self.resp.ekey)

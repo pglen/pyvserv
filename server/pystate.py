@@ -87,6 +87,7 @@ aadd_help  = "Usage: aadd user_name user_pass -- create admin user"
 udel_help  = "Usage: udel user_name -- Delete user"
 data_help  = "Usage: data datalen -- Specify length of file to follow"
 vers_help  = "Usage: ver -- Get protocol version. alias: vers"
+id_help    = "Usage: id -- Get site id string"
 hello_help = "Usage: hello -- Say Hello - test connectivity."
 quit_help  = "Usage: quit -- Terminate connection. alias: exit"
 help_help  = "Usage: help [command] -- Offer help on command"
@@ -118,6 +119,7 @@ xxxx_help  = "Usage: no data"
 state_table = [
             # Command ; start_state ; end_state ; action func   ; help func
             ("ver",     all_in,     none_in,    get_ver_func,   vers_help),
+            ("id",      all_in,     none_in,    get_id_func,    id_help),
             ("hello",   all_in,     none_in,    get_hello_func, hello_help),
             ("quit",    all_in,     none_in,    get_exit_func,  quit_help),
             ("exit",    all_in,     none_in,    get_exit_func,  quit_help),

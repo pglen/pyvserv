@@ -291,7 +291,6 @@ if __name__ == '__main__':
         print("Cannot read / create site ID, exiting.")
         sys.exit(1)
 
-    print("MainSiteID:", iii)
     pyservsup.globals.siteid = iii
 
     #if conf.verbose:
@@ -353,6 +352,8 @@ if __name__ == '__main__':
                 strx = str(aa) + " "
         except:
             pass
+
+        print("MainSiteID:", pyservsup.globals.siteid)
 
         print("Server running:", server.server_address)
         pyver = support.list2str(sys.version_info[0:3], ".")
