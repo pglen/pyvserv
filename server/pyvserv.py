@@ -346,11 +346,11 @@ if __name__ == '__main__':
     server_thread.start()
 
     if not quiet:
-        strx = "Win or Unknown."
+        strx = "Win or Unkn."
         try:
             import distro
             for aa in distro.linux_distribution():
-                strx += str(aa) + " "
+                strx = str(aa) + " "
         except:
             pass
 
@@ -365,5 +365,3 @@ if __name__ == '__main__':
     server.serve_forever()
 
 # EOF
-
-
