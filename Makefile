@@ -3,7 +3,13 @@
 .PHONY: test clean
 
 all:
-	@echo Targets: all git build build3 test clean deb cleankeys
+	@echo Targets: git build test clean deb init cleankeys
+	@echo Target \'build\' makes the \'C\' libs
+	@echo Target \'init\' generates an initial key.
+	@echo Target \'cleankeys\' deletes all keys.
+
+init:
+	@python3 ./tools/genkey.py
 
 git:
 	git add .
@@ -11,7 +17,9 @@ git:
 	git push
 
 build:
-	@make -C bluepy build
+	#obsolete, build for py3 only
+	#@make -C bluepy build
+	@make -C bluepy build3
 
 build3:
 	@make -C bluepy build3

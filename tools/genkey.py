@@ -80,11 +80,11 @@ if __name__ == '__main__':
         os.mkdir(keydir)
 
     #print("Current dir:     ", os.getcwd())
-    print ("Started gen ... ", end=""); sys.stdout.flush()
+    print ("Started key gen ... (please wait) ", end=""); sys.stdout.flush()
     fname = genkey(8192)
     #fname = genkey(4096)
-    print(fname + " .pem .pub")
-
+    print("OK, Generated files:")
+    print("'" + fname + ".pem'", "'" + fname + ".pub'")
 
 #if __name__ == '__main__':
 #    print( "Generated file: ", "'" + fff + "'")
