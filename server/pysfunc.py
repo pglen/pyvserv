@@ -80,19 +80,23 @@ def get_ls_func(self, strx):
 def get_fget_func(self, strx):
     dname = ""
     if len(strx) == 1:
-        response = ["ERR", "Must specify file name"]
+        response = ["ERR", "Must specify file name."]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     dname = support.unescape(strx[1]);
     dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
     dname2 = support.dirclean(dname2)
+    if not os.path.isfile(dname2):
+        response = ["ERR", "File does not exist.", dname]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
     flen = 0
     try:
         flen = os.stat(dname2)[stat.ST_SIZE]
         fh = open(dname2, "rb")
     except:
         support.put_exception("cd")
-        response = "ERR", ["Cannot open file ", dname]
+        response = ["ERR", "Cannot open file ", dname]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     response = ["OK", str(flen)]

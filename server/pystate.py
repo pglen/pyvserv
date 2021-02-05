@@ -240,11 +240,11 @@ class StateHandler():
         if not got:
             #print( "Invalid command or out of sequence command ", "'" + comx[0] + "'")
             if not comok:
-                sss =  "ERR Invalid command " + "'" + comx[0] + "'"
+                sss =  ["ERR", "Invalid command issued",  comx[0]]
             else:
-                sss =  "ERR Out of Sequence command " + "'" + comx[0] + "'"
+                sss =  ["ERR", "Out of Sequence command issued", comx[0]]
             #self.resp.datahandler.putdata(sss.encode("cp437"), self.resp.ekey)
-            self.resp.datahandler.putdata(sss, self.resp.ekey)
+            self.resp.datahandler.putencode(sss, self.resp.ekey)
             # Do not quit, just signal the error
             ret = False
         return ret

@@ -61,6 +61,7 @@ optarr = \
     ["h",   None,       None,   phelp]      \
 
 conf = comline.Config(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
@@ -90,9 +91,10 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client(["hello",] , "", False)
+    resp3 = hand.client(["hello",] , conf.sess_key, False)
     print("Hello Response:", resp3[1])
 
+    '''
     ret = pyclisup.start_session(hand, conf)
 
     if ret[0] != "OK":
@@ -104,16 +106,25 @@ if __name__ == '__main__':
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  resp3[1])
     print("Post session, all is encrypted")
+    '''
 
     # Session estabilished, try a simple command
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
-    #print ("Server user response:", cresp[1])
+    if(cresp[0] != "OK"):
+        print ("Server user response:", cresp)
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        sys.exit(0)
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    #print ("Server pass response:", cresp[1])
+    if(cresp[0] != "OK"):
+        print ("Server pass response:", cresp[1])
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        sys.exit(0)
 
     cresp = hand.client(["ls", ], conf.sess_key)
 

@@ -83,11 +83,13 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client(["hello",] , "", False)
-    print("Hello Response:", resp3[1])
+    resp3 = hand.client(["id",] , "", False)
+    print("Id Response:", resp3[1])
 
+    conf.sess_key = ""
+
+    '''
     ret = pyclisup.start_session(hand, conf)
-
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
         hand.client(["quit"])
@@ -97,6 +99,9 @@ if __name__ == '__main__':
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  resp3[1])
     print("Post session, all is encrypted")
+    '''
+    resp3 = hand.client(["hello",] ,  conf.sess_key, False)
+    print("Hello Response:", resp3)
 
     # Session estabilished, try a simple command
     #resp4 = hand.client(["hello",], conf.sess_key)

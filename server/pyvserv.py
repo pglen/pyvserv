@@ -2,9 +2,15 @@
 
 from __future__ import print_function
 
-import os, sys, getopt, signal, select, string, time
+import sys
+
+if sys.version_info[0] < 3:
+    print("Python 2 is not supported as of 1/1/2020")
+    sys.exit(1)
+
+import os, getopt, signal, select, string, time
 import tarfile, subprocess, struct, platform
-import socket, threading, psutil, tracemalloc
+import socket, threading, tracemalloc
 
 if sys.version_info[0] < 3:
     import SocketServer as socketserver

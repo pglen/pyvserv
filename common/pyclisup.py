@@ -330,14 +330,16 @@ def start_session(hand, conf):
     if conf.pgdebug > 2:
         support.shortdump("conf.sess_key", conf.sess_key )
 
-    sess_keyx = cipher.encrypt(conf.sess_key)
-    ttt = SHA512.new(); ttt.update(sess_keyx)
+    if conf.sess_key:
+        sess_keyx = cipher.encrypt(conf.sess_key)
+        ttt = SHA512.new(); ttt.update(sess_keyx)
 
-    if conf.pgdebug > 2:
-        support.shortdump("sess_keyx", sess_keyx )
+        if conf.pgdebug > 2:
+            support.shortdump("sess_keyx", sess_keyx )
+    else:
+        session_keyx = ""
 
     #print("Key Hexdigest", ttt.hexdigest()[:16])
-
     resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
 
     #print("Sess Response:", resp3[1])
