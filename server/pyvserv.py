@@ -3,7 +3,6 @@
 from __future__ import print_function
 
 import sys
-
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)

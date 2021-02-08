@@ -72,17 +72,17 @@ if __name__ == '__main__':
         sys.exit(1)
 
     resp3 = hand.client(["hello",] , "", False)
-    print("Hello Response:", resp3[1])
+    print("Hello Response:", resp3)
 
-    resp3 = pyclisup.start_session(hand, conf)
-    print("Sess Response:", resp3[1])
+    resp3 = hand.start_session(conf)
+    print("Sess Response:", resp3)
 
     resp3 = hand.client(["hello",] , conf.sess_key, False)
-    print("Hello Response:", resp3[1])
+    print("Hello Response:", resp3)
 
-    resp = hand.client(["user", "peter"], conf.sess_key)
-    print("user Response:", resp[1])
-    if resp[1].split()[0] != "OK":
+    resp = hand.client(["user", "admin"], conf.sess_key)
+    print("user Response:", resp)
+    if resp[0] != "OK":
         raise ValueError("No user", resp[1])
 
     resp = hand.client(["pass", "1234"], conf.sess_key)

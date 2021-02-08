@@ -128,20 +128,18 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    if conf.quiet == False:
-        print ("Server initial:", resp2[1])
+    #if conf.quiet == False:
+    #    print ("Server initial:", resp2[1])
 
-    cmd = ["help",]
-
-    #if conf.subhelp:
-    #    cmd.append(conf.subhelp)
-
-    resp = hand.client(["help"])
+    if conf.subhelp:
+        resp = hand.client(["help", conf.subhelp])
+    else:
+        resp = hand.client(["help",])
 
     if conf.quiet == False:
         print ("Server response:", resp)
 
-    hand.client(["quit"],)
+    hand.client(["quit",])
     hand.close();
 
     sys.exit(0)

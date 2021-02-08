@@ -51,6 +51,7 @@ class Config:
         self.optarr = optarr
         self.verbose = False
         self.debug = False
+        self.sess_key = ""
 
     def comline(self, argv):
         optletters = ""

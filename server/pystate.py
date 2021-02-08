@@ -126,20 +126,20 @@ state_table = [
             ("help",    all_in,     none_in,    get_help_func,  help_help),
             ("xkey",    all_in,     none_in,    get_xkey_func,  ekey_help),
             ("ekey",    all_in,     none_in,    get_ekey_func,  ekey_help),
-            ("uini",    all_in,     none_in,    get_uini_func,  uini_help),
+            ("uini",    auth_sess,  none_in,    get_uini_func,  uini_help),
             ("akey",    initial,    auth_key,   get_akey_func,  akey_help),
             ("sess",    auth_key,   auth_sess,  get_sess_func,  sess_help),
             ("tout",    auth_in,    none_in,    get_tout_func,  tout_help),
             ("kadd",    auth_in,    none_in,    get_kadd_func,  kadd_help),
             ("user",    auth_sess,  auth_user,  get_user_func,  user_help),
             ("pass",    auth_user,  auth_pass,  get_pass_func,  pass_help),
-            ("chpass",  auth_pass,  none_in,    get_chpass_func,  chpass_help),
+            ("chpass",  auth_sess,  none_in,    get_chpass_func,  chpass_help),
             ("file",    auth_pass,  got_fname,  get_fname_func, file_help),
-            ("fget",    auth_pass,  in_idle,    get_fget_func,  fget_help),
+            ("fget",    auth_pass,  none_in,    get_fget_func,  fget_help),
             ("uadd",    auth_pass,  none_in,    get_uadd_func,  uadd_help),
-            ("uena",    auth_pass,  none_in,    get_uena_func,  uena_help),
+            ("uena",    auth_sess,  none_in,    get_uena_func,  uena_help),
             ("aadd",    auth_pass,  none_in,    get_aadd_func,  aadd_help),
-            ("udel",    auth_pass,  none_in,    get_udel_func,  udel_help),
+            ("udel",    auth_sess,  none_in,    get_udel_func,  udel_help),
             ("ls",      auth_pass,  none_in,    get_ls_func,    lsls_help),
             ("lsd",     auth_pass,  none_in,    get_lsd_func,   lsld_help),
             ("cd",      auth_pass,  none_in,    get_cd_func,    cdcd_help),
@@ -192,7 +192,7 @@ class StateHandler():
             dstr = self.wr.unwrap_data(self.resp.ekey, strx)
             #dstr = self.wr.unwrap_data("", strx)
         except:
-            sss =  "ERR cannot unwrap / decode data."
+            sss =  "ERR cannot unwrap / decode data." #, strx
             #support.put_exception("While in _run state(): " + str(self.curr_state))
             print("pystate.py %s" % (sss,));
             self.resp.datahandler.putdata(sss, self.resp.ekey)

@@ -95,17 +95,23 @@ def get_fget_func(self, strx):
         flen = os.stat(dname2)[stat.ST_SIZE]
         fh = open(dname2, "rb")
     except:
-        support.put_exception("cd")
-        response = ["ERR", "Cannot open file ", dname]
+        support.put_exception("fget")
+        response = ["ERR", "Cannot open file.", dname]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
+
     response = ["OK", str(flen)]
     self.resp.datahandler.putencode(response, self.resp.ekey)
     # Loop, break when file end or transmission error
 
     while 1:
-        buff = fh.read(pyservsup.buffsize)
-        blen = len(buff)
+        try:
+            buff = fh.read(pyservsup.buffsize)
+            blen = len(buff)
+        except:
+            print("Cannot read local file", sys.exc_info())
+            break
+
         try:
             ret = self.resp.datahandler.putencode([str(blen), buff,], self.resp.ekey, False)
         except:
@@ -119,8 +125,10 @@ def get_fget_func(self, strx):
     # Lof and set state to IDLE
     xstr = "Sent file: '" + dname + \
                 "' " + str(flen) + " bytes"
-    print( xstr)
+
+    #print(xstr)
     pysyslog.syslog(xstr)
+
 
 def get_ekey_func(self, strx):
     oldkey = self.resp.ekey[:]
@@ -389,13 +397,13 @@ def get_pass_func(self, strx):
         stry = "Successful logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        rrr = ["OK ", self.resp.user + " Authenticated."]
+        rrr = ["OK", self.resp.user + " Authenticated."]
         retval = False
     else:
         stry = "Error on logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        rrr = ["ERR ",  xret[1]]
+        rrr = ["ERR",  xret[1]]
 
     self.resp.datahandler.putencode(rrr, self.resp.ekey)
     return retval
@@ -476,34 +484,34 @@ def get_uadd_func(self, strx):
 
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
+# Add Admin
 def get_aadd_func(self, strx):
 
     retval = 0
-
     # Are we allowed to add users?
     ret = pyservsup.passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
-        response = "ERR only admin can add/delete users"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ["ERR", "only admin can add/delete users"]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
     if len(strx) < 3:
-        response = "ERR must specify user name and pass"
-        self.resp.datahandler.putdata(ret, self.resp.ekey)
+        response = ["ERR", "must specify user name and pass"]
+        self.resp.datahandler.putencode(ret, self.resp.ekey)
         return retval
 
     # Add this user in not exist
     ret = pyservsup.passwd.auth(strx[1], strx[2], pyservsup.PERM_ADMIN, pyservsup.USER_ADD)
     if ret[0] == 0:
-        response = "ERR " + ret[1]
+        response = "ERR", ret[1]
     elif ret[0] == 1:
-        response = "ERR user already exists, no changes "
+        response = "ERR", "user already exists, no changes."
     elif ret[0] == 2:
-        response = "OK added user '" + strx[1] + "'"
+        response = ["OK added user ", strx[1]]
     else:
-        response = "ERR " + ret[1]
+        response = ["ERR", ret[1]]
 
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 
 def get_uena_func(self, strx):
@@ -513,13 +521,13 @@ def get_uena_func(self, strx):
     # Are we allowed to add users?
     ret = pyservsup.passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
-        response = "ERR only admin can modify users"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = "ERR", "only admin can modify users."
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
     if len(strx) < 2:
-        response = "ERR must specify user name and flag"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = "ERR", "must specify user name and flag"
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
     if strx[2] == "enable":
@@ -527,42 +535,48 @@ def get_uena_func(self, strx):
     elif strx[2] == "disable":
         mode = pyservsup.PERM_DIS
     else:
-        response = "ERR must specify 'enable' or 'disable'"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ["ERR", "must specify 'enable' or 'disable'"]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
     # Add this user in not exist
     ret = pyservsup.passwd.auth(strx[1], strx[2], mode, pyservsup.USER_CHMOD)
 
     if ret[0] == 0:
-        response = "ERR " + ret[1]
+        response = "ERR", ret[1]
     elif ret[0] == 8:
-        response = "OK user '" + strx[1] + "' " + strx[2] + "d"
+        response = "OK",  strx[1], strx[2] + "d"
     else:
-        response = "ERR " + ret[1]
+        response = "ERR", ret[1]
 
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 
 def get_uini_func(self, strx):
+
     # Test for local client
     if str(self.resp.client_address[0]) != "127.0.0.1":
-        response = "ERR must connect from loopback for user ini"
+        response = ["ERR",  "must connect from loopback for user ini"]
+
+    elif  pyservsup.passwd.count() == 0:
+        response = ["ERR", "already has initial user"]
+
     elif len(strx) < 3:
-        response = "ERR must specify user name and pass"
+        response = ["ERR", "must specify user name and pass"]
     else:
         ret = pyservsup.passwd.auth(strx[1], strx[2],
                     pyservsup.PERM_INI | pyservsup.PERM_ADMIN,
                         pyservsup.USER_ADD)
         if ret[0] == 0:
-            response = "ERR " + ret[1]
+            response = ["ERR", ret[1]]
         elif ret[0] == 1:
-            response = "ERR user already exists, no change. Use pass function "
+            response = ["ERR", "user already exists, no change. Use pass function."];
         elif ret[0] == 2:
-            response = "OK added initial user '" + strx[1] + "'"
+            response = ["OK", "added initial user", strx[1]]
         else:
-            response = "ERR " + ret[1]
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+            response = ["ERR", ret[1]]
+
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_kini_func(self, strx):
     # Test for local client
@@ -699,14 +713,20 @@ def get_help_func(self, strx):
 
     harr = []
     if len(strx) == 1:
-        harr.append ("OK")
+        harr.append("OK")
         for aa in pystate.state_table:
             harr.append(aa[0])
     else:
+        ff = False
         for aa in pystate.state_table:
             if strx[1] == aa[0]:
+                harr.append("OK")
                 harr.append(aa[4])
+                ff = True
                 break
+        if not ff:
+                harr.append("ERR")
+                harr.append("No such command")
 
     if pgdebug > 2:
         print( "get_help_func->output", "[" + harr + "]")

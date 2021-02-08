@@ -101,7 +101,7 @@ if __name__ == '__main__':
     resp3 = hand.client(["hello",] , "", False)
     print("Hello Response:", resp3[1])
 
-    ret = pyclisup.start_session(hand, conf)
+    ret = hand.start_session(conf)
 
     #if ret[0] == "OK":
     #    print("Sess Key ACCEPTED:",  ret[1])

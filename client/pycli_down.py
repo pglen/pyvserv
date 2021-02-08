@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+import sys
+if sys.version_info[0] < 3:
+    print("Python 2 is not supported as of 1/1/2020")
+    sys.exit(1)
+
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Download file.
 
@@ -86,10 +91,7 @@ if __name__ == '__main__':
     resp3 = hand.client(["id",] , "", False)
     print("Id Response:", resp3[1])
 
-    conf.sess_key = ""
-
-    '''
-    ret = pyclisup.start_session(hand, conf)
+    ret = hand.start_session(conf)
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
         hand.client(["quit"])
@@ -98,34 +100,31 @@ if __name__ == '__main__':
 
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  resp3[1])
-    print("Post session, all is encrypted")
-    '''
-    resp3 = hand.client(["hello",] ,  conf.sess_key, False)
-    print("Hello Response:", resp3)
+    print("Post session, session key:", conf.sess_key[:12], "...")
+
+    resp3 = hand.client(["hello",],  conf.sess_key, False)
+
+    print("Hello session Response:", resp3)
 
     # Session estabilished, try a simple command
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
-    cresp = hand.client(["user", "admin"], conf.sess_key)
-    #print ("Server user response:", cresp[1])
-
-    cresp = hand.client(["pass", "1234"], conf.sess_key)
-    #print ("Server pass response:", cresp[1])
+    cresp = hand.login( conf, "admin", "1234")
+    print ("Server login response:", cresp)
 
     cresp = hand.client(["ls", ], conf.sess_key)
     print ("Server  ls response:", cresp)
 
-    hand.getfile("bigfile", "bigfile_local", conf.sess_key)
+    ret = hand.getfile("bigfile", "bigfile_local", conf.sess_key)
+    print ("Server fget response:", ret)
+
+    ret2 = hand.getfile("zeros", "zeros_local", conf.sess_key)
+    print ("Server  fget response:", ret2)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)
 
     sys.exit(0)
-
-
-
-
-
 
 

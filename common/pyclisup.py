@@ -171,10 +171,17 @@ class CliSup():
         if self.verbose:
             print ("Server  fget response:", cresp)
 
+        if cresp[0] != "OK":
+            return cresp
+
         while(True):
             response = self.recvx(key)
-            if self.verbose:
+            if self.pgdebug > 2:
                 print("resp", response)
+
+            if self.verbose:
+                print ("got:", response[0], end=", ")
+
             if response[0] == "0":
                 break
             try:
@@ -186,6 +193,10 @@ class CliSup():
                 return
         fh.close()
 
+        if self.verbose:
+            print()
+
+        return  cresp
 
     def  getreply(self, key = "", rand = True):
         response = self.myhandler.handle_one(self.mydathand)
@@ -266,94 +277,108 @@ class CliSup():
         '''
         return response
 
-# ------------------------------------------------------------------------
-#  Starts session - exec 'akey' and 'sess'
+    # ------------------------------------------------------------------------
+    #  Login
 
-def start_session(hand, conf):
+    def  login(self, conf, userx, passx):
 
-    resp = hand.client(["akey"])
+        cresp = self.client(["user", userx], conf.sess_key)
+        #print ("Server user response:", cresp)
+        if(cresp[0] != "OK"):
+            return cresp
 
-    if resp[0] != "OK":
-        print("Error on getting key:", resp[1])
-        hand.client(["quit"])
-        hand.close();
-        sys.exit(0)
+        cresp = self.client(["pass", passx], conf.sess_key)
+        #print ("Server pass response:", cresp)
+        if(cresp[0] != "OK"):
+            return cresp
 
-    if conf.verbose:
-        print("Got hash:", "'" + resp[1] + "'")
-        pass
+        return cresp
 
-    hhh = SHA512.new(); hhh.update(resp[2])
+    # ------------------------------------------------------------------------
+    #  Starts session - exec 'akey' and 'sess'
 
-    if conf.pgdebug > 3:
-        print("Hash1:  '" + resp[1] + "'")
-        print("Hash2:  '" + hhh.hexdigest() + "'")
+    def start_session(self, conf):
 
-    # Remember key
-    if hhh.hexdigest() !=  resp[1]:
-        print("Tainted key, aborting.")
-        hand.client(["quit"])
-        hand.close();
-        sys.exit(0)
+        resp = self.client(["akey"])
 
-    hand.pkey = resp[2]
+        if resp[0] != "OK":
+            print("Error on getting key:", resp[1])
+            self.client(["quit"])
+            self.close();
+            sys.exit(0)
 
-    #print("Key response:", resp[0], resp[2][:32], "...")
+        if conf.verbose:
+            print("Got hash:", "'" + resp[1] + "'")
+            pass
 
-    if conf.pgdebug > 4:
-         print(hand.pkey)
+        hhh = SHA512.new(); hhh.update(resp[2])
 
-    if conf.pgdebug > 2:
-        print ("Server response:", "'" + hhh.hexdigest() + "'")
+        if conf.pgdebug > 3:
+            print("Hash1:  '" + resp[1] + "'")
+            print("Hash2:  '" + hhh.hexdigest() + "'")
 
-    try:
-        hand.pubkey = RSA.importKey(hand.pkey)
+        # Remember key
+        if hhh.hexdigest() !=  resp[1]:
+            print("Tainted key, aborting.")
+            self.client(["quit"])
+            self.close();
+            sys.exit(0)
+
+        self.pkey = resp[2]
+
+        #print("Key response:", resp[0], resp[2][:32], "...")
+
         if conf.pgdebug > 4:
-            print (hand.pubkey)
-    except:
-        print("Cannot import public key.")
-        support.put_exception("import key")
-        hand.client(["quit"])
-        hand.close();
-        sys.exit(0)
-
-    if conf.pgdebug > 1:
-        print("Got ", hand.pubkey, "size =", hand.pubkey.size())
-
-    # Generate communication key
-    conf.sess_key = Random.new().read(512)
-    sss = SHA512.new(); sss.update(conf.sess_key)
-
-    cipher = PKCS1_v1_5.new(hand.pubkey)
-    #print ("cipher", cipher.can_encrypt())
-
-    if conf.pgdebug > 2:
-        support.shortdump("conf.sess_key", conf.sess_key )
-
-    if conf.sess_key:
-        sess_keyx = cipher.encrypt(conf.sess_key)
-        ttt = SHA512.new(); ttt.update(sess_keyx)
+             print(self.pkey)
 
         if conf.pgdebug > 2:
-            support.shortdump("sess_keyx", sess_keyx )
-    else:
-        session_keyx = ""
+            print ("Server response:", "'" + hhh.hexdigest() + "'")
 
-    #print("Key Hexdigest", ttt.hexdigest()[:16])
-    resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
+        try:
+            self.pubkey = RSA.importKey(self.pkey)
+            if conf.pgdebug > 4:
+                print (self.pubkey)
+        except:
+            print("Cannot import public key.")
+            support.put_exception("import key")
+            self.client(["quit"])
+            self.close();
+            sys.exit(0)
 
-    #print("Sess Response:", resp3[1])
+        if conf.pgdebug > 1:
+            print("Got ", self.pubkey, "size =", self.pubkey.size())
 
-    if resp3[0] != "OK":
-        print("Error on setting session:", resp3[1])
-        hand.client(["quit"])
-        hand.close();
-        return None
+        # Generate communication key
+        conf.sess_key = Random.new().read(512)
+        sss = SHA512.new(); sss.update(conf.sess_key)
 
-    return resp3
+        cipher = PKCS1_v1_5.new(self.pubkey)
+        #print ("cipher", cipher.can_encrypt())
+
+        if conf.pgdebug > 2:
+            support.shortdump("conf.sess_key", conf.sess_key )
+
+        if conf.sess_key:
+            sess_keyx = cipher.encrypt(conf.sess_key)
+            ttt = SHA512.new(); ttt.update(sess_keyx)
+
+            if conf.pgdebug > 2:
+                support.shortdump("sess_keyx", sess_keyx )
+        else:
+            session_keyx = ""
+
+        #print("Key Hexdigest", ttt.hexdigest()[:16])
+        resp3 = self.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
+
+        #print("Sess Response:", resp3[1])
+
+        if resp3[0] != "OK":
+            print("Error on setting session:", resp3[1])
+            self.client(["quit"])
+            self.close();
+            return None
+
+        #self.session
+        return resp3
 
 # EOF
-
-
-
-

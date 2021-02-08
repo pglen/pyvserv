@@ -69,10 +69,27 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    hand.client(["ver"])
+    ret = hand.client(["ver",])
+    print(ret)
+    ret = hand.start_session(conf)
+    print (ret)
 
-    ret = hand.client(["uini", "peter", "1234"])
-    print (ret[1])
+    if ret[0] != "OK":
+        print("Error on setting session:", resp3)
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
+
+    # Make a note of the session key
+    #print("Session Key ACCEPTED:",  ret, )
+    print("Session, with key:", conf.sess_key[:12], "...")
+
+    #ret = hand.client(["ver",])
+    #print(ret)
+
+    #ret = hand.client(["uini",]) # "peter", "1234"])
+    #print (ret)
+
     hand.client(["quit",])
     hand.close();
 

@@ -2,6 +2,11 @@
 
 from __future__ import print_function
 
+import sys
+if sys.version_info[0] < 3:
+    print("Python 2 is not supported as of 1/1/2020")
+    sys.exit(1)
+
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
 
@@ -61,7 +66,6 @@ optarr = \
     ["h",   None,       None,   phelp]      \
 
 conf = comline.Config(optarr)
-conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
@@ -92,36 +96,28 @@ if __name__ == '__main__':
         sys.exit(1)
 
     resp3 = hand.client(["hello",] , conf.sess_key, False)
-    print("Hello Response:", resp3[1])
+    print("Hello Response:", resp3)
 
-    '''
-    ret = pyclisup.start_session(hand, conf)
+    ret = hand.start_session(conf)
 
     if ret[0] != "OK":
-        print("Error on setting session:", resp3[1])
+        print("Error on setting session:", resp3)
         hand.client(["quit"])
         hand.close();
         sys.exit(0)
 
     # Make a note of the session key
-    #print("Sess Key ACCEPTED:",  resp3[1])
-    print("Post session, all is encrypted")
-    '''
+    #print("Session Key ACCEPTED:",  ret, )
+    print("Session, with key:", conf.sess_key[:12], "...")
 
     # Session estabilished, try a simple command
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
-    cresp = hand.client(["user", "admin"], conf.sess_key)
-    if(cresp[0] != "OK"):
-        print ("Server user response:", cresp)
-        hand.client(["quit"], conf.sess_key)
-        hand.close();
-        sys.exit(0)
+    ret =  hand.login(conf, "admin", "1234")
 
-    cresp = hand.client(["pass", "1234"], conf.sess_key)
-    if(cresp[0] != "OK"):
-        print ("Server pass response:", cresp[1])
+    if ret[0] != "OK":
+        print ("Server login fail:", ret)
         hand.client(["quit"], conf.sess_key)
         hand.close();
         sys.exit(0)

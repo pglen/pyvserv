@@ -17,6 +17,7 @@ import support, pyclisup, crysupp, pysyslog, pystate
 version = "1.0"
 
 USER_AUTH = 0; USER_ADD = 1; USER_DEL = 2; USER_CHPASS = 3; USER_CHMOD = 4;
+
 PERM_NONE = 0; PERM_INI = 1; PERM_ADMIN = 2; PERM_DIS = 4; PERM_NON = 8;
 
 RESET_MODE  = 0x80;
@@ -293,6 +294,18 @@ class Passwd():
 
         return ret
 
+    # Return user count
+    def count(self):
+        if not os.path.isfile(globals.passfile):
+            return 0
+        try:
+            fh = open(globals.passfile, "r")
+        except:
+            return 0
+        passdb = fh.readlines()
+        fh.close()
+        return len(passdb)
+
     # ------------------------------------------------------------------------
     # Authenticate from local file. Return err code and cause.
     #
@@ -414,6 +427,12 @@ class Passwd():
                 return -1, "Cannot open / create pass file " + globals.passfile
 
         passdb = fh.readlines()
+
+        if not passdb:
+            ret = 7, "User permissions:", 0
+            self._unlock()
+            return ret
+
         for line in passdb:
             fields = line.split(",")
             if fields[0] == userx:
@@ -423,7 +442,6 @@ class Passwd():
 
         ret = 7, "User permissions:", fields[1]
         self._unlock()
-
         return ret
 
 passwd = Passwd()
