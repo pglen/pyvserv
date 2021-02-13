@@ -1,11 +1,13 @@
 INSTALL
 
-# Preliminary
+python 3.x is supported  (py2 support obsoleted)
 
-1.) Create a pyvserv environmant
+# Preliminary
 
 sudo apt-get update -y
 sudo apt-get upgrade -y
+
+1.) Create a pyvserv environment (optional)
 
 sudo useradd -m -s /bin/bash pyvserv
 sudo passwd pyvserv
@@ -13,20 +15,19 @@ sudo usermod -aG sudo pyvserv
 
 su - pyvserv
 
-
 On Ubuntu:
 
     pip install pycrypto
     pip install bcrypt
 
-    (pip3 if newer Linux)
+    (pip is using py3 if newer Linux, else use pip3)
 
   ... or ...
 
     apt install python3-psutil
     apt install python3-crypto
 
-On msys the following dependencies where needed:
+On msys2 the following dependencies where needed:
 
     pacman -S mingw-w64-i686-gcc
 
@@ -37,14 +38,14 @@ On msys the following dependencies where needed:
 #Switched to pycrypto, no libgcrypt is needed
 #pacman -S mingw-w64-i686-libgcrypt
 
-alternate:
+The alternate:
 
-    sudo apt install python-bcrypt
+    sudo apt install python3-bcrypt
     sudo apt install pycrypto
 
 On Fedora:
 
-    sudo yum install python-bcrypt
+    sudo yum install python3-bcrypt
     sudo yum install pycrypto
 
 # EOF
