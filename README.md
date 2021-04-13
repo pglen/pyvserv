@@ -1,5 +1,5 @@
 #                                Python vServer
-
+ 
  PyvServ is a fully fledged encrypting TCP/IP server written in Python. The
 encryption algorithm is bluepoint2. The server can be fully administered from
 the protocol side.
