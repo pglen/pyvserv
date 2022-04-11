@@ -117,17 +117,18 @@ if __name__ == '__main__':
     print("Post session, all is encrypted")
 
     # Session estabilished, try a simple command
-    #resp4 = hand.client(["hello",], conf.sess_key)
-    #print("Hello Response:", resp4[1])
+    resp4 = hand.client(["hello",], conf.sess_key)
+    print("Hello Response:", resp4[1])
 
-    cresp = hand.client(["user", "admin"], conf.sess_key)
-    #print ("Server user response:", cresp[1])
+    cresp = hand.client(["user", "peter"], conf.sess_key)
+    print ("Server user response:", cresp[1])
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    #print ("Server pass response:", cresp[1])
+    print ("Server pass response:", cresp[1])
 
-    cresp = hand.client(["pwd",], conf.sess_key)
-    print ("Server pwd response:", cresp)
+    # Error responses
+    #cresp = hand.client(["pwd",], conf.sess_key)
+    #print ("Server pwd response:", cresp)
 
     cresp = hand.client(["lsd",], conf.sess_key)
     print ("Server lsd response:", cresp)
