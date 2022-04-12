@@ -78,6 +78,8 @@ sample client examples in the client source tree. (Files named pycli_*)
 
 All tests are base on python3, most modules function on both py2 and py3.
 
+4/12/22		No py2 support
+
 Peter Glen
 
 
