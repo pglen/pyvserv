@@ -19,7 +19,7 @@ mydathand = None
 pgdebug = 0
 subhelp = ""
 verbose = 0
-port    = 9999
+port    = 6666
 version = 1.0
 
 # ------------------------------------------------------------------------
@@ -31,7 +31,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 9999)")
+    print( "            -p port   - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -47,7 +47,7 @@ def pversion():
 
 optarr = \
     ["d:",  "pgdebug",  0,       None],      \
-    ["p:",  "port",     9999,    None],      \
+    ["p:",  "port",     6666,    None],      \
     ["v",   "verbose",  0,       None],      \
     ["q",   "quiet",    0,       None],      \
     ["t",   "test",     "x",     None],      \

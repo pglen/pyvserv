@@ -62,8 +62,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def setup(self):
         global mydata
 
-        cur_thread = threading.currentThread()
-        self.name = cur_thread.getName()
+        cur_thread = threading.current_thread()
+        self.name = cur_thread.name #getName()
         #print( "Logoff '" + usr + "'", cli)
 
         self.verbose = conf.verbose
@@ -322,7 +322,7 @@ if __name__ == '__main__':
         pysyslog.openlog("pyvserv.py")
 
     # Port 0 would mean to select an arbitrary unused port
-    HOST, PORT = "", 9999
+    HOST, PORT = "", 6666
 
     try:
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
@@ -347,13 +347,15 @@ if __name__ == '__main__':
     # Exit the server thread when the main thread terminates
     server_thread.verbose = verbose
     server_thread.setDaemon(True)
+    server_thread.daemon = True
     server_thread.start()
 
     if not quiet:
         strx = "Win or Unkn."
         try:
             import distro
-            for aa in distro.linux_distribution():
+            #for aa in distro.linux_distribution():
+            for aa in distro.name():
                 strx = str(aa) + " "
         except:
             pass

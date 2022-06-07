@@ -1,6 +1,8 @@
 // -----------------------------------------------------------------------
 // Python bindings for bluepoint2.
 
+#define PY_SSIZE_T_CLEAN
+
 #include <Python.h>
 //#include <pygobject.h>
 
@@ -8,41 +10,42 @@
 #include "bluepoint2.h"
 #include "bdate.h"
 
+
 //#define OPEN_IMAGE 1
- 
+
 // -----------------------------------------------------------------------
 // Vars:
 
 PyObject *module;                   // This is us
 
 static  char version[] = "1.0";
-	
+
 static PyObject *_bdate(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   return Py_BuildValue("s", bdate);
 }
-  
+
 static PyObject *_version(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     return Py_BuildValue("s", version);
 }
 
 static PyObject *_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
-{                           
+{
     static char *kwlist[] = { "buffer", "password",  NULL };
     char *buff = "";  char *passw = ""; char *mem;
     int  blen = 0, plen = 0;
     Py_buffer pb1, pb2;
-    
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist,
                                 &pb1, &pb2))
         return NULL;
-        
+
     buff  = pb1.buf;  passw = pb2.buf;
     blen  = pb1.len;  plen  = pb2.len;
-        
+
     //printf("in object: %d '%s'\n", pb1.len, pb1.buf);
-      
+
     mem = malloc(blen+1);
     if(mem == NULL)
         {
@@ -51,7 +54,7 @@ static PyObject *_encrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     memcpy(mem, buff, blen);
     mem[blen] = 0;
     bluepoint2_encrypt(mem, blen, passw, plen);
-    
+
     #if PY_MAJOR_VERSION >= 3
     return Py_BuildValue("y#", mem, blen);
     #else
@@ -66,21 +69,21 @@ static PyObject *_encrypt2(PyObject *self, PyObject *args, PyObject *kwargs)
     char *buff = "";  char *passw = ""; char *mem;
     int  blen = 0, plen = 0;
     Py_buffer pb1, pb2;
-    
+
     #if PY_MAJOR_VERSION >= 3
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*s*", kwlist, 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*s*", kwlist,
                                 &pb1, &pb2))
         return NULL;
-    #endif    
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
+    #endif
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist,
                                 &pb1, &pb2))
         return NULL;
-        
+
     buff  = pb1.buf;  passw = pb2.buf;
     blen  = pb1.len;  plen  = pb2.len;
-        
+
     //printf("in object: %d '%s'\n", pb1.len, pb1.buf);
-      
+
     mem = malloc(blen+1);
     if(mem == NULL)
         {
@@ -88,7 +91,7 @@ static PyObject *_encrypt2(PyObject *self, PyObject *args, PyObject *kwargs)
         }
     memcpy(mem, buff, blen);
     bluepoint2_encrypt(mem, blen, passw, plen);
-    int oxlen = 3 * blen + 3;    
+    int oxlen = 3 * blen + 3;
     char *mem2 = malloc(oxlen + 1);
     if(mem2 == NULL)
         {
@@ -96,7 +99,7 @@ static PyObject *_encrypt2(PyObject *self, PyObject *args, PyObject *kwargs)
         }
     bluepoint2_tohex(mem, blen, mem2, &oxlen);
     free(mem);
-    
+
     return Py_BuildValue("s#", mem2, oxlen);
 }
 #endif
@@ -106,22 +109,22 @@ static PyObject *_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
     static char *kwlist[] = { "buffer", "password",  NULL };
     char *buff = ""; char *passw = ""; char *mem;
     int  blen = 0, plen = 0;
-    
+
     Py_buffer pb1, pb2;
-    
+
     #if PY_MAJOR_VERSION >= 3
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*s*", kwlist, 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*s*", kwlist,
                                 &pb1, &pb2))
         return NULL;
     #else
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist,
                                 &pb1, &pb2))
         return NULL;
     #endif
-        
+
     buff  = pb1.buf;  passw = pb2.buf;
     blen  = pb1.len;  plen  = pb2.len;
-  
+
     mem = malloc(blen + 1);
     if(mem == NULL)
         {
@@ -129,7 +132,7 @@ static PyObject *_decrypt(PyObject *self, PyObject *args, PyObject *kwargs)
         }
     memcpy(mem, buff, blen);
     bluepoint2_decrypt(mem, blen, passw, plen);
-    
+
     #if PY_MAJOR_VERSION >= 3
     return Py_BuildValue("y#", mem, blen);
     #else
@@ -143,22 +146,22 @@ static PyObject *_decrypt2(PyObject *self, PyObject *args, PyObject *kwargs)
     static char *kwlist[] = { "buffer", "password",  NULL };
     char *buff = ""; char *passw = ""; char *mem;
     int  blen = 0, plen = 0;
-    
+
     Py_buffer pb1, pb2;
-    
+
     #if PY_MAJOR_VERSION >= 3
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*y*", kwlist, 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "y*y*", kwlist,
                                 &pb1, &pb2))
         return NULL;
     #else
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist, 
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*s*", kwlist,
                                 &pb1, &pb2))
         return NULL;
     #endif
-        
+
     buff  = pb1.buf;  passw = pb2.buf;
     blen  = pb1.len;  plen  = pb2.len;
-  
+
     int olen = blen;
     mem = malloc(olen + 1);
     if(mem == NULL)
@@ -179,13 +182,13 @@ static PyObject *_tohex(PyObject *self, PyObject *args, PyObject *kwargs)
     char *buff = ""; char *mem;
     int  blen = 0, plen = 0;
     Py_buffer pb1;
-    
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*", kwlist, 
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*", kwlist,
                         &pb1))
         return NULL;
-        
-    buff = pb1.buf; blen = pb1.len;    
-        
+
+    buff = pb1.buf; blen = pb1.len;
+
     plen = 3*blen;
     mem = malloc(plen);
     if(mem == NULL)
@@ -202,14 +205,14 @@ static PyObject *_destroy(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = { "buffer",  "fill", NULL };
     char *buff = ""; int  blen = 0; int fill = 0;
-    
+
     Py_buffer pb1;
-    
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*|i", kwlist, 
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*|i", kwlist,
                         &pb1, &fill))
         return NULL;
-        
-    buff = pb1.buf; blen = pb1.len;    
+
+    buff = pb1.buf; blen = pb1.len;
     if(fill == 0)
         {
         char aa[] = "bluepoint2";
@@ -221,7 +224,7 @@ static PyObject *_destroy(PyObject *self, PyObject *args, PyObject *kwargs)
         {
         memset(buff, fill, blen);
         }
-        
+
     return Py_BuildValue("i", 0);
 }
 
@@ -230,15 +233,15 @@ static PyObject *_fromhex(PyObject *self, PyObject *args, PyObject *kwargs)
     static char *kwlist[] = { "buffer",  NULL };
     char *buff = ""; char *mem;
     int  blen = 0, plen = 0;
-    
+
     Py_buffer pb1;
-    
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*", kwlist, 
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "s*", kwlist,
                         &pb1))
         return NULL;
-        
-    buff = pb1.buf; blen = pb1.len;    
-   
+
+    buff = pb1.buf; blen = pb1.len;
+
     plen = 3*blen;
     mem = malloc(plen);
     if(mem == NULL)
@@ -251,26 +254,26 @@ static PyObject *_fromhex(PyObject *self, PyObject *args, PyObject *kwargs)
 
 // Define module
 
-PyMethodDef bluepy_functions[] = 
+PyMethodDef bluepy_functions[] =
     {
-    
+
     { "version",   (PyCFunction)_version, METH_VARARGS|METH_KEYWORDS, "Return bluepy version."},
     { "builddate", (PyCFunction)_bdate,   METH_VARARGS|METH_KEYWORDS, "Return build date."},
     { "encrypt",   (PyCFunction)_encrypt, METH_VARARGS|METH_KEYWORDS, \
         "Bluepy encryption. Pass buffer and key."},
     { "decrypt",   (PyCFunction)_decrypt, METH_VARARGS|METH_KEYWORDS, \
         "Bluepy decryption. Pass buffer and key."},
-    { "destroy",   (PyCFunction)_destroy, METH_VARARGS|METH_KEYWORDS, 
+    { "destroy",   (PyCFunction)_destroy, METH_VARARGS|METH_KEYWORDS,
         "Bluepy string scramble. Fill with number. " \
         "Pass zero to randomize."},
     { "tohex",     (PyCFunction)_tohex,   METH_VARARGS|METH_KEYWORDS, \
         "Bluepy tohex. Return hex string."},
     { "fromhex",   (PyCFunction)_fromhex, METH_VARARGS|METH_KEYWORDS, \
         "Bluepy fromhex. Return binary string."},
-    
+
     {  NULL },
     };
-    
+
 #if PY_MAJOR_VERSION >= 3
 #define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
 //#error "py ver 3"
@@ -323,7 +326,7 @@ static struct PyModuleDef moduledef = {
         myextension_traverse,
         myextension_clear,
         NULL
-};    
+};
 
 #endif
 
@@ -334,7 +337,7 @@ static struct PyModuleDef moduledef = {
 PyMODINIT_FUNC
 PyInit_bluepy3(void)
 #else
-DL_EXPORT(void) 
+DL_EXPORT(void)
 initbluepy_c(void)
 #endif
 
@@ -350,7 +353,7 @@ initbluepy_c(void)
 #endif
 
     //d = PyModule_GetDict (module);
-    
+
     // Constants
     PyModule_AddIntConstant(module, (char *)"OPEN", 1);
     PyModule_AddStringConstant(module, (char *)"author", "Peter Glen");
@@ -358,7 +361,7 @@ initbluepy_c(void)
     // Values:
     PyModule_AddObject(module, "verbose",   Py_BuildValue("i", 0));
 
-    if (PyErr_Occurred ()) {       
+    if (PyErr_Occurred ()) {
 	   Py_FatalError ("can't initialise bluepy module");
     }
     #if PY_MAJOR_VERSION >= 3

@@ -41,7 +41,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 9999)")
+    print( "            -p port   - Port to use (default: 6666)")
     print( "            -l level  - Log level (default: 0)")
     print( "            -c file   - Save comm to file")
     print( "            -s        - Showkey")
@@ -59,7 +59,7 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
+    ["p:",  "port",     6666,   None],      \
     ["c:",  "comm",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
@@ -160,7 +160,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     #if conf.pgdebug > 1:
-    print("Got pub key", hand.pubkey, "size =", hand.pubkey.size())
+    print("Got pub key", hand.pubkey, "size =", hand.pubkey.size_in_bits())
 
     # Generate communication key
     conf.sess_key = Random.new().read(512)
@@ -192,7 +192,8 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Make a note of the session key
-    print(resp3[1], "all is encrypted.")
+    print(resp3[1])
+    support.shortdump("All is encrypted with", conf.sess_key )
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)

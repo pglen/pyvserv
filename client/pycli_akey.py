@@ -28,7 +28,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 9999)")
+    print( "            -p port   - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -s        - Showkey")
@@ -43,7 +43,7 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
+    ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \
@@ -121,7 +121,10 @@ if __name__ == '__main__':
         print("Cannot import public key.")
         support.put_exception("import key")
 
-    print("Got ", hand.pubkey, "size =", hand.pubkey.size())
+    print("Got ", hand.pubkey, "size =", hand.pubkey.size_in_bits() )
+
+    #for aa in dir(hand.pubkey):
+    #    print("Got ", aa, hand.pubkey.__getattribute__(aa))
 
     hand.client(["quit"])
     hand.close();

@@ -19,7 +19,7 @@ import support, pycrypt, pyservsup, pyclisup, pysyslog, comline, pypacker
 # Functions from command line
 
 optarr =  comline.optarr
-optarr.append ( ["p:",  "port",     9999,   None, "Port to use (default: 9999)"] )
+optarr.append ( ["p:",  "port",     6666,   None, "Port to use (default: 6666)"] )
 
 #print (optarr)
 
