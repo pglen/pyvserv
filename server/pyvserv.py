@@ -234,43 +234,15 @@ if __name__ == '__main__':
 
     if conf.verbose:
         print("This script:     ", os.path.realpath(__file__))
-        print("Full path argv:  ", os.path.abspath(sys.argv[0]))
-        print("Script name:     ", __file__)
+        #print("Full path argv:  ", os.path.abspath(sys.argv[0]))
+        #print("Script name:     ", __file__)
         #print("Exec argv:       ", sys.argv[0])
 
-    pyservsup.globals.script_home = os.path.dirname(os.path.realpath(__file__))
-    pyservsup.globals.script_home += os.sep + ".." + os.sep + "data" + os.sep
-    pyservsup.globals.script_home = os.path.realpath(pyservsup.globals.script_home)
+    parent = os.path.join(os.path.realpath(__file__),"..")
+    pyservsup.globals.config(parent, conf)
 
-    pyservsup.globals.verbose = conf.verbose
-    pyservsup.globals.pgdebug = conf.pgdebug
-
-    if conf.verbose:
-        print("Script home:     ", pyservsup.globals.script_home)
-
-    if conf.pgdebug:
-            print ("Debug level:     ", conf.pgdebug)
-
-    try:
-        if not os.path.isdir(pyservsup.globals.script_home):
-            os.mkdir(pyservsup.globals.script_home)
-    except:
-        print( "Cannot make script home dir", sys.exc_info())
-        sys.exit(1)
-
-    pyservsup.globals.datadir = pyservsup.globals.script_home + pyservsup.globals._datadir
-
-    try:
-        if not os.path.isdir(pyservsup.globals.datadir):
-            os.mkdir(pyservsup.globals.datadir)
-    except:
-        print( "Cannot make data dir", pyservsup.globals.datadir, sys.exc_info())
-        sys.exit(1)
-
-    pyservsup.globals.lockfname = pyservsup.globals.datadir + "lockfile"
-    pyservsup.globals.passfile = pyservsup.globals.datadir + pyservsup.globals._passfile
-    pyservsup.globals.keyfile = pyservsup.globals.datadir + pyservsup.globals._keyfile
-    pyservsup.globals.idfile = pyservsup.globals.datadir + pyservsup.globals._idfile
+    # Change directory to the data dir
+    os.chdir(pyservsup.globals.script_home)
 
     if conf.verbose:
         print("Data Dir:        ", pyservsup.globals.datadir)
@@ -278,17 +250,15 @@ if __name__ == '__main__':
         print("Passfile:        ", pyservsup.globals.passfile)
         print("Keyfile:         ", pyservsup.globals.keyfile)
         print("IDfile:          ", pyservsup.globals.idfile)
-
-    # Change directory to the data dir
-    os.chdir(pyservsup.globals.script_home)
+        print("Keydir:          ", pyservsup.globals.keydir)
 
     try:
-        ddd = os.path.abspath("keys")
-        keyfroot = pyservsup.pickkey(ddd)
+        keyfroot = pyservsup.pickkey(pyservsup.globals.keydir)
     except:
         print("No keys generated yet. Please run ../tools/genkey.py first.")
         if conf.verbose:
             print("exc", sys.exc_info())
+            print("keydir", pyservsup.globals.keydir)
         sys.exit(1)
 
     iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
@@ -346,7 +316,7 @@ if __name__ == '__main__':
 
     # Exit the server thread when the main thread terminates
     server_thread.verbose = verbose
-    server_thread.setDaemon(True)
+    #server_thread.setDaemon(True)
     server_thread.daemon = True
     server_thread.start()
 

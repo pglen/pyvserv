@@ -308,6 +308,7 @@ def get_akey_func(self, strx):
         print("get_akey_func() called")
 
     ddd = os.path.abspath("keys")
+    ppp = os.path.abspath("private")
 
     try:
         self.keyfroot = pyservsup.pickkey(ddd)
@@ -323,7 +324,7 @@ def get_akey_func(self, strx):
 
     try:
         # Do public import
-        fp = open(ddd + "/" + self.keyfroot + ".pub", "rb")
+        fp = open(ddd + os.sep + self.keyfroot + ".pub", "rb")
         self.keyx = fp.read()
         fp.close()
 
@@ -340,7 +341,7 @@ def get_akey_func(self, strx):
             print("Key read: \n'" + self.keyx.decode("cp437") + "'\n")
 
         # Do private import; we are handleing it here, so key signals errors
-        fp2 = open(ddd + "/" + self.keyfroot + ".pem", "rb")
+        fp2 = open(ppp + os.sep + self.keyfroot + ".pem", "rb")
         self.keyx2 = fp2.read()
         fp2.close()
 
@@ -558,7 +559,7 @@ def get_uini_func(self, strx):
     if str(self.resp.client_address[0]) != "127.0.0.1":
         response = ["ERR",  "must connect from loopback for user ini"]
 
-    elif  pyservsup.passwd.count() == 0:
+    elif  pyservsup.passwd.count() != 0:
         response = ["ERR", "already has initial user"]
 
     elif len(strx) < 3:

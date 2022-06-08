@@ -21,7 +21,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
+    print( "            -p        - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -35,7 +35,7 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
+    ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     ret = hand.client(["ver",])
     print(ret)
     ret = hand.start_session(conf)
-    print (ret)
+    #print (ret)
 
     if ret[0] != "OK":
         print("Error on setting session:", resp3)
@@ -84,13 +84,14 @@ if __name__ == '__main__':
     #print("Session Key ACCEPTED:",  ret, )
     print("Session, with key:", conf.sess_key[:12], "...")
 
-    #ret = hand.client(["ver",])
-    #print(ret)
+    ret = hand.client(["ver",], conf.sess_key)
+    print("ver resp", ret)
 
-    #ret = hand.client(["uini",]) # "peter", "1234"])
-    #print (ret)
+    ret = hand.client(["uini", "admin", "1234"], conf.sess_key )
+    print ("uini resp", ret)
 
-    hand.client(["quit",])
+    ret = hand.client(["quit",], conf.sess_key)
+    print ("quit resp", ret)
     hand.close();
 
     sys.exit(0)

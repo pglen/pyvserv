@@ -33,6 +33,7 @@ class CliSup():
 
     def __init__(self, sock = None):
         self.sock = sock
+        self.sess = False
         self.verbose = False
         self.comm = ""
         self.pgdebug = 0
@@ -248,6 +249,9 @@ class CliSup():
             print( "   message:", message)
             #print("    key",  key)
 
+        if key == "" and self.sess:
+            raise(ValueError, "Must pass session key when in session")
+
         rstr = self.rr.read(random.randint(14, 24))
         xstr = self.rr.read(random.randint(24, 36))
         datax = [rstr, message, xstr]
@@ -378,7 +382,7 @@ class CliSup():
             self.close();
             return None
 
-        #self.session
+        self.sess = True
         return resp3
 
 # EOF

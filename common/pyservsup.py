@@ -27,12 +27,54 @@ buffsize = 1024;
 class   Globals:
 
     def __init__(self):
+
         self._datadir   =  os.sep + ".pyvserv" + os.sep
-        self._keydir    =  os.sep + ".pyvserv" + os.sep
+        self._keydir    =  os.sep + "keys"
         self._passfile  =  "passwd.secret"
         self._keyfile   =  "keys.secret"
         self._idfile    =  "pyservid.init"
         self.siteid     =  None
+
+    # --------------------------------------------------------------------
+
+    def config(self, realp, conf):
+
+        #pyservsup.globals.script_home = os.path.dirname(os.path.realpath(__file__))
+        self.script_home = realp
+
+        self.script_home += os.sep + ".." + os.sep + "data" + os.sep
+        self.script_home = os.path.realpath(self.script_home)
+
+        self.verbose = conf.verbose
+        self.pgdebug = conf.pgdebug
+
+        if conf.verbose:
+            print("Script home:     ", self.script_home)
+
+        if conf.pgdebug:
+                print ("Debug level:     ", conf.pgdebug)
+
+        try:
+            if not os.path.isdir(self.script_home):
+                os.mkdir(self.script_home)
+        except:
+            print( "Cannot make script home dir", sys.exc_info())
+            sys.exit(1)
+
+        self.datadir = self.script_home + self._datadir
+
+        try:
+            if not os.path.isdir(self.datadir):
+                os.mkdir(self.datadir)
+        except:
+            print( "Cannot make data dir", self.datadir, sys.exc_info())
+            sys.exit(1)
+
+        self.lockfname = self.datadir + "lockfile"
+        self.passfile = self.datadir + self._passfile
+        self.keyfile = self.datadir + self._keyfile
+        self.idfile = self.datadir + self._idfile
+        self.keydir = self.script_home + self._keydir
 
 globals = Globals()
 
@@ -296,6 +338,10 @@ class Passwd():
 
     # Return user count
     def count(self):
+
+        if self.pgdebug:
+            print("usingpassfile:", os.getcwd(), globals.passfile)
+
         if not os.path.isfile(globals.passfile):
             return 0
         try:
@@ -465,12 +511,12 @@ def kauth(namex, keyx, kadd = False):
 
     fields = ""; dup = False; ret = 0, ""
     try:
-        fh = open(keyfile, "r")
+        fh = open(globals.keyfile, "r")
     except:
         try:
-            fh = open(keyfile, "w+")
+            fh = open(globals.keyfile, "w+")
         except:
-            return -1, "Cannot open / create key file " + keyfile + " for reading"
+            return -1, "Cannot open / create key file " + globals.keyfile + " for reading"
     keydb = fh.readlines()
     for line in keydb:
         fields = line.split(",")
@@ -482,18 +528,18 @@ def kauth(namex, keyx, kadd = False):
             # Add
             fh.close()
             try:
-                fh2 = open(keyfile, "r+")
+                fh2 = open(globals.keyfile, "r+")
             except:
                 try:
-                    fh2 = open(keyfile, "w+")
+                    fh2 = open(globals.keyfile, "w+")
                 except:
-                    return -1, "Cannot open / create " + keyfile + " for writing"
+                    return -1, "Cannot open / create " + globals.keyfile + " for writing"
             try:
                 fh2.seek(0, os.SEEK_END)
                 fh2.write(namex + "," + keyx + "\n")
             except:
                 fh2.close()
-                return -1, "Cannot write to " + keyfile
+                return -1, "Cannot write to " + globals.keyfile
             fh2.close()
             ret = 0, "Key saved"
     else:
@@ -504,7 +550,7 @@ def kauth(namex, keyx, kadd = False):
         elif kadd == 2:
             # Delete key
             delok = 0
-            pname3 = keyfile + ".tmp"
+            pname3 = globals.keyfile + ".tmp"
             try:
                 fh3 = open(pname3, "r+")
             except:
@@ -525,7 +571,7 @@ def kauth(namex, keyx, kadd = False):
             fh3.close()
             # Rename
             try:
-                os.remove(keyfile)
+                os.remove(globals.keyfile)
             except:
                 ret = -1, "Cannot remove from " + pname3
             try:

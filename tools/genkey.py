@@ -39,7 +39,7 @@ def genkey(keylen):
     #print ("Generated:", key, key.size())
 
     fff  = genfname()
-    f2 = open(keydir + fff + '.pem','w')
+    f2 = open(privdir + fff + '.pem','w')
 
     if sys.version_info[0] > 2:
         f2.write(key.exportKey('PEM').decode("cp437"))
@@ -59,6 +59,7 @@ def genkey(keylen):
     return fff
 
 keydir = './keys/'
+privdir = './private/'
 
 rstr = Random.new().read(random.randint(14, 24))
 
@@ -79,12 +80,15 @@ if __name__ == '__main__':
     if not os.path.isdir(keydir):
         os.mkdir(keydir)
 
+    if not os.path.isdir(privdir):
+        os.mkdir(privdir)
+
     #print("Current dir:     ", os.getcwd())
     print ("Started key gen ... (please wait) ", end=""); sys.stdout.flush()
     fname = genkey(8192)
     #fname = genkey(4096)
     print("OK, Generated files:")
-    print("'" + fname + ".pem'", "'" + fname + ".pub'")
+    print("'" + keydir + os.sep + fname + ".pem'", "'" + privdir + os.sep + fname + ".pub'")
 
 #if __name__ == '__main__':
 #    print( "Generated file: ", "'" + fff + "'")
