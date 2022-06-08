@@ -30,10 +30,21 @@ class   Globals:
 
         self._datadir   =  os.sep + ".pyvserv" + os.sep
         self._keydir    =  os.sep + "keys"
+        self._privdir   =  os.sep + "private"
+        self._paydir    =  os.sep + "payload"
+
         self._passfile  =  "passwd.secret"
         self._keyfile   =  "keys.secret"
         self._idfile    =  "pyservid.init"
         self.siteid     =  None
+
+    def _mkdir(self, ddd, fff="data"):
+        try:
+            if not os.path.isdir(ddd):
+                os.mkdir(ddd)
+        except:
+            print( "Cannot make " + fff + " dir", sys.exc_info())
+            sys.exit(1)
 
     # --------------------------------------------------------------------
 
@@ -54,27 +65,20 @@ class   Globals:
         if conf.pgdebug:
                 print ("Debug level:     ", conf.pgdebug)
 
-        try:
-            if not os.path.isdir(self.script_home):
-                os.mkdir(self.script_home)
-        except:
-            print( "Cannot make script home dir", sys.exc_info())
-            sys.exit(1)
-
         self.datadir = self.script_home + self._datadir
-
-        try:
-            if not os.path.isdir(self.datadir):
-                os.mkdir(self.datadir)
-        except:
-            print( "Cannot make data dir", self.datadir, sys.exc_info())
-            sys.exit(1)
 
         self.lockfname = self.datadir + "lockfile"
         self.passfile = self.datadir + self._passfile
         self.keyfile = self.datadir + self._keyfile
         self.idfile = self.datadir + self._idfile
+
         self.keydir = self.script_home + self._keydir
+        self.paydir = self.script_home + self._paydir
+
+        self._mkdir(self.script_home, "Script Home")
+        self._mkdir(self.datadir, "Data dir")
+        self._mkdir(self.paydir, "Payload dir")
+
 
 globals = Globals()
 

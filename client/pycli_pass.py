@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
-    print("Hello Response:", resp4)
+    print("Hello sess Response:", resp4)
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
     print ("Server user response:", cresp[1])
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     #cresp = hand.client(["chpass", "1234"], conf.sess_key)
     #print ("Server chpass response:", cresp[1])
 
-    hand.client(["quit",],conf.sess_key)
+    hand.client(["quit",], conf.sess_key)
     hand.close();
 
     sys.exit(0)

@@ -80,7 +80,7 @@ if __name__ == '__main__':
     resp3 = hand.client(["hello",] , conf.sess_key, False)
     print("Hello sess Response:", resp3[1])
 
-    resp = hand.client(["user", "peter"], conf.sess_key)
+    resp = hand.client(["user", "admin"], conf.sess_key)
     print("user Response:", resp[1])
     if resp[1].split()[0] != "OK":
         raise ValueError("No user", resp[1])

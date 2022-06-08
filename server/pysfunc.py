@@ -398,7 +398,17 @@ def get_pass_func(self, strx):
         stry = "Successful logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
+
+        #print("Authenticated", pyservsup.globals.paydir)
+        self.resp.cwd = pyservsup.globals.paydir
+        try:
+            os.chdir(self.resp.cwd)
+        except:
+            print("Cannot change to payload dir.")
+            pass
+
         rrr = ["OK", self.resp.user + " Authenticated."]
+
         retval = False
     else:
         stry = "Error on logon  '" + self.resp.user + "' " + \

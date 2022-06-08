@@ -251,6 +251,7 @@ if __name__ == '__main__':
         print("Keyfile:         ", pyservsup.globals.keyfile)
         print("IDfile:          ", pyservsup.globals.idfile)
         print("Keydir:          ", pyservsup.globals.keydir)
+        print("Payload:         ", pyservsup.globals.paydir)
 
     try:
         keyfroot = pyservsup.pickkey(pyservsup.globals.keydir)
@@ -318,6 +319,7 @@ if __name__ == '__main__':
     server_thread.verbose = verbose
     #server_thread.setDaemon(True)
     server_thread.daemon = True
+    #server_thread.paydir =  pyservsup.globals.paydir
     server_thread.start()
 
     if not quiet:
