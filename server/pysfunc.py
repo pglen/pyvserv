@@ -25,19 +25,24 @@ pgdebug = 0
 # State transition and action functions
 
 def get_lsd_func(self, strx):
+
     sss = ""
-    dname2 = self.resp.cwd + "/" + self.resp.dir + "/"
+    dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep
     dname2 = support.dirclean(dname2)
 
+    if pgdebug > 1:
+        print("get_lsd_func", dname2)
     response = ["OK"]
-
     try:
         ddd = os.listdir(dname2)
         for aa in ddd:
-            if stat.S_ISDIR(os.stat(aa)[stat.ST_MODE]):
-                # Escape spaces
-                response.append(aa) # += support.escape(aa) + " "
-        #response = ["OK" + sss]
+            try:
+                aaa = dname2 + os.sep + aa
+                if stat.S_ISDIR(os.stat(aaa)[stat.ST_MODE]):
+                    # Escape spaces
+                    response.append(aa) #support.escape(aa))
+            except:
+                print( "Cannot stat ", aaa, str(sys.exc_info()[1]) )
     except:
         support.put_exception("lsd")
         response = ["ERR" + str(sys.exc_info()[1] )]
@@ -53,7 +58,7 @@ def get_ls_func(self, strx):
         dname = support.unescape(strx[1]);
     except:
         pass
-    dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
+    dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
     dname2 = support.dirclean(dname2)
 
     #print("dname2", dname2)
@@ -63,7 +68,7 @@ def get_ls_func(self, strx):
         ddd = os.listdir(dname2)
         for aa in ddd:
             try:
-                aaa = dname2 + "/" + aa
+                aaa = dname2 + os.sep + aa
                 if not stat.S_ISDIR(os.stat(aaa)[stat.ST_MODE]):
                     # Escape spaces
                     response.append(aa) #support.escape(aa))
@@ -84,7 +89,7 @@ def get_fget_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     dname = support.unescape(strx[1]);
-    dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
+    dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
     dname2 = support.dirclean(dname2)
     if not os.path.isfile(dname2):
         response = ["ERR", "File does not exist.", dname]
@@ -161,7 +166,7 @@ def get_xkey_func(self, strx):
 def get_pwd_func(self, strx):
     dname2 = self.resp.dir
     dname2 = support.dirclean(dname2)
-    if dname2 == "": dname2 = "/"
+    if dname2 == "": dname2 = os.sep
     response = ["OK",  dname2]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -171,13 +176,13 @@ def get_cd_func(self, strx):
         dname = support.unescape(strx[1]);
         if dname == "..":
             self.resp.dir = support.chup(self.resp.dir)
-        elif dname[0] == "/":
+        elif dname[0] == os.sep:
             self.resp.dir = dname
         else:
-            self.resp.dir += "/" + dname
+            self.resp.dir += os.sep + dname
 
         self.resp.dir = support.dirclean(self.resp.dir)
-        dname2 = self.resp.cwd + "/" + self.resp.dir
+        dname2 = self.resp.cwd + os.sep + self.resp.dir
         dname2 = support.dirclean(dname2)
         if os.path.isdir(dname2):
             response = ["OK ", self.resp.dir]
@@ -227,7 +232,7 @@ def get_stat_func(self, strx):
     dname = support.unescape(strx[1]);
     #print("stat_func", strx[1], dname)
 
-    dname2 = self.resp.cwd + "/" + self.resp.dir + "/" + dname
+    dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
     dname2 = support.dirclean(dname2)
 
     response = ["OK"]
@@ -404,11 +409,11 @@ def get_pass_func(self, strx):
 
         #print("Authenticated", pyservsup.globals.paydir)
         self.resp.cwd = pyservsup.globals.paydir
-        try:
-            os.chdir(self.resp.cwd)
-        except:
-            print("Cannot change to payload dir.")
-            pass
+        #try:
+        #    os.chdir(self.resp.cwd)
+        #except:
+        #    print("Cannot change to payload dir.")
+        #    pass
 
         rrr = ["OK", self.resp.user + " Authenticated."]
 

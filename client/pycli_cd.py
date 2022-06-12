@@ -48,7 +48,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 9999)")
+    print( "            -p port   - Port to use (default: 666)")
     print( "            -l level  - Log level (default: 0)")
     print( "            -c file   - Save comm to file")
     print( "            -s        - Showkey")
@@ -66,7 +66,7 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
+    ["p:",  "port",     6666,   None],      \
     ["c:",  "comm",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
@@ -108,7 +108,7 @@ if __name__ == '__main__':
     resp3 = hand.client(["hello",] , "", False)
     print("Hello Response:", resp3[1])
 
-    ret = pyclisup.start_session(hand, conf)
+    ret = hand.start_session(conf)
 
     #if ret[0] == "OK":
     #    print("Sess Key ACCEPTED:",  ret[1])
@@ -143,11 +143,11 @@ if __name__ == '__main__':
         errexit(hand, "Error on lsd command", cresp)
     print ("Server ls response:", cresp)
 
-    cresp = hand.client(["cd", "keysx"], conf.sess_key)
+    cresp = hand.client(["cd", "test_1"], conf.sess_key)
     print ("Server cd response:", cresp[1])
 
-    cresp = hand.client(["cd", "keys"], conf.sess_key)
-    print ("Server cd response:", cresp[1])
+    #cresp = hand.client(["cd", "keys"], conf.sess_key)
+    #print ("Server cd response:", cresp[1])
 
     cresp = hand.client(["ls",], conf.sess_key)
     if cresp[0] != "OK":
@@ -166,6 +166,12 @@ if __name__ == '__main__':
 
     print ("Server stat response:")
     hand.listfiles(hand, cresp[1:], conf.sess_key)
+
+    cresp = hand.client(["cd", "../test_2"], conf.sess_key)
+    print ("Server cd test2 response:", cresp)
+
+    cresp = hand.client(["ls",], conf.sess_key)
+    print ("Server ls response:", cresp)
 
     cresp = hand.client(["cd", "/"], conf.sess_key)
     print ("Server cd response:", cresp)
