@@ -14,8 +14,6 @@ from Crypto import Random
 
 import genkey
 
-keydir = './keys/'
-
 if __name__ == '__main__':
 
     # Randomize
@@ -32,9 +30,6 @@ if __name__ == '__main__':
         sys.exit(1)
 
     os.chdir(script_home)
-
-    if not os.path.isdir(keydir):
-        os.mkdir(keydir)
 
     #print("Current dir:     ", os.getcwd())
     print ("Started gen. Press Ctrl-C to abort.")

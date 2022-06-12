@@ -67,6 +67,10 @@ if __name__ == '__main__':
     else:
         ip = args[0]
 
+    #print(dir(RSA))
+    #print(dir(RSA.RsaKey))
+    #sys.exit(0)
+
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
@@ -85,9 +89,8 @@ if __name__ == '__main__':
         print("key resp", resp)
         sys.exit(1)
 
-
     if conf.verbose:
-        print("got response to akey: ", resp[:-1])
+        print("got response to akey: ", resp)
 
     if conf.pgdebug > 2:
         print("Got hash:", "'" + resp[1] + "'")
@@ -99,7 +102,7 @@ if __name__ == '__main__':
     ddd = hhh.hexdigest()
 
     if conf.pgdebug > 1:
-        print("Hash1:\n" + resp[2], "\nHash2:\n" + ddd + "\n")
+        print("Hash1:\n" + str(resp[2]), "\nHash2:\n" + str(ddd) + "\n")
 
     # Remember key
     if ddd !=  resp[1]:
@@ -121,7 +124,9 @@ if __name__ == '__main__':
         print("Cannot import public key.")
         support.put_exception("import key")
 
-    print("Got ", hand.pubkey, "size =", hand.pubkey.size_in_bits() )
+    print("Got ", hand.pubkey )
+    #print(hand.pubkey.size_in_bits(), "bits", hand.pubkey.export_key()[27:48])
+    print(hand.pubkey.size_in_bits(), "bits, Hash: ",  ddd[:24])
 
     #for aa in dir(hand.pubkey):
     #    print("Got ", aa, hand.pubkey.__getattribute__(aa))

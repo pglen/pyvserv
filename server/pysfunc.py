@@ -314,7 +314,7 @@ def get_akey_func(self, strx):
         self.keyfroot = pyservsup.pickkey(ddd)
     except:
         print("No keys generated yet.", sys.exc_info()[1])
-        support.put_exception("no keys  key")
+        support.put_exception("no keys yet")
         rrr = ["ERR", "No keys yet. Run keygen"]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
@@ -322,55 +322,58 @@ def get_akey_func(self, strx):
     if pgdebug > 2:
        print("self.keyfroot", self.keyfroot)
 
+    if pgdebug > 2:
+        print("fname", ddd + os.sep + self.keyfroot + ".pub")
+
     try:
         # Do public import
         fp = open(ddd + os.sep + self.keyfroot + ".pub", "rb")
         self.keyx = fp.read()
         fp.close()
 
-        try:
-            self.pubkey = RSA.importKey(self.keyx)
-        except:
-            print("Cannot read key:", self.keyx[:12], sys.exc_info()[1])
-            support.put_exception("import  key")
-            rrr = ["ERR", "Cannot read public key"]
-            self.resp.datahandler.putencode(rrr, self.resp.ekey)
-            return
-
-        if pgdebug > 5:
+        if pgdebug > 4:
             print("Key read: \n'" + self.keyx.decode("cp437") + "'\n")
-
-        # Do private import; we are handleing it here, so key signals errors
-        fp2 = open(ppp + os.sep + self.keyfroot + ".pem", "rb")
-        self.keyx2 = fp2.read()
-        fp2.close()
-
-        try:
-            self.privkey = RSA.importKey(self.keyx2)
-            self.priv_cipher = PKCS1_v1_5.new(self.privkey)
-        except:
-            print("Cannot create private key:", self.keyx2[:12], sys.exc_info()[1])
-            support.put_exception("import private key")
-            rrr = ["ERR", "Cannot create private key"]
-            self.resp.datahandler.putencode(rrr, self.resp.ekey)
-            return
-
-        if pgdebug > 5:
-            print("Key read: \n'" + self.keyx.decode("cp437") + "'\n")
-
-        hh = SHA512.new(); hh.update(self.keyx)
-        if pgdebug > 3:
-            print("Key digest: \n'" + hh.hexdigest() + "'\n")
-
-        # Deliver the answer in two parts:
-        rrr = ["OK", "%s" % hh.hexdigest(), self.keyx]
-        self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
     except:
         print("Cannot read key:", self.keyfroot, sys.exc_info()[1])
         support.put_exception("read key")
         rrr = ["ERR", "cannot open keyfile."]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
+
+    try:
+        self.pubkey = RSA.importKey(self.keyx)
+    except:
+        print("Cannot read key:", self.keyx[:12], sys.exc_info()[1])
+        support.put_exception("import  key")
+        rrr = ["ERR", "Cannot read public key"]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
+        return
+
+    # Do private import; we are handleing it here, so key signals errors
+    fp2 = open(ppp + os.sep + self.keyfroot + ".pem", "rb")
+    self.keyx2 = fp2.read()
+    fp2.close()
+
+    try:
+        self.privkey = RSA.importKey(self.keyx2)
+        self.priv_cipher = PKCS1_v1_5.new(self.privkey)
+    except:
+        print("Cannot create private key:", self.keyx2[:12], sys.exc_info()[1])
+        support.put_exception("import private key")
+        rrr = ["ERR", "Cannot create private key"]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
+        return
+
+    # Clean private key from memory
+    # cccc
+
+    hh = SHA512.new(); hh.update(self.keyx)
+    if pgdebug > 3:
+        print("Key digest: \n'" + hh.hexdigest() + "'\n")
+
+    # Deliver the answer in two parts:
+    rrr = ["OK", "%s" % hh.hexdigest(), self.keyx]
+    self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
 def get_pass_func(self, strx):
 
