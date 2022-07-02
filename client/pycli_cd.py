@@ -24,16 +24,6 @@ import support, pycrypt, pyservsup, pyclisup, syslog
 import comline, pypacker, crysupp
 #import bluepy
 
-'''
-# test encrypt with large keys
-rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
-        "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
-sss = bluepy.encrypt(rrr, conf.sess_key)
-ttt = bluepy.decrypt(sss, conf.sess_key)
-print (rrr)
-print (ttt)
-'''
-
 def errexit(hand, retstr, msg = "exiting"):
     print(msg, retstr)
     hand.client(["quit"], conf.sess_key);  hand.close();

@@ -8,6 +8,11 @@ import struct, stat, base64, random, zlib
 from Crypto import Random
 from Crypto.Hash import SHA512
 
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../bluepy'))
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base,  '../../pycommon'))
+
 import support, pypacker
 
 xorg = ["val1", "val2"]

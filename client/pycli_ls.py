@@ -99,7 +99,6 @@ if __name__ == '__main__':
     print("Hello Response:", resp3)
 
     ret = hand.start_session(conf)
-
     if ret[0] != "OK":
         print("Error on setting session:", resp3)
         hand.client(["quit"])
@@ -115,7 +114,6 @@ if __name__ == '__main__':
     #print("Hello Response:", resp4[1])
 
     ret =  hand.login(conf, "admin", "1234")
-
     if ret[0] != "OK":
         print ("Server login fail:", ret)
         hand.client(["quit"], conf.sess_key)
