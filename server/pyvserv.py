@@ -335,16 +335,14 @@ if __name__ == '__main__':
         strx = "Win or Unkn."
         try:
             import distro
-            #for aa in distro.linux_distribution():
-            for aa in distro.name():
-                strx = str(aa) + " "
+            strx = distro.name()
         except:
             pass
 
         print("MainSiteID:", pyservsup.globals.siteid)
 
         print("Server running:", server.server_address)
-        pyver = support.list2str(sys.version_info[0:3], ".")
+        pyver = support.list2str(sys.version_info) #[0:3], ".")
         print("Running python", platform.python_version(), "on", platform.system(), strx)
 
     if conf.pglog > 0:

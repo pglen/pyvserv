@@ -93,7 +93,7 @@ class DataHandler():
         dstr = self.wr.wrap_data(key, datax)
 
         if self.pgdebug > 5:
-            print ("server reply:", dstr)
+            print ("Server reply:\n", dstr)
             pass
 
         try:

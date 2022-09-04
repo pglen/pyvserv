@@ -174,8 +174,9 @@ class StateHandler():
     def run_state(self, strx):
         ret = None
 
-        if self.pgdebug > 5:
-            print("Run state data: '" + strx + "'")
+        #if self.pgdebug > 5:
+        #    print("Run state data: \n'" + crysupp.hexdump(strx, len(strx)) + "'")
+
         try:
             ret = self._run_state(strx)
         except:
@@ -189,7 +190,7 @@ class StateHandler():
         got = False; ret = False
 
         if self.pgdebug > 8:
-            print( "Incoming strx: ", type(strx), strx)
+            print( "Incoming strx: \n", crysupp.hexdump(strx, len(strx)))
 
         dstr = ""
         try:
@@ -203,7 +204,7 @@ class StateHandler():
             return False
 
         if self.pgdebug > 3:
-            print( "Incoming Line: ", dstr)
+            print( "Incoming Line: \n", dstr)
 
         comx = dstr[1] #.split()
 

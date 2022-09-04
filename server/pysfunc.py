@@ -220,7 +220,7 @@ def get_hello_func(self, strx):
         print( "get_hello_func()", strx)
     strres = ["OK", "Hello", str(pyservsup.globals.siteid)]
     if pgdebug > 2:
-        print( "get_hello_func->output", "'" + strres + "'")
+        print( "get_hello_func->output", "'" + str(strres) + "'")
     self.resp.datahandler.putencode(strres, self.resp.ekey)
 
 
