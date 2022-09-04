@@ -11,12 +11,12 @@ from Crypto import Random
 
 import support, crysupp, support, pypacker
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
-sys.path.append(os.path.join(base,  '../../pycommon'))
+#base = os.path.dirname(os.path.realpath(__file__))
+#sys.path.append(os.path.join(base, '../bluepy'))
+#sys.path.append(os.path.join(base, '../common'))
+#sys.path.append(os.path.join(base,  '../../pycommon'))
 
-import bluepy
+import bluepy.bluepy as bluepy
 
 # If comm is with no keys, still do some mudding
 

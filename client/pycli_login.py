@@ -15,12 +15,20 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
 
-sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog
-import comline, pypacker, crysupp
+#sys.path.append('../common')
+#import support, pycrypt, pyservsup, pyclisup, syslog
+#import comline, pypacker, crysupp
+#
+#sys.path.append('../bluepy')
+#import bluepy
 
-sys.path.append('../bluepy')
-import bluepy
+# Set parent as module include path
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+from common import support, pycrypt, pyservsup, pyclisup
+from common import pysyslog, comline, pypacker
 
 '''
 # test encrypt with large keys

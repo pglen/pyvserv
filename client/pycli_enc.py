@@ -1,29 +1,18 @@
-#!/usr/bin/env python3
-
-from __future__ import print_function
-
-import sys
-if sys.version_info[0] < 3:
-    print("Python 2 is not supported as of 1/1/2020")
-    sys.exit(1)
+#!/usr/bin/env python
 
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
 
-import  os, sys, getopt, signal, select, socket, time, struct
-import  random, stat
+import os, sys, getopt, signal, select, socket, time, struct
+import random, stat
 
-#sys.path.append('../common')
+sys.path.append('../common')
+import support, pycrypt, pyservsup, pyclisup, syslog
 
-# Set parent as module include path
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
+# ------------------------------------------------------------------------
+# Globals
 
-from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline, pypacker
-
-version = "1,0"
+version = 1.0
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -34,7 +23,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 6666)")
+    print( "            -p port   - Port to use (default: 9999)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -48,59 +37,66 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
+    ["p:",  "port",     9999,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = comline.Config(optarr)
+conf = pyclisup.Config(optarr)
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    if sys.version_info[0] < 3:
-        print("Warning! This script was meant for python 3.x")
-        time.sleep(1)
+    '''if  sys.version_info[0] < 3:
+        print("Needs python 3 or better.")
+        sys.exit(1)'''
 
-    #if  sys.version_info[0] < 3:
-    #    print("Needs python 3 or better.")
-    #    sys.exit(1)
-    #
     args = conf.comline(sys.argv[1:])
+
+    pyclisup.verbose = conf.verbose
+    pyclisup.pgdebug = conf.pgdebug
 
     if len(args) == 0:
         ip = '127.0.0.1'
     else:
         ip = args[0]
-
-    hand = pyclisup.CliSup()
-    hand.verbose = conf.verbose
-    hand.pgdebug = conf.pgdebug
+    s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    init_handler(s1)
 
     try:
-        resp2 = hand.connect(ip, conf.port)
+        s1.connect((ip, conf.port))
     except:
-        support.put_exception("On connect")
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    #if conf.quiet == False:
-    #    print ("Server initial:", resp2)
+    client(s1, "ver")
+    client(s1, "user peter")
+    client(s1, "pass 1234")
 
-    resp = hand.client(["ver"])
+    xkey = set_key(s1, "1234", "")
 
-    if conf.quiet == False:
-        print ("Server response:", resp)
+    client(s1, "tout 14", xkey)
+    client(s1, "ver ", xkey)
+    client(s1, "help ", xkey)
 
-    hand.client(["quit"])
-    hand.close()
+    client(s1, "ekey ", xkey)
+    xkey = ""
+    client(s1, "ver ", xkey)
+    client(s1, "quit", xkey)
+    s1.close();
 
     sys.exit(0)
 
-# EOF
+
+
+
+
+
+
+
 
 
 

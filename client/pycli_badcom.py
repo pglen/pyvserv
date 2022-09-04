@@ -8,8 +8,16 @@ from __future__ import print_function
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
-sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog, comline, pypacker
+#sys.path.append('../common')
+#import support, pycrypt, pyservsup, pyclisup, syslog, comline, pypacker
+
+# Set parent as module include path
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+from common import support, pycrypt, pyservsup, pyclisup
+from common import pysyslog, comline, pypacker
 
 version = "1.0"
 

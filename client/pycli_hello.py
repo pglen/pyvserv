@@ -8,12 +8,19 @@ from __future__ import print_function
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
-sys.path.append(os.path.join(base,  '../../pycommon'))
+#base = os.path.dirname(os.path.realpath(__file__))
+#sys.path.append(os.path.join(base, '../bluepy'))
+#sys.path.append(os.path.join(base, '../common'))
+#sys.path.append(os.path.join(base,  '../../pycommon'))
+#import support, pycrypt, pyservsup, pyclisup, pysyslog, comline, pypacker
 
-import support, pycrypt, pyservsup, pyclisup, pysyslog, comline, pypacker
+# Set parent as module include path
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+from common import support, pycrypt, pyservsup, pyclisup
+from common import pysyslog, comline, pypacker
 
 # ------------------------------------------------------------------------
 # Functions from command line

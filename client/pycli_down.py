@@ -11,14 +11,22 @@ if sys.version_info[0] < 3:
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
-sys.path.append(os.path.join(base,  '../../pycommon'))
+#base = os.path.dirname(os.path.realpath(__file__))
+#sys.path.append(os.path.join(base, '../bluepy'))
+#sys.path.append(os.path.join(base, '../common'))
+#sys.path.append(os.path.join(base,  '../../pycommon'))
+#
+#import support, pycrypt, pyservsup, pyclisup, syslog
+#import comline, pypacker, crysupp
+#import bluepy
 
-import support, pycrypt, pyservsup, pyclisup, syslog
-import comline, pypacker, crysupp
-import bluepy
+# Set parent as module include path
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+from common import support, pycrypt, pyservsup, pyclisup
+from common import pysyslog, comline, pypacker
 
 # ------------------------------------------------------------------------
 # Globals

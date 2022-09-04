@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from __future__ import print_function
 
@@ -10,8 +10,7 @@ import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
 #sys.path.append('../common')
-#import support, pycrypt, pyservsup, pyclisup
-#import pysyslog, crysupp, pypacker, comline
+#import support, pycrypt, pyservsup, pyclisup, syslog
 
 # Set parent as module include path
 current = os.path.dirname(os.path.realpath(__file__))
@@ -58,10 +57,6 @@ conf = comline.Config(optarr)
 
 if __name__ == '__main__':
 
-    if sys.version_info[0] < 3:
-        print("Warning! This script was meant for python 3.x")
-        time.sleep(1)
-
     args = conf.comline(sys.argv[1:])
 
     pyclisup.verbose = conf.verbose
@@ -83,36 +78,31 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if conf.quiet == False:
-        print ("Server initial:", resp2[1])
+        print ("Server initial:", resp2)
 
-    resp = hand.client(["ekey"])
+    resp = hand.client("key")
+    hhh = resp.split()[2]
+    #print ("Server response:", "'" + hhh + "'")
 
-    print("resp", resp)
+    resp2 = hand.getreply()
+    #print ("Server response2:",  "'" + resp2 +  "'")
 
-    rrr = resp[1].split()
-    if rrr[0] == "ERR":
-        print(resp[1])
-    elif rrr[0] == "OK":
-        resp2 = hand.getreply()
-        print ("Server response2:",  "'" + resp2 +  "'")
+    hh = SHA512.new(); hh.update(resp2)
 
-        hh = SHA512.new(); hh.update(resp2[1].encode())
-        #print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())
+    #print("Hashes: ", "\n" + hhh, "\n" + hh.hexdigest())
 
-        hand.pkey = resp2;
+    hand.pkey = resp2;
 
-        if hhh !=  hh.hexdigest():
-            if conf.quiet == False:
-                print("Tainted key")
-        else:
-            if conf.quiet == False:
-                print("Key OK")
-
-        if conf.showkey:
-            #print("Key:")
-            print(hand.pkey)
+    if hhh !=  hh.hexdigest():
+        if conf.quiet == False:
+            print("Tainted key")
     else:
-        print("Invalid response:", "'" + resp[1] + "'")
+        if conf.quiet == False:
+            print("Key OK")
+
+    if conf.showkey:
+        #print("Key:")
+        print(hand.pkey)
 
     hand.client("quit")
     hand.close();
@@ -120,7 +110,6 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
-
 
 
 

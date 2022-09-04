@@ -8,8 +8,16 @@ import random, stat
 
 #sys.path.append('..')
 #sys.path.append('../bluepy')
-sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog, comline
+#sys.path.append('../common')
+#import support, pycrypt, pyservsup, pyclisup, syslog, comline
+
+# Set parent as module include path
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+from common import support, pycrypt, pyservsup, pyclisup
+from common import pysyslog, comline, pypacker
 
 # ------------------------------------------------------------------------
 # Globals

@@ -3,30 +3,39 @@
 from __future__ import print_function
 
 import sys
+
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)
 
 import os, getopt, signal, select, string, time
 import tarfile, subprocess, struct, platform
-import socket, threading, tracemalloc
+import socket, threading, tracemalloc, inspect
 
 if sys.version_info[0] < 3:
     import SocketServer as socketserver
 else:
     import socketserver
 
-import pystate
+#base = os.path.dirname(os.path.realpath(__file__))
+##print("base", base)
+#current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+#parent_dir = os.path.dirname(current_dir)
+#sys.path.insert(0, parent_dir)
+##print("pd", parent_dir)
 
-base = os.path.dirname(os.path.realpath(__file__))
-#print("base", base)
-sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
-sys.path.append(os.path.join(base,  '../../pycommon'))
+# getting the name of the directory
+current = os.path.dirname(os.path.realpath(__file__))
+# Getting the parent directory name
+parent = os.path.dirname(current)
+sys.path.append(parent)
 
-import support, pyservsup, pyclisup, pysyslog, pydata, comline
+#sys.path.append(os.path.join(base, '../bluepy'))
+#sys.path.append(os.path.join(base, '../common'))
+#sys.path.append(os.path.join(base,  '../../pycommon'))
 
-import pysfunc
+import pystate, support, pyservsup, pyclisup
+import pysyslog, pydata, comline, pysfunc
 
 # Globals
 detach = False
