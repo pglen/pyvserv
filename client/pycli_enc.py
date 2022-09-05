@@ -6,8 +6,16 @@
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog
+# Set parent as module include path
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+from common import support, pycrypt, pyservsup, pyclisup
+from common import pysyslog, comline, pypacker
+
+#sys.path.append('../common')
+#import support, pycrypt, pyservsup, pyclisup, syslog
 
 # ------------------------------------------------------------------------
 # Globals
@@ -23,7 +31,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 9999)")
+    print( "            -p port   - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -37,14 +45,14 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
+    ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = pyclisup.Config(optarr)
+conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -63,30 +71,49 @@ if __name__ == '__main__':
         ip = '127.0.0.1'
     else:
         ip = args[0]
-    s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    init_handler(s1)
+
+    hand = pyclisup.CliSup()
+    hand.verbose = conf.verbose
+    hand.pgdebug = conf.pgdebug
+
+    #s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #init_handler(s1)
+    #try:
+    #    s1.connect((ip, conf.port))
+    #except:
+    #    print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
+    #    sys.exit(1)
 
     try:
-        s1.connect((ip, conf.port))
+        resp2 = hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    client(s1, "ver")
-    client(s1, "user peter")
-    client(s1, "pass 1234")
+    #print ("Server initial:", resp2)
 
-    xkey = set_key(s1, "1234", "")
+    resp = hand.client(["ver"])
 
-    client(s1, "tout 14", xkey)
-    client(s1, "ver ", xkey)
-    client(s1, "help ", xkey)
+    resp = hand.client(["ver"])
+    print(resp)
 
-    client(s1, "ekey ", xkey)
-    xkey = ""
-    client(s1, "ver ", xkey)
-    client(s1, "quit", xkey)
-    s1.close();
+    resp = hand.client(["user", "peter"])
+    print(resp)
+
+    resp = hand.client(["pass", "1234"])
+    print(resp)
+
+    #xkey = set_key( "1234", "")
+    #
+    #hand.client([ "tout 14", xkey)
+    #hand.client([ "ver ", xkey)
+    #hand.client([ "help ", xkey)
+    #
+    #hand.client(["ekey ", xkey)
+    #xkey = ""
+    #hand.client(["ver ", xkey)
+    #hand.client([ "quit", xkey)
+    #hand.close();
 
     sys.exit(0)
 

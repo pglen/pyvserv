@@ -340,7 +340,6 @@ if __name__ == '__main__':
             pass
 
         print("MainSiteID:", pyservsup.globals.siteid)
-
         print("Server running:", server.server_address)
         pyver = support.list2str(sys.version_info) #[0:3], ".")
         print("Running python", platform.python_version(), "on", platform.system(), strx)

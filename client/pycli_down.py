@@ -55,8 +55,8 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
-    ["f:",  "file",     9999,   None],      \
+    ["p:",  "port",     6666,   None],      \
+    ["f:",  "file",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \

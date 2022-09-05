@@ -62,6 +62,8 @@ class DataHandler():
         try:
             #print("ekey", self.par.ekey)
             self.putencode(rrr, self.par.ekey)
+            #self.putdata(rrr, self.par.ekey)
+
         except:
             support.put_exception("putdata")
 
@@ -70,7 +72,9 @@ class DataHandler():
         try:
             self.par.request.shutdown(socket.SHUT_RDWR)
         except:
-            support.put_exception("on sending  timeout shutdown")
+            # Do not report error here
+            #support.put_exception("on sending  timeout shutdown")
+            pass
 
     def putencode(self, ddd, key = "", rand = True):
         if type(ddd) == str:
@@ -208,12 +212,3 @@ class xHandler():
         pass
 
 # EOF
-
-
-
-
-
-
-
-
-

@@ -106,6 +106,9 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
+    #print("ip:", ip, "port", conf.port)
+    #print("Initial:", respc);
+
     resp3 = hand.client(["hello",] , "", False)
     if conf.verbose:
         print("Hello Response:", resp3)

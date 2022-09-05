@@ -22,7 +22,8 @@ from common import pysyslog, comline, pypacker
 version = "1.0"
 
 optarr =  comline.optarr
-optarr.append ( ["p:",  "port",  9999,   None, "Port to use (default: 9999)"] )
+optarr.append ( ["p:",  "port",  6666,   None, "Port to use (default: 9999)"] )
+#                ["c:",  "comm",     "",     None],      \
 
 conf = comline.Config(optarr)
 
@@ -40,14 +41,22 @@ if __name__ == '__main__':
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
+    #hand.comm  = conf.comm
 
+    #print("ip:", ip, "port", conf.port)
     try:
         resp2 = hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    print ("Server initial:", resp2[1])
+    #print ("Server initial:", resp2[1])
+
+    resp3 = hand.client(["hello",] , "", False)
+    if conf.verbose:
+        print("Hello Response:", resp3)
+
+    #sys.exit(0)
 
     cresp = hand.client(["crap", "this com"])
     print ("Server crap response:", cresp[1])
