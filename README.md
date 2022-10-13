@@ -2,7 +2,7 @@
 ## 	Python fully encrypted server
 
  PyvServ is a fully fledged encrypting TCP/IP server written in Python. The
-encryption algorithm is bluepoint2. The server can be fully administered from
+encryption algorithm is bluepy. The server can be fully administered from
 the protocol side.
 
  PyvServ contains protocol level encryption, which can be switched on by
@@ -18,19 +18,18 @@ so communication data is always distinctive.
 
  Dependencies:
 
- Most system have all the dependencies by default. Some dependencies may need adding,
-like the following:
+ Most linux system have all the dependencies by default. Some dependencies
+ may need adding, like the following:
 
 sudo apt install python3-psutil
 sudo apt install python3-bcrypt
 
  The firewall needs to be opened for incoming connections on port 9999.
 
-For example:
+For example (assuming port 6666):
 
-sudo iptables -A INPUT -p tcp --dport 9999
-sudo iptables -A INPUT -p tcp --sport 9999
-
+sudo iptables -A INPUT -p tcp --dport 6666
+sudo iptables -A INPUT -p tcp --sport 6666
 
 ### Working so far:
 
