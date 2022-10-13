@@ -1,10 +1,10 @@
 # Python Bluepoint
 ## Full encryption
 
-  The power of this encrption comed from the following primitives,
-implemented as 'C' macros.
+  The power of this encryption comes from the following primitives:
+(implemented as 'C' macros)
 
-        HECTOR(op)              use op with vector
+        HECTOR(op)              use op with vector highs
         PASSLOOP(op)            use op with pass as vector
         FWLOOP(op)              forward loop traverse
         FWLOOP2(op)             forward loop variation
@@ -20,7 +20,7 @@ implemented as 'C' macros.
 that the parameter op is a mathematical / logical operation. (plus, minus, xor ...)
 
   The power comes from the arbitrary order of operators and the arbitrary injection
-of mathematical / logical operators.
+of reversible mathematical / logical operators.
 
  The resulting bit propagation is such high quality, that a single bit change
 in the original text will change every byte in the resulting block.
@@ -30,14 +30,19 @@ in the original text will change every byte in the resulting block.
 quantum challenge.
 
  Decryption is done by applying the ops in reverse, both by order and meaning. This is very
-apparent in the functions ENCRYPT() and DECRYPT().
+apparent in the functions ENCRYPT() and DECRYPT().  (see source)
 
 TODO;
 
  Started the virtual machine operation, where the encryption is run through
-a virtual machine stack, following a recipe or getting hints from the password.
+a virtual machine stack, following a pre-made recipe or getting hints from the password.
 
 Thu 13.Oct.2022
 
+Warning!
 
+ The encryption / decryption has to run with the same vector, same pass same
+block length. Make sure you know what you are doing, as it is all too easy
+to encrypt something into oblivion.
 
+EOF

@@ -63,5 +63,6 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+	@rm -rf ./build/*
 
 # EOF
