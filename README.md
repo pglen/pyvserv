@@ -1,6 +1,6 @@
 #                                Python vServer
 ## 	Python fully encrypted server
-  
+
  PyvServ is a fully fledged encrypting TCP/IP server written in Python. The
 encryption algorithm is bluepoint2. The server can be fully administered from
 the protocol side.
@@ -57,7 +57,7 @@ distinguish algorithm version.
 
     print( "Builddate: ",  bluepy.builddate())
 
-Quick start:
+#### Quick start:
 
   open terminal window
   navigate to server subdir
@@ -69,14 +69,14 @@ Quick start:
 
 The following should be printed on command line:
 
-    > ./pycli_hello.py
-    > Server initial: OK pyserv ready
-    > Server response: OK Hello
+         ./pycli_hello.py
+         Server initial: OK pyserv ready
+         Server response: OK Hello
 
  The best way to learn about the operation of the server is to look at the
 sample client examples in the client source tree. (Files named pycli_*)
 
-All tests are base on python3, most modules function on both py2 and py3.
+All tests are base on python3, most (not all) modules do function on both py2 and py3.
 
 4/12/22		No py2 support
 
