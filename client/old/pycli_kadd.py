@@ -6,8 +6,17 @@
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog
+#sys.path.append('../common')
+#import support, pycrypt, pyservsup, pyclisup, syslog
+#import comline, pypacker, crysupp
+
+# Set parent as module include path
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+
+from common import support, pycrypt, pyservsup, pyclisup
+from common import pysyslog, comline, pypacker
 
 # ------------------------------------------------------------------------
 # Globals
@@ -18,7 +27,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
+    print( "            -p        - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -32,22 +41,18 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
+    ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
+    ["h",   None,       None,   phelp]
 
-conf = support.Config(optarr)
+conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
-
-    '''if  sys.version_info[0] < 3:
-        print(("Needs python 3 or better."))
-        sys.exit(1)'''
 
     args = conf.comline(sys.argv[1:])
 
@@ -68,14 +73,22 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    hand.client("ver")
+    ret = hand.client(["ver",])
+    print("ver ret", ret)
 
-    hand.client("user peter")
-    resp = hand.client("pass 1234")
-    if resp.split()[0] != "OK":
-        print("Not auth")
+    ret = hand.start_session(conf)
+    if ret[0] != "OK":
+        print("Error on setting session:", ret)
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
 
-        #raise ValueError("Not authorized")
+    print("Session, with key:", conf.sess_key[:12], "...")
+
+    ret =  hand.login(conf, "admin", "1234")
+    if ret[0] != "OK":
+        print ("Server login fail:", ret)
+        raise ValueError("Not authorized")
 
     hand.client("kadd k2 1234")
 

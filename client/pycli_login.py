@@ -49,7 +49,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 9999)")
+    print( "            -p port   - Port to use (default: 6666)")
     print( "            -l level  - Log level (default: 0)")
     print( "            -c file   - Save comm to file")
     print( "            -s        - Showkey")
@@ -67,7 +67,7 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
+    ["p:",  "port",     6666,   None],      \
     ["c:",  "comm",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     resp3 = hand.client(["hello", "world"] , "", False)
     print("Hello Response: ", resp3)
 
-    ret = pyclisup.start_session(hand, conf)
+    ret = hand.start_session(hand, conf)
 
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
