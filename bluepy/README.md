@@ -1,12 +1,12 @@
-#                                Python Bluepoint
-## 	Full encryption
+# Python Bluepoint
+## Full encryption
 
   The power of this encrption comed from the following primitives,
 implemented as 'C' macros.
 
         HECTOR(op)              use op with vector
-        PASSLOOP(op)            use op with vector
-        FWLOOP(op)              forward loop
+        PASSLOOP(op)            use op with pass as vector
+        FWLOOP(op)              forward loop traverse
         FWLOOP2(op)             forward loop variation
         BWLOOP(op)              backward loop
         BWLOOP2(op)             backward loop variation
@@ -24,11 +24,20 @@ of mathematical / logical operators.
 
  The resulting bit propagation is such high quality, that a single bit change
 in the original text will change every byte in the resulting block.
+(see bit description study in the code's directory)
 
  This beats current industrial strength encryptions, and perhaps qualifies for the
 quantum challenge.
 
+ Decryption is done by applying the ops in reverse, both by order and meaning. This is very
+apparent in the functions ENCRYPT() and DECRYPT().
 
+TODO;
+
+ Started the virtual machine operation, where the encryption is run through
+a virtual machine stack, following a recipe or getting hints from the password.
+
+Thu 13.Oct.2022
 
 
 
