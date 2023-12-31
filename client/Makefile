@@ -1,9 +1,9 @@
-# Use to build and test modules
+# Use this to build and test modules
 
-.PHONY: test
+.PHONY: testx, testx2, tests
 
 all:
-	@echo Targets: server test test2 hello clean init
+	@echo Targets: server tests testx testx2 hello clean init
 
 server:
 	@# Start server
@@ -13,7 +13,12 @@ init:
 	rm -rf ../data/.pyvserv/passwd.secret
 	-python3 ./pycli_uini.py -q
 
-test:
+tests:
+	@cd tests
+	@pytest
+
+
+testx:
 	-python3 ./pycli_ping.py
 	-python3 ./pycli_hello.py
 	-python3 ./pycli_ver.py
@@ -25,7 +30,7 @@ test:
 	-python3 ./pycli_lsd.py
 
 # This is optional (untested)
-test2:
+test2x:
 	-python3 ./pycli_kadd.py -q
 	-python3 ./pycli_kini.py -q
 	-python3 ./pycli_uadd.py -q

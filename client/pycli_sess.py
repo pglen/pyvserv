@@ -5,10 +5,10 @@ from __future__ import print_function
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
 
-from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
+from Crypto.Hash import SHA512
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -106,7 +106,7 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    #print("ip:", ip, "port", conf.port)
+    #print("IP:", ip, respc);
     #print("Initial:", respc);
 
     resp3 = hand.client(["hello",] , "", False)

@@ -160,8 +160,11 @@ class DataHandler():
         #print("Handle_one", par, par.ekey[:16])
         self.par = par
         try:
-            cur_thread = threading.currentThread()
-            self.name = cur_thread.getName()
+            #cur_thread = threading.currentThread()
+            cur_thread = threading.current_thread()
+            #self.name = cur_thread.getName()
+            self.name = cur_thread.name
+
             state = 0; xlen = []; newdata = ""; ldata = ""
             while 1:
                 if state == 0:

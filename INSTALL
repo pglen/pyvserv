@@ -48,12 +48,15 @@ On Fedora:
     sudo yum install python3-bcrypt
     sudo yum install pycrypto
 
+
+# Update:
+
+Pycrypto went thru an update and a name change
+
+pip uninstall pycrypto
+pip install pycryptodome
+
+
+May want to use --force-reinstall option if you have problems.
+
 # EOF
-
-
-
-
-
-
-
-
