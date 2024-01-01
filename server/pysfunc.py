@@ -667,63 +667,92 @@ def get_udel_func(self, strx):
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
 def get_fname_func(self, strx):
+
     try:
-        self.resp.fname = strx[1]
-        response = ["OK", "Send file", self.resp.fname]
+        if os.path.isfile(strx[1]):
+            response = ["ERR", "File exists. Delete first.", strx[1]]
+        else:
+            self.resp.fname = strx[1]
+            response = ["OK", "Send file", self.resp.fname]
+
+            # Create handle
+            try:
+                self.resp.fh = open(self.resp.fname, "wb")
+            except:
+                response = ["ERR", "Cannot create file", self.resp.fname]
     except:
         response = ["ERR",  "Must specify file name"]
+
+    #   pysyslog.syslog("Opened", xstr[1])
+
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_data_func(self, strx):
+
+    #print("fname", self.resp.fname, "data:", strx)
+
     if self.resp.fname == "":
         response = ["ERR", "No filename for data"]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
+
     try:
-       self.resp.dlen = int(strx[1])
+        dlen = len(strx[1])
+        if dlen == 0:
+            response = ["ERR", "Empty Data, closing file"]
+            if  self.resp.fh:
+                self.resp.fh.close()
+                self.resp.fh = None
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+            pass
     except:
-        response = ["ERR", "Must specify file name"]
+        response = ["ERR", "Must send some data"]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
+
     try:
-        fh = open(self.resp.fname, "wb")
+        self.resp.fh.write(strx[1])
     except:
-        response = ["ERR", "Cannot save file on server"]
+        print(sys.exc_info())
+        response = ["ERR", "Cannot save data on server"]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-    self.resp.datahandler.putencode(["OK", "Send data"], self.resp.ekey)
 
     # Consume buffers until we got all
     mylen = 0
-    while mylen < self.resp.dlen:
-        need = min(pyservsup.buffsize,  self.resp.dlen - mylen)
-        need = max(need, 0)
-        data = self.resp.datahandler.handle_one(self.resp)
-        if self.resp.ekey != "":
-            data2 = bluepy.bluepy.decrypt(data, self.resp.ekey)
-        else:
-            data2 = data
-        try:
-            fh.write(data2)
-        except:
-            response = "ERR Cannot write data on server"
-            self.resp.datahandler.putdata(response, self.resp.ekey, False)
-            fh.close()
-            return
-        mylen += len(data)
-        # Faulty transport, abort
-        if len(data) == 0:
-            break
-    fh.close()
-    if  mylen != self.resp.dlen:
-        response = "ERR faulty amount of data arrived"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
-        return
-    xstr = "Received file: '" + self.resp.fname + \
-                "' " + str(self.resp.dlen) + " bytes"
-    print( xstr)
-    pysyslog.syslog(xstr)
-    self.resp.datahandler.putdata("OK Got data", self.resp.ekey)
+    #while mylen < self.resp.dlen:
+    #    need = min(pyservsup.buffsize,  self.resp.dlen - mylen)
+    #    need = max(need, 0)
+    #    data = self.resp.datahandler.handle_one(self.resp)
+    #    if self.resp.ekey != "":
+    #        data2 = bluepy.bluepy.decrypt(data, self.resp.ekey)
+    #    else:
+    #        data2 = data
+    #    try:
+    #        fh.write(data2)
+    #    except:
+    #        response = "ERR Cannot write data on server"
+    #        self.resp.datahandler.putdata(response, self.resp.ekey, False)
+    #        fh.close()
+    #        return
+    #    mylen += len(data)
+    #    # Faulty transport, abort
+    #    if len(data) == 0:
+    #        break
+    #fh.close()
+
+    #if  mylen != self.resp.dlen:
+    #    response = "ERR faulty amount of data arrived"
+    #    self.resp.datahandler.putdata(response, self.resp.ekey)
+    #    return
+
+    xstr = "Received chunk: '" + self.resp.fname + \
+                "' " + str(dlen) + " bytes"
+    #print( xstr)
+    #pysyslog.syslog(xstr)
+    #self.resp.datahandler.putdata("OK Got data", self.resp.ekey)
+    self.resp.datahandler.putencode(["OK",  "Got data"], self.resp.ekey)
 
 def get_help_func(self, strx):
 

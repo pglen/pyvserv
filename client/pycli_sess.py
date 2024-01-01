@@ -109,10 +109,6 @@ if __name__ == '__main__':
     #print("IP:", ip, respc);
     #print("Initial:", respc);
 
-    resp3 = hand.client(["hello",] , "", False)
-    if conf.verbose:
-        print("Hello Response:", resp3)
-
     resp = hand.client(["akey"])
     #print("akey response", resp)
 
@@ -123,13 +119,11 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if conf.verbose:
-        print("Got hash:", "'" + resp[1] + "'")
+        print("Got akey hash:", "'" + resp[1] + "'")
         pass
 
-    #resp2 = hand.getreply()
-
-    if conf.pgdebug > 4:
-        print ("Server response2:\n" +  "'" + resp2[1].decode("cp437") +  "'\n")
+    #if conf.pgdebug > 4:
+    #    print ("Server response2:\n" +  "'" + resp[1].decode("cp437") +  "'\n")
 
     hhh = SHA512.new(); hhh.update(resp[2])
 
@@ -170,8 +164,11 @@ if __name__ == '__main__':
         hand.close();
         sys.exit(0)
 
+    resp0 = hand.client(["hello",], )
+    print("Hello (unencrypted) Response:", resp0[1])
+
     #if conf.pgdebug > 1:
-    print("Got pub key", hand.pubkey, "size =", hand.pubkey.size_in_bits())
+    #    print("Got pub key", hand.pubkey, "size =", hand.pubkey.size_in_bits())
 
     # Generate communication key
     conf.sess_key = Random.new().read(512)
@@ -189,11 +186,7 @@ if __name__ == '__main__':
     if conf.pgdebug > 2:
         support.shortdump("sess_keyx", sess_keyx )
 
-    #print("Key Hexdigest", ttt.hexdigest()[:16])
-
-    #resp3 = hand.client(["sess",], "", False) 3 error responses
     resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
-
     #print("Sess Response:", resp3)
 
     if resp3[0] != "OK":
@@ -203,14 +196,45 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Make a note of the session key
-    print(resp3[1])
-    support.shortdump("All is encrypted with", conf.sess_key )
+    #print(resp3[1])
+    support.shortdump(" All is encrypted with", conf.sess_key )
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
-    print("Hello Response:", resp4[1])
+    print("Hello (encrypted) Response:", resp4[1])
 
-    hand.client(["quit",],conf.sess_key)
+    # --------------------------------------------------------------------
+    # Generate communication key, second session and second run
+
+    conf.sess_key2 = Random.new().read(512)
+    sss2 = SHA512.new(); sss2.update(conf.sess_key2)
+
+    #cipher = PKCS1_v1_5.new(hand.pubkey)
+    #print ("cipher", cipher.can_encrypt())
+
+    if conf.pgdebug > 2:
+        support.shortdump("conf.sess_key2", conf.sess_key2 )
+
+    sess_keyx2 = cipher.encrypt(conf.sess_key2)
+    ttt2 = SHA512.new(); ttt2.update(sess_keyx2)
+
+    if conf.pgdebug > 2:
+        support.shortdump("sess_keyx", sess_keyx )
+
+    #print("Key Hexdigest", ttt2.hexdigest()[:16])
+
+    resp4 = hand.client(["sess", sss2.hexdigest(), ttt2.hexdigest(), sess_keyx2],
+                                conf.sess_key, False)
+
+    # Make a note of the session key
+    #print(resp4[1])
+    support.shortdump(" All is encrypted with", conf.sess_key2 )
+
+    # Session estabilished, try a simple command
+    resp5 = hand.client(["hello",], conf.sess_key2)
+    print("Hello (encrypted2) Response:", resp5[1])
+
+    hand.client(["quit",],conf.sess_key2)
     hand.close();
 
     sys.exit(0)

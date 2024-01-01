@@ -6,14 +6,13 @@
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
-sys.path.append(os.path.join(base,  '../../pycommon'))
+# Set parent as module include path
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
 
-import support, pycrypt, pyservsup, pyclisup, syslog
-import comline, pypacker, crysupp
-import bluepy
+from common import support, pycrypt, pyservsup, pyclisup
+from common import pysyslog, comline, pypacker
 
 # ------------------------------------------------------------------------
 # Globals
@@ -42,7 +41,7 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
+    ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \
@@ -79,10 +78,12 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client(["hello",] , "", False)
-    print("Hello Response:", resp3[1])
+    #resp3 = hand.client(["hello",] , "", False)
+    #print("Hello Response:", resp3[1])
 
-    ret = pyclisup.start_session(hand, conf)
+    conf.sess_key = ""
+    ret = ["OK",]
+    #ret = hand.start_session(conf)
 
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
@@ -92,11 +93,12 @@ if __name__ == '__main__':
 
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  resp3[1])
-    print("Post session, all is encrypted")
+    #print("Post session, all is encrypted")
 
     # Session estabilished, try a simple command
-    #resp4 = hand.client(["hello",], conf.sess_key)
-    #print("Hello Response:", resp4[1])
+    resp4 = hand.client(["hello",], conf.sess_key)
+    print("Hello (plain) Response:", resp4)
+    #print("Hello (encrypted) Response:", resp4[1])
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
     #print ("Server user response:", cresp[1])
@@ -104,14 +106,31 @@ if __name__ == '__main__':
     cresp = hand.client(["pass", "1234"], conf.sess_key)
     #print ("Server pass response:", cresp[1])
 
-    cresp = hand.client(["ls", ], conf.sess_key)
-    print ("Server  ls response:", cresp)
+    #cresp = hand.client(["ls", ], conf.sess_key)
+    #print ("Server  ls response:", cresp)
+
+    cresp = hand.client(["file", "test"], conf.sess_key)
+    print ("Server file response:", cresp)
+    if cresp[0] != "OK":
+        print("Err: ", cresp)
+        cresp = hand.client(["quit", ], conf.sess_key)
+        print ("Server quit response:", cresp)
+        sys.exit(0)
+
+    fp = open("test_data.txt", "rb")
+    while 1:
+        buf = fp.read(5)
+        print("sending", buf)
+
+        cresp = hand.client(["data", buf], conf.sess_key)
+        print ("Server data response:", cresp)
+        if len (buf) == 0:
+            break
 
     #hand.getfile("ref", "ref_local", conf.sess_key)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)
-
 
     sys.exit(0)
 

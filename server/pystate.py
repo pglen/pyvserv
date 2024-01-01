@@ -6,11 +6,6 @@ from Crypto.Hash import SHA512
 import os, sys, getopt, signal, select, string, time, stat, base64
 import inspect
 
-#base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join(base, '../bluepy'))
-#sys.path.append(os.path.join(base, '../common'))
-#sys.path.append(os.path.join(base,  '../../pycommon'))
-
 import common.pyservsup as pyservsup, common.pyclisup as pyclisup
 import common.support as support
 import common.crysupp as crysupp, common.pysyslog as pysyslog
@@ -133,12 +128,15 @@ state_table = [
             ("uini",    auth_sess,  none_in,    get_uini_func,  uini_help),
             ("akey",    initial,    auth_key,   get_akey_func,  akey_help),
             ("sess",    auth_key,   auth_sess,  get_sess_func,  sess_help),
+            ("sess",    auth_in,    none_in,    get_sess_func,  sess_help),
             ("tout",    auth_in,    none_in,    get_tout_func,  tout_help),
             ("kadd",    auth_in,    none_in,    get_kadd_func,  kadd_help),
             ("user",    auth_sess,  auth_user,  get_user_func,  user_help),
             ("pass",    auth_user,  auth_pass,  get_pass_func,  pass_help),
             ("chpass",  auth_sess,  none_in,    get_chpass_func,  chpass_help),
             ("file",    auth_pass,  got_fname,  get_fname_func, file_help),
+            ("file",    all_in,     got_fname,  get_fname_func, file_help),
+            ("data",    got_fname,  none_in,    get_data_func,  data_help),
             ("fget",    auth_pass,  none_in,    get_fget_func,  fget_help),
             ("uadd",    auth_pass,  none_in,    get_uadd_func,  uadd_help),
             ("uena",    auth_sess,  none_in,    get_uena_func,  uena_help),
@@ -149,7 +147,6 @@ state_table = [
             ("cd",      auth_pass,  none_in,    get_cd_func,    cdcd_help),
             ("pwd",     auth_pass,  none_in,    get_pwd_func,   pwdd_help),
             ("stat",    auth_pass,  none_in,    get_stat_func,  stat_help),
-            ("data",    got_fname,  none_in,    get_data_func,  data_help),
             #("kini",    all_in,     none_in,    get_kini_func,  kini_help),
             ]
 # ------------------------------------------------------------------------
@@ -160,6 +157,7 @@ class StateHandler():
         # Fill in class globals
         self.curr_state = initial
         self.resp = resp
+        self.resp.fh = None
         self.badpass = 0
         self.wr = pywrap.wrapper()
         self.pb = pypacker.packbin()
@@ -223,9 +221,10 @@ class StateHandler():
 
                 cond = aa[1] == self.curr_state
                 if not cond:
-                    cond = cond or (aa[1] == auth_in and self.curr_state >= in_idle)
+                    cond = aa[1] == auth_in and self.curr_state >= in_idle
                 if not cond:
-                    cond = cond or aa[1] == all_in
+                    cond = aa[1] == all_in
+
                 if cond:
                         # Execute relevant function
                         ret2 = aa[3](self, comx)

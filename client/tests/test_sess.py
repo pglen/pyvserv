@@ -116,10 +116,22 @@ def test_func(capsys):
     resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
     assert resp3[0] ==  "OK"
 
-    resp = hand.client(["quit",], sess_key)
+    resp5 = hand.client(["hello",], sess_key, False)
+    print("Hello (encrypted2) Response:", resp5[1])
+
+    # Generate communication key2
+    sess_key2 = Random.new().read(512)
+    sss2 = SHA512.new(); sss2.update(sess_key2)
+
+    sess_keyx2 = cipher.encrypt(sess_key2)
+    ttt2 = SHA512.new(); ttt2.update(sess_keyx2)
+
+    resp3 = hand.client(["sess", sss2.hexdigest(), ttt2.hexdigest(), sess_keyx2], sess_key, False)
+    assert resp3[0] ==  "OK"
+
+    resp = hand.client(["quit",], sess_key2)
     hand.close()
 
     assert resp[0] == 'OK'
-
 
 # EOF

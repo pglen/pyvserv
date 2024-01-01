@@ -259,7 +259,7 @@ class CliSup():
         dstr = self.wr.wrap_data(key, datax)
 
         if self.pgdebug > 7:
-            print( "   put: '%s'" % dstr)
+            print( "   wrapped: '%s'" % dstr)
 
         if self.pgdebug > 8:
             dstr2 = self.wr.unwrap_data(key, dstr)
