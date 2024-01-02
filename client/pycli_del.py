@@ -113,7 +113,7 @@ if __name__ == '__main__':
     print ("Server del response:", cresp)
 
     if cresp[0] != "OK":
-        print("Err: ", cresp)
+        #print("Err: ", cresp)
         cresp = hand.client(["quit", ], conf.sess_key)
         print ("Server quit response:", cresp)
         sys.exit(0)

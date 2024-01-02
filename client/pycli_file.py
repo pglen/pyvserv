@@ -107,26 +107,30 @@ if __name__ == '__main__':
         cresp = hand.client(["ls", ], conf.sess_key)
         print ("Server  ls response:", cresp)
 
-    cresp = hand.client(["file", "test"], conf.sess_key)
+    cresp = hand.client(["file", "zeros"], conf.sess_key)
     print ("Server file response:", cresp)
     if cresp[0] != "OK":
-        print("Err: ", cresp)
+        #print("Err: ", cresp)
         cresp = hand.client(["quit", ], conf.sess_key)
         print ("Server quit response:", cresp)
         sys.exit(0)
 
     fp = open("zeros_local", "rb")
+    offs = 0
     while 1:
-        buf = fp.read(5)
+        buf = fp.read(1024)
         #print("sending", buf)
-        cresp = hand.client(["data", buf], conf.sess_key)
+        cresp = hand.client(["data", offs, buf], conf.sess_key)
         if conf.verbose:
             print ("Server data response:", cresp)
         if cresp[0] != "OK":
             print("Cannot send", cresp)
             break
-        if len(buf) == 0:
+        blen = len(buf)
+        if blen == 0:
             break
+
+        offs += blen
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)

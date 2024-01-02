@@ -151,19 +151,22 @@ class CliSup():
                 print ("Server fput response:", cresp)
             return  cresp
 
-        fp = open(fname, "rb")
-        while 1:
-            try:
-                buf = fp.read(rbuffsize)
-                #print("sending", buf)
-                dstr = self.wrapx(buf, key)
-                self.sendx(dstr)
-                if len(buf) == 0:
-                    break
-            except:
-                return ["ERR", "Cannot send", sys.exc_info()]
+        try:
+            fp = open(fname, "rb")
+            while 1:
+                try:
+                    buf = fp.read(rbuffsize)
+                    #print("sending", buf)
+                    dstr = self.wrapx(buf, key)
+                    self.sendx(dstr)
+                    if len(buf) == 0:
+                        break
+                except:
+                    return ["ERR", "Cannot send", sys.exc_info()]
+        except:
+            return ["ERR", "Cannot open", sys.exc_info()]
 
-        return ["OK", "Sent Successfully"]
+        return ["OK", "Sent Successfully", fname]
 
     # ------------------------------------------------------------------------
     # Receive File. Return True for success.

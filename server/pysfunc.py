@@ -36,7 +36,8 @@ def contain_path(self, strp):
     #print("base dir", self.resp.cwd, self.resp.dir)
     #print("res dir", dname4)
 
-    if len(dname4) < len (self.resp.cwd):
+    # Compare root
+    if dname4[:len(self.resp.cwd)] != self.resp.cwd:
         return None
 
     return dname4
@@ -54,7 +55,7 @@ def get_mkdir_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    print("make dir", dname)
+    #print("make dir", dname)
 
     if os.path.isdir(dname):
         response = ["ERR", "Directory already exist.", strx[1]]
@@ -150,17 +151,21 @@ def get_fget_func(self, strx):
         response = ["ERR", "Must specify file name."]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-    dname = support.unescape(strx[1]);
-    dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
-    dname2 = support.dirclean(dname2)
-    if not os.path.isfile(dname2):
+
+    dname = contain_path(self, strx[1])
+    if not dname:
+        response = ["ERR", "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if not os.path.isfile(dname):
         response = ["ERR", "File does not exist.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     flen = 0
     try:
-        flen = os.stat(dname2)[stat.ST_SIZE]
-        fh = open(dname2, "rb")
+        flen = os.stat(dname)[stat.ST_SIZE]
+        fh = open(dname, "rb")
     except:
         support.put_exception("fget")
         response = ["ERR", "Cannot open file.", dname]
@@ -192,24 +197,24 @@ def get_fget_func(self, strx):
     # Lof and set state to IDLE
     xstr = "Sent file: '" + dname + \
                 "' " + str(flen) + " bytes"
-
     #print(xstr)
     pysyslog.syslog(xstr)
 
-
 def get_fput_func(self, strx):
     #print("fget strx", strx)
-    dname = ""
-    if len(strx) == 1:
+
+    if len(strx[1]) == 0:
         response = ["ERR", "Must specify file name."]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    dname = support.unescape(strx[1]);
-    dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
-    dname2 = support.dirclean(dname2)
+    dname = contain_path(self, strx[1])
+    if not dname:
+        response = ["ERR", "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
 
-    if os.path.isfile(dname2):
+    if os.path.isfile(dname):
         response = ["ERR", "File exists. Please delete first", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
@@ -218,10 +223,10 @@ def get_fput_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
     try:
-        fh = open(dname2, "wb")
+        fh = open(dname, "wb")
     except:
         support.put_exception("fput")
-        response = ["ERR", "Cannot create file.", dname]
+        response = ["ERR", "Cannot create file.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -306,14 +311,17 @@ def get_cd_func(self, strx):
 
 def get_del_func(self, strx):
     try:
-        dname = support.unescape(strx[1]);
-        dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + strx[1]
-        dname3 = support.dirclean(dname2)
-        #print("dname3", dname3)
-        if os.path.isfile(dname3):
+        dname = contain_path(self, strx[1])
+        if not dname:
+            response = ["ERR", "No Access to directory.", strx[1]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+        #print("dname", dname)
+        if os.path.isfile(dname):
             try:
-                os.unlink(dname3)
-                response = ["OK", "File deleted",]
+                os.unlink(dname)
+                response = ["OK", "File deleted", strx[1], ]
             except:
                 response = ["ERR", "Could not delete file", strx[1]]
         else:
@@ -795,34 +803,35 @@ def get_udel_func(self, strx):
 
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
-def put_fname_func(self, strx):
+def put_file_func(self, strx):
+
+    # Close possible pending
+    if  self.resp.fh:
+        self.resp.fh.close()
+        self.resp.fh = None
+
+    dname = contain_path(self, strx[1])
+    if not dname:
+        response = ["ERR", "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if os.path.isfile(dname):
+        response = ["ERR", "File exists. Delete first.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
 
     try:
-        if os.path.isfile(strx[1]):
-            response = ["ERR", "File exists. Delete first.", strx[1]]
-        else:
-            if  self.resp.fh:
-                self.resp.fh.close()
-                self.resp.fh = None
-            self.resp.fname = strx[1]
-            response = ["OK", "Send file", self.resp.fname]
-
         try:
-            #dname = support.unescape(strx[1]);
-            #self.resp.dir = support.dirclean(self.resp.dir)
-            #dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + strx[1]
-            #dname3 = support.dirclean(dname2)
-            ##print("dname3", dname3)
-            dname = contain_path(self, strx[1])
             # Create handle
             self.resp.fh = open(dname, "wb")
+            self.resp.fname = strx[1]
+            response = ["OK", "Send file", self.resp.fname]
         except:
             response = ["ERR", "Cannot create file", self.resp.fname]
     except:
         response = ["ERR",  "Must specify file name"]
-
-    #   pysyslog.syslog("Opened", xstr[1])
-
+    #pysyslog.syslog("Opened", xstr[1])
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def put_data_func(self, strx):
@@ -835,7 +844,7 @@ def put_data_func(self, strx):
         return
 
     try:
-        dlen = len(strx[1])
+        dlen = len(strx[2])
         if dlen == 0:
             response = ["OK", "Empty Data, assuming EOF; Closing file"]
             if  self.resp.fh:
@@ -845,14 +854,16 @@ def put_data_func(self, strx):
             return
             pass
     except:
+        #print("file", sys.exc_info())
         response = ["ERR", "Must send some data"]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     try:
-        self.resp.fh.write(strx[1])
+        self.resp.fh.seek(strx[1], os.SEEK_SET)
+        self.resp.fh.write(strx[2])
     except:
-        print(sys.exc_info())
+        #print(sys.exc_info())
         response = ["ERR", "Cannot save data on server"]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
