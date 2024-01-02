@@ -128,10 +128,16 @@ if __name__ == '__main__':
         hand.close();
         sys.exit(0)
 
+    cresp = hand.client(["buff", "10000000",], conf.sess_key)
+    print ("Server buff response:", cresp)
+    if cresp[0] != "OK":
+        print("Error on buff command", cresp[1])
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        sys.exit(0)
+
     cresp = hand.client(["ls", ], conf.sess_key)
-
     print ("Server  ls response:", cresp)
-
     if cresp[0] != "OK":
         print("Error on listing directory:", cresp[1])
         hand.client(["quit"], conf.sess_key)

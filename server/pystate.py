@@ -110,6 +110,7 @@ stat_help  = "Usage: stat fname  -- Get file stat. Field list:\n"\
 tout_help  = "Usage: tout new_val -- Set / Reset timeout in seconds"
 ekey_help  = "Usage: ekey encryption_key -- Set encryption key "
 sess_help  = "Usage: sess session data -- Start session "
+buff_help  = "Usage: buff buff_size -- limited to 64k"
 xxxx_help  = "Usage: no data"
 
 # ------------------------------------------------------------------------
@@ -152,7 +153,7 @@ state_table = [
             ("cd",      auth_pass,  none_in,    get_cd_func,    cdcd_help),
             ("pwd",     auth_pass,  none_in,    get_pwd_func,   pwdd_help),
             ("stat",    auth_pass,  none_in,    get_stat_func,  stat_help),
-            #("kini",    all_in,     none_in,    get_kini_func,  kini_help),
+            ("buff",    auth_pass,  none_in,    get_buff_func,  buff_help),
             ]
 # ------------------------------------------------------------------------
 

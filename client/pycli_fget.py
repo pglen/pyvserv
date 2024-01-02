@@ -106,7 +106,7 @@ if __name__ == '__main__':
     if conf.sess_key:
         print("Post session, session key:", conf.sess_key[:12], "...")
 
-    resp3 = hand.client(["hello",],  conf.sess_key, False)
+    resp3 = hand.client(["hello", ],  conf.sess_key, False)
     print("Hello Response:", resp3)
 
     # Session estabilished, try a simple command
@@ -118,6 +118,14 @@ if __name__ == '__main__':
 
     #cresp = hand.client(["ls", ], conf.sess_key)
     #print ("Server  ls response:", cresp)
+
+    #cresp = hand.client(["buff", "10", ], conf.sess_key)
+    #print ("Server buff response:", cresp)
+    #if cresp[0] != "OK":
+    #    print("Error on buff command", cresp[1])
+    #    hand.client(["quit"], conf.sess_key)
+    #    hand.close();
+    #    sys.exit(0)
 
     ret2 = hand.getfile("zeros", "zeros_local", conf.sess_key)
     print ("Server  fget response:", ret2)

@@ -24,6 +24,19 @@ pgdebug = 0
 # ------------------------------------------------------------------------
 # State transition and action functions
 
+def get_buff_func(self, strx):
+    #print("buffer str", strx[1])
+    num = int(strx[1])
+    if num <= 0:
+        num = 1
+    elif num > 0xffff:
+        num = 0xffff
+
+    #print("buffer set to %d" % num)
+    pyservsup.buffsize = num
+    response = ["OK", "Buffer set to:", pyservsup.buffsize]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
 def get_lsd_func(self, strx):
 
     sss = ""
