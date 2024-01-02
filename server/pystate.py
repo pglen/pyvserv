@@ -75,6 +75,7 @@ pass_help   = "Usage: pass logon_pass"
 chpass_help = "Usage: chpass newpass"
 file_help   = "Usage: file fname -- Specify name for upload"
 fget_help   = "Usage: fget fname -- Download (get) file"
+fput_help   = "Usage: fput fname -- Upload (put) file"
 uadd_help   = "Usage: uadd user_name user_pass -- Create new user"
 kadd_help   = "Usage: kadd key_name key_val -- Add new encryption key"
 uini_help   = "Usage: uini user_name user_pass -- Create initial user. "\
@@ -128,16 +129,18 @@ state_table = [
             ("uini",    auth_sess,  none_in,    get_uini_func,  uini_help),
             ("akey",    initial,    auth_key,   get_akey_func,  akey_help),
             ("sess",    auth_key,   auth_sess,  get_sess_func,  sess_help),
-            ("sess",    auth_in,    none_in,    get_sess_func,  sess_help),
+            ("sess",    all_in,    auth_sess,  get_sess_func,  sess_help),
             ("tout",    auth_in,    none_in,    get_tout_func,  tout_help),
             ("kadd",    auth_in,    none_in,    get_kadd_func,  kadd_help),
             ("user",    auth_sess,  auth_user,  get_user_func,  user_help),
+            ("user",    all_in,     auth_user,  get_user_func,  user_help),
             ("pass",    auth_user,  auth_pass,  get_pass_func,  pass_help),
             ("chpass",  auth_sess,  none_in,    get_chpass_func,  chpass_help),
-            ("file",    auth_pass,  got_fname,  get_fname_func, file_help),
-            ("file",    all_in,     got_fname,  get_fname_func, file_help),
-            ("data",    got_fname,  none_in,    get_data_func,  data_help),
+            ("file",    auth_pass,  got_fname,  put_fname_func, file_help),
+            ("file",    all_in,     got_fname,  put_fname_func, file_help),
+            ("data",    got_fname,  none_in,    put_data_func,  data_help),
             ("fget",    auth_pass,  none_in,    get_fget_func,  fget_help),
+            ("fput",    auth_pass,  none_in,    get_fput_func,  fput_help),
             ("uadd",    auth_pass,  none_in,    get_uadd_func,  uadd_help),
             ("uena",    auth_sess,  none_in,    get_uena_func,  uena_help),
             ("aadd",    auth_pass,  none_in,    get_aadd_func,  aadd_help),

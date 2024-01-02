@@ -145,12 +145,11 @@ class CliSup():
         except:
             print( "Cannot open file", sys.exc_info()[1])
             return
-        resp = client(["file", fname, toname,], key)
+        resp = client(["fput", fname, toname,], key)
         print("file resp", resp)
 
-        resp = client("data " + str(flen), key)
-        print("data resp", resp)
-
+        #resp = client("data " + str(flen), key)
+        #print("data resp", resp)
 
         return True
 
@@ -236,6 +235,24 @@ class CliSup():
                 #int(cresp2[9]), int(cresp2[10]), int(cresp2[11])
                 #print(ddd)
 
+    # Add random stuff and wrap
+    def wrapx(self, message, key):
+
+        rstr = self.rr.read(random.randint(14, 24))
+        xstr = self.rr.read(random.randint(24, 36))
+        datax = [rstr, message, xstr]
+
+        dstr = self.wr.wrap_data(key, datax)
+
+        if self.pgdebug > 7:
+            print( "   wrapped: '%s'" % dstr)
+
+        if self.pgdebug > 8:
+            dstr2 = self.wr.unwrap_data(key, dstr)
+            print( "   unwrap: ", dstr2)
+
+        return dstr
+
     # ------------------------------------------------------------------------
     # Ping Pong function with encryption and padding. message is a
     # collection of data to send
@@ -252,19 +269,7 @@ class CliSup():
         if key == "" and self.sess:
             raise(ValueError, "Must pass session key when in session")
 
-        rstr = self.rr.read(random.randint(14, 24))
-        xstr = self.rr.read(random.randint(24, 36))
-        datax = [rstr, message, xstr]
-
-        dstr = self.wr.wrap_data(key, datax)
-
-        if self.pgdebug > 7:
-            print( "   wrapped: '%s'" % dstr)
-
-        if self.pgdebug > 8:
-            dstr2 = self.wr.unwrap_data(key, dstr)
-            print( "   unwrap: ", dstr2)
-
+        dstr = self.wrapx(message, key)
         self.sendx(dstr)
 
         #if self.pgdebug > 0:

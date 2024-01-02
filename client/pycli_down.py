@@ -11,15 +11,6 @@ if sys.version_info[0] < 3:
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-#base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join(base, '../bluepy'))
-#sys.path.append(os.path.join(base, '../common'))
-#sys.path.append(os.path.join(base,  '../../pycommon'))
-#
-#import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, pypacker, crysupp
-#import bluepy
-
 # Set parent as module include path
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -44,6 +35,7 @@ def phelp():
     print( "            -p        - Port to use (default: 9999)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
+    print( "            -n        - No encryption (plain)")
     print( "            -h        - Help")
     print()
     sys.exit(0)
@@ -59,6 +51,7 @@ optarr = \
     ["f:",  "file",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
+    ["n",   "plain",    0,      None],      \
     ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
@@ -96,10 +89,13 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client(["id",] , "", False)
-    print("Id Response:", resp3[1])
+    #resp3 = hand.client(["id",] , "", False)
+    #print("ID Response:", resp3[1])
 
-    ret = hand.start_session(conf)
+    ret = ["OK",]
+    conf.sess_key = ""
+
+    #ret = hand.start_session(conf)
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
         hand.client(["quit"])
@@ -108,24 +104,27 @@ if __name__ == '__main__':
 
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  resp3[1])
-    print("Post session, session key:", conf.sess_key[:12], "...")
+
+    if conf.sess_key:
+        print("Post session, session key:", conf.sess_key[:12], "...")
 
     resp3 = hand.client(["hello",],  conf.sess_key, False)
-
-    print("Hello session Response:", resp3)
+    print("Hello Response:", resp3)
 
     # Session estabilished, try a simple command
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
-    cresp = hand.login( conf, "admin", "1234")
+    cresp = hand.login(conf, "admin", "1234")
     print ("Server login response:", cresp)
 
     cresp = hand.client(["ls", ], conf.sess_key)
     print ("Server  ls response:", cresp)
 
+    print("Started bigfile ...")
+    ttt = time.time()
     ret = hand.getfile("bigfile", "bigfile_local", conf.sess_key)
-    print ("Server fget response:", ret)
+    print ("Server fget response:", ret, "time %.2f sec" % (time.time() - ttt))
 
     ret2 = hand.getfile("zeros", "zeros_local", conf.sess_key)
     print ("Server  fget response:", ret2)

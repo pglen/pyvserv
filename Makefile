@@ -15,7 +15,7 @@ git:
 	git add .
 	git commit -m auto
 	git push
-	git push local
+	#git push local
 
 build:
 	#obsolete, build for py3 only
@@ -25,8 +25,8 @@ build:
 build3:
 	@make -C bluepy build3
 
-test:
-	@make -C client test
+tests:
+	@make -C client tests
 
 hello:
 	@make -C client hello

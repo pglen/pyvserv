@@ -226,6 +226,12 @@ if __name__ == '__main__':
     resp4 = hand.client(["sess", sss2.hexdigest(), ttt2.hexdigest(), sess_keyx2],
                                 conf.sess_key, False)
 
+    if resp4[0] != "OK":
+        print("Err: ", resp4)
+        cresp = hand.client(["quit", ], conf.sess_key)
+        print ("Server quit response:", cresp)
+        sys.exit(0)
+
     # Make a note of the session key
     #print(resp4[1])
     support.shortdump(" All is encrypted with", conf.sess_key2 )

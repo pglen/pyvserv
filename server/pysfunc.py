@@ -83,6 +83,9 @@ def get_ls_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_fget_func(self, strx):
+
+    #print("fget strx", strx)
+
     dname = ""
     if len(strx) == 1:
         response = ["ERR", "Must specify file name."]
@@ -133,6 +136,49 @@ def get_fget_func(self, strx):
 
     #print(xstr)
     pysyslog.syslog(xstr)
+
+
+def get_fput_func(self, strx):
+    #print("fget strx", strx)
+    dname = ""
+    if len(strx) == 1:
+        response = ["ERR", "Must specify file name."]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    dname = support.unescape(strx[1]);
+    dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
+    dname2 = support.dirclean(dname2)
+
+    if os.path.isfile(dname2):
+        response = ["ERR", "File exists. Please delete first", dname]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    response = ["OK", "Send file", strx[1]]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+    try:
+        fh = open(dname2, "wb")
+    except:
+        support.put_exception("fput")
+        response = ["ERR", "Cannot create file.", dname]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    # Loop, break when file end or transmission error
+    while 1:
+        data = self.resp.datahandler.handle_one(self.resp)
+        if not data:
+            break
+        dstr = self.wr.unwrap_data(self.resp.ekey, data)
+        #print("dstr", dstr)
+
+        if not dstr[1]:
+            break
+
+        fh.write(dstr[1])
+
+    fh.close()
 
 
 def get_ekey_func(self, strx):
@@ -666,12 +712,15 @@ def get_udel_func(self, strx):
 
     self.resp.datahandler.putdata(response, self.resp.ekey)
 
-def get_fname_func(self, strx):
+def put_fname_func(self, strx):
 
     try:
         if os.path.isfile(strx[1]):
             response = ["ERR", "File exists. Delete first.", strx[1]]
         else:
+            if  self.resp.fh:
+                self.resp.fh.close()
+                self.resp.fh = None
             self.resp.fname = strx[1]
             response = ["OK", "Send file", self.resp.fname]
 
@@ -687,7 +736,7 @@ def get_fname_func(self, strx):
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
-def get_data_func(self, strx):
+def put_data_func(self, strx):
 
     #print("fname", self.resp.fname, "data:", strx)
 
@@ -699,7 +748,7 @@ def get_data_func(self, strx):
     try:
         dlen = len(strx[1])
         if dlen == 0:
-            response = ["ERR", "Empty Data, closing file"]
+            response = ["OK", "Empty Data, assuming EOF; Closing file"]
             if  self.resp.fh:
                 self.resp.fh.close()
                 self.resp.fh = None
@@ -718,34 +767,6 @@ def get_data_func(self, strx):
         response = ["ERR", "Cannot save data on server"]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-
-    # Consume buffers until we got all
-    mylen = 0
-    #while mylen < self.resp.dlen:
-    #    need = min(pyservsup.buffsize,  self.resp.dlen - mylen)
-    #    need = max(need, 0)
-    #    data = self.resp.datahandler.handle_one(self.resp)
-    #    if self.resp.ekey != "":
-    #        data2 = bluepy.bluepy.decrypt(data, self.resp.ekey)
-    #    else:
-    #        data2 = data
-    #    try:
-    #        fh.write(data2)
-    #    except:
-    #        response = "ERR Cannot write data on server"
-    #        self.resp.datahandler.putdata(response, self.resp.ekey, False)
-    #        fh.close()
-    #        return
-    #    mylen += len(data)
-    #    # Faulty transport, abort
-    #    if len(data) == 0:
-    #        break
-    #fh.close()
-
-    #if  mylen != self.resp.dlen:
-    #    response = "ERR faulty amount of data arrived"
-    #    self.resp.datahandler.putdata(response, self.resp.ekey)
-    #    return
 
     xstr = "Received chunk: '" + self.resp.fname + \
                 "' " + str(dlen) + " bytes"
