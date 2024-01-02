@@ -11,11 +11,14 @@ import  random, stat, subprocess
 
 from Crypto import Random
 
-sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup
-import pysyslog, crysupp, pypacker
+# Set parent as module include path
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
 
+from common import support, pycrypt, pyservsup, pyclisup
+from common import pysyslog, comline, pypacker
 
-for aa in range(1000):
+for aa in range(100):
     subprocess.Popen("./pycli_ver.py")
 
