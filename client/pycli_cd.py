@@ -15,15 +15,6 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
 
-#base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join(base, '../bluepy'))
-#sys.path.append(os.path.join(base, '../common'))
-#sys.path.append(os.path.join(base,  '../../pycommon'))
-#
-#import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, pypacker, crysupp
-#import bluepy
-
 # Set parent as module include path
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
@@ -31,7 +22,6 @@ sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
 from common import pysyslog, comline, pypacker
-
 
 def errexit(hand, retstr, msg = "exiting"):
     print(msg, retstr)
@@ -135,24 +125,26 @@ if __name__ == '__main__':
     #print ("Server cd response:", cresp[1])
 
     cresp = hand.client(["pwd",], conf.sess_key)
-    print ("Server pwd response:", cresp[1])
+    print ("Server pwd response:", cresp)
 
     cresp = hand.client(["lsd",], conf.sess_key)
     if cresp[0] != "OK":
         errexit(hand, "Error on lsd command", cresp)
-    print ("Server ls response:", cresp)
+    print ("Server lsd response:", cresp)
 
     cresp = hand.client(["cd", "test_1"], conf.sess_key)
-    print ("Server cd response:", cresp[1])
+    print ("Server cd response:", cresp)
+
+    cresp = hand.client(["pwd",], conf.sess_key)
+    print ("Server pwd response:", cresp)
 
     #cresp = hand.client(["cd", "keys"], conf.sess_key)
     #print ("Server cd response:", cresp[1])
 
-    cresp = hand.client(["ls",], conf.sess_key)
-    if cresp[0] != "OK":
-        errexit(hand, "Error on ls command", cresp)
-
-    print ("Server ls after cd response:", cresp)
+    #cresp = hand.client(["ls",], conf.sess_key)
+    #if cresp[0] != "OK":
+    #    errexit(hand, "Error on ls command", cresp)
+    #print ("Server ls after cd response:", cresp)
 
     ''' Stat return values are as in python os.stat() + OK and name prefix
     "OK", fname,
@@ -163,25 +155,30 @@ if __name__ == '__main__':
     st_mtime_ns
     st_ctime_ns '''
 
-    print ("Server stat response:")
-    hand.listfiles(hand, cresp[1:], conf.sess_key)
+    #print ("Server stat response:")
+    #hand.listfiles(hand, cresp[1:], conf.sess_key)
 
     cresp = hand.client(["cd", "../test_2"], conf.sess_key)
-    print ("Server cd test2 response:", cresp)
+    print ("Server cd  response:", cresp)
 
-    cresp = hand.client(["ls",], conf.sess_key)
-    print ("Server ls response:", cresp)
+    cresp = hand.client(["pwd",], conf.sess_key)
+    print ("Server pwd response:", cresp)
+
+    #cresp = hand.client(["ls",], conf.sess_key)
+    #print ("Server ls response:", cresp)
 
     cresp = hand.client(["cd", "/"], conf.sess_key)
     print ("Server cd response:", cresp)
 
-    cresp = hand.client(["ls",], conf.sess_key)
+    cresp = hand.client(["pwd",], conf.sess_key)
+    print ("Server pwd response:", cresp)
 
-    if cresp[0] != "OK":
-        errexit(hand, "Error on ls command", cresp[1])
-
-    print ("Server ls after cd / response:")
-    print (cresp)
+    #cresp = hand.client(["ls",], conf.sess_key)
+    #if cresp[0] != "OK":
+    #    errexit(hand, "Error on ls command", cresp[1])
+    #
+    #print ("Server ls after cd / response:")
+    #print (cresp)
 
     hand.client(["quit",],conf.sess_key)
     hand.close();
@@ -189,4 +186,3 @@ if __name__ == '__main__':
     sys.exit(0)
 
 # EOF
-

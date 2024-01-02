@@ -21,8 +21,54 @@ import bluepy
 
 pgdebug = 0
 
+def contain_path(self, strp):
+
+    dname = support.unescape(strp);
+    # Absolute path?
+    if len(strp) > 0 and strp[0] == os.sep:
+        dname2 = self.resp.cwd + os.sep + dname
+    else:
+        dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
+
+    dname3 = support.dirclean(dname2)
+    dname4 = os.path.abspath(dname3)
+
+    #print("base dir", self.resp.cwd, self.resp.dir)
+    #print("res dir", dname4)
+
+    if len(dname4) < len (self.resp.cwd):
+        return None
+
+    return dname4
+
 # ------------------------------------------------------------------------
 # State transition and action functions
+
+def get_mkdir_func(self, strx):
+    #print("make dir", strx[1])
+
+    dname = contain_path(self, strx[1])
+
+    if not dname:
+        response = ["ERR", "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    print("make dir", dname)
+
+    if os.path.isdir(dname):
+        response = ["ERR", "Directory already exist.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    try:
+        response = ["OK", "Made directory:", strx[1]]
+        os.mkdir(dname)
+    except:
+        response = ["ERR", "Cannot make directory.", strx[1]]
+
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
 
 def get_buff_func(self, strx):
     #print("buffer str", strx[1])
@@ -82,7 +128,7 @@ def get_ls_func(self, strx):
         for aa in ddd:
             try:
                 aaa = dname2 + os.sep + aa
-                if not stat.S_ISDIR(os.stat(aaa)[stat.ST_MODE]):
+                if stat.S_ISREG(os.stat(aaa)[stat.ST_MODE]):
                     # Escape spaces
                     response.append(aa) #support.escape(aa))
             except:
@@ -108,7 +154,7 @@ def get_fget_func(self, strx):
     dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
     dname2 = support.dirclean(dname2)
     if not os.path.isfile(dname2):
-        response = ["ERR", "File does not exist.", dname]
+        response = ["ERR", "File does not exist.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     flen = 0
@@ -164,7 +210,7 @@ def get_fput_func(self, strx):
     dname2 = support.dirclean(dname2)
 
     if os.path.isfile(dname2):
-        response = ["ERR", "File exists. Please delete first", dname]
+        response = ["ERR", "File exists. Please delete first", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -231,25 +277,28 @@ def get_pwd_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_cd_func(self, strx):
-    org = self.resp.dir
-    try:
-        dname = support.unescape(strx[1]);
-        if dname == "..":
-            self.resp.dir = support.chup(self.resp.dir)
-        elif dname[0] == os.sep:
-            self.resp.dir = dname
-        else:
-            self.resp.dir += os.sep + dname
 
-        self.resp.dir = support.dirclean(self.resp.dir)
-        dname2 = self.resp.cwd + os.sep + self.resp.dir
-        dname2 = support.dirclean(dname2)
-        if os.path.isdir(dname2):
+    if not len(strx[1]):
+        response = ["ERR", "Directory name cannot be empty.",]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    dname = contain_path(self, strx[1])
+
+    if not dname:
+        response = ["ERR", "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print("dname", dname)
+    try:
+        if os.path.isdir(dname):
+            self.resp.dir = dname[len(self.resp.cwd):]
             response = ["OK ", self.resp.dir]
         else:
             # Back out
-            self.resp.dir = org
-            response = ["ERR", "Directory does not exist"]
+            #self.resp.dir = org
+            response = ["ERR", "Directory does not exist", strx[1]]
     except:
         support.put_exception("cd")
         response = ["ERR", "Must specify directory name"]
@@ -759,13 +808,14 @@ def put_fname_func(self, strx):
             response = ["OK", "Send file", self.resp.fname]
 
         try:
-            dname = support.unescape(strx[1]);
-            self.resp.dir = support.dirclean(self.resp.dir)
-            dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + strx[1]
-            dname3 = support.dirclean(dname2)
-            #print("dname3", dname3)
+            #dname = support.unescape(strx[1]);
+            #self.resp.dir = support.dirclean(self.resp.dir)
+            #dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + strx[1]
+            #dname3 = support.dirclean(dname2)
+            ##print("dname3", dname3)
+            dname = contain_path(self, strx[1])
             # Create handle
-            self.resp.fh = open(dname3, "wb")
+            self.resp.fh = open(dname, "wb")
         except:
             response = ["ERR", "Cannot create file", self.resp.fname]
     except:

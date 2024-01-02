@@ -140,6 +140,7 @@ state_table = [
             ("chpass",  auth_sess,  none_in,    get_chpass_func,  chpass_help),
             ("file",    auth_pass,  got_fname,  put_fname_func, file_help),
             ("file",    all_in,     got_fname,  put_fname_func, file_help),
+            ("mkdir",   auth_pass,  none_in,    get_mkdir_func, file_help),
             ("data",    got_fname,  none_in,    put_data_func,  data_help),
             ("fget",    auth_pass,  none_in,    get_fget_func,  fget_help),
             ("fput",    auth_pass,  none_in,    get_fput_func,  fput_help),
