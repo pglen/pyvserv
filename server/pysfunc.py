@@ -12,9 +12,9 @@ from Crypto.Hash import SHA512
 from Crypto import Random
 
 base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
-sys.path.append(os.path.join(base,  '../../pycommon'))
+#sys.path.append(os.path.join(base, '../bluepy'))
+#sys.path.append(os.path.join(base, '../common'))
+#sys.path.append(os.path.join(base,  '../../pycommon'))
 
 import support, pyservsup, pyclisup, crysupp, pysyslog, pystate
 import bluepy

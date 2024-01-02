@@ -27,7 +27,8 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
+    print( "            -f fname  - Send file")
+    print( "            -p        - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -40,13 +41,14 @@ def pversion():
 
     # option, var_name, initial_val, function
 optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
+    ["f:",  "fname",    "test.txt", None],      \
+    ["d:",  "pgdebug",  0,          None],      \
+    ["p:",  "port",     6666,       None],      \
+    ["v",   "verbose",  0,          None],      \
+    ["q",   "quiet",    0,          None],      \
+    ["t",   "test",     "x",        None],      \
+    ["V",   None,       None,       pversion],  \
+    ["h",   None,       None,       phelp]      \
 
 conf = comline.Config(optarr)
 
@@ -107,8 +109,8 @@ if __name__ == '__main__':
         cresp = hand.client(["ls", ], conf.sess_key)
         print ("Server  ls response:", cresp)
 
-    cresp = hand.client(["del", "test"], conf.sess_key)
-    #print ("Server del response:", cresp)
+    cresp = hand.client(["del", conf.fname], conf.sess_key)
+    print ("Server del response:", cresp)
 
     if cresp[0] != "OK":
         print("Err: ", cresp)

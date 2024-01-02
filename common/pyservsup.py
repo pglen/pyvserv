@@ -22,7 +22,8 @@ PERM_NONE = 0; PERM_INI = 1; PERM_ADMIN = 2; PERM_DIS = 4; PERM_NON = 8;
 
 RESET_MODE  = 0x80;
 
-buffsize = 1024;
+#buffsize = 1024;
+buffsize = 4096;
 
 class   Globals:
 

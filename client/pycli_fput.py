@@ -29,6 +29,7 @@ def phelp():
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 9999)")
     print( "            -v        - Verbose")
+    print( "            -f fname  - Send file")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
     print()
@@ -40,7 +41,8 @@ def pversion():
 
     # option, var_name, initial_val, function
 optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
+    ["f:",  "fname",    "test.txt", None],      \
+    ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
@@ -107,24 +109,9 @@ if __name__ == '__main__':
         cresp = hand.client(["ls", ], conf.sess_key)
         print ("Server  ls response:", cresp)
 
-    cresp = hand.client(["fput", "test"], conf.sess_key)
-    print ("Server file response:", cresp)
-
-    if cresp[0] != "OK":
-        print("Err: ", cresp)
-        cresp = hand.client(["quit", ], conf.sess_key)
-        print ("Server quit response:", cresp)
-        sys.exit(0)
-
-    #fp = open("zeros_local", "rb")
-    fp = open("test.txt", "rb")
-    while 1:
-        buf = fp.read(5)
-        #print("sending", buf)
-        dstr = hand.wrapx(buf, conf.sess_key)
-        hand.sendx(dstr)
-        if len(buf) == 0:
-            break
+    resp = hand.putfile(conf.fname, "", conf.sess_key)
+    #if resp[0] != "OK":
+    print("Server put resp", resp)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)

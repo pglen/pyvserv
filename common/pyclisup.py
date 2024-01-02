@@ -22,6 +22,9 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
 
+#rbuffsize = 1024
+rbuffsize = 4096
+
 # -----------------------------------------------------------------------
 # Globals
 
@@ -132,26 +135,35 @@ class CliSup():
         return newkey
 
     # ------------------------------------------------------------------------
-    # Send file. Return True for success.
+    # Receive File. Return True for success.
 
-    def sendfile(self, fname, toname,  key = ""):
+    def putfile(self, fname, toname, key = ""):
 
+        if not toname:
+            toname = fname
+
+        cresp = self.client(["fput", toname], key)
         if self.verbose:
-            print( "Sending ", fname, "to", toname)
+            print ("Server fput response:", cresp)
 
-        try:
-            flen = os.stat(fname)[stat.ST_SIZE]
-            fh = open(fname, "rb")
-        except:
-            print( "Cannot open file", sys.exc_info()[1])
-            return
-        resp = client(["fput", fname, toname,], key)
-        print("file resp", resp)
+        if cresp[0] != "OK":
+            if self.verbose:
+                print ("Server fput response:", cresp)
+            return  cresp
 
-        #resp = client("data " + str(flen), key)
-        #print("data resp", resp)
+        fp = open(fname, "rb")
+        while 1:
+            try:
+                buf = fp.read(rbuffsize)
+                #print("sending", buf)
+                dstr = self.wrapx(buf, key)
+                self.sendx(dstr)
+                if len(buf) == 0:
+                    break
+            except:
+                return ["ERR", "Cannot send", sys.exc_info()]
 
-        return True
+        return ["OK", "Sent Successfully"]
 
     # ------------------------------------------------------------------------
     # Receive File. Return True for success.
@@ -168,8 +180,8 @@ class CliSup():
             return
 
         cresp = self.client(["fget", fname], key)
-        if self.verbose:
-            print ("Server  fget response:", cresp)
+        #if self.verbose:
+        #    print ("Server  fget response:", cresp)
 
         if cresp[0] != "OK":
             return cresp
@@ -179,7 +191,7 @@ class CliSup():
             if self.pgdebug > 2:
                 print("resp", response)
 
-            if self.verbose:
+            if self.pgdebug > 5:
                 print ("got:", response[0], end=", ")
 
             if response[0] == "0":
@@ -317,7 +329,7 @@ class CliSup():
             sys.exit(0)
 
         if conf.verbose:
-            print("Got hash:", "'" + resp[1] + "'")
+            #print("Got hash:", "'" + resp[1] + "'")
             pass
 
         hhh = SHA512.new(); hhh.update(resp[2])

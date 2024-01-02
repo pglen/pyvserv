@@ -18,7 +18,7 @@ tests:
 	@pytest
 
 
-testx:
+test:
 	-python3 ./pycli_ping.py
 	-python3 ./pycli_hello.py
 	-python3 ./pycli_ver.py
@@ -28,9 +28,11 @@ testx:
 	-python3 ./pycli_pass.py
 	-python3 ./pycli_ls.py
 	-python3 ./pycli_lsd.py
+	-python3 ./pycli_fput.py -q
+	-python3 ./pycli_fget.py -q
 
 # This is optional (untested)
-test2x:
+test2:
 	-python3 ./pycli_kadd.py -q
 	-python3 ./pycli_kini.py -q
 	-python3 ./pycli_uadd.py -q
