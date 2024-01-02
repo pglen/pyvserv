@@ -76,6 +76,7 @@ chpass_help = "Usage: chpass newpass"
 file_help   = "Usage: file fname -- Specify name for upload"
 fget_help   = "Usage: fget fname -- Download (get) file"
 fput_help   = "Usage: fput fname -- Upload (put) file"
+del_help    = "Usage: del  fname -- Delete file"
 uadd_help   = "Usage: uadd user_name user_pass -- Create new user"
 kadd_help   = "Usage: kadd key_name key_val -- Add new encryption key"
 uini_help   = "Usage: uini user_name user_pass -- Create initial user. "\
@@ -141,6 +142,7 @@ state_table = [
             ("data",    got_fname,  none_in,    put_data_func,  data_help),
             ("fget",    auth_pass,  none_in,    get_fget_func,  fget_help),
             ("fput",    auth_pass,  none_in,    get_fput_func,  fput_help),
+            ("del",     auth_pass,  none_in,    get_del_func,   del_help),
             ("uadd",    auth_pass,  none_in,    get_uadd_func,  uadd_help),
             ("uena",    auth_sess,  none_in,    get_uena_func,  uena_help),
             ("aadd",    auth_pass,  none_in,    get_aadd_func,  aadd_help),

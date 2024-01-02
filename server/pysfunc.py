@@ -108,7 +108,7 @@ def get_fget_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    response = ["OK", str(flen)]
+    response = ["OK", str(flen), strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
     # Loop, break when file end or transmission error
 
@@ -145,6 +145,7 @@ def get_fput_func(self, strx):
         response = ["ERR", "Must specify file name."]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
+
     dname = support.unescape(strx[1]);
     dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
     dname2 = support.dirclean(dname2)
@@ -239,6 +240,26 @@ def get_cd_func(self, strx):
     except:
         support.put_exception("cd")
         response = ["ERR", "Must specify directory name"]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+def get_del_func(self, strx):
+    try:
+        dname = support.unescape(strx[1]);
+        dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + strx[1]
+        dname3 = support.dirclean(dname2)
+        #print("dname3", dname3)
+        if os.path.isfile(dname3):
+            try:
+                os.unlink(dname3)
+                response = ["OK", "File deleted",]
+            except:
+                response = ["ERR", "Could not delete file", strx[1]]
+        else:
+            # Say no file
+            response = ["ERR ", "No Such File", strx[1]]
+    except:
+        support.put_exception("del")
+        response = ["ERR", "Must specify file name to delete"]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 # ------------------------------------------------------------------------
@@ -724,11 +745,16 @@ def put_fname_func(self, strx):
             self.resp.fname = strx[1]
             response = ["OK", "Send file", self.resp.fname]
 
+        try:
+            dname = support.unescape(strx[1]);
+            self.resp.dir = support.dirclean(self.resp.dir)
+            dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + strx[1]
+            dname3 = support.dirclean(dname2)
+            #print("dname3", dname3)
             # Create handle
-            try:
-                self.resp.fh = open(self.resp.fname, "wb")
-            except:
-                response = ["ERR", "Cannot create file", self.resp.fname]
+            self.resp.fh = open(dname3, "wb")
+        except:
+            response = ["ERR", "Cannot create file", self.resp.fname]
     except:
         response = ["ERR",  "Must specify file name"]
 
