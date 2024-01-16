@@ -131,7 +131,7 @@ class CliSup():
         tmp = resp.split()
         if len(tmp) < 2 or tmp[0] != "OK":
             print( "Cannot set new key", resp)
-            #raise(Exception(ValueError, "Cannot set new named key."))
+            #raise(ValueError, "Cannot set new named key.")
         return newkey
 
     # ------------------------------------------------------------------------
@@ -275,14 +275,14 @@ class CliSup():
     def client(self, message, key = "", rand = True):
 
         if type(message) != type([]):
-            raise(TypeError, "Argument one to client() must be list")
+            raise TypeError("Argument one to client() must be list")
 
         if self.pgdebug > 0:
             print( "   message:", message)
             #print("    key",  key)
 
-        if key == "" and self.sess:
-            raise(ValueError, "Must pass session key when in session")
+        if len(key) == 0 and self.sess:
+            raise ValueError("Must pass session key when in session")
 
         dstr = self.wrapx(message, key)
         self.sendx(dstr)
@@ -323,7 +323,10 @@ class CliSup():
 
     def start_session(self, conf):
 
-        resp = self.client(["akey"])
+        #if not hasattr(conf, "sess_key"):
+        conf.sess_key2 = conf.sess_key[:]
+
+        resp = self.client(["akey"], conf.sess_key2)
 
         if resp[0] != "OK":
             print("Error on getting key:", resp[1])
@@ -392,8 +395,8 @@ class CliSup():
             session_keyx = ""
 
         #print("Key Hexdigest", ttt.hexdigest()[:16])
-        resp3 = self.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
-
+        resp3 = self.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx],
+            conf.sess_key2,  False)
         #print("Sess Response:", resp3[1])
 
         if resp3[0] != "OK":

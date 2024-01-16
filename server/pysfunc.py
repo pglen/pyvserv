@@ -48,6 +48,11 @@ def contain_path(self, strp):
 def get_mkdir_func(self, strx):
     #print("make dir", strx[1])
 
+    if len(strx) == 1:
+        response = ["ERR", "Must specify directory name."]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
     dname = contain_path(self, strx[1])
 
     if not dname:
@@ -283,7 +288,7 @@ def get_pwd_func(self, strx):
 
 def get_cd_func(self, strx):
 
-    if not len(strx[1]):
+    if len(strx) == 1:
         response = ["ERR", "Directory name cannot be empty.",]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
@@ -310,6 +315,7 @@ def get_cd_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_del_func(self, strx):
+
     try:
         dname = contain_path(self, strx[1])
         if not dname:
@@ -890,7 +896,7 @@ def get_help_func(self, strx):
         for aa in pystate.state_table:
             if strx[1] == aa[0]:
                 harr.append("OK")
-                harr.append(aa[4])
+                harr.append(aa[5])
                 ff = True
                 break
         if not ff:

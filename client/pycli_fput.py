@@ -109,18 +109,23 @@ if __name__ == '__main__':
         cresp = hand.client(["ls", ], conf.sess_key)
         print ("Server  ls response:", cresp)
 
+    print("Started file ...", conf.fname)
+    ttt = time.time()
     resp = hand.putfile(conf.fname, "", conf.sess_key)
-    #if resp[0] != "OK":
-    print("Server put resp", resp)
+    filesize = support.fsize(conf.fname)/1024
+    #print("filesize", filesize)
+    if resp[0] != "OK":
+        print ("fput resp:", resp)
+        cresp = hand.client(["quit", ], conf.sess_key)
+        print ("Server quit response:", cresp)
+        sys.exit()
+
+    rate = filesize / (time.time() - ttt)
+    print ("fput resp:", resp, "time %.2f kbytes/sec" % rate)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)
 
     sys.exit(0)
-
-
-
-
-
 
 

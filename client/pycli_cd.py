@@ -36,14 +36,15 @@ def phelp():
     print()
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 666)")
-    print( "            -l level  - Log level (default: 0)")
-    print( "            -c file   - Save comm to file")
-    print( "            -s        - Showkey")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
+    print( "Options:    -d level    - Debug level 0-10")
+    print( "            -p port     - Port to use (default: 666)")
+    print( "            -l level    - Log level (default: 0)")
+    print( "            -c file     - Save comm to file")
+    print( "            -f dirname  - Change to directory")
+    print( "            -s          - Showkey")
+    print( "            -v          - Verbose")
+    print( "            -q          - Quiet")
+    print( "            -h          - Help")
     #print( " Needs debug level or verbose to have any output.")
     print()
     sys.exit(0)
@@ -54,15 +55,16 @@ def pversion():
 
     # option, var_name, initial_val, function
 optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["c:",  "comm",     "",     None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["s",   "showkey",  "",     None],      \
-    ["t",   "test",     "x",    None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
+    ["d:",  "pgdebug",  0,          None],      \
+    ["p:",  "port",     6666,       None],      \
+    ["f:",  "fname",    "test_1",   None],      \
+    ["c:",  "comm",     "",         None],      \
+    ["v",   "verbose",  0,          None],      \
+    ["q",   "quiet",    0,          None],      \
+    ["s",   "showkey",  "",         None],      \
+    ["t",   "test",     "x",        None],      \
+    ["V",   None,       None,       pversion],  \
+    ["h",   None,       None,       phelp]      \
 
 conf = comline.Config(optarr)
 

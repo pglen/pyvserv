@@ -44,13 +44,13 @@ none_in      = 120
 
 def get_exit_func(self, strx):
     #print( "get_exit_func", strx)
-    response =  self.pb.encode_data("", ["OK", "Bye"])
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+    self.resp.datahandler.putencode(["OK", "Bye"], self.resp.ekey)
     #self.resp.datahandler.par.shutdown(socket.SHUT_RDWR)
 
     # Cancel **after** sending bye
     if self.resp.datahandler.tout:
         self.resp.datahandler.tout.cancel()
+
     return True
 
 def get_tout_func(self, strx):
@@ -63,7 +63,7 @@ def get_tout_func(self, strx):
     if self.resp.datahandler.tout:
         self.resp.datahandler.tout.cancel()
 
-    self.resp.datahandler.putdata("OK timeout set to " + str(tout), self.resp.ekey)
+    self.resp.datahandler.putencode(["OK timeout set to ", str(tout)], self.resp.ekey)
     return
 
 # ------------------------------------------------------------------------
@@ -119,43 +119,41 @@ xxxx_help  = "Usage: no data"
 # function is executed. The new state set to end_state
 
 state_table = [
-            # Command ; start_state ; end_state ; action func   ; help func
-            ("ver",     all_in,     none_in,    get_ver_func,   vers_help),
-            ("id",      all_in,     none_in,    get_id_func,    id_help),
-            ("hello",   all_in,     none_in,    get_hello_func, hello_help),
-            ("quit",    all_in,     none_in,    get_exit_func,  quit_help),
-            ("exit",    all_in,     none_in,    get_exit_func,  quit_help),
-            ("help",    all_in,     none_in,    get_help_func,  help_help),
-            ("xkey",    all_in,     none_in,    get_xkey_func,  ekey_help),
-            ("ekey",    all_in,     none_in,    get_ekey_func,  ekey_help),
-            ("uini",    auth_sess,  none_in,    get_uini_func,  uini_help),
-            ("akey",    initial,    auth_key,   get_akey_func,  akey_help),
-            ("sess",    auth_key,   auth_sess,  get_sess_func,  sess_help),
-            ("sess",    all_in,    auth_sess,  get_sess_func,  sess_help),
-            ("tout",    auth_in,    none_in,    get_tout_func,  tout_help),
-            ("kadd",    auth_in,    none_in,    get_kadd_func,  kadd_help),
-            ("user",    auth_sess,  auth_user,  get_user_func,  user_help),
-            ("user",    all_in,     auth_user,  get_user_func,  user_help),
-            ("pass",    auth_user,  auth_pass,  get_pass_func,  pass_help),
-            ("chpass",  auth_sess,  none_in,    get_chpass_func,  chpass_help),
-            ("file",    auth_pass,  got_fname,  put_file_func, file_help),
-            ("file",    all_in,     got_fname,  put_file_func, file_help),
-            ("mkdir",   auth_pass,  none_in,    get_mkdir_func, file_help),
-            ("data",    got_fname,  none_in,    put_data_func,  data_help),
-            ("fget",    auth_pass,  none_in,    get_fget_func,  fget_help),
-            ("fput",    auth_pass,  none_in,    get_fput_func,  fput_help),
-            ("del",     auth_pass,  none_in,    get_del_func,   del_help),
-            ("uadd",    auth_pass,  none_in,    get_uadd_func,  uadd_help),
-            ("uena",    auth_sess,  none_in,    get_uena_func,  uena_help),
-            ("aadd",    auth_pass,  none_in,    get_aadd_func,  aadd_help),
-            ("udel",    auth_sess,  none_in,    get_udel_func,  udel_help),
-            ("ls",      auth_pass,  none_in,    get_ls_func,    lsls_help),
-            ("lsd",     auth_pass,  none_in,    get_lsd_func,   lsld_help),
-            ("cd",      auth_pass,  none_in,    get_cd_func,    cdcd_help),
-            ("pwd",     auth_pass,  none_in,    get_pwd_func,   pwdd_help),
-            ("stat",    auth_pass,  none_in,    get_stat_func,  stat_help),
-            ("buff",    auth_pass,  none_in,    get_buff_func,  buff_help),
-            ]
+    # Command; start_state; end_state; min_auth; action func;   help func
+    ("ver",     all_in,     none_in,    none_in,  get_ver_func,   vers_help),
+    ("id",      all_in,     none_in,    none_in,  get_id_func,    id_help),
+    ("hello",   all_in,     none_in,    none_in,  get_hello_func, hello_help),
+    ("helo",    all_in,     none_in,    none_in,  get_hello_func, hello_help),
+    ("quit",    all_in,     none_in,    none_in,  get_exit_func,  quit_help),
+    ("exit",    all_in,     none_in,    none_in,  get_exit_func,  quit_help),
+    ("help",    all_in,     none_in,    none_in,  get_help_func,  help_help),
+    ("xkey",    all_in,     none_in,    none_in,  get_xkey_func,  ekey_help),
+    ("ekey",    all_in,     none_in,    none_in,  get_ekey_func,  ekey_help),
+    ("akey",    all_in,     none_in,    none_in,  get_akey_func,  akey_help),
+    ("tout",    all_in,     none_in,    none_in,  get_tout_func,  tout_help),
+    ("uini",    auth_sess,  none_in,    none_in,  get_uini_func,  uini_help),
+    ("kadd",    auth_in,    none_in,    none_in,  get_kadd_func,  kadd_help),
+    ("user",    all_in,     auth_user,  none_in, get_user_func,  user_help),
+    ("pass",    auth_user,  auth_pass,  none_in, get_pass_func,  pass_help),
+    ("sess",    all_in,     auth_sess,  none_in,  get_sess_func,  sess_help),
+    ("chpass",  all_in,  none_in,    auth_pass, get_chpass_func,  chpass_help),
+    ("file",    all_in,  got_fname,  auth_pass, put_file_func, file_help),
+    ("mkdir",   all_in,  none_in,    auth_pass, get_mkdir_func, file_help),
+    ("data",    all_in,  none_in,    auth_pass, put_data_func,  data_help),
+    ("fget",    all_in,  none_in,    auth_pass, get_fget_func,  fget_help),
+    ("fput",    all_in,  none_in,    auth_pass, get_fput_func,  fput_help),
+    ("del",     all_in,  none_in,    auth_pass, get_del_func,   del_help),
+    ("uadd",    all_in,  none_in,    auth_pass, get_uadd_func,  uadd_help),
+    ("uena",    all_in,  none_in,    auth_pass, get_uena_func,  uena_help),
+    ("aadd",    all_in,  none_in,    auth_pass, get_aadd_func,  aadd_help),
+    ("udel",    all_in,  none_in,    auth_pass, get_udel_func,  udel_help),
+    ("ls",      all_in,  none_in,    auth_pass, get_ls_func,    lsls_help),
+    ("lsd",     all_in,  none_in,    auth_pass, get_lsd_func,   lsld_help),
+    ("cd",      all_in,  none_in,    auth_pass, get_cd_func,    cdcd_help),
+    ("pwd",     all_in,  none_in,    auth_pass, get_pwd_func,   pwdd_help),
+    ("stat",    all_in,  none_in,    auth_pass, get_stat_func,  stat_help),
+    ("buff",    all_in,  none_in,    auth_pass, get_buff_func,  buff_help),
+    ]
 # ------------------------------------------------------------------------
 
 class StateHandler():
@@ -226,26 +224,28 @@ class StateHandler():
                 if self.pgdebug > 3:
                     print("Found command, executing:", aa[0])
 
-                cond = aa[1] == self.curr_state
-                if not cond:
-                    cond = aa[1] == auth_in and self.curr_state >= in_idle
-                if not cond:
-                    cond = aa[1] == all_in
+                # Auth?
+                if aa[3] == none_in or aa[3] <= self.curr_state:
+                    cond = aa[1] == self.curr_state
+                    if not cond:
+                        cond = aa[1] == auth_in and self.curr_state >= in_idle
+                    if not cond:
+                        cond = aa[1] == all_in
 
-                if cond:
-                        # Execute relevant function
-                        ret2 = aa[3](self, comx)
-                        #print("exec", ret2, aa[3], comx[0])
-                        # Only set state if not all_in / auth_in
-                        if not ret2 and aa[2] != none_in:
-                            self.curr_state = aa[2]
-                        got = True
-
-                        if comx[0] == "pass" and ret2:
-                            self.badpass += 1
-                        if self.badpass > 2:
-                            ret = True
-                        break
+                    if cond:
+                            # Execute relevant function
+                            ret2 = aa[4](self, comx)
+                            #print("exec", ret2, aa[3], comx[0])
+                            # Only set state if not all_in / auth_in
+                            if not ret2 and aa[2] != none_in:
+                                self.curr_state = aa[2]
+                            got = True
+                            ret = ret2
+                            if comx[0] == "pass" and ret2:
+                                self.badpass += 1
+                            if self.badpass > 2:
+                                ret = True
+                break
 
         # Not found in the state table for the current state, complain
         if not got:

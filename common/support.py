@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 import os, sys, string, time,  traceback, getopt
-import random, glob, base64, datetime, psutil
+import random, glob, base64, datetime, psutil, stat
 
 # ------------------------------------------------------------------------
 # Globals
@@ -325,6 +325,15 @@ def mode2str(mode):
 
     estr = dstr + estr
     return estr
+
+def fsize(fname):
+    try:
+        flen = os.stat(fname)[stat.ST_SIZE]
+    except:
+        print("stat", sys.exc_info())
+        flen = 0
+
+    return flen
 
 if __name__ == '__main__':
     lr = listrec("..")

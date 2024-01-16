@@ -118,7 +118,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 if not ret: break
                 ret2 = self.statehandler.run_state(ret)
                 if ret2:
-                    response2 = ["err", "Too many tries, disconnecting."]
+                    #response2 = ["err", "Too many tries, disconnecting."]
+                    response2 = ["ERR", "Disconnected."]
                     self.datahandler.putencode(response2, self.statehandler.resp.ekey)
                     break
         except:

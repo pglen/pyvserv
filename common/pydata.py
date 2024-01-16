@@ -78,7 +78,7 @@ class DataHandler():
 
     def putencode(self, ddd, key = "", rand = True):
         if type(ddd) == str:
-            raise(ValuError, "Argument must be an iterable")
+            raise ValuError("Argument must be an iterable")
 
         response = self.pb.encode_data("", ddd)
         self.putdata(response, key, rand)
@@ -159,6 +159,7 @@ class DataHandler():
     def handle_one(self, par):
         #print("Handle_one", par, par.ekey[:16])
         self.par = par
+        newarr = []  ; dlen = 0
         try:
             #cur_thread = threading.currentThread()
             cur_thread = threading.current_thread()
@@ -180,10 +181,14 @@ class DataHandler():
                     data2 = self.getdata(max(xlen[0]-len(newdata), 0))
                     if len(data2) == 0:
                         break
-                    newdata += data2
+
+                    #newdata += data2
+                    dlen += len(data2)
+                    newarr.append(data2)
+
                     #if self.pgdebug > 7:
                     #    print( "db got data, len =", len(data2))
-                    if len(newdata) == xlen[0]:
+                    if dlen >= xlen[0]:
                         state = 3
                 elif state == 3:
                     # Done, return buffer
@@ -192,6 +197,7 @@ class DataHandler():
                 else:
                     if self.pgdebug > 0:
                         print( "Unkown state")
+            newdata = "".join(newarr)
             if self.tout: self.tout.cancel()
         except:
             support.put_exception("While in Handshake: ")
