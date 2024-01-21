@@ -1,6 +1,6 @@
 import socket
 import tqdm
-
+import struct
 #BLOCK = 1 << 20  # 1MB
 BLOCK = 1024
 
@@ -25,7 +25,11 @@ with socket.socket() as client:
 
                 remaining = file_size
                 while remaining:
-                    data = rfile.read(BLOCK if remaining > BLOCK else remaining)
+                    ldata = rfile.read(2)
+                    xlen = struct.unpack("!h", ldata)  #.encode("cp437"))
+                    #data = rfile.read(BLOCK if remaining > BLOCK else remaining)
+                    #print("xlen", xlen)
+                    data = rfile.read(xlen[0])
                     file.write(data)
                     progress.update(len(data))
                     remaining -= len(data)

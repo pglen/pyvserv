@@ -2,40 +2,34 @@ import socket
 import os
 import threading
 import sys
+import struct
 
 #BLOCK = 128 << 10 # 128KB
 BLOCK = 1024
 
-class  write_parm():
-
-    def __init__(self, *argx):
-        (self.cargs) = argx
-        pass
-
 class  serve_writer():
 
     def __init__(self, *argx):
-        parms = write_parm(argx)
-        writer_thread = threading.Thread(target=self.run, args=(parms,))
+        self.parms = argx
+        writer_thread = threading.Thread(target=self.run)
         writer_thread.start()
 
-    def run(self, *argx):
+    def run(self, *parms):
 
-        #print(argx[0].cargs)
-
-        wfile, fullname = argx[0].cargs[0]
-        #print("writer")
-
+        wfile, fullname = self.parms
         try:
             file_size = os.path.getsize(fullname)
             wfile.write(f'{file_size}\n'.encode())
-            print(f'Sending {fullname}...')
+            print(f'Sending {fullname} ... {file_size}')
             with open(fullname, 'rb') as file:
                 while data := file.read(BLOCK):
-                    wfile.write(data)
+                    data2 = struct.pack("!h", len(data)) + data
+                    wfile.write(data2)
+                    if len(data) < BLOCK:
+                        break
 
             wfile.flush() # make sure anything remaining in makefile buffer is sent.
-            print(f' Complete ({file_size} bytes).')
+            #print(f' Complete ({file_size} bytes).')
         except:
             print(sys.exc_info())
 
@@ -48,7 +42,7 @@ class serve_one():
 
     def run(self, *argx):
 
-        self.client, addr = argx
+        self.client, self.addr = argx
         try:
             with (self.client,
                   self.client.makefile('wb') as wfile,
@@ -56,12 +50,12 @@ class serve_one():
 
                 while True:
                     self.cnt += 1
-                    print("cycle", self.cnt)
+                    #print("cycle", self.cnt)
 
                     filename = rfile.readline()
                     if not filename: return
 
-                    fullname = os.path.join('Server_files', filename.decode().rstrip('\n'))
+                    fullname = os.path.join('server_files', filename.decode().rstrip('\n'))
 
                     serve_writer(wfile, fullname)
                     while True:

@@ -12,6 +12,7 @@ init:
 	@python3 ./tools/genkey.py
 
 git:
+	#make clean
 	git add .
 	git commit -m auto
 	git push
