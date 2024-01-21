@@ -122,10 +122,10 @@ class DataHandler():
 
             ret = self.par.request.send(strx)
 
-            if self.tout:
-                self.tout.cancel()
-            self.tout = threading.Timer(self.timeout, self.handler_timeout)
-            self.tout.start()
+            #if self.tout:
+            #    self.tout.cancel()
+            #self.tout = threading.Timer(self.timeout, self.handler_timeout)
+            #self.tout.start()
 
         except:
             sss = "While in Put Data: " + str(response)[:24]
@@ -143,9 +143,9 @@ class DataHandler():
         #if self.pgdebug > 7:
         #    print("getting data:", amount)
 
-        if self.tout: self.tout.cancel()
-        self.tout = threading.Timer(self.timeout, self.handler_timeout)
-        self.tout.start()
+        #if self.tout: self.tout.cancel()
+        #self.tout = threading.Timer(self.timeout, self.handler_timeout)
+        #self.tout.start()
 
         sss = self.par.request.recv(amount)
         #if self.pgdebug > 8:

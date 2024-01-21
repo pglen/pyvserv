@@ -63,7 +63,10 @@ class CliSup():
         except:
             #print( "Cannot connect to:", ip + ":" + str(port), sys.exc_info()[1])
             raise
+
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
         self.mydathand  = pydata.xHandler(self.sock)
         self.myhandler  = pydata.DataHandler()
 
@@ -96,10 +99,13 @@ class CliSup():
             fp.write(strx.decode("cp437"))
             fp.close()
 
-        self.sock.send(strx)
+        self.sock.sendall(strx)
+        #self.sock.recv(0)
 
     def recvx(self, key):
         resp = self.getreply(key)
+        #self.sock.send(b"")
+
 
         if self.pgdebug > 1:
             print("resp:", resp)

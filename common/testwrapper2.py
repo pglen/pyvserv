@@ -27,7 +27,7 @@ rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
 bindat = base64.b64decode(rrr)
 
 org = [ 33, "sub", 'd', "longer str here with \' and \" all crap",  \
-        33, 33333333.2, bindat, ]
+        33, 33333333.2, bindat, "a" * 2000000 ]
 
 # ------------------------------------------------------------------------
 # Test harness

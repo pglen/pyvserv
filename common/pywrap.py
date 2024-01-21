@@ -87,6 +87,10 @@ class   wrapper():
 
         fff = zlib.compress(ssss)
 
+        # short it
+        #fff3 = fff
+        #fff3 = ssss
+
         if key:
             fff3 = bluepy.encrypt(fff, key)
             #fff3d = bluepy.decrypt(fff3, key)
@@ -120,6 +124,9 @@ class   wrapper():
         #fff2 = base64.b64decode(xddd)
         fff2 = xddd.encode("cp437")
 
+        # short it
+        #fff3 = fff2
+
         if key:
             fff3 = bluepy.decrypt(fff2, key)
             #fff3e = bluepy.encrypt(fff3, key)
@@ -131,6 +138,7 @@ class   wrapper():
         #    raise(ValueError("Decryption Verification failed"))
 
         fff = zlib.decompress(fff3)
+        #fff = fff3
 
         if sys.version_info[0] > 2:
             fff = fff.decode("cp437")
@@ -153,7 +161,9 @@ class   wrapper():
         #if sys.version_info[0] > 2:
         #    sss[1] = sss[1].decode("cp437")
 
+        #ttt = time.time()
         out = self.pb.decode_data(sss[1])
+        #print ("ttt=%f"  % (ttt - time.time()))
         #print ("  Carrier:", support.hexstr(out[0]));
         return out[1:]
 

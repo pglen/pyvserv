@@ -110,6 +110,7 @@ class packbin():
         enco    = base64.b64encode(var)
         if sys.version_info[0] > 2:
             enco  = enco.decode("cp437")
+        #enco = var
         #print ("got bin", "'" + enco + "'")
         return "%c%d '%s' " %  (tt, len(enco), enco)
 
@@ -280,6 +281,7 @@ class packbin():
         sval = str(xstr[idxx:idxx+slen])
         #print("bin:",  sval )
         deco   = base64.b64decode(sval)
+        #deco = sval
         idxx += slen + 2
         #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, deco
@@ -410,10 +412,13 @@ class packbin():
                 for aa in formstr:
                     print("got format:", aa)
 
-        packed_str = front
+        packed_arr = []
+        #packed_str = front
+        packed_arr.append(front)
 
         # Add the form string itself
-        packed_str += self._got_str("s", localf)
+        #packed_str += self._got_str("s", localf)
+        packed_arr.append(self._got_str("s", localf))
 
         idx = 1;
         for bb in localf:
@@ -425,7 +430,8 @@ class packbin():
                     if self.verbose > 5:
                         print ("found", cc[0], cc[1], formstr[idx])
                     if cc[1]:
-                        packed_str += cc[1](bb, formstr[idx])
+                        #packed_str += cc[1](bb, formstr[idx])
+                        packed_arr.append (cc[1](bb, formstr[idx]))
                     idx += 1
                     found = True
             if not found:
@@ -434,6 +440,7 @@ class packbin():
         if idx < len(formstr):
             raise ValueError("More data than chars in format string")
 
+        packed_str = "".join(packed_arr)
         return packed_str
 
 

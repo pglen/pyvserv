@@ -110,6 +110,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
 
+        self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
         if conf.mem:
             tracemalloc.start()
         try:
@@ -162,7 +164,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 # ------------------------------------------------------------------------
 # Override stock methods
 
-class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+#class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
 
     #def __init__(self, arg1, arg2):
     #    self._BaseServer__shutdown_request = True
@@ -307,6 +310,7 @@ if __name__ == '__main__':
 
     try:
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+
     except:
         print( "Cannot start server. ", sys.exc_info()[1])
         if conf.pglog > 0:
