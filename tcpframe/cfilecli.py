@@ -2,27 +2,44 @@ import socket
 import tqdm
 import struct
 import argparse
+import os
+import sys
 
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../bluepy'))
+
+import bluepy
+
+from Crypto import Random
+from Crypto.Cipher import AES
 
 #BLOCK = 1 << 20  # 1MB
 BLOCK = 1024
 
-def rdata2(rfile):
-    data = rfile.read(BLOCK)
+def rdata2(rfile, remaining):
+    #data = rfile.read(BLOCK)
+    data = rfile.read(BLOCK if remaining > BLOCK else remaining)
     return data
+
+key = b'Sixteen byte key'
+iv = Random.new().read(AES.block_size)
+cipher = AES.new(key, AES.MODE_CFB, iv)
 
 def rdata(rfile):
     ldata = rfile.read(2)
     xlen = struct.unpack("!h", ldata)  #.encode("cp437"))
-    #data = rfile.read(BLOCK if remaining > BLOCK else remaining)
     #print("xlen", xlen)
-    data = rfile.read(xlen[0])
-    return data
+    data2 = rfile.read(xlen[0])
+    #data = bluepy.decrypt(data2, "1234")
+    #data = data2[:]
 
+    data = iv + cipher.decrypt(data2)
+
+    return data
 
 def main(args):
 
-    print(args)
+    #print(args)
 
     with socket.socket() as client:
 
@@ -53,6 +70,7 @@ def main(args):
                     remaining = file_size
                     while remaining:
 
+                        #data = rdata2(rfile, remaining)
                         data = rdata(rfile)
                         if not data:
                             break
@@ -72,20 +90,26 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Process some integers.')
 
-    #parser.add_argument('integers', metavar='N', type=int, nargs='+',
-    #                    help='an integer for the accumulator')
-    #
     parser.add_argument("-p", '--port', dest='port', type=int,
                         default=9999,
-                        help='connect to port (default: 9999)')
+                        help='Connect to port (default: 9999)')
+
+    parser.add_argument("-v", '--verbose', dest='verbose',
+                        default=0,  action='count',
+                        help='verbocity on (default: off)')
 
     parser.add_argument("-t", '--host', dest='host',  nargs='?',
                         default="localhost",
-                        help='connect to host (default: localhost)')
+                        help='Connect to host (default: localhost)')
 
     parser.add_argument("-f", '--file', dest='file',  nargs='?',
                         help='download file')
 
     args = parser.parse_args()
-    #print (args.accumulate(args.integers)  )
     main(args)
+
+
+
+
+
+

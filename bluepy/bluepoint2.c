@@ -52,16 +52,16 @@
 // Porting is correct if the new cypher text and hash is a duplicate of the following:
 //
 // orignal='abcdefghijklmnopqrstuvwxyz' pass='1234'
-// ENCRYPTED: 
+// ENCRYPTED:
 // -d7-a2-55-bf-ec-3c-f6-e5-2d-ef-06-93-79-91-eb-2d-2a-f1-69-4a-59-e9-48-6f-61-05
 // END ENCRYPTED
 // HASH:
 // 3540310577 0xd304da31
-// CRYPTHASH: 
+// CRYPTHASH:
 // 3349887638 0xc7ab3a96
 // HASH64:
 // 17370781859372208493 0xf1116a1116ae116d
-// CRYPTHASH64: 
+// CRYPTHASH64:
 // 16348308407135931823 0xe2e0dbe115de8daf
 
 ///////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,7 @@ static int functrace  = 0;              //# Specify this to show function args
 //# -------------------------------------------------------------------------
 //# These vars can be set to influence encryption
 
-static  int     rounds = 3;             //# How many rounds
+static  int     rounds = 1;             //# How many rounds
 
 //# -------------------------------------------------------------------------
 //# Following functions set values
@@ -171,12 +171,12 @@ int def_stack()
     MIXIT2(+)   MIXIT2R(+)
     PASSLOOP(+) FWLOOP(+)
     HECTOR(+)   FWLOOP(+)
-    //MIXIT(+)    
+    //MIXIT(+)
     MIXITR(+)
     BWLOOP(+)   HECTOR(+)
 }
 #endif
-           
+
 //# -------------------------------------------------------------------------
 //# Use: encrypt($str, $password);
 
@@ -193,7 +193,7 @@ int    bluepoint2_encrypt(char *buff, int blen, char *pass, int plen)
             }
         blen --; ret = 1;
         }
-        
+
     if(plen == 0 || blen == 0)
         {
         if(verbose)
@@ -215,7 +215,7 @@ int    bluepoint2_encrypt(char *buff, int blen, char *pass, int plen)
         {
         do_encrypt(buff, blen, newpass, passlim);
         }
-        
+
    return ret;
 }
 
@@ -226,7 +226,7 @@ int    bluepoint2_decrypt(char *buff, int blen, char *pass, int plen)
 
 {
     int ret = 0; char newpass[passlim]; int loop;
-    
+
     if (blen % 2)
         {
         if(verbose)
@@ -392,24 +392,24 @@ unsigned long long bluepoint2_crypthash64(char *buff, int blen, char *pass, int 
 void    ENCRYPT(char *str, int slen, char *pass, int plen)
 {
     int loop, loop2 = 0;  unsigned char  aa, bb; //, cc;
-    
+
     PASSLOOP(+)
     MIXIT2(+)   MIXIT2R(+)
     HECTOR(+)   FWLOOP(+)
     MIXIT2(+)   MIXIT2R(+)
     PASSLOOP(+) FWLOOP(+)
     HECTOR(+)   FWLOOP(+)
-    //MIXIT(+)    
+    //MIXIT(+)
     MIXITR(+)
     BWLOOP(+)   HECTOR(+)
-}   
+}
 
 void    DECRYPT(char *str, int slen, char *pass, int plen)
 {
     int loop, loop2 = 0; unsigned char aa, bb, cc;
-    
+
     HECTOR(-)   BWLOOP2(-)
-    MIXITR(-)   
+    MIXITR(-)
     //MIXIT(-)
     FWLOOP2(-)  HECTOR(-)
     FWLOOP2(-)  PASSLOOP(-)
@@ -493,7 +493,7 @@ char    *bluepoint2_dump(char *str, int len)
 {
     buff[0] = 0;  int loop = 0;
     unsigned int pos = 0;
-    
+
     if(verbose)
         {
         printf("bluepoint2_dump str=%p len=%d ", str, len);

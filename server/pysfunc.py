@@ -246,7 +246,7 @@ def get_fput_func(self, strx):
         if not dstr[1]:
             break
 
-        fh.write(dstr[1])
+        fh.write(bytes(dstr[1], "cp437"))
 
     fh.close()
 
@@ -420,7 +420,7 @@ def get_sess_func(self, strx):
     if pgdebug > 4:
         print("Got session key command.")
 
-    sss = SHA512.new(); sss.update(strx[3])
+    sss = SHA512.new(); sss.update(bytes(strx[3], "cp437"))
 
     # Arrived safely?
     if strx[2] != sss.hexdigest():
@@ -429,7 +429,7 @@ def get_sess_func(self, strx):
 
     dsize = SHA.digest_size
     sentinel = Random.new().read(dsize)
-    message2 = self.priv_cipher.decrypt(strx[3], sentinel)
+    message2 = self.priv_cipher.decrypt(bytes(strx[3], "cp437"), sentinel)
 
     # Decoded OK?
     ttt = SHA512.new(); ttt.update(message2)

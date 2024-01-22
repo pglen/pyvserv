@@ -107,10 +107,15 @@ class packbin():
         return "%c%d '%s' " %  (tt, len(var), var)
 
     def _got_bin(self, tt, var):
-        enco    = base64.b64encode(var)
-        if sys.version_info[0] > 2:
-            enco  = enco.decode("cp437")
-        #enco = var
+        #enco = base64.b64encode(var)
+        #if sys.version_info[0] > 2:
+        #    enco  = enco.decode("cp437")
+
+        if type(var) == type(b""):
+            enco = var.decode("cp437")
+        else:
+            enco = var
+
         #print ("got bin", "'" + enco + "'")
         return "%c%d '%s' " %  (tt, len(enco), enco)
 
@@ -280,8 +285,13 @@ class packbin():
         idxx += nnn + 2
         sval = str(xstr[idxx:idxx+slen])
         #print("bin:",  sval )
-        deco   = base64.b64decode(sval)
-        #deco = sval
+        #deco   = base64.b64decode(sval)
+
+        #if type(sval) == type(""):
+        #    deco = bytes(sval, "cp437")
+        #else:
+        deco = str(sval)
+
         idxx += slen + 2
         #print("idxx:", idxx, "var:", "{" + sval + "}", "next:", "'" + xstr[idxx:idxx+6] + "'")
         return idxx, deco

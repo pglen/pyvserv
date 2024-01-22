@@ -134,10 +134,10 @@ if __name__ == '__main__':
     print("Started bigfile ...", bfile)
     ttt = time.time()
     ret = hand.getfile(bfile, bfile + "_local", conf.sess_key)
-    filesize = support.fsize(bfile+ "_local")/1024
+    filesize = support.fsize(bfile+ "_local")
     print("filesize", filesize)
     rate = filesize / (time.time() - ttt)
-    print ("Server fget response:", ret, "time %.2f kbytes/sec" % rate)
+    print ("Server fget response:", ret, "time %.2f kbytes/sec" % (rate/1024))
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)

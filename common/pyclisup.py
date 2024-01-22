@@ -206,7 +206,7 @@ class CliSup():
             if response[0] == "0":
                 break
             try:
-                fh.write(response[1])
+                fh.write(bytes(response[1], "cp437"))
             except:
                 #if self.verbose:
                 print( "Cannot write to local file: '" + toname + "'", sys.exc_info())
@@ -344,7 +344,7 @@ class CliSup():
             #print("Got hash:", "'" + resp[1] + "'")
             pass
 
-        hhh = SHA512.new(); hhh.update(resp[2])
+        hhh = SHA512.new(); hhh.update(bytes(resp[2], "cp437"))
 
         if conf.pgdebug > 3:
             print("Hash1:  '" + resp[1] + "'")
