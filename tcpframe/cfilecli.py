@@ -23,7 +23,10 @@ def rdata2(rfile, remaining):
 
 key = b'Sixteen byte key'
 iv = Random.new().read(AES.block_size)
-cipher = AES.new(key, AES.MODE_CFB, iv)
+#cipher = AES.new(key, AES.MODE_ECB, iv)
+#cipher = AES.new(key, AES.MODE_CTR)
+
+cipher = None
 
 def rdata(rfile):
     ldata = rfile.read(2)
@@ -32,9 +35,7 @@ def rdata(rfile):
     data2 = rfile.read(xlen[0])
     #data = bluepy.decrypt(data2, "1234")
     #data = data2[:]
-
-    data = iv + cipher.decrypt(data2)
-
+    data = cipher.decrypt(data2)
     return data
 
 def main(args):
@@ -60,6 +61,10 @@ def main(args):
                 wfile.write(f'{file_name}\n'.encode())
                 wfile.flush() # make sure makefile buffer is fully sent
                 file_size = int(rfile.readline().decode())
+                nonce = rfile.readline().strip()
+                print(nonce, len(nonce))
+                global cipher
+                cipher = AES.new(key, AES.MODE_CTR, nonce=nonce)
 
                 with (tqdm.tqdm(unit='B',
                                 unit_scale=True,

@@ -7,9 +7,9 @@ import sys
 import struct
 import argparse
 
-from Crypto.Hash import SHA512
-from Crypto import Random
-from Crypto.Cipher import AES
+from Cryptodome.Hash import SHA512
+from Cryptodome import Random
+from Cryptodome.Cipher import AES
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base, '../bluepy'))
@@ -18,6 +18,12 @@ import bluepy
 
 #BLOCK = 128 << 10 # 128KB
 BLOCK = 1024
+
+key = b'Sixteen byte key'
+iv = Random.new().read(AES.block_size)
+#cipher = AES.new(key, AES.MODE_ECB)
+cipher = AES.new(key, AES.MODE_CTR)
+#cipher = AES.new(key, AES.MODE_ECB, iv)
 
 class  serve_writer():
 
@@ -33,11 +39,10 @@ class  serve_writer():
     def swrite(self, wfile, data):
         #datac = bluepy.encrypt(data, "1234")
         #datac = data[:]
-
-        key = b'Sixteen byte key'
-        iv = Random.new().read(AES.block_size)
-        cipher = AES.new(key, AES.MODE_CFB, iv)
-        datac = iv + cipher.encrypt(data)
+        #ddd = cipher.encrypt(data)
+        datac = cipher.encrypt(data)
+        #print(len(cipher.nonce), cipher.nonce)
+        #datac = iv + cipher.encrypt(data)
 
         data2 = struct.pack("!h", len(datac)) + datac
         ret = wfile.write(data2)
@@ -51,6 +56,12 @@ class  serve_writer():
             if args.verbose:
                 print(f'Sending {fullname} ... ', end="")
                 sys.stdout.flush()
+            global cipher
+            cipher = AES.new(key, AES.MODE_CTR)
+            nonce = cipher.nonce
+            print(nonce, len(nonce))
+            wfile.write(nonce + b'\n')
+
             with open(fullname, 'rb') as file:
                 while data := file.read(BLOCK):
                     self.swrite(wfile, data)
