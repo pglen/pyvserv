@@ -335,6 +335,15 @@ def fsize(fname):
 
     return flen
 
+def timeit(fn):
+    def wrapped(*args, **keyw):
+        ttt = time.time()
+        ret = fn(*args, **keyw)
+        print("%s %.4f" % (fn.__name__, (time.time() - ttt)*1000))
+        return ret
+    return wrapped
+
+
 if __name__ == '__main__':
     lr = listrec("..")
     lr.noext = [".pyc", ".o", ".so", ".pem", ".pub", ]

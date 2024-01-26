@@ -34,7 +34,7 @@ import pypacker, pywrap
 
 class DataHandler():
 
-    def __init__(self):
+    def __init__(self, sock):
         #print(  "DataHandler __init__")
         self.src = None; self.tout = None
         self.timeout = 7
@@ -42,6 +42,8 @@ class DataHandler():
         self.pglog = 0
         self.wr = pywrap.wrapper()
         self.pb = pypacker.packbin()
+        self.rfile = sock.makefile("rb")
+        self.wfile = sock.makefile("wb")
 
     def handler_timeout(self):
 
@@ -83,13 +85,15 @@ class DataHandler():
         response = self.pb.encode_data("", ddd)
         self.putdata(response, key, rand)
 
+    #@support.timeit
     def putdata(self, response, key = "", rand = True):
 
         ret = ""; response2 = ""
 
         rstr = Random.new().read(random.randint(14, 24))
         xstr = Random.new().read(random.randint(24, 36))
-        datax = [rstr, response, xstr]
+        #datax = [rstr, response, xstr]
+        datax = [response]
 
         #print ("server key reply:", key[:16])
         #print ("server dats:", datax[:16])
@@ -120,7 +124,9 @@ class DataHandler():
             #if self.pgdebug > 2:
             #    print ("sending: '", strx ) # + strx.decode("cp437") + "'")
 
-            ret = self.par.request.send(strx)
+            #ret = self.par.request.send(strx)
+            ret = self.wfile.write(strx)
+            ret = self.wfile.flush()
 
             #if self.tout:
             #    self.tout.cancel()
@@ -138,6 +144,7 @@ class DataHandler():
 
         return ret
 
+    #@support.timeit
     def getdata(self, amount):
 
         #if self.pgdebug > 7:
@@ -147,8 +154,11 @@ class DataHandler():
         #self.tout = threading.Timer(self.timeout, self.handler_timeout)
         #self.tout.start()
 
-        sss = self.par.request.recv(amount)
+        #sss = self.par.request.recv(amount)
+        sss = self.rfile.read(amount)
+
         #if self.pgdebug > 8:
+
         #    print("got len", amount, "got data:", sss)
         return sss.decode("cp437")
 
@@ -159,6 +169,7 @@ class DataHandler():
     def handle_one(self, par):
         #print("Handle_one", par, par.ekey[:16])
         self.par = par
+
         newarr = []  ; dlen = 0
         try:
             #cur_thread = threading.currentThread()

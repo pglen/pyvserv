@@ -124,5 +124,7 @@ dmypy.json
 .pyvserv/
 aa
 bb
+bigfile
+bigfile_local
 
 

@@ -42,6 +42,7 @@ class   wrapper():
         #print("py version", sys.version_info[0])
 
     # Wrap data in a hash, compress, base64
+    #@support.timeit
     def wrap_data(self, key, xddd):
 
         #print("wrap_data:", type(key), type(xddd))
@@ -85,18 +86,21 @@ class   wrapper():
         if sys.version_info[0] > 2:
             ssss  = ssss.encode("cp437")
 
-        fff = zlib.compress(ssss)
+        #fff = zlib.compress(ssss)
+        fff = ssss
 
         # short it
         #fff3 = fff
         #fff3 = ssss
 
         if key:
-            fff3 = bluepy.encrypt(fff, key)
+            #fff3 = bluepy.encrypt(fff, key)
             #fff3d = bluepy.decrypt(fff3, key)
+            fff3 = fff
         else:
-            fff3 = bluepy.encrypt(fff, defkey)
+            #fff3 = bluepy.encrypt(fff, defkey)
             #fff3d = bluepy.decrypt(fff3, defkey)
+            fff3 = fff
 
         #if fff != fff3d:
         #    raise(ValueError("Encyption Verification failed"))
@@ -105,6 +109,7 @@ class   wrapper():
 
     # --------------------------------------------------------------------
     # Unrap data in a hash, de  base64, decompress,
+    #@support.timeit
     def unwrap_data(self, key, xddd):
 
         #print("unwrap_data:", type(key), type(xddd))
@@ -128,17 +133,19 @@ class   wrapper():
         #fff3 = fff2
 
         if key:
-            fff3 = bluepy.decrypt(fff2, key)
+            #fff3 = bluepy.decrypt(fff2, key)
             #fff3e = bluepy.encrypt(fff3, key)
+            fff3 = fff2
         else:
-            fff3 = bluepy.decrypt(fff2, defkey)
+            #fff3 = bluepy.decrypt(fff2, defkey)
             #fff3e = bluepy.encrypt(fff3, defkey)
+            fff3 = fff2
 
         #if fff2 != fff3e:
         #    raise(ValueError("Decryption Verification failed"))
 
-        fff = zlib.decompress(fff3)
-        #fff = fff3
+        #fff = zlib.decompress(fff3)
+        fff = fff3
 
         if sys.version_info[0] > 2:
             fff = fff.decode("cp437")

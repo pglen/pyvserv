@@ -5,10 +5,14 @@ import os, sys, getopt, signal, random, time, warnings
 from pymenu import  *
 from pgui import *
 
-sys.path.append('../../pycommon')
+base = os.path.dirname(os.path.realpath(__file__))
+#sys.path.append(os.path.join(base, '../../'))
 
-from pgutils import  *
-from pggui import  *
+sys.path.append('../../')
+
+from pycommon.pgutils import  *
+from pycommon.pggui import  *
+from pycommon.pgsimp import  *
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -30,7 +34,7 @@ class MainWin(Gtk.Window):
 
         #register_stock_icons()
 
-        self.set_title("Template")
+        self.set_title("PyVServer Demo GUI")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
         #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
@@ -56,7 +60,6 @@ class MainWin(Gtk.Window):
             self.set_default_size(5*www/8, 7*hhh/8)
         else:
             self.set_default_size(7*www/8, 7*hhh/8)
-
 
         '''self.set_flags(Gtk.CAN_FOCUS | Gtk.SENSITIVE)
 
@@ -123,10 +126,23 @@ class MainWin(Gtk.Window):
         lab4 = Gtk.Label("");  hbox2.pack_start(lab4, 0, 0, 0)
         vbox.pack_start(hbox2, False, 0, 0)
 
+
         hbox3 = Gtk.HBox()
         self.edit = SimpleEdit();
-        hbox3.pack_start(self.edit, True, True, 6)
+
+        scroll = Gtk.ScrolledWindow()
+        scroll.add(self.edit)
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        hbox3.pack_start(scroll, True, True, 6)
         vbox.pack_start(hbox3, True, True, 2)
+
+        hbox3a = Gtk.HBox()
+        self.edita = SimpleEdit();
+        scrolla = Gtk.ScrolledWindow()
+        scrolla.add(self.edita)
+        scrolla.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        hbox3a.pack_start(scrolla, True, True, 6)
+        vbox.pack_start(hbox3a, True, True, 2)
 
         vbox.pack_start(hbox4, False, 0, 6)
 
@@ -140,11 +156,11 @@ class MainWin(Gtk.Window):
         Gtk.main_quit()
 
     def key_press_event(self, win, event):
-        print( "key_press_event", win, event)
+        #print( "key_press_event", win, event)
         pass
 
     def button_press_event(self, win, event):
-        print( "button_press_event", win, event)
+        #print( "button_press_event", win, event)
         pass
 
     def activate_action(self, action):

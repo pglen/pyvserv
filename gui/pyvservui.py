@@ -8,8 +8,13 @@ import random, stat
 
 from mainwin import  *
 
-sys.path.append('../../pycommon')
-from pgutils import  *
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../../'))
+
+#sys.path.append(os.path.join(base, '../../pycommon'))
+
+#sys.path.append('../../pycommon')
+from pycommon.pgutils import  *
 
 # ------------------------------------------------------------------------
 # Globals
@@ -56,14 +61,4 @@ if __name__ == '__main__':
     mw = MainWin()
     Gtk.main()
     sys.exit(0)
-
-
-
-
-
-
-
-
-
-
 

@@ -9,6 +9,8 @@ import struct, stat, base64, random, zlib
 #from Crypto import Random
 #from Crypto import StrongRandom
 
+import support
+
 __doc__ =   \
 '''
 Encode / Decode arbitrary data in a string. Preserves type and data.
@@ -510,6 +512,7 @@ class packbin():
     # Pass format string as the first element. Empty string switches on
     # autotype
 
+    #@support.timeit
     def encode_data(self, *formstr):
 
         #print("type", type(formstr[1]), len(formstr[1]))
@@ -524,6 +527,7 @@ class packbin():
 
         return rrr
 
+    #@support.timeit
     def decode_data(self, dstr):
 
         #print ("---org:\n", dstr, "org---")

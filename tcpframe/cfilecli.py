@@ -6,23 +6,20 @@ import os
 import sys
 
 base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../bluepy'))
-
-import bluepy
+#sys.path.append(os.path.join(base, '../bluepy'))
+#import bluepy
 
 from Crypto import Random
 from Crypto.Cipher import AES
 
-#BLOCK = 1 << 20  # 1MB
-BLOCK = 1024
+from cfilecomm import *
 
 def rdata2(rfile, remaining):
     #data = rfile.read(BLOCK)
     data = rfile.read(BLOCK if remaining > BLOCK else remaining)
     return data
 
-key = b'Sixteen byte key'
-iv = Random.new().read(AES.block_size)
+#iv = Random.new().read(AES.block_size)
 #cipher = AES.new(key, AES.MODE_ECB, iv)
 #cipher = AES.new(key, AES.MODE_CTR)
 
@@ -61,10 +58,11 @@ def main(args):
                 wfile.write(f'{file_name}\n'.encode())
                 wfile.flush() # make sure makefile buffer is fully sent
                 file_size = int(rfile.readline().decode())
-                nonce = rfile.readline().strip()
-                print(nonce, len(nonce))
+                #nonce = rfile.readline().strip()
+                #print(nonce, len(nonce))
                 global cipher
-                cipher = AES.new(key, AES.MODE_CTR, nonce=nonce)
+                cipher = AES.new(key, AES.MODE_CTR,
+                                    use_aesni=True, nonce=b'12345678')
 
                 with (tqdm.tqdm(unit='B',
                                 unit_scale=True,

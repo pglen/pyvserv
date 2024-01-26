@@ -54,7 +54,9 @@ class InvalidArg(Exception):
 
 # ------------------------------------------------------------------------
 
-class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
+#class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
+
+class TCPRequestHandler():
 
     def __init__(self, a1, a2, a3):
         self.a2 = a2
@@ -88,29 +90,31 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.statehandler.pglog = conf.pglog
         self.statehandler.pgdebug = conf.pgdebug
 
-        self.datahandler =  pydata.DataHandler()
-        self.datahandler.pgdebug = conf.pgdebug
-        self.datahandler.pglog = conf.pglog
-        self.datahandler.verbose = conf.verbose
-        self.datahandler.par = self
-
+        #print(self.request)
         mydata[self.name] = self
 
         #if conf.verbose:
         #    print("Connected " + " " + str(self.client_address))
 
+        self.datahandler =  pydata.DataHandler(self.request)
+        self.datahandler.pgdebug = conf.pgdebug
+        self.datahandler.pglog = conf.pglog
+        self.datahandler.verbose = conf.verbose
+        self.datahandler.par = self
+
+        self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
         if conf.pglog > 0:
             pysyslog.syslog("Connected " + " " + str(self.client_address))
+
         response =  ["OK", "pyvserv %s ready" % version]
-        # Connected, acknowledge
+        # Connected, acknowledge it
         self.datahandler.putencode(response, "")
 
     def handle_error(request, client_address):
         print("pyvserv Error", request, client_address)
 
     def handle(self):
-
-        self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         if conf.mem:
             tracemalloc.start()
@@ -164,8 +168,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 # ------------------------------------------------------------------------
 # Override stock methods
 
-#class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+#class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
 
     #def __init__(self, arg1, arg2):
     #    self._BaseServer__shutdown_request = True
@@ -230,9 +234,104 @@ optarr.append ( ["m",   "mem",         0,       None, "Show memory trace."] )
 
 conf = comline.Config(optarr)
 
+# Execute one server cycle
+
+class serve_one():
+
+    def __init__(self, *argx):
+        self.cnt = 0
+        self.fname = ""
+        self.user = ""
+        self.cwd = os.getcwd()
+        self.dir = ""
+        self.ekey = ""
+        self.argx = argx
+        server_thread = threading.Thread(target=self.run)
+        server_thread.start()
+
+    def run(self, *argx):
+
+        self.client, self.client_address, self.args = self.argx
+        cur_thread = threading.current_thread()
+        self.name = cur_thread.name #getName()
+        #print( "Logoff '" + usr + "'", cli)
+
+        print("Started thread", self.name)
+
+        self.verbose = conf.verbose
+
+        if self.verbose:
+            print( "Connection from ", self.a2, "as", self.name)
+
+        #if pgdebug > 1:
+        #    put_debug("Connection from %s" % self.a2)
+
+        self.statehandler = pystate.StateHandler(self)
+        self.statehandler.verbose = conf.verbose
+        self.statehandler.pglog = conf.pglog
+        self.statehandler.pgdebug = conf.pgdebug
+
+        #print(self.request)
+        #mydata[self.name] = self
+
+        #if conf.verbose:
+        #    print("Connected " + " " + str(self.client_address))
+
+        self.datahandler =  pydata.DataHandler(self.client)
+        self.datahandler.pgdebug = conf.pgdebug
+        self.datahandler.pglog = conf.pglog
+        self.datahandler.verbose = conf.verbose
+        self.datahandler.par = self
+
+        self.client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+        if conf.pglog > 0:
+            pysyslog.syslog("Connected " + " " + str(self.client_address))
+
+        response =  ["OK", "pyvserv %s ready" % version]
+        # Connected, acknowledge it
+        self.datahandler.putencode(response, "")
+
+        try:
+            while 1:
+                ret = self.datahandler.handle_one(self)
+                if not ret: break
+                ret2 = self.statehandler.run_state(ret)
+                if ret2:
+                    #response2 = ["err", "Too many tries, disconnecting."]
+                    response2 = ["ERR", "Disconnected."]
+                    self.datahandler.putencode(response2, self.statehandler.resp.ekey)
+                    break
+        except:
+            #print( sys.exc_info())
+            support.put_exception("state handler")
+
+        if self.verbose:
+            print( "Connection closed on", self.name)
+
+        if conf.mem:
+            #print( "Memory trace")
+            snapshot = tracemalloc.take_snapshot()
+            top_stats = snapshot.statistics('lineno')
+
+        print("ended thread", self.name)
+
+
+def simple_server(HOST, PORT):
+    with socket.socket() as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        server.bind((HOST, PORT))
+        server.listen()
+        while True:
+            client, addr = server.accept()
+            client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            serve_one(client, addr, args)
+
+
 if __name__ == '__main__':
 
-    global server
+    #global server
 
     if sys.version_info[0] < 3:
         print("Warning! This script was meant for python 3.x")
@@ -305,12 +404,45 @@ if __name__ == '__main__':
     if conf.pglog > 0:
         pysyslog.openlog("pyvserv.py")
 
+
+    #server.allow_reuse_address = True
+    #ip, port = server.server_address
+    #server.allow_reuse_address = True
+    #server.verbose = verbose
+
+    # Start a thread with the server -- that thread will then start one
+    # or more threads for each request
+    #server_thread = threading.Thread(target=server.serve_forever)
+
+    # Exit the server thread when the main thread terminates
+    #server_thread.verbose = verbose
+    ##server_thread.setDaemon(True)
+    #server_thread.daemon = True
+    ##server_thread.paydir =  pyservsup.globals.paydir
+
+    #server_thread.start()
+
     # Port 0 would mean to select an arbitrary unused port
     HOST, PORT = "", 6666
 
-    try:
-        server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+    if not quiet:
+        try:
+            import distro
+            strx = distro.name()
+        except:
+            strx = "Win or Unkn."
 
+        print("MainSiteID:", pyservsup.globals.siteid)
+        print("Server running: ", "'"+HOST+"'", "Port:", PORT)
+        pyver = support.list2str(sys.version_info) #[0:3], ".")
+        print("Running python", platform.python_version(), "on", platform.system(), strx)
+
+    if conf.pglog > 0:
+        pysyslog.syslog("Started Server")
+
+    try:
+        #server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+        simple_server(HOST, PORT)
     except:
         print( "Cannot start server. ", sys.exc_info()[1])
         if conf.pglog > 0:
@@ -320,39 +452,7 @@ if __name__ == '__main__':
         terminate(None, None)
         #sys.exit(1)
 
-    server.allow_reuse_address = True
-    ip, port = server.server_address
-    server.allow_reuse_address = True
-    server.verbose = verbose
-
-    # Start a thread with the server -- that thread will then start one
-    # or more threads for each request
-    server_thread = threading.Thread(target=server.serve_forever)
-
-    # Exit the server thread when the main thread terminates
-    server_thread.verbose = verbose
-    #server_thread.setDaemon(True)
-    server_thread.daemon = True
-    #server_thread.paydir =  pyservsup.globals.paydir
-    server_thread.start()
-
-    if not quiet:
-        strx = "Win or Unkn."
-        try:
-            import distro
-            strx = distro.name()
-        except:
-            pass
-
-        print("MainSiteID:", pyservsup.globals.siteid)
-        print("Server running:", server.server_address)
-        pyver = support.list2str(sys.version_info) #[0:3], ".")
-        print("Running python", platform.python_version(), "on", platform.system(), strx)
-
-    if conf.pglog > 0:
-        pysyslog.syslog("Started Server")
-
     # Block
-    server.serve_forever()
+    #server.serve_forever()
 
 # EOF

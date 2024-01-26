@@ -42,7 +42,7 @@ class CliSup():
         self.pgdebug = 0
         if self.sock != None:
             self.mydathand  = pydata.xHandler(self.sock)
-            self.myhandler  = pydata.DataHandler()
+            self.myhandler  = pydata.DataHandler(self.sock)
         self.wr = pywrap.wrapper()
         self.pb = pypacker.packbin()
 
@@ -68,7 +68,7 @@ class CliSup():
         self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         self.mydathand  = pydata.xHandler(self.sock)
-        self.myhandler  = pydata.DataHandler()
+        self.myhandler  = pydata.DataHandler(self.sock)
 
         return self.getreply()
 
@@ -110,7 +110,8 @@ class CliSup():
         if self.pgdebug > 1:
             print("resp:", resp)
 
-        response = self.pb.decode_data(resp[1])
+        #response = self.pb.decode_data(resp[1])
+        response = self.pb.decode_data(resp[0])
 
         if self.pgdebug > 0:
             print( "    get: '%s'" % response)
