@@ -256,10 +256,9 @@ class serve_one():
         self.name = cur_thread.name #getName()
         #print( "Logoff '" + usr + "'", cli)
 
-        self.verbose = conf.verbose
+        print("Started thread", self.name)
 
-        if self.verbose:
-            print("Started thread", self.name)
+        self.verbose = conf.verbose
 
         if self.verbose:
             print( "Connection from ", self.a2, "as", self.name)
@@ -315,8 +314,7 @@ class serve_one():
             snapshot = tracemalloc.take_snapshot()
             top_stats = snapshot.statistics('lineno')
 
-        if self.verbose:
-            print("ended thread", self.name)
+        print("ended thread", self.name)
 
 
 def simple_server(HOST, PORT):
@@ -406,33 +404,6 @@ if __name__ == '__main__':
     if conf.pglog > 0:
         pysyslog.openlog("pyvserv.py")
 
-    # Port 0 would mean to select an arbitrary unused port
-    HOST, PORT = "", 6666
-
-    if not quiet:
-        try:
-            import distro
-            strx = distro.name()
-        except:
-            strx = "Win or Unkn."
-
-        print("MainSiteID:", pyservsup.globals.siteid)
-        print("Server running: ", "'"+HOST+"'", "Port:", PORT)
-        pyver = support.list2str(sys.version_info) #[0:3], ".")
-        print("Running python", platform.python_version(), "on", platform.system(), strx)
-
-    try:
-        #server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
-        pass
-
-    except:
-        print( "Cannot start server. ", sys.exc_info()[1])
-        if conf.pglog > 0:
-            pysyslog.syslog("Cannot start server " + str(sys.exc_info()[1]) )
-
-        #print("Try again later.")
-        terminate(None, None)
-        #sys.exit(1)
 
     #server.allow_reuse_address = True
     #ip, port = server.server_address
@@ -451,11 +422,36 @@ if __name__ == '__main__':
 
     #server_thread.start()
 
+    # Port 0 would mean to select an arbitrary unused port
+    HOST, PORT = "", 6666
+
+    if not quiet:
+        try:
+            import distro
+            strx = distro.name()
+        except:
+            strx = "Win or Unkn."
+
+        print("MainSiteID:", pyservsup.globals.siteid)
+        print("Server running: ", "'"+HOST+"'", "Port:", PORT)
+        pyver = support.list2str(sys.version_info) #[0:3], ".")
+        print("Running python", platform.python_version(), "on", platform.system(), strx)
 
     if conf.pglog > 0:
         pysyslog.syslog("Started Server")
 
-    simple_server(HOST, PORT)
+    try:
+        #server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+        simple_server(HOST, PORT)
+    except:
+        print( "Cannot start server. ", sys.exc_info()[1])
+        if conf.pglog > 0:
+            pysyslog.syslog("Cannot start server " + str(sys.exc_info()[1]) )
+
+        #print("Try again later.")
+        terminate(None, None)
+        #sys.exit(1)
+
     # Block
     #server.serve_forever()
 

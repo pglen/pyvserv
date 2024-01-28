@@ -205,8 +205,8 @@ class CliSup():
 
         while(True):
             #response = self.recvx(key)
-            #response = self.myhandler.handle_one(self.mydathand)
-            response = self.myhandler.rfile.read(1024)
+            response = self.myhandler.handle_one(self.mydathand)
+            #response = self.myhandler.rfile.read(1024)
             #response = self.myhandler.sock.recv(1024)
 
             if self.pgdebug > 2:
@@ -215,7 +215,7 @@ class CliSup():
             if not response:
                 break
 
-            response = cipher.encrypt(response)
+            #response = cipher.encrypt(response)
 
             try:
                 #fh.write(bytes(response, "cp437"))

@@ -45,6 +45,7 @@ class DataHandler():
         self.rfile = sock.makefile("rb")
         self.wfile = sock.makefile("wb")
         self.sock = sock
+        self.cumm = b""
 
     def handler_timeout(self):
 
@@ -104,51 +105,12 @@ class DataHandler():
         if self.pgdebug > 5:
             print ("Server reply:\n", dstr)
             pass
-
-        try:
-            #print ("putdata type:", type(dstr))
-
-            if type(dstr) == type(""):
-                response2 = bytes(dstr, "cp437")
-            else:
-                response2 = dstr
-
-            #if self.pgdebug > 2:
-            #    print ("assemble:", type(response2), response2 )
-
-            # Send out our special buffer (short)len + (str)message
-            if sys.version_info[0] < 3:
-                strx = struct.pack("!h", len(response2)) + response2
-            else:
-                strx = struct.pack("!h", len(response2)) + response2
-
-            #if self.pgdebug > 2:
-            #    print ("sending: '", strx ) # + strx.decode("cp437") + "'")
-
-            #ret = self.request.send(strx)
-            ret = self.wfile.write(strx)
-            ret = self.wfile.flush()
-
-            #if self.tout:
-            #    self.tout.cancel()
-            #self.tout = threading.Timer(self.timeout, self.handler_timeout)
-            #self.tout.start()
-
-        except:
-            sss = "While in Put Data: " + str(response)[:24]
-            support.put_exception(sss)
-            #self.resp.datahandler.putdata(sss, self.statehand.resp.ekey)
-            if self.tout:
-                self.tout.cancel()
-            ret = -1
-            raise
-
+        ret = self.putraw(dstr)
         return ret
 
     def putraw(self, dstr):
 
         ret = ""; response2 = ""
-
         try:
             #print ("putdata type:", type(dstr))
 
@@ -161,10 +123,7 @@ class DataHandler():
             #    print ("assemble:", type(response2), response2 )
 
             # Send out our special buffer (short)len + (str)message
-            if sys.version_info[0] < 3:
-                strx = struct.pack("!h", len(response2)) + response2
-            else:
-                strx = struct.pack("!h", len(response2)) + response2
+            strx = struct.pack("!h", len(response2)) + response2
 
             #if self.pgdebug > 2:
             #    print ("sending: '", strx ) # + strx.decode("cp437") + "'")
@@ -179,7 +138,7 @@ class DataHandler():
             #self.tout.start()
 
         except:
-            sss = "While in Put Raw Data: " + str(response)[:24]
+            sss = "While in Put Raw: " + str(response2)[:24]
             support.put_exception(sss)
             #self.resp.datahandler.putdata(sss, self.statehand.resp.ekey)
             if self.tout:
@@ -199,72 +158,63 @@ class DataHandler():
         #self.tout = threading.Timer(self.timeout, self.handler_timeout)
         #self.tout.start()
 
-        #sss = self.par.request.recv(amount)
+        #sss = self.sock.recv(amount)
         sss = self.rfile.read(amount)
 
         #if self.pgdebug > 8:
-
         #    print("got len", amount, "got data:", sss)
-        return sss.decode("cp437")
+        #return sss.decode("cp437")
+        return sss
 
     # Where the outside stimulus comes in ...
     # State 0 - initial => State 1 - len arrived => State 2 data coming
     # Receive our special buffer (short)len + (str)message
 
-    def handle_one(self, par):
+    def handle_one(self, par = None):
+
         #print("Handle_one", par, par.ekey[:16])
-        self.par = par
 
-        newarr = []  ; dlen = 0
+        newarr = [] ; newdata = b""; state = 0; xlen = 2
+
         try:
-            #cur_thread = threading.currentThread()
-            cur_thread = threading.current_thread()
-            #self.name = cur_thread.getName()
-            self.name = cur_thread.name
-
-            state = 0; xlen = []; newdata = ""; ldata = ""
             while 1:
-                if state == 0:
-                    xdata = self.getdata(max(2-len(ldata), 0))
-                    if len(xdata) == 0: break
-                    ldata += xdata
-                    if len(ldata) == 2:
-                        state = 1;
-                        xlen = struct.unpack("!h", ldata.encode("cp437"))
-                        #if self.pgdebug > 7:
-                        #    print( "db got len =", xlen)
-                elif state == 1:
-                    data2 = self.getdata(max(xlen[0]-len(newdata), 0))
-                    if len(data2) == 0:
-                        break
+                buff =  self.getdata(xlen)
+                #buff =  self.getdata(1024)
 
-                    #newdata += data2
-                    dlen += len(data2)
-                    newarr.append(data2)
-
-                    #if self.pgdebug > 7:
-                    #    print( "db got data, len =", len(data2))
-                    if dlen >= xlen[0]:
-                        state = 3
-                elif state == 3:
-                    # Done, return buffer
-                    state = 0
+                if len(buff) == 0:
                     break
+
+                self.cumm += buff
+
+                #print("sock", buff)
+                #print("xlen", xlen)
+                #print("cummlen", len(self.cumm))
+
+                if state == 0:
+                    if len(self.cumm) >= 2:
+                        xlen = struct.unpack("!h", self.cumm[:2])[0]
+                        self.cumm = self.cumm[2:]
+                        state = 1;
+                elif state == 1:
+                    if len(self.cumm) >= xlen:
+                        newarr.append(self.cumm[:xlen])
+                        self.cumm = self.cumm[xlen:]
+                        break
                 else:
                     if self.pgdebug > 0:
                         print( "Unkown state")
-            newdata = "".join(newarr)
-            if self.tout: self.tout.cancel()
+
+            newdata = b"".join(newarr)
+            #if self.tout:
+            #    self.tout.cancel()
         except:
-            support.put_exception("While in Handshake: ")
+            support.put_exception("While in handle_one: ")
 
         #if self.pgdebug > 8:
-        #    print("got data: '" + newdata + "'")
+        #   print(b"got data: '" + newdata + b"'")
 
-        #return newdata.encode("cp437")
         #return bytes(newdata, "cp437")
         return newdata
-
 
 # Create a class with the needed members to send / recv
 # This way we can call the same routines as the SockServer class

@@ -185,6 +185,7 @@ def get_fget_func(self, strx):
     cipher = AES.new(key, AES.MODE_CTR,
                         use_aesni=True, nonce = b'12345678')
 
+    prog = 0
     # Loop, break when file end or transmission error
     while 1:
         try:
@@ -194,20 +195,22 @@ def get_fget_func(self, strx):
             print("Cannot read local file", sys.exc_info())
             break
 
-
-        buff = cipher.encrypt(buff)
+        #buff = cipher.encrypt(buff)
         try:
             #ret = self.resp.datahandler.putencode([str(blen), buff,], self.resp.ekey, False)
-            #ret = self.resp.datahandler.putraw(buff)
-            ret = self.resp.datahandler.wfile.write(buff)
+            ret = self.resp.datahandler.putraw(buff)
+            #ret = self.resp.datahandler.wfile.write(buff)
             self.resp.datahandler.wfile.flush()
         except:
             print(sys.exc_info())
             break;
 
-        if ret == 0:
+        prog += blen
+        if prog >= flen:
             break
 
+        if ret == 0:
+            break
         if blen == 0:
             break
 
