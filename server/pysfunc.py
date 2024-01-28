@@ -179,8 +179,13 @@ def get_fget_func(self, strx):
 
     response = ["OK", str(flen), strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
-    # Loop, break when file end or transmission error
 
+    from Crypto.Cipher import AES
+    key = b'Sixteen byte key'
+    cipher = AES.new(key, AES.MODE_CTR,
+                        use_aesni=True, nonce = b'12345678')
+
+    # Loop, break when file end or transmission error
     while 1:
         try:
             buff = fh.read(pyservsup.buffsize)
@@ -189,15 +194,25 @@ def get_fget_func(self, strx):
             print("Cannot read local file", sys.exc_info())
             break
 
+
+        buff = cipher.encrypt(buff)
         try:
-            ret = self.resp.datahandler.putencode([str(blen), buff,], self.resp.ekey, False)
+            #ret = self.resp.datahandler.putencode([str(blen), buff,], self.resp.ekey, False)
+            #ret = self.resp.datahandler.putraw(buff)
+            ret = self.resp.datahandler.wfile.write(buff)
+            self.resp.datahandler.wfile.flush()
         except:
+            print(sys.exc_info())
             break;
 
         if ret == 0:
             break
+
         if blen == 0:
             break
+
+    #ret = self.resp.datahandler.wfile.write(b" ")
+    #self.resp.datahandler.wfile.flush()
 
     # Lof and set state to IDLE
     xstr = "Sent file: '" + dname + \

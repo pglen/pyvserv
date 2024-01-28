@@ -107,14 +107,14 @@ class CliSup():
         #self.sock.send(b"")
 
 
-        if self.pgdebug > 1:
-            print("resp:", resp)
+        if self.pgdebug > 3:
+            print("resp:", resp[:24])
 
-        #response = self.pb.decode_data(resp[1])
-        response = self.pb.decode_data(resp[0])
+        response = self.pb.decode_data(resp[1])
+        #response = self.pb.decode_data(resp[0])
 
-        if self.pgdebug > 0:
-            print( "    get: '%s'" % response)
+        if self.pgdebug > 2:
+            print( "    get: '%s'" % response[:24])
 
         return response[0]
 
@@ -196,23 +196,40 @@ class CliSup():
         if cresp[0] != "OK":
             return cresp
 
+        fsize = int(cresp[1])
+
+        from Crypto.Cipher import AES
+        key = b'Sixteen byte key'
+        cipher = AES.new(key, AES.MODE_CTR,
+                        use_aesni=True, nonce = b'12345678')
+
         while(True):
-            response = self.recvx(key)
+            #response = self.recvx(key)
+            #response = self.myhandler.handle_one(self.mydathand)
+            response = self.myhandler.rfile.read(1024)
+            #response = self.myhandler.sock.recv(1024)
+
             if self.pgdebug > 2:
-                print("resp", response)
+                print("getfile resp", response[:12])
 
-            if self.pgdebug > 5:
-                print ("got:", response[0], end=", ")
-
-            if response[0] == "0":
+            if not response:
                 break
+
+            response = cipher.encrypt(response)
+
             try:
-                fh.write(bytes(response[1], "cp437"))
+                #fh.write(bytes(response, "cp437"))
+                fh.write(response)
             except:
                 #if self.verbose:
                 print( "Cannot write to local file: '" + toname + "'", sys.exc_info())
                 fh.close()
                 return
+
+            fsize -= len(response)
+            if fsize <= 0:
+                break
+
         fh.close()
 
         if self.verbose:
@@ -285,7 +302,11 @@ class CliSup():
             raise TypeError("Argument one to client() must be list")
 
         if self.pgdebug > 0:
-            print( "   message:", message)
+            cnt = 0
+            for aa in message:
+                print( "   message %d:" % cnt, aa[:12], end=' ')
+                cnt += 1
+            print()
             #print("    key",  key)
 
         if len(key) == 0 and self.sess:
@@ -298,6 +319,13 @@ class CliSup():
         #    print("    waiting for answer ...")
 
         response =  self.recvx(key)
+
+        if self.pgdebug > 0:
+            cnt = 0
+            for aa in response:
+                print( "   response %d:" % cnt, aa[:12], end=' ')
+                cnt += 1
+            print()
 
         '''resp = self.getreply(key)
         if self.pgdebug > 1:
@@ -379,8 +407,8 @@ class CliSup():
             self.close();
             sys.exit(0)
 
-        if conf.pgdebug > 1:
-            print("Got ", self.pubkey, "size =", self.pubkey.size())
+        #if conf.pgdebug > 1:
+        #    print("Got ", self.pubkey) #, "size =", self.pubkey.size())
 
         # Generate communication key
         conf.sess_key = Random.new().read(512)

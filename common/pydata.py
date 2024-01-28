@@ -44,6 +44,7 @@ class DataHandler():
         self.pb = pypacker.packbin()
         self.rfile = sock.makefile("rb")
         self.wfile = sock.makefile("wb")
+        self.sock = sock
 
     def handler_timeout(self):
 
@@ -92,8 +93,8 @@ class DataHandler():
 
         rstr = Random.new().read(random.randint(14, 24))
         xstr = Random.new().read(random.randint(24, 36))
-        #datax = [rstr, response, xstr]
-        datax = [response]
+        datax = [rstr, response, xstr]
+        #datax = [response]
 
         #print ("server key reply:", key[:16])
         #print ("server dats:", datax[:16])
@@ -103,6 +104,50 @@ class DataHandler():
         if self.pgdebug > 5:
             print ("Server reply:\n", dstr)
             pass
+
+        try:
+            #print ("putdata type:", type(dstr))
+
+            if type(dstr) == type(""):
+                response2 = bytes(dstr, "cp437")
+            else:
+                response2 = dstr
+
+            #if self.pgdebug > 2:
+            #    print ("assemble:", type(response2), response2 )
+
+            # Send out our special buffer (short)len + (str)message
+            if sys.version_info[0] < 3:
+                strx = struct.pack("!h", len(response2)) + response2
+            else:
+                strx = struct.pack("!h", len(response2)) + response2
+
+            #if self.pgdebug > 2:
+            #    print ("sending: '", strx ) # + strx.decode("cp437") + "'")
+
+            #ret = self.request.send(strx)
+            ret = self.wfile.write(strx)
+            ret = self.wfile.flush()
+
+            #if self.tout:
+            #    self.tout.cancel()
+            #self.tout = threading.Timer(self.timeout, self.handler_timeout)
+            #self.tout.start()
+
+        except:
+            sss = "While in Put Data: " + str(response)[:24]
+            support.put_exception(sss)
+            #self.resp.datahandler.putdata(sss, self.statehand.resp.ekey)
+            if self.tout:
+                self.tout.cancel()
+            ret = -1
+            raise
+
+        return ret
+
+    def putraw(self, dstr):
+
+        ret = ""; response2 = ""
 
         try:
             #print ("putdata type:", type(dstr))
@@ -134,7 +179,7 @@ class DataHandler():
             #self.tout.start()
 
         except:
-            sss = "While in Put Data: " + str(response)[:24]
+            sss = "While in Put Raw Data: " + str(response)[:24]
             support.put_exception(sss)
             #self.resp.datahandler.putdata(sss, self.statehand.resp.ekey)
             if self.tout:

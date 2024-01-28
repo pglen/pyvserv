@@ -127,8 +127,9 @@ if __name__ == '__main__':
     #    hand.close();
     #    sys.exit(0)
 
-    ret2 = hand.getfile("zeros", "zeros_local", conf.sess_key)
-    print ("Server  fget response:", ret2)
+    #zfile = "zeros"
+    #ret2 = hand.getfile(zfile, zfile+"_local", conf.sess_key)
+    #print ("Server  fget response:", ret2)
 
     bfile ="bigfile"
     print("Started bigfile ...", bfile)
