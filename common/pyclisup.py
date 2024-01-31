@@ -6,6 +6,7 @@ import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random, socket, datetime
 
 from Crypto import Random
+from Crypto.Cipher import AES
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base, '../bluepy'))
@@ -198,8 +199,8 @@ class CliSup():
 
         fsize = int(cresp[1])
 
-        from Crypto.Cipher import AES
-        key = b'Sixteen byte key'
+        #key = b'Sixteen byte key'
+        key = key[:32]
         cipher = AES.new(key, AES.MODE_CTR,
                         use_aesni=True, nonce = b'12345678')
 
@@ -215,7 +216,7 @@ class CliSup():
             if not response:
                 break
 
-            #response = cipher.encrypt(response)
+            response = cipher.encrypt(response)
 
             try:
                 #fh.write(bytes(response, "cp437"))

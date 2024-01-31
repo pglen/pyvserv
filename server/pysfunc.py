@@ -45,6 +45,34 @@ def contain_path(self, strp):
 # ------------------------------------------------------------------------
 # State transition and action functions
 
+# ------------------------------------------------------------------------
+# Also stop timeouts
+
+def get_exit_func(self, strx):
+    #print( "get_exit_func", strx)
+    self.resp.datahandler.putencode(["OK", "Bye"], self.resp.ekey)
+    #self.resp.datahandler.par.shutdown(socket.SHUT_RDWR)
+
+    # Cancel **after** sending bye
+    if self.resp.datahandler.tout:
+        self.resp.datahandler.tout.cancel()
+
+    return True
+
+def get_tout_func(self, strx):
+
+    tout = self.resp.datahandler.timeout
+    if len(strx) > 1:
+        tout = int(strx[1])
+        self.resp.datahandler.timeout = tout
+
+    if self.resp.datahandler.tout:
+        self.resp.datahandler.tout.cancel()
+
+    self.resp.datahandler.putencode(["OK timeout set to ", str(tout)], self.resp.ekey)
+    return
+
+
 def get_mkdir_func(self, strx):
     #print("make dir", strx[1])
 
@@ -78,6 +106,12 @@ def get_mkdir_func(self, strx):
 
 def get_buff_func(self, strx):
     #print("buffer str", strx[1])
+
+    if len(strx) < 2:
+        response = ["ERR", "Must specify buffer size."]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
     num = int(strx[1])
     if num <= 0:
         num = 1
@@ -181,7 +215,8 @@ def get_fget_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
     from Crypto.Cipher import AES
-    key = b'Sixteen byte key'
+    #key = b'Sixteen byte key'
+    key = self.resp.ekey[:32]
     cipher = AES.new(key, AES.MODE_CTR,
                         use_aesni=True, nonce = b'12345678')
 
@@ -195,7 +230,7 @@ def get_fget_func(self, strx):
             print("Cannot read local file", sys.exc_info())
             break
 
-        #buff = cipher.encrypt(buff)
+        buff = cipher.encrypt(buff)
         try:
             #ret = self.resp.datahandler.putencode([str(blen), buff,], self.resp.ekey, False)
             ret = self.resp.datahandler.putraw(buff)
@@ -386,6 +421,11 @@ def get_hello_func(self, strx):
 
 
 def get_stat_func(self, strx):
+
+    if len(strx) < 2:
+        response = ["ERR", "Must specify file name."]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
 
     fname = ""; aaa = " "
     #print("stat_func", strx[1])

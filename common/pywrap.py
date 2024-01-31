@@ -7,7 +7,7 @@ import struct, stat, base64, random, zlib
 
 from Crypto.Hash import SHA512
 from Crypto import Random
-#from Crypto import StrongRandom
+from Crypto.Cipher import AES
 
 import support, crysupp, support, pypacker
 
@@ -86,29 +86,28 @@ class   wrapper():
         if sys.version_info[0] > 2:
             ssss  = ssss.encode("cp437")
 
-        #fff = zlib.compress(ssss)
-        fff = ssss
+        # compress too expensive, throttled
+        fff = zlib.compress(ssss, 1)
+        #fff = ssss
 
-        # short it
-        #fff3 = fff
-        #fff3 = ssss
-
+        # use AES and Bluepoint
         if key:
-            #fff3 = bluepy.encrypt(fff, key)
-            #fff3d = bluepy.decrypt(fff3, key)
-            fff3 = fff
+            fff2 = bluepy.encrypt(fff, key)
+            key2 = key[:32]
+            cipher = AES.new(key2, AES.MODE_CTR,
+                        use_aesni=True, nonce = b'12345678')
+            fff3 = cipher.encrypt(fff2)
+            #fff3 = fff
         else:
             #fff3 = bluepy.encrypt(fff, defkey)
-            #fff3d = bluepy.decrypt(fff3, defkey)
             fff3 = fff
 
-        #if fff != fff3d:
-        #    raise(ValueError("Encyption Verification failed"))
-
+        #print (len(fff), end= ' ')
         return fff3
 
     # --------------------------------------------------------------------
-    # Unrap data in a hash, de  base64, decompress,
+    # Unrap data in a hash, DE base64, decompress,
+
     #@support.timeit
     def unwrap_data(self, key, xddd):
 
@@ -126,26 +125,21 @@ class   wrapper():
             if type(xddd) != type(""):
                 xddd = xddd.decode("cp437")
 
-        #fff2 = base64.b64decode(xddd)
         fff2 = xddd.encode("cp437")
 
-        # short it
-        #fff3 = fff2
-
         if key:
-            #fff3 = bluepy.decrypt(fff2, key)
-            #fff3e = bluepy.encrypt(fff3, key)
-            fff3 = fff2
+            key2 = key[:32]
+            cipher = AES.new(key2, AES.MODE_CTR,
+                        use_aesni=True, nonce = b'12345678')
+            fff3 = cipher.decrypt(fff2)
+            fff4 = bluepy.decrypt(fff3, key)
+            #fff4 = fff2
         else:
             #fff3 = bluepy.decrypt(fff2, defkey)
-            #fff3e = bluepy.encrypt(fff3, defkey)
-            fff3 = fff2
+            fff4 = fff2
 
-        #if fff2 != fff3e:
-        #    raise(ValueError("Decryption Verification failed"))
-
-        #fff = zlib.decompress(fff3)
-        fff = fff3
+        fff = zlib.decompress(fff4)
+        #fff = fff4
 
         if sys.version_info[0] > 2:
             fff = fff.decode("cp437")
@@ -165,15 +159,11 @@ class   wrapper():
         if not hh.hexdigest() == sss[0]:
             raise ValueError("Mismatching hashes on wrapped data")
 
-        #if sys.version_info[0] > 2:
-        #    sss[1] = sss[1].decode("cp437")
-
         #ttt = time.time()
         out = self.pb.decode_data(sss[1])
         #print ("ttt=%f"  % (ttt - time.time()))
         #print ("  Carrier:", support.hexstr(out[0]));
         return out[1:]
-
 
 if __name__ == '__main__':
     print("This was meant to be used as a module.")

@@ -54,9 +54,7 @@ class InvalidArg(Exception):
 
 # ------------------------------------------------------------------------
 
-#class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
-
-class TCPRequestHandler():
+class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def __init__(self, a1, a2, a3):
         self.a2 = a2
@@ -330,7 +328,6 @@ def simple_server(HOST, PORT):
             client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             serve_one(client, addr, args)
 
-
 if __name__ == '__main__':
 
     #global server
@@ -409,6 +406,7 @@ if __name__ == '__main__':
     # Port 0 would mean to select an arbitrary unused port
     HOST, PORT = "", 6666
 
+
     if not quiet:
         try:
             import distro
@@ -422,7 +420,24 @@ if __name__ == '__main__':
         print("Running python", platform.python_version(), "on", platform.system(), strx)
 
     try:
-        #server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+        server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+        server.allow_reuse_address = True
+        ip, port = server.server_address
+        server.allow_reuse_address = True
+        server.verbose = verbose
+
+        # Start a thread with the server -- that thread will then start one
+        # or more threads for each request
+        server_thread = threading.Thread(target=server.serve_forever)
+
+        # Exit the server thread when the main thread terminates
+        server_thread.verbose = verbose
+        #server_thread.setDaemon(True)
+        server_thread.daemon = True
+        server_thread.paydir =  pyservsup.globals.paydir
+
+        server_thread.start()
+
         pass
 
     except:
@@ -434,29 +449,11 @@ if __name__ == '__main__':
         terminate(None, None)
         #sys.exit(1)
 
-    #server.allow_reuse_address = True
-    #ip, port = server.server_address
-    #server.allow_reuse_address = True
-    #server.verbose = verbose
-
-    # Start a thread with the server -- that thread will then start one
-    # or more threads for each request
-    #server_thread = threading.Thread(target=server.serve_forever)
-
-    # Exit the server thread when the main thread terminates
-    #server_thread.verbose = verbose
-    ##server_thread.setDaemon(True)
-    #server_thread.daemon = True
-    ##server_thread.paydir =  pyservsup.globals.paydir
-
-    #server_thread.start()
-
-
     if conf.pglog > 0:
         pysyslog.syslog("Started Server")
 
-    simple_server(HOST, PORT)
     # Block
-    #server.serve_forever()
+    #simple_server(HOST, PORT)
+    server.serve_forever()
 
 # EOF

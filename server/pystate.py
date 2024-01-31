@@ -40,33 +40,6 @@ auth_in      = 110
 none_in      = 120
 
 # ------------------------------------------------------------------------
-# Also stop timeouts
-
-def get_exit_func(self, strx):
-    #print( "get_exit_func", strx)
-    self.resp.datahandler.putencode(["OK", "Bye"], self.resp.ekey)
-    #self.resp.datahandler.par.shutdown(socket.SHUT_RDWR)
-
-    # Cancel **after** sending bye
-    if self.resp.datahandler.tout:
-        self.resp.datahandler.tout.cancel()
-
-    return True
-
-def get_tout_func(self, strx):
-
-    tout = self.resp.datahandler.timeout
-    if len(strx) > 1:
-        tout = int(strx[1])
-        self.resp.datahandler.timeout = tout
-
-    if self.resp.datahandler.tout:
-        self.resp.datahandler.tout.cancel()
-
-    self.resp.datahandler.putencode(["OK timeout set to ", str(tout)], self.resp.ekey)
-    return
-
-# ------------------------------------------------------------------------
 # Help stings
 
 user_help   = "Usage: user logon_name"
@@ -215,16 +188,17 @@ class StateHandler():
             print( "Com:", "'" + comx[0] + "'", "State =", self.curr_state)
 
         got = False; comok = False
+
         # Scan the state table, execute actions, set new states
         for aa in state_table:
-            # See if command is in state or all_in is in effect
-            # or auth_in and stat > auth is in effect -- use early out
+            # Command match
             if comx[0] == aa[0]:
                 comok = True
                 if self.pgdebug > 3:
                     print("Found command, executing:", aa[0])
 
-                # Auth?
+                # See if command is in state or all_in is in effect
+                # or auth_in and stat > auth is in effect -- use early out
                 if aa[3] == none_in or aa[3] <= self.curr_state:
                     cond = aa[1] == self.curr_state
                     if not cond:
@@ -233,6 +207,11 @@ class StateHandler():
                         cond = aa[1] == all_in
 
                     if cond:
+                        # Auth?
+                        authx = aa[3] >= self.curr_state
+                        if not authx:
+                            authx = aa[3] == none_in
+                        if authx:
                             # Execute relevant function
                             ret2 = aa[4](self, comx)
                             #print("exec", ret2, aa[3], comx[0])
