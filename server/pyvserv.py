@@ -54,6 +54,42 @@ class InvalidArg(Exception):
 
 # ------------------------------------------------------------------------
 
+connlist = []
+sem = threading.Semaphore()
+
+def throttle(peer):
+
+    global connlist, sem
+    #print("throttle", peer)
+
+    # Throttle to 10 sec frequency
+    now = time.time()
+    sem.acquire()
+    sss = 0; slept = False
+    for aa in connlist:
+        if aa[0][0] == peer[0]:
+            if now - aa[1] <  pyservsup.globals.throttle:
+                sss += 1
+    if sss >  pyservsup.globals.instance:
+        for aa in range(len(connlist)-1, -1 ,-1):
+            if connlist[aa][0][0] == peer[0]:
+                if now - connlist[aa][1] > pyservsup.globals.throttle:
+                    del connlist[aa]
+        time.sleep(5.)
+        slept = True
+
+    # Clean throtle data periodically
+    if len(connlist) > pyservsup.globals.maxthdat:
+        for aa in range(len(connlist)-1, -1 ,-1):
+            if connlist[aa][0][0] == peer[0]:
+                if now - connlist[aa][1] > pyservsup.globals.throttle:
+                    del connlist[aa]
+    connlist.append((peer, now))
+    #print(connlist)
+    sem.release()
+    return slept
+
+
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def __init__(self, a1, a2, a3):
@@ -63,10 +99,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.cwd = os.getcwd()
         self.dir = ""
         self.ekey = ""
+        self.verbose = conf.verbose
 
-        #print("init", a1, a2, a3)
+        ttt = throttle(a1.getpeername())
+        if self.verbose:
+            if ttt > 0:
+                print ("Throttle sleep",  a1.getpeername())
+
         socketserver.BaseRequestHandler.__init__(self, a1, a2, a3)
-        #print(  SocketServer)
 
     def setup(self):
         global mydata
@@ -74,9 +114,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         cur_thread = threading.current_thread()
         self.name = cur_thread.name #getName()
         #print( "Logoff '" + usr + "'", cli)
-
-        self.verbose = conf.verbose
-
         if self.verbose:
             print( "Connection from ", self.a2, "as", self.name)
 
@@ -437,8 +474,6 @@ if __name__ == '__main__':
         server_thread.paydir =  pyservsup.globals.paydir
 
         server_thread.start()
-
-        pass
 
     except:
         print( "Cannot start server. ", sys.exc_info()[1])

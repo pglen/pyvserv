@@ -38,6 +38,9 @@ class   Globals:
         self._keyfile   =  "keys.secret"
         self._idfile    =  "pyservid.init"
         self.siteid     =  None
+        self.throttle   =  10     # seconds
+        self.instance   =  2      # max instace from one IP/host
+        self.maxthdat   =  100    # max data in throttle var
 
     def _mkdir(self, ddd, fff="data"):
         try:
