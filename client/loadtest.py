@@ -16,9 +16,26 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
+import argparse
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+
+parser.add_argument("-c", '--count', dest='count', type=int,
+                    default=3,
+                    help='Number of processes default: 3)')
+
+parser.add_argument("-v", '--verbose', dest='verbose',
+                    default=0,  action='count',
+                    help='verbocity on (default: off)')
+
+parser.add_argument("-f", '--file', dest='file',  nargs='?',
+                    default="./pycli_ver.py", help='start file')
+
+args = parser.parse_args()
+
 from common import support, pycrypt, pyservsup, pyclisup
 from common import pysyslog, comline, pypacker
 
-for aa in range(100):
-    subprocess.Popen("./pycli_ver.py")
+for aa in range(args.count):
+    subprocess.Popen(args.file)
 

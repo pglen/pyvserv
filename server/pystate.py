@@ -103,14 +103,14 @@ state_table = [
     ("xkey",    all_in,     none_in,    none_in,  get_xkey_func,  ekey_help),
     ("ekey",    all_in,     none_in,    none_in,  get_ekey_func,  ekey_help),
     ("akey",    all_in,     none_in,    none_in,  get_akey_func,  akey_help),
-    ("tout",    all_in,     none_in,    none_in,  get_tout_func,  tout_help),
-    ("uini",    auth_sess,  none_in,    none_in,  get_uini_func,  uini_help),
-    ("kadd",    auth_in,    none_in,    none_in,  get_kadd_func,  kadd_help),
+    ("uini",    all_in,     none_in,    none_in,  get_uini_func,  uini_help),
+    ("kadd",    all_in,     none_in,    none_in,  get_kadd_func,  kadd_help),
     ("user",    all_in,     auth_user,  none_in, get_user_func,  user_help),
     ("pass",    auth_user,  auth_pass,  none_in, get_pass_func,  pass_help),
-    ("sess",    all_in,     auth_sess,  none_in,  get_sess_func,  sess_help),
+    ("sess",    all_in,     none_in,    none_in,  get_sess_func,  sess_help),
+    ("tout",    all_in,     none_in,    auth_pass,  get_tout_func,  tout_help),
     ("chpass",  all_in,  none_in,    auth_pass, get_chpass_func,  chpass_help),
-    ("file",    all_in,  got_fname,  auth_pass, put_file_func, file_help),
+    ("file",    all_in,  none_in,    auth_pass, put_file_func, file_help),
     ("mkdir",   all_in,  none_in,    auth_pass, get_mkdir_func, file_help),
     ("data",    all_in,  none_in,    auth_pass, put_data_func,  data_help),
     ("fget",    all_in,  none_in,    auth_pass, get_fget_func,  fget_help),
@@ -139,7 +139,6 @@ class StateHandler():
         self.badpass = 0
         self.wr = pywrap.wrapper()
         self.pb = pypacker.packbin()
-
         self.wr.pgdebug = 0
 
     # --------------------------------------------------------------------
@@ -148,21 +147,18 @@ class StateHandler():
     # Return True from handlers to signal session terminate request
 
     def run_state(self, strx):
-        ret = None
-
-        #if self.pgdebug > 5:
-        #    print("Run state data: \n'" + crysupp.hexdump(strx, len(strx)) + "'")
+        ret = False
 
         try:
-            ret = self._run_state(strx)
+            ret = self._run_state_worker(strx)
         except:
             support.put_exception("While in run state(): " + str(self.curr_state))
-            sss =  "ERR on processing request."
-            self.resp.datahandler.putdata(sss, self.resp.ekey)
+            sss =  ERR, "on processing request.", sys.exc_info()
+            self.resp.datahandler.putencode(sss, self.resp.ekey)
             ret = False
         return ret
 
-    def _run_state(self, strx):
+    def _run_state_worker(self, strx):
         got = False; ret = False
 
         if self.pgdebug > 8:
@@ -171,12 +167,12 @@ class StateHandler():
         dstr = ""
         try:
             dstr = self.wr.unwrap_data(self.resp.ekey, strx)
-            #dstr = self.wr.unwrap_data("", strx)
         except:
-            sss =  "ERR cannot unwrap / decode data." #, strx
-            #support.put_exception("While in _run state(): " + str(self.curr_state))
+            support.put_exception("While in _run state(): "\
+                                         + str(self.curr_state))
+            sss =  ERR, "cannot unwrap / decode data." #, strx
             print("pystate.py %s" % (sss,));
-            self.resp.datahandler.putdata(sss, self.resp.ekey)
+            self.resp.datahandler.putencode(sss, self.resp.ekey)
             return False
 
         if self.pgdebug > 3:

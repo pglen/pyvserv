@@ -106,8 +106,6 @@ class CliSup():
     def recvx(self, key):
         resp = self.getreply(key)
         #self.sock.send(b"")
-
-
         if self.pgdebug > 3:
             print("resp:", resp[:24])
 
@@ -115,7 +113,7 @@ class CliSup():
         #response = self.pb.decode_data(resp[0])
 
         if self.pgdebug > 2:
-            print( "    get: '%s'" % response[:24])
+            print( "    recvx: '%s'" % response[:24])
 
         return response[0]
 

@@ -19,6 +19,9 @@ base = os.path.dirname(os.path.realpath(__file__))
 import support, pyservsup, pyclisup, crysupp, pysyslog, pystate
 import bluepy
 
+OK = "OK"
+ERR = "ERR"
+
 pgdebug = 0
 
 def contain_path(self, strp):
@@ -50,7 +53,7 @@ def contain_path(self, strp):
 
 def get_exit_func(self, strx):
     #print( "get_exit_func", strx)
-    self.resp.datahandler.putencode(["OK", "Bye"], self.resp.ekey)
+    self.resp.datahandler.putencode([OK, "Bye"], self.resp.ekey)
     #self.resp.datahandler.par.shutdown(socket.SHUT_RDWR)
 
     # Cancel **after** sending bye
@@ -65,41 +68,43 @@ def get_tout_func(self, strx):
     if len(strx) > 1:
         tout = int(strx[1])
         self.resp.datahandler.timeout = tout
+        resp = [OK, "timeout set to ", str(tout)],
+    else:
+        resp = [OK, "current timeout", str(self.resp.datahandler.timeout)],
 
-    if self.resp.datahandler.tout:
-        self.resp.datahandler.tout.cancel()
+    #if self.resp.datahandler.tout:
+    #    self.resp.datahandler.tout.cancel()
 
-    self.resp.datahandler.putencode(["OK timeout set to ", str(tout)], self.resp.ekey)
-    return
+    self.resp.datahandler.putencode(resp, self.resp.ekey)
 
 
 def get_mkdir_func(self, strx):
     #print("make dir", strx[1])
 
     if len(strx) == 1:
-        response = ["ERR", "Must specify directory name."]
+        response = [ERR, "Must specify directory name.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     dname = contain_path(self, strx[1])
 
     if not dname:
-        response = ["ERR", "No Access to directory.", strx[1]]
+        response = [ERR, "No Access to directory.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     #print("make dir", dname)
 
     if os.path.isdir(dname):
-        response = ["ERR", "Directory already exist.", strx[1]]
+        response = [ERR, "Directory already exist.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     try:
-        response = ["OK", "Made directory:", strx[1]]
+        response = [OK, "Made directory:", strx[1]]
         os.mkdir(dname)
     except:
-        response = ["ERR", "Cannot make directory.", strx[1]]
+        response = [ERR, "Cannot make directory.", strx[1]]
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -108,7 +113,7 @@ def get_buff_func(self, strx):
     #print("buffer str", strx[1])
 
     if len(strx) < 2:
-        response = ["ERR", "Must specify buffer size."]
+        response = [ERR, "Must specify buffer size.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -120,7 +125,7 @@ def get_buff_func(self, strx):
 
     #print("buffer set to %d" % num)
     pyservsup.buffsize = num
-    response = ["OK", "Buffer set to:", pyservsup.buffsize]
+    response = [OK, "Buffer set to:", pyservsup.buffsize]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_lsd_func(self, strx):
@@ -131,7 +136,7 @@ def get_lsd_func(self, strx):
 
     if pgdebug > 1:
         print("get_lsd_func", dname2)
-    response = ["OK"]
+    response = [OK]
     try:
         ddd = os.listdir(dname2)
         for aa in ddd:
@@ -144,7 +149,7 @@ def get_lsd_func(self, strx):
                 print( "Cannot stat ", aaa, str(sys.exc_info()[1]) )
     except:
         support.put_exception("lsd")
-        response = ["ERR" + str(sys.exc_info()[1] )]
+        response = [ERR, str(sys.exc_info()[1] ), strx[0]]
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -162,7 +167,7 @@ def get_ls_func(self, strx):
 
     #print("dname2", dname2)
 
-    response = ["OK"]
+    response = [OK]
     try:
         ddd = os.listdir(dname2)
         for aa in ddd:
@@ -176,7 +181,7 @@ def get_ls_func(self, strx):
 
     except:
         support.put_exception("ls ")
-        response = ["ERR", "No such directory."]
+        response = [ERR, "No such directory.", strx[0]]
 
     #print("response", response)
     self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -187,18 +192,18 @@ def get_fget_func(self, strx):
 
     dname = ""
     if len(strx) == 1:
-        response = ["ERR", "Must specify file name."]
+        response = [ERR, "Must specify file name.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     dname = contain_path(self, strx[1])
     if not dname:
-        response = ["ERR", "No Access to directory.", strx[1]]
+        response = [ERR, "No Access to directory.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     if not os.path.isfile(dname):
-        response = ["ERR", "File does not exist.", strx[1]]
+        response = [ERR, "File does not exist.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     flen = 0
@@ -207,11 +212,11 @@ def get_fget_func(self, strx):
         fh = open(dname, "rb")
     except:
         support.put_exception("fget")
-        response = ["ERR", "Cannot open file.", dname]
+        response = [ERR, "Cannot open file.", dname, strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    response = ["OK", str(flen), strx[1]]
+    response = [OK, str(flen), strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
     from Crypto.Cipher import AES
@@ -261,30 +266,30 @@ def get_fget_func(self, strx):
 def get_fput_func(self, strx):
     #print("fget strx", strx)
 
-    if len(strx[1]) == 0:
-        response = ["ERR", "Must specify file name."]
+    if len(strx) < 2:
+        response = [ERR, "Must specify file name.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     dname = contain_path(self, strx[1])
     if not dname:
-        response = ["ERR", "No Access to directory.", strx[1]]
+        response = [ERR, "No Access to directory.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     if os.path.isfile(dname):
-        response = ["ERR", "File exists. Please delete first", strx[1]]
+        response = [ERR, "File exists. Please delete first", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    response = ["OK", "Send file", strx[1]]
+    response = [OK, "Send file", strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
     try:
         fh = open(dname, "wb")
     except:
         support.put_exception("fput")
-        response = ["ERR", "Cannot create file.", strx[1]]
+        response = [ERR, "Cannot create file.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -303,53 +308,65 @@ def get_fput_func(self, strx):
 
     fh.close()
 
-
 def get_ekey_func(self, strx):
+
     oldkey = self.resp.ekey[:]
+    response = ERR ,  "Not implemented."
+    self.resp.datahandler.putencode(response, oldkey)
+    return
+
     if len(strx) < 2:
         self.resp.ekey = ""
-        response = "OK " +  "Key reset (no encryption)"
+        response = OK ,  "Key reset (no encryption)"
     else:
         self.resp.ekey = strx[1]
-        response = "OK " +  "Key Set"
+        response = OK ,  "Key Set"
+
     # Encrypt reply to ekey with old the key
-    self.resp.datahandler.putdata(response, oldkey)
+    self.resp.datahandler.putencode(response, oldkey)
 
 def get_xkey_func(self, strx):
     oldkey = self.resp.ekey[:]
+
+    oldkey = self.resp.ekey[:]
+    response = ERR ,  "Not implemented."
+    self.resp.datahandler.putencode(response, oldkey)
+    return
+
     if len(strx) < 2:
         self.resp.ekey = ""
-        response = "OK " +  "Key reset (no encryption)"
+        response = OK ,  "Key reset (no encryption)"
     else:
         # Lookup if it is a named key:
         retx = pyservsup.kauth(strx[1], "", 0)
         if retx[0] == 1:
             print( "key set", "'" + retx[1] + "'")
             self.resp.ekey = retx[1]
-            response = "OK " +  "Key Set"
+            response = OK,  "Key Set"
         else:
-            response = "ERR " + strx[1]
+            response = ERR, strx[1], strx[0]
+
     # Encrypt reply to xkey with old the key
-    self.resp.datahandler.putdata(response, oldkey)
+    self.resp.datahandler.putencode(response, oldkey)
 
 def get_pwd_func(self, strx):
     dname2 = self.resp.dir
     dname2 = support.dirclean(dname2)
     if dname2 == "": dname2 = os.sep
-    response = ["OK",  dname2]
+    response = [OK,  dname2]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_cd_func(self, strx):
 
     if len(strx) == 1:
-        response = ["ERR", "Directory name cannot be empty.",]
+        response = [ERR, "Directory name cannot be empty.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     dname = contain_path(self, strx[1])
 
     if not dname:
-        response = ["ERR", "No Access to directory.", strx[1]]
+        response = [ERR, "No Access to directory.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -357,22 +374,27 @@ def get_cd_func(self, strx):
     try:
         if os.path.isdir(dname):
             self.resp.dir = dname[len(self.resp.cwd):]
-            response = ["OK ", self.resp.dir]
+            response = [OK, self.resp.dir]
         else:
             # Back out
             #self.resp.dir = org
-            response = ["ERR", "Directory does not exist", strx[1]]
+            response = [ERR, "Directory does not exist", strx[1]]
     except:
         support.put_exception("cd")
-        response = ["ERR", "Must specify directory name"]
+        response = [ERR, "Must specify directory name", strx[0]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_del_func(self, strx):
 
+    if len(strx) == 1:
+        response = [ERR, "Must specify file name to delete", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
     try:
         dname = contain_path(self, strx[1])
         if not dname:
-            response = ["ERR", "No Access to directory.", strx[1]]
+            response = [ERR, "No Access to directory.", strx[1]]
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
 
@@ -380,15 +402,15 @@ def get_del_func(self, strx):
         if os.path.isfile(dname):
             try:
                 os.unlink(dname)
-                response = ["OK", "File deleted", strx[1], ]
+                response = [OK, "File deleted", strx[1], ]
             except:
-                response = ["ERR", "Could not delete file", strx[1]]
+                response = [ERR, "Could not delete file", strx[1]]
         else:
             # Say no file
-            response = ["ERR ", "No Such File", strx[1]]
+            response = [ERR, "No Such File", strx[1]]
     except:
         support.put_exception("del")
-        response = ["ERR", "Must specify file name to delete"]
+        response = [ERR, "Must specify file name to delete.", strx[0]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 # ------------------------------------------------------------------------
@@ -396,8 +418,10 @@ def get_del_func(self, strx):
 def get_ver_func(self, strx):
     if pgdebug > 1:
         print( "get_ver_func()", strx)
-    res = []
-    res.append("OK");    res.append("%s" % pyservsup.version)
+
+    res = [OK, "%s" % pyservsup.version,
+                        "%s" % pyservsup.globals.siteid]
+
     if pgdebug > 2:
         print( "get_ver_func->output", "'" + res + "'")
     self.resp.datahandler.putencode(res, self.resp.ekey)
@@ -406,7 +430,7 @@ def get_id_func(self, strx):
     if pgdebug > 1:
         print( "get_id_func()", strx)
     res = []
-    res.append("OK");    res.append("%s" % pyservsup.globals.siteid)
+    res.append(OK);    res.append("%s" % pyservsup.globals.siteid)
     if pgdebug > 2:
         print( "get_ver_func->output", "'" + res + "'")
     self.resp.datahandler.putencode(res, self.resp.ekey)
@@ -414,7 +438,7 @@ def get_id_func(self, strx):
 def get_hello_func(self, strx):
     if pgdebug > 1:
         print( "get_hello_func()", strx)
-    strres = ["OK", "Hello", str(pyservsup.globals.siteid)]
+    strres = [OK, "Hello", str(pyservsup.globals.siteid)]
     if pgdebug > 2:
         print( "get_hello_func->output", "'" + str(strres) + "'")
     self.resp.datahandler.putencode(strres, self.resp.ekey)
@@ -423,7 +447,7 @@ def get_hello_func(self, strx):
 def get_stat_func(self, strx):
 
     if len(strx) < 2:
-        response = ["ERR", "Must specify file name."]
+        response = [ERR, "Must specify file name.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -436,7 +460,7 @@ def get_stat_func(self, strx):
     dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
     dname2 = support.dirclean(dname2)
 
-    response = ["OK"]
+    response = [OK]
     response.append(strx[1])
 
     try:
@@ -447,19 +471,20 @@ def get_stat_func(self, strx):
     except OSError:
         support.put_exception("stat")
         #print( sys.exc_info())
-        response = ["ERR", str(sys.exc_info()[1]) ]
+        response = [ERR, str(sys.exc_info()[1]) , strx[0]]
     except:
-        response = ["ERR", "Must specify file name"]
+        response = [ERR, "Must specify file name,", strx[0]]
         #print( sys.exc_info())
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_user_func(self, strx):
     if len(strx) < 2:
-        self.resp.datahandler.putencode(["ERR", "must specify user name"], self.resp.ekey)
-        return True
+        self.resp.datahandler.putencode(
+                [ERR, "Must specify user name.", strx[0]], self.resp.ekey)
+        return
     self.resp.user = strx[1]
-    self.resp.datahandler.putencode(["OK", "send pass ..."], self.resp.ekey)
+    self.resp.datahandler.putencode([OK, "send pass ..."], self.resp.ekey)
 
 # ------------------------------------------------------------------------
 
@@ -468,11 +493,9 @@ def get_sess_func(self, strx):
     #if pgdebug > 4:
     #    print("get_sess_func() called")
 
-    if pgdebug > 5:
-        print("strx", strx)
-
     if len(strx) < 4:
-        self.resp.datahandler.putencode(["ERR", "not enough arguments."], self.resp.ekey)
+        self.resp.datahandler.putencode(\
+                [ERR, "not enough arguments."], self.resp.ekey)
         return
 
     if pgdebug > 4:
@@ -482,7 +505,7 @@ def get_sess_func(self, strx):
 
     # Arrived safely?
     if strx[2] != sss.hexdigest():
-        self.resp.datahandler.putencode(["ERR", "session key damaged on transport."], self.resp.ekey)
+        self.resp.datahandler.putencode([ERR, "session key damaged on transport."], self.resp.ekey)
         return
 
     dsize = SHA.digest_size
@@ -497,10 +520,11 @@ def get_sess_func(self, strx):
         print("Hash2:",   ttt.hexdigest())
 
     if ttt.hexdigest() != strx[1]:
-        self.resp.datahandler.putencode(["ERR", "session key damaged on decoding."], self.resp.ekey)
+        self.resp.datahandler.putencode(\
+            [ERR, "session key damaged on decoding."], self.resp.ekey, strx[0])
         return
 
-    self.resp.datahandler.putencode(["OK", "Session estabilished."], self.resp.ekey)
+    self.resp.datahandler.putencode([OK, "Session estabilished."], self.resp.ekey)
     self.resp.ekey = message2
 
     if pgdebug > 1:
@@ -521,7 +545,7 @@ def get_akey_func(self, strx):
     except:
         print("No keys generated yet.", sys.exc_info()[1])
         support.put_exception("no keys yet")
-        rrr = ["ERR", "No keys yet. Run keygen"]
+        rrr = [ERR, "No keys yet. Run keygen", strx[0]]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
@@ -543,7 +567,7 @@ def get_akey_func(self, strx):
     except:
         print("Cannot read key:", self.keyfroot, sys.exc_info()[1])
         support.put_exception("read key")
-        rrr = ["ERR", "cannot open keyfile."]
+        rrr = [ERR, "cannot open keyfile.", strx[0]]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
     try:
@@ -551,7 +575,7 @@ def get_akey_func(self, strx):
     except:
         print("Cannot read key:", self.keyx[:12], sys.exc_info()[1])
         support.put_exception("import  key")
-        rrr = ["ERR", "Cannot read public key"]
+        rrr = [ERR, "Cannot read public key", strx[0]]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
@@ -566,7 +590,7 @@ def get_akey_func(self, strx):
     except:
         print("Cannot create private key:", self.keyx2[:12], sys.exc_info()[1])
         support.put_exception("import private key")
-        rrr = ["ERR", "Cannot create private key"]
+        rrr = [ERR, "Cannot create private key", strx[0]]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
@@ -578,13 +602,17 @@ def get_akey_func(self, strx):
         print("Key digest: \n'" + hh.hexdigest() + "'\n")
 
     # Deliver the answer in two parts:
-    rrr = ["OK", "%s" % hh.hexdigest(), self.keyx]
+    rrr = [OK, "%s" % hh.hexdigest(), self.keyx]
     self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
 def get_pass_func(self, strx):
 
     ret = "";  retval = True
 
+    if len(strx) < 2:
+        self.resp.datahandler.putencode(
+                [ERR, "Must specify pass.", strx[0]], self.resp.ekey)
+        return
     # Make sure there is a trace of the attempt
     stry = "Logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
@@ -592,7 +620,7 @@ def get_pass_func(self, strx):
 
     ret = pyservsup.passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_DIS:
-        rrr = ["ERR", "this user is temporarily disabled"]
+        rrr = [ERR, "this user is temporarily disabled", strx[0]]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return retval
 
@@ -602,7 +630,7 @@ def get_pass_func(self, strx):
         stry = "No such user  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        rrr = ["ERR", "No such user"]
+        rrr = [ERR, "No such user", strx[0]]
     elif xret[0] == 1:
         stry = "Successful logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
@@ -616,14 +644,14 @@ def get_pass_func(self, strx):
         #    print("Cannot change to payload dir.")
         #    pass
 
-        rrr = ["OK", self.resp.user + " Authenticated."]
+        rrr = [OK, self.resp.user + " Authenticated."]
 
         retval = False
     else:
         stry = "Error on logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        rrr = ["ERR",  xret[1]]
+        rrr = [ERR,  xret[1], strx[0]]
 
     self.resp.datahandler.putencode(rrr, self.resp.ekey)
     return retval
@@ -633,8 +661,9 @@ def get_chpass_func(self, strx):
     ret = "";  retval = True
 
     if len(strx) < 2:
-        self.resp.datahandler.putdata("ERR must specify new_pass", self.resp.ekey)
-        return True
+        self.resp.datahandler.putencode(\
+            [ERR, "Must specify new_pass", strx[0]], self.resp.ekey)
+        return
 
     #print("chpass", strx[1], strx[2])
 
@@ -642,11 +671,6 @@ def get_chpass_func(self, strx):
     stry = "chpass  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
     pysyslog.syslog(stry)
-
-    #xret = pyservsup.passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
-    #if xret[0] != 1:
-    #    self.resp.datahandler.putdata("ERR old pass must match", self.resp.ekey)
-    #    return True
 
     xret = pyservsup.passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_CHPASS)
 
@@ -659,7 +683,7 @@ def get_chpass_func(self, strx):
         stry = "No such user  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        ret = "ERR No such user"
+        ret = ERR, "No such user"
     elif xret[0] == 1:
         stry = "Successful logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
@@ -670,8 +694,8 @@ def get_chpass_func(self, strx):
         stry = "Error on logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        ret = "ERR " + xret[1]
-    self.resp.datahandler.putdata(ret, self.resp.ekey)
+        ret = ERR, xret[1], strx[0]
+    self.resp.datahandler.putencode(ret, self.resp.ekey)
     return retval
 
 def get_uadd_func(self, strx):
@@ -682,27 +706,27 @@ def get_uadd_func(self, strx):
     # Are we allowed to add users?
     ret = pyservsup.passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
-        response = "ERR only admin can add/delete users"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ERR, "Only admin can add/delete users", strx[0]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
     if len(strx) < 3:
-        response = "ERR must specify user name and pass"
-        self.resp.datahandler.putdata(ret, self.resp.ekey)
+        response = ERR, "Must specify user name and pass.", strx[0]
+        self.resp.datahandler.putencode(ret, self.resp.ekey)
         return retval
 
     # Add this user in not exist
     ret = pyservsup.passwd.auth(strx[1], strx[2], 0, pyservsup.USER_ADD)
     if ret[0] == 0:
-        response = "ERR " + ret[1]
+        response = ERR, ret[1], strx[0]
     elif ret[0] == 1:
-        response = "ERR user already exists, no changes "
+        response = ERR, "User already exists, no changes ", strx[0]
     elif ret[0] == 2:
-        response = "OK added user '" + strx[1] + "'"
+        response = "OK", "Added user", strx[1]
     else:
-        response = "ERR " + ret[1]
+        response = ERR, ret[1], strx[0]
 
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 # Add Admin
 def get_aadd_func(self, strx):
@@ -711,25 +735,25 @@ def get_aadd_func(self, strx):
     # Are we allowed to add users?
     ret = pyservsup.passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
-        response = ["ERR", "only admin can add/delete users"]
+        response = [ERR, "only admin can add/delete users.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
     if len(strx) < 3:
-        response = ["ERR", "must specify user name and pass"]
+        response = [ERR, "must specify user name and pass.", strx[0]]
         self.resp.datahandler.putencode(ret, self.resp.ekey)
         return retval
 
     # Add this user in not exist
     ret = pyservsup.passwd.auth(strx[1], strx[2], pyservsup.PERM_ADMIN, pyservsup.USER_ADD)
     if ret[0] == 0:
-        response = "ERR", ret[1]
+        response = ERR, ret[1], strx[0]
     elif ret[0] == 1:
-        response = "ERR", "user already exists, no changes."
+        response = ERR, "user already exists, no changes.", strx[0]
     elif ret[0] == 2:
-        response = ["OK added user ", strx[1]]
+        response = [OK, "added user", strx[1]]
     else:
-        response = ["ERR", ret[1]]
+        response = [ERR, ret[1], strx[0]]
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -741,12 +765,12 @@ def get_uena_func(self, strx):
     # Are we allowed to add users?
     ret = pyservsup.passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
-        response = "ERR", "only admin can modify users."
+        response = ERR, "only admin can modify users.", strx[0]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
     if len(strx) < 2:
-        response = "ERR", "must specify user name and flag"
+        response = ERR, "Must specify user name and flag.", strx[0]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
@@ -755,7 +779,7 @@ def get_uena_func(self, strx):
     elif strx[2] == "disable":
         mode = pyservsup.PERM_DIS
     else:
-        response = ["ERR", "must specify 'enable' or 'disable'"]
+        response = [ERR, "Must specify 'enable' or 'disable'.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
@@ -763,11 +787,11 @@ def get_uena_func(self, strx):
     ret = pyservsup.passwd.auth(strx[1], strx[2], mode, pyservsup.USER_CHMOD)
 
     if ret[0] == 0:
-        response = "ERR", ret[1]
+        response = ERR, ret[1], strx[0]
     elif ret[0] == 8:
-        response = "OK",  strx[1], strx[2] + "d"
+        response = OK,  strx[1], strx[2] + "d"
     else:
-        response = "ERR", ret[1]
+        response = ERR, ret[1], strx[0]
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -776,38 +800,40 @@ def get_uini_func(self, strx):
 
     # Test for local client
     if str(self.resp.client_address[0]) != "127.0.0.1":
-        response = ["ERR",  "must connect from loopback for user ini"]
+        response = [ERR,  "Must connect from loopback interface.", strx[0]]
 
     elif  pyservsup.passwd.count() != 0:
-        response = ["ERR", "already has initial user"]
+        response = [ERR, "already has initial user", strx[0]]
 
     elif len(strx) < 3:
-        response = ["ERR", "must specify user name and pass"]
+        response = [ERR, "Must specify user name and pass.", strx[0]]
     else:
         ret = pyservsup.passwd.auth(strx[1], strx[2],
                     pyservsup.PERM_INI | pyservsup.PERM_ADMIN,
                         pyservsup.USER_ADD)
         if ret[0] == 0:
-            response = ["ERR", ret[1]]
+            response = [ERR, ret[1], strx[0]]
         elif ret[0] == 1:
-            response = ["ERR", "user already exists, no change. Use pass function."];
+            response = [ERR,
+            "user already exists, no change. Use pass function.", strx[0]];
         elif ret[0] == 2:
-            response = ["OK", "added initial user", strx[1]]
+            response = [OK, "added initial user", strx[1]]
         else:
-            response = ["ERR", ret[1]]
+            response = [ERR, ret[1], strx[0]]
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_kini_func(self, strx):
+
     # Test for local client
     if str(self.resp.client_address[0]) != "127.0.0.1":
-        response = "ERR must connect from loopback for keyini"
+        response = ERR, "Must connect from loopback.", strx[0]
     elif len(strx) < 3:
-        response = "ERR must specify key_name and key_value"
+        response = ERR, "Must specify key_name and key_value.", strx[0]
     else:
         # See if there is a key file
         if os.path.isfile(pyservsup.keyfile):
-            response = "ERR " + "Initial key already exists"
+            response = ERR, "Initial key already exists", strx[0]
         else:
             #tmp2 = bluepy.bluepy.decrypt(self.resp.passwd, "1234")
             #tmp = bluepy.bluepy.encrypt(strx[2], tmp2)
@@ -816,28 +842,33 @@ def get_kini_func(self, strx):
             #bluepy.bluepy.destroy(tmp)
 
             if ret[0] == 0:
-                response = "OK added key '" + strx[1] + "'"
+                response = OK, "Added key",  strx[1]
             else:
-                response = "ERR " + ret[1]
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+                response = ERR, ret[1], strx[0]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_kadd_func(self, strx):
+
+    response = ERR, "Not Implemented", strx[0]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+    return
+
     if not os.path.isfile(pyservsup.keyfile):
-        response = "ERR " + "No initial keys yet"
+        response = ERR, "No initial keys yet", strx[0]
     if len(strx) < 3:
-        response = "ERR must specify key_name and key_value"
+        response = ERR, "Must specify key_name and key_value", strx[0]
     else:
         # See if there is a key by this name
         ret = pyservsup.kauth(strx[1], strx[2], 1)
         if ret[0]  < 0:
-            response = "ERR " + ret[1]
+            response = ERR, ret[1], strx[0]
         elif ret[0] == 2:
-            response = "ERR key already exists, no keys are changed "
+            response = ERR, "Key already exists, no keys are changed ", strx[0]
         elif ret[0] == 0:
             response = "OK added key '" + strx[1] + "'"
         else:
-            response = "ERR " + "invalid return code"
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+            response = ERR, "invalid return code", strx[0]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_udel_func(self, strx):
 
@@ -845,13 +876,13 @@ def get_udel_func(self, strx):
      # Are we allowed to add users?
     ret = pyservsup.passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
-        response = "ERR only admin can add/delete users"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ERR, "Only admin can add/delete users", strx[0]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
     if len(strx) < 3:
-        response = "ERR must specify user name and pass"
-        self.resp.datahandler.putdata(response, self.resp.ekey)
+        response = ERR, "Must specify user name and pass", strx[0]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
     # Delete user
@@ -859,15 +890,20 @@ def get_udel_func(self, strx):
                     pyservsup.PERM_NONE, pyservsup.USER_DEL)
 
     if ret[0] == 0:
-        response = "ERR " + ret[1]
+        response = ERR, ret[1], strx[0]
     elif ret[0] == 4:
         response = "OK deleted user '" + strx[1] + "'"
     else:
-        response = "ERR " + ret[1]
+        response = ERR, ret[1], strx[0]
 
-    self.resp.datahandler.putdata(response, self.resp.ekey)
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def put_file_func(self, strx):
+
+    if len(strx) == 1:
+        response = [ERR, "Must specify file name.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
 
     # Close possible pending
     if  self.resp.fh:
@@ -876,12 +912,12 @@ def put_file_func(self, strx):
 
     dname = contain_path(self, strx[1])
     if not dname:
-        response = ["ERR", "No Access to directory.", strx[1]]
+        response = [ERR, "No Access to directory.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     if os.path.isfile(dname):
-        response = ["ERR", "File exists. Delete first.", strx[1]]
+        response = [ERR, "File exists. Delete first.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -890,11 +926,11 @@ def put_file_func(self, strx):
             # Create handle
             self.resp.fh = open(dname, "wb")
             self.resp.fname = strx[1]
-            response = ["OK", "Send file", self.resp.fname]
+            response = [OK, "Send file", self.resp.fname]
         except:
-            response = ["ERR", "Cannot create file", self.resp.fname]
+            response = [ERR, "Cannot create file", self.resp.fname, strx[0]]
     except:
-        response = ["ERR",  "Must specify file name"]
+        response = [ERR,  "Must specify file name", strx[0]]
     #pysyslog.syslog("Opened", xstr[1])
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -903,14 +939,14 @@ def put_data_func(self, strx):
     #print("fname", self.resp.fname, "data:", strx)
 
     if self.resp.fname == "":
-        response = ["ERR", "No filename for data"]
+        response = [ERR, "No filename for data", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     try:
         dlen = len(strx[2])
         if dlen == 0:
-            response = ["OK", "Empty Data, assuming EOF; Closing file"]
+            response = [OK, "Empty Data, assuming EOF; Closing file", strx[0]]
             if  self.resp.fh:
                 self.resp.fh.close()
                 self.resp.fh = None
@@ -919,7 +955,7 @@ def put_data_func(self, strx):
             pass
     except:
         #print("file", sys.exc_info())
-        response = ["ERR", "Must send some data"]
+        response = [ERR, "Must send some data", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -928,7 +964,7 @@ def put_data_func(self, strx):
         self.resp.fh.write(strx[2])
     except:
         #print(sys.exc_info())
-        response = ["ERR", "Cannot save data on server"]
+        response = [ERR, "Cannot save data on server", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -936,8 +972,8 @@ def put_data_func(self, strx):
                 "' " + str(dlen) + " bytes"
     #print( xstr)
     #pysyslog.syslog(xstr)
-    #self.resp.datahandler.putdata("OK Got data", self.resp.ekey)
-    self.resp.datahandler.putencode(["OK",  "Got data"], self.resp.ekey)
+    #self.resp.datahandler.putencode("OK Got data", self.resp.ekey)
+    self.resp.datahandler.putencode([OK,  "Got data"], self.resp.ekey)
 
 def get_help_func(self, strx):
 
@@ -946,20 +982,21 @@ def get_help_func(self, strx):
 
     harr = []
     if len(strx) == 1:
-        harr.append("OK")
+        harr.append(OK)
         for aa in pystate.state_table:
             harr.append(aa[0])
     else:
         ff = False
         for aa in pystate.state_table:
             if strx[1] == aa[0]:
-                harr.append("OK")
+                harr.append(OK)
                 harr.append(aa[5])
                 ff = True
                 break
         if not ff:
-                harr.append("ERR")
+                harr.append(ERR)
                 harr.append("No such command")
+                harr.appnd(strx[0])
 
     if pgdebug > 2:
         print( "get_help_func->output", "[" + harr + "]")

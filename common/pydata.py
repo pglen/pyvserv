@@ -66,7 +66,6 @@ class DataHandler():
         try:
             #print("ekey", self.par.ekey)
             self.putencode(rrr, self.par.ekey)
-            #self.putdata(rrr, self.par.ekey)
 
         except:
             support.put_exception("putdata")
@@ -82,13 +81,13 @@ class DataHandler():
 
     def putencode(self, ddd, key = "", rand = True):
         if type(ddd) == str:
-            raise ValuError("Argument must be an iterable")
+            raise ValueError("Argument must be an iterable")
 
         response = self.pb.encode_data("", ddd)
-        self.putdata(response, key, rand)
+        self._putdata(response, key, rand)
 
     #@support.timeit
-    def putdata(self, response, key = "", rand = True):
+    def _putdata(self, response, key = "", rand = True):
 
         ret = ""; response2 = ""
 
@@ -112,8 +111,6 @@ class DataHandler():
 
         ret = ""; response2 = ""
         try:
-            #print ("putdata type:", type(dstr))
-
             if type(dstr) == type(""):
                 response2 = bytes(dstr, "cp437")
             else:
@@ -140,7 +137,7 @@ class DataHandler():
         except:
             sss = "While in Put Raw: " + str(response2)[:24]
             support.put_exception(sss)
-            #self.resp.datahandler.putdata(sss, self.statehand.resp.ekey)
+            #self.resp.datahandler._putdata(sss, self.statehand.resp.ekey)
             if self.tout:
                 self.tout.cancel()
             ret = -1
