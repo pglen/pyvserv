@@ -108,50 +108,15 @@ if __name__ == '__main__':
     resp3 = hand.client(["tout",] , conf.sess_key, False)
     print("Response:", resp3)
 
-    coms2 = [ \
-    "ver",      "id",       "helo",
-    "help",
-    "file",
-    "mkdir",    "data",     "fget",
-    "fput",     "del",      "uadd",     "uena",     "aadd",
-    "udel",     "ls",       "lsd",      "cd",       "pwd",
-    "stat",     "buff",     "tout",     "user",     "kadd",
-    "uini",   ]
-
     coms = [ \
-        "ver",
-"id",
-"hello",
-"helo",
-"help",
-"xkey",
-"ekey",
-"akey",
-"uini",
-"kadd",
-"user",
-"pass",
-"sess",
-"tout",
-
-"file",
-"mkdir",
-"data",
-"fget",
-"fput",
-"del",
-"uadd",
-"uena",
-"aadd",
-"udel",
-"ls",
-"lsd",
-"cd",
-"pwd",
-"stat",
-"buff",
-"chpass",
-]
+        "ver",           "id",            "hello",         "helo",
+        "help",          "xkey",          "ekey",          "akey",
+        "uini",          "kadd",          "user",          "pass",
+        "sess",          "tout",          "file",          "mkdir",
+        "data",          "fget",          "fput",          "del",
+        "uadd",          "uena",          "aadd",          "udel",
+        "ls",            "lsd",           "cd",            "pwd",
+        "stat",          "buff",          "chpass",        ]
 
     # test out of order commands
     for aa in coms:
@@ -181,6 +146,8 @@ if __name__ == '__main__':
         hand.close();
         sys.exit(0)
 
+    print("-------------------------------------")
+
     cresp = hand.client(["buff", "10000000",], conf.sess_key)
     print ("Server buff response:", cresp)
     if cresp[0] != "OK":
@@ -189,8 +156,8 @@ if __name__ == '__main__':
         hand.close();
         sys.exit(0)
 
-    print("-------------------------------------")
-     # test out of order commands now good
+
+     # test in order commands now good
     for aa in coms:
         print("exec", aa + ':', end=" ")
         resp3 = hand.client([aa,] , conf.sess_key, False)

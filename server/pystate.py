@@ -93,22 +93,22 @@ xxxx_help  = "Usage: no data"
 
 state_table = [
     # Command; start_state; end_state; min_auth; action func;   help func
-    ("ver",     all_in,     none_in,    none_in,  get_ver_func,   vers_help),
-    ("id",      all_in,     none_in,    none_in,  get_id_func,    id_help),
-    ("hello",   all_in,     none_in,    none_in,  get_hello_func, hello_help),
-    ("helo",    all_in,     none_in,    none_in,  get_hello_func, hello_help),
-    ("quit",    all_in,     none_in,    none_in,  get_exit_func,  quit_help),
-    ("exit",    all_in,     none_in,    none_in,  get_exit_func,  quit_help),
-    ("help",    all_in,     none_in,    none_in,  get_help_func,  help_help),
-    ("xkey",    all_in,     none_in,    none_in,  get_xkey_func,  ekey_help),
-    ("ekey",    all_in,     none_in,    none_in,  get_ekey_func,  ekey_help),
-    ("akey",    all_in,     none_in,    none_in,  get_akey_func,  akey_help),
-    ("uini",    all_in,     none_in,    none_in,  get_uini_func,  uini_help),
-    ("kadd",    all_in,     none_in,    none_in,  get_kadd_func,  kadd_help),
-    ("user",    all_in,     auth_user,  none_in, get_user_func,  user_help),
-    ("pass",    auth_user,  auth_pass,  none_in, get_pass_func,  pass_help),
-    ("sess",    all_in,     none_in,    none_in,  get_sess_func,  sess_help),
-    ("tout",    all_in,     none_in,    auth_pass,  get_tout_func,  tout_help),
+    ("ver",     all_in,     none_in,    initial,  get_ver_func,   vers_help),
+    ("id",      all_in,     none_in,    initial,  get_id_func,    id_help),
+    ("hello",   all_in,     none_in,    initial,  get_hello_func, hello_help),
+    ("helo",    all_in,     none_in,    initial,  get_hello_func, hello_help),
+    ("quit",    all_in,     none_in,    initial,  get_exit_func,  quit_help),
+    ("exit",    all_in,     none_in,    initial,  get_exit_func,  quit_help),
+    ("help",    all_in,     none_in,    initial,  get_help_func,  help_help),
+    ("xkey",    all_in,     none_in,    initial,  get_xkey_func,  ekey_help),
+    ("ekey",    all_in,     none_in,    initial,  get_ekey_func,  ekey_help),
+    ("akey",    all_in,     none_in,    initial,  get_akey_func,  akey_help),
+    ("uini",    all_in,     none_in,    initial,  get_uini_func,  uini_help),
+    ("kadd",    all_in,     none_in,    initial,  get_kadd_func,  kadd_help),
+    ("user",    all_in,     none_in,  initial, get_user_func,  user_help),
+    ("pass",    all_in,     auth_pass,  initial, get_pass_func,  pass_help),
+    ("sess",    all_in,     none_in,    initial,  get_sess_func,  sess_help),
+    ("tout",    all_in,     none_in,    initial,  get_tout_func,  tout_help),
     ("chpass",  all_in,  none_in,    auth_pass, get_chpass_func,  chpass_help),
     ("file",    all_in,  none_in,    auth_pass, put_file_func, file_help),
     ("mkdir",   all_in,  none_in,    auth_pass, get_mkdir_func, file_help),
@@ -171,7 +171,7 @@ class StateHandler():
             support.put_exception("While in _run state(): "\
                                          + str(self.curr_state))
             sss =  ERR, "cannot unwrap / decode data." #, strx
-            print("pystate.py %s" % (sss,));
+            #print("pystate.py %s" % (sss,));
             self.resp.datahandler.putencode(sss, self.resp.ekey)
             return False
 
@@ -204,10 +204,8 @@ class StateHandler():
 
                     if cond:
                         # Auth?
-                        authx = aa[3] >= self.curr_state
-                        if not authx:
-                            authx = aa[3] == none_in
-                        if authx:
+                        if aa[3] <= self.curr_state:
+                            #print(aa[0], self.curr_state)
                             # Execute relevant function
                             ret2 = aa[4](self, comx)
                             #print("exec", ret2, aa[3], comx[0])
@@ -215,9 +213,13 @@ class StateHandler():
                             if not ret2 and aa[2] != none_in:
                                 self.curr_state = aa[2]
                             got = True
-                            ret = ret2
-                            if comx[0] == "pass" and ret2:
-                                self.badpass += 1
+                            if comx[0] == "pass":
+                                if ret2:
+                                    self.badpass += 1
+                            else:
+                                # Non pass command can terminate
+                                ret = ret2
+
                             if self.badpass > 2:
                                 ret = True
                 break

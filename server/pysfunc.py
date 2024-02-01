@@ -136,7 +136,9 @@ def get_lsd_func(self, strx):
 
     if pgdebug > 1:
         print("get_lsd_func", dname2)
-    response = [OK]
+
+    response = [ OK, ]
+
     try:
         ddd = os.listdir(dname2)
         for aa in ddd:
@@ -358,7 +360,7 @@ def get_pwd_func(self, strx):
 
 def get_cd_func(self, strx):
 
-    if len(strx) == 1:
+    if len(strx) < 2:
         response = [ERR, "Directory name cannot be empty.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
@@ -612,7 +614,7 @@ def get_pass_func(self, strx):
     if len(strx) < 2:
         self.resp.datahandler.putencode(
                 [ERR, "Must specify pass.", strx[0]], self.resp.ekey)
-        return
+        return retval
     # Make sure there is a trace of the attempt
     stry = "Logon  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
@@ -701,6 +703,13 @@ def get_chpass_func(self, strx):
 def get_uadd_func(self, strx):
 
     retval = 0
+
+    if len(strx) < 3:
+        response = ERR, "Must specify user name and pass.", strx[0]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return retval
+    return retval
+
     #print("uadd", strx)
 
     # Are we allowed to add users?
@@ -708,11 +717,6 @@ def get_uadd_func(self, strx):
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
         response = ERR, "Only admin can add/delete users", strx[0]
         self.resp.datahandler.putencode(response, self.resp.ekey)
-        return retval
-
-    if len(strx) < 3:
-        response = ERR, "Must specify user name and pass.", strx[0]
-        self.resp.datahandler.putencode(ret, self.resp.ekey)
         return retval
 
     # Add this user in not exist
@@ -741,7 +745,7 @@ def get_aadd_func(self, strx):
 
     if len(strx) < 3:
         response = [ERR, "must specify user name and pass.", strx[0]]
-        self.resp.datahandler.putencode(ret, self.resp.ekey)
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
     # Add this user in not exist

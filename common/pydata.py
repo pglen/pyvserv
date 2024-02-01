@@ -34,10 +34,10 @@ import pypacker, pywrap
 
 class DataHandler():
 
-    def __init__(self, sock):
+    def __init__(self, sock, timeout = 7):
         #print(  "DataHandler __init__")
         self.src = None; self.tout = None
-        self.timeout = 7
+        self.timeout = timeout
         self.pgdebug = 0
         self.pglog = 0
         self.wr = pywrap.wrapper()
@@ -46,45 +46,53 @@ class DataHandler():
         self.wfile = sock.makefile("wb")
         self.sock = sock
         self.cumm = b""
+        self.timex = 0
+        self.toutflag = False
+        self.thread = threading.Thread(target=self.run_tout)
+        self.thread.start()
+
+    def run_tout(self, *argx):
+        cur_thread = threading.current_thread()
+        self.name = cur_thread.name
+        while True:
+            time.sleep(1)
+            if self.sock._closed:
+                break
+            self.timex += 1
+            if self.timex > self.timeout:
+                #print (self.timex)
+                self.handler_timeout()
+                break
 
     def handler_timeout(self):
 
-        self.tout.cancel()
+        #self.tout.cancel()
         if self.pgdebug > 0:
             print( "in handler_timeout %s" % self.name )
 
-        #print( "handler_timeout log %d", self.pglog)
+        #print( "handler_timeout()")
 
         if self.pglog > 0:
             pysyslog.syslog("Timeout on " + " " + str(self.par.client_address))
 
         #print(dir(self))
         #print(dir(self.par))
-
-        rrr = ["ERR", "Timeout occured, disconnecting."]
-        #print( self.par.client_address, self.par.server.socket)
-        try:
-            #print("ekey", self.par.ekey)
-            self.putencode(rrr, self.par.ekey)
-
-        except:
-            support.put_exception("putdata")
-
-        # Force closing connection
-        time.sleep(1)
-        try:
-            self.par.request.shutdown(socket.SHUT_RDWR)
-        except:
-            # Do not report error here
-            #support.put_exception("on sending  timeout shutdown")
-            pass
+        self.toutflag = True
 
     def putencode(self, ddd, key = "", rand = True):
+
         if type(ddd) == str:
             raise ValueError("Argument must be an iterable")
 
+        if self.toutflag:
+            ddd = ["ERR", "Timeout occured, disconnecting."]
+
         response = self.pb.encode_data("", ddd)
         self._putdata(response, key, rand)
+
+        if self.toutflag:
+            time.sleep(1)
+            self.par.request.shutdown(socket.SHUT_RDWR)
 
     #@support.timeit
     def _putdata(self, response, key = "", rand = True):
@@ -109,7 +117,10 @@ class DataHandler():
 
     def putraw(self, dstr):
 
+        self.timex = 0
+
         ret = ""; response2 = ""
+
         try:
             if type(dstr) == type(""):
                 response2 = bytes(dstr, "cp437")
@@ -138,8 +149,8 @@ class DataHandler():
             sss = "While in Put Raw: " + str(response2)[:24]
             support.put_exception(sss)
             #self.resp.datahandler._putdata(sss, self.statehand.resp.ekey)
-            if self.tout:
-                self.tout.cancel()
+            #if self.tout:
+            #    self.tout.cancel()
             ret = -1
             raise
 
@@ -148,12 +159,7 @@ class DataHandler():
     #@support.timeit
     def getdata(self, amount):
 
-        #if self.pgdebug > 7:
-        #    print("getting data:", amount)
-
-        #if self.tout: self.tout.cancel()
-        #self.tout = threading.Timer(self.timeout, self.handler_timeout)
-        #self.tout.start()
+        self.timex = 0
 
         #sss = self.sock.recv(amount)
         sss = self.rfile.read(amount)
@@ -161,18 +167,19 @@ class DataHandler():
         #if self.pgdebug > 8:
         #    print("got len", amount, "got data:", sss)
         #return sss.decode("cp437")
+
         return sss
 
     # Where the outside stimulus comes in ...
     # State 0 - initial => State 1 - len arrived => State 2 data coming
     # Receive our special buffer (short)len + (str)message
 
-    def handle_one(self, par = None):
+    def handle_one(self, par):
+
+        self.par = par
 
         #print("Handle_one", par, par.ekey[:16])
-
         newarr = [] ; newdata = b""; state = 0; xlen = 2
-
         try:
             while 1:
                 buff =  self.getdata(xlen)

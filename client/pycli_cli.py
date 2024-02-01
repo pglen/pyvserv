@@ -118,7 +118,7 @@ if __name__ == '__main__':
     print ("Server login response:", cresp)
 
     # Interactive, need more time
-    hand.client(["tout", "30",], conf.sess_key)
+    #hand.client(["tout", "30",], conf.sess_key)
 
     print ("Enter commands, Ctrl-C to quit")
 

@@ -69,7 +69,7 @@ class CliSup():
         self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         self.mydathand  = pydata.xHandler(self.sock)
-        self.myhandler  = pydata.DataHandler(self.sock)
+        self.myhandler  = pydata.DataHandler(self.sock, 100)
 
         return self.getreply()
 

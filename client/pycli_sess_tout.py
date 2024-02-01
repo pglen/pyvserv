@@ -238,7 +238,12 @@ if __name__ == '__main__':
 
     # Session estabilished, try a simple command
     resp5 = hand.client(["hello",], conf.sess_key2)
-    print("Hello (encrypted2) Response:", resp5[1])
+    print("Hello (encrypted2) Response:", resp5)
+
+    time.sleep(10)
+
+    resp5 = hand.client(["hello",], conf.sess_key2)
+    print("Hello (encrypted2) Response:", resp5)
 
     hand.client(["quit",],conf.sess_key2)
     hand.close();

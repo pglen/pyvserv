@@ -131,11 +131,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         #if conf.verbose:
         #    print("Connected " + " " + str(self.client_address))
 
-        self.datahandler =  pydata.DataHandler(self.request)
-        self.datahandler.pgdebug = conf.pgdebug
-        self.datahandler.pglog = conf.pglog
-        self.datahandler.verbose = conf.verbose
-        self.datahandler.par = self
+        self.datahandler            =  pydata.DataHandler(self.request)
+        self.datahandler.pgdebug    = conf.pgdebug
+        self.datahandler.pglog      = conf.pglog
+        self.datahandler.verbose    = conf.verbose
+        self.datahandler.par        = self
 
         self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
