@@ -16,7 +16,9 @@ base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base, '../bluepy'))
 sys.path.append(os.path.join(base, '../common'))
 sys.path.append(os.path.join(base, '../server'))
-sys.path.append(os.path.join(base,  '../../pycommon'))
+#sys.path.append(os.path.join(base,  '../../pycommon'))
+sys.path.append(os.path.join(base,  '../../pypacker'))
+
 
 import bluepy
 import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate
@@ -49,6 +51,7 @@ class DataHandler():
         self.timex = 0
         self.toutflag = False
         self.thread = threading.Thread(target=self.run_tout)
+        self.thread.daemon = True
         self.thread.start()
 
     def run_tout(self, *argx):
@@ -56,6 +59,7 @@ class DataHandler():
         self.name = cur_thread.name
         while True:
             time.sleep(1)
+            #print (self.timex)
             if self.sock._closed:
                 break
             self.timex += 1
@@ -91,7 +95,7 @@ class DataHandler():
         self._putdata(response, key, rand)
 
         if self.toutflag:
-            time.sleep(1)
+            time.sleep(.1)
             self.par.request.shutdown(socket.SHUT_RDWR)
 
     #@support.timeit

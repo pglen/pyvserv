@@ -14,6 +14,7 @@ base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base, '../'))
 sys.path.append(os.path.join(base, '../bluepy'))
 sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base,  '../../pypacker'))
 #sys.path.append(os.path.join(base,  '../../pycommon'))
 
 import support, pypacker, pywrap

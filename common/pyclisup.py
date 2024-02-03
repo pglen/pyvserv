@@ -372,7 +372,8 @@ class CliSup():
             #print("Got hash:", "'" + resp[1] + "'")
             pass
 
-        hhh = SHA512.new(); hhh.update(bytes(resp[2], "cp437"))
+        #hhh = SHA512.new(); hhh.update(bytes(resp[2], "cp437"))
+        hhh = SHA512.new(); hhh.update(resp[2])
 
         if conf.pgdebug > 3:
             print("Hash1:  '" + resp[1] + "'")

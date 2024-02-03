@@ -6,10 +6,14 @@ from Crypto.Hash import SHA512
 import os, sys, getopt, signal, select, string, time, stat, base64
 import inspect
 
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '../../pypacker'))
+import pypacker
+
 import common.pyservsup as pyservsup, common.pyclisup as pyclisup
 import common.support as support
 import common.crysupp as crysupp, common.pysyslog as pysyslog
-import common.pypacker as pypacker, common.pywrap as pywrap
+import common.pywrap as pywrap
 
 import bluepy.bluepy as bluepy
 

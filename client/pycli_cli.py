@@ -17,7 +17,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline, pypacker
+from common import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Globals
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     print ("Server login response:", cresp)
 
     # Interactive, need more time
-    #hand.client(["tout", "30",], conf.sess_key)
+    hand.client(["tout", "30",], conf.sess_key)
 
     print ("Enter commands, Ctrl-C to quit")
 
@@ -157,7 +157,6 @@ if __name__ == '__main__':
     #
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)
-
+    hand.sock.shutdown(socket.SHUT_RDWR)
     sys.exit(0)
-
 

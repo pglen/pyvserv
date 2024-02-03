@@ -162,6 +162,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                     #response2 = ["err", "Too many tries, disconnecting."]
                     response2 = ["ERR", "Disconnected."]
                     self.datahandler.putencode(response2, self.statehandler.resp.ekey)
+                    #time.sleep(.1)
+                    #self.datahandler.par.request.shutdown(socket.SHUT_RDWR)
                     break
         except:
             #print( sys.exc_info())
