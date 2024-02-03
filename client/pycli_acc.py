@@ -16,7 +16,6 @@ import  random, stat, datetime
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
 
@@ -35,7 +34,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline, pypacker
+from common import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Functions from command line

@@ -68,9 +68,9 @@ def get_tout_func(self, strx):
     if len(strx) > 1:
         tout = int(strx[1])
         self.resp.datahandler.timeout = tout
-        resp = [OK, "timeout set to ", str(tout)],
+        resp = [OK, "Timeout set to ", str(tout)],
     else:
-        resp = [OK, "current timeout", str(self.resp.datahandler.timeout)],
+        resp = [OK, "Current timeout", str(self.resp.datahandler.timeout)],
 
     #if self.resp.datahandler.tout:
     #    self.resp.datahandler.tout.cancel()
@@ -486,7 +486,7 @@ def get_user_func(self, strx):
                 [ERR, "Must specify user name.", strx[0]], self.resp.ekey)
         return
     self.resp.user = strx[1]
-    self.resp.datahandler.putencode([OK, "send pass ..."], self.resp.ekey)
+    self.resp.datahandler.putencode([OK, "Send pass ..."], self.resp.ekey)
 
 # ------------------------------------------------------------------------
 
@@ -497,7 +497,7 @@ def get_sess_func(self, strx):
 
     if len(strx) < 4:
         self.resp.datahandler.putencode(\
-                [ERR, "not enough arguments."], self.resp.ekey)
+                [ERR, "Not enough arguments."], self.resp.ekey)
         return
 
     if pgdebug > 4:
@@ -755,9 +755,9 @@ def get_aadd_func(self, strx):
     if ret[0] == 0:
         response = ERR, ret[1], strx[0]
     elif ret[0] == 1:
-        response = ERR, "user already exists, no changes.", strx[0]
+        response = ERR, "User already exists, no changes.", strx[0]
     elif ret[0] == 2:
-        response = [OK, "added user", strx[1]]
+        response = [OK, "Added user", strx[1]]
     else:
         response = [ERR, ret[1], strx[0]]
 
@@ -809,7 +809,7 @@ def get_uini_func(self, strx):
         response = [ERR,  "Must connect from loopback interface.", strx[0]]
 
     elif  pyservsup.passwd.count() != 0:
-        response = [ERR, "already has initial user", strx[0]]
+        response = [ERR, "Already has initial user", strx[0]]
 
     elif len(strx) < 3:
         response = [ERR, "Must specify user name and pass.", strx[0]]
@@ -821,9 +821,9 @@ def get_uini_func(self, strx):
             response = [ERR, ret[1], strx[0]]
         elif ret[0] == 1:
             response = [ERR,
-            "user already exists, no change. Use pass function.", strx[0]];
+            "User already exists, no change. Use pass function.", strx[0]];
         elif ret[0] == 2:
-            response = [OK, "added initial user", strx[1]]
+            response = [OK, "Added initial user", strx[1]]
         else:
             response = [ERR, ret[1], strx[0]]
 
@@ -860,9 +860,9 @@ def get_kadd_func(self, strx):
     return
 
     if not os.path.isfile(pyservsup.keyfile):
-        response = ERR, "No initial keys yet", strx[0]
+        response = ERR, "No initial keys yet. Please add some.", strx[0]
     if len(strx) < 3:
-        response = ERR, "Must specify key_name and key_value", strx[0]
+        response = ERR, "Must specify key_name and key_value.", strx[0]
     else:
         # See if there is a key by this name
         ret = pyservsup.kauth(strx[1], strx[2], 1)
@@ -873,7 +873,7 @@ def get_kadd_func(self, strx):
         elif ret[0] == 0:
             response = "OK added key '" + strx[1] + "'"
         else:
-            response = ERR, "invalid return code", strx[0]
+            response = ERR, "Invalid return code from auth.", strx[0]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_udel_func(self, strx):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sys
+import sys, os
+
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)
@@ -120,7 +121,7 @@ if __name__ == '__main__':
     # Interactive, need more time
     hand.client(["tout", "30",], conf.sess_key)
 
-    print ("Enter commands, Ctrl-C to quit")
+    print ("Enter commands, Ctrl-C or 'done' to quit. Prefix local commands with '!'")
 
     import readline
     while(True):
@@ -130,10 +131,26 @@ if __name__ == '__main__':
             ss = onecom.split()
             if ss  != []:
                 # process commands that need additional data
-                if ss[0] == "sess":
+                if ss[0] == "done":
+                    break
+                elif ss[0] == "sess":
                     cresp = hand.start_session(conf)
                     if conf.sess_key:
                         print("Post session, session key:", conf.sess_key[:12], "...")
+
+                elif ss[0] == "file":
+                    if not os.path.isfile(ss[1]):
+                        print("File must exist.")
+                        continue
+                    #hand.
+
+                    cresp = hand.start_session(conf)
+                    if conf.sess_key:
+                        print("Post session, session key:", conf.sess_key[:12], "...")
+                if ss[0][0] == "!":
+                    #print ("#local")
+                    os.system(ss[0][1:] + " " + " ".join(ss[1:]))
+                    continue
                 else:
                     cresp = hand.client(ss, conf.sess_key)
 
