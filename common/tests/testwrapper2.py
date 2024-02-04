@@ -12,10 +12,8 @@ base = os.path.dirname(os.path.realpath(__file__))
 
 # Fudge the include path so test succeeds
 sys.path.append(os.path.join(base, '../'))
-sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
-#sys.path.append(os.path.join(base,  '../../pycommon'))
-sys.path.append(os.path.join(base,  '../../pypacker'))
+sys.path.append(os.path.join(base, '../../'))
+sys.path.append(os.path.join(base,  '../../../pypacker'))
 
 import support, pypacker, pywrap
 
@@ -50,7 +48,8 @@ if __name__ == '__main__':
 
     #print("www", www);
 
-    ooo = wr.unwrap_data(key, www.decode("cp437"))
+    #ooo = wr.unwrap_data(key, www.decode("cp437"))
+    ooo = wr.unwrap_data(key, www)
     print ("ttt=%f"  % (ttt - time.time()))
     #print("ooo", ooo);
 

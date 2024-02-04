@@ -12,12 +12,11 @@ base = os.path.dirname(os.path.realpath(__file__))
 
 # Fudge the include path so test succeeds
 sys.path.append(os.path.join(base, '../'))
-sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
-sys.path.append(os.path.join(base,  '../../pypacker'))
+sys.path.append(os.path.join(base, '../../'))
+sys.path.append(os.path.join(base,  '../../../pypacker'))
 #sys.path.append(os.path.join(base,  '../../pycommon'))
 
-import support, pypacker, pywrap
+import pypacker, pywrap
 
 #key = b"12345"
 key = Random.new().read(512)
@@ -38,11 +37,14 @@ if __name__ == '__main__':
     #print ("Should print success")
     #print("org", org);
 
+    xlen = len(org)
     wr = pywrap.wrapper()
     #wr.pgdebug = 2
 
     ttt = time.time()
     www = wr.wrap_data(key, org)
+    #print ("ttt=%f"  % (ttt - time.time()))
+    print ("encode ttt=%.2f kBytes/s" % (xlen / (time.time() - ttt)))
 
     #print(" ----- ", www)
     # test: damage the data
@@ -50,8 +52,12 @@ if __name__ == '__main__':
 
     #print("www", www);
 
-    ooo = wr.unwrap_data(key, www.decode("cp437"))
-    print ("ttt=%f"  % (ttt - time.time()))
+    ttt = time.time()
+    #ooo = wr.unwrap_data(key, www.decode("cp437"))
+    ooo = wr.unwrap_data(key, www)
+    #print ("ttt=%f"  % (ttt - time.time()))
+    print ("decode ttt=%.2f kBytes/s" % (xlen / (time.time() - ttt)))
+
     #print("ooo", ooo);
 
     if org != ooo:
