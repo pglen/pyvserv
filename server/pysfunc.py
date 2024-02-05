@@ -10,6 +10,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto.Hash import SHA512
 from Crypto import Random
+from Crypto.Cipher import AES
 
 base = os.path.dirname(os.path.realpath(__file__))
 #sys.path.append(os.path.join(base, '../bluepy'))
@@ -117,14 +118,17 @@ def get_buff_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
+    # Set to an number that most short based (2 bytes) routines can handle
     num = int(strx[1])
     if num <= 0:
         num = 1
-    elif num > 0xffff:
-        num = 0xffff
+    elif num > 0xf000:
+        num = 0xf000
 
-    #print("buffer set to %d" % num)
-    pyservsup.buffsize = num
+    if pgdebug > 2:
+        print("buffer set to %d" % num)
+
+    self.buffsize = num
     response = [OK, "Buffer set to:", pyservsup.buffsize]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -209,9 +213,14 @@ def get_fget_func(self, strx):
         response = [ERR, "File does not exist.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-    flen = 0
     try:
         flen = os.stat(dname)[stat.ST_SIZE]
+    except:
+        flen = 0
+    response = [OK, str(flen), strx[1]]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+    try:
         fh = open(dname, "rb")
     except:
         support.put_exception("fget")
@@ -219,10 +228,6 @@ def get_fget_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    response = [OK, str(flen), strx[1]]
-    self.resp.datahandler.putencode(response, self.resp.ekey)
-
-    from Crypto.Cipher import AES
     #key = b'Sixteen byte key'
     key = self.resp.ekey[:32]
     cipher = AES.new(key, AES.MODE_CTR,
@@ -232,15 +237,18 @@ def get_fget_func(self, strx):
     # Loop, break when file end or transmission error
     while 1:
         try:
-            buff = fh.read(pyservsup.buffsize)
+            buff = fh.read(self.buffsize)
             blen = len(buff)
+            if pgdebug > 3:
+                print("fread", blen, buff[:12])
+
         except:
             print("Cannot read local file", sys.exc_info())
             break
 
         buff = cipher.encrypt(buff)
         try:
-            if pgdebug > 3:
+            if pgdebug > 5:
                 print("putraw", len(buff), buff[:12])
 
             #ret = self.resp.datahandler.putencode([str(blen), buff,], self.resp.ekey, False)

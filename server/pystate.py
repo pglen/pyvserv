@@ -144,6 +144,7 @@ class StateHandler():
         self.wr = pywrap.wrapper()
         self.pb = pypacker.packbin()
         self.wr.pgdebug = 0
+        self.buffsize = pyservsup.buffsize
 
     # --------------------------------------------------------------------
     # This is the function where outside stimulus comes in.

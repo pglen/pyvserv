@@ -21,14 +21,7 @@ all:
 #diffit:
 
 test:
-	@echo Diffs should be silent
-	@python3 testdump.py > aa
-	@diff -w testdump.org aa
-	@python3 testwrapper.py > aa
-	@diff testwrapper.org aa
-	@python3 testpacker.py > aa
-	@diff testpacker.org aa
-	@rm -f aa
+	@cd tests; make test
 
 test2:
 	@echo Diffs should be silent
@@ -37,7 +30,8 @@ test2:
 	@rm -f aa bb cc dd ee
 
 test3:
-	@echo Diffs should be silent
+
+-+@echo Diffs should be silent
 	@python3 pypacker.py >cc
 	@diff -w test.org cc
 	@rm -f aa bb cc dd ee
