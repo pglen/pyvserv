@@ -17,7 +17,7 @@ from Crypto import Random
 
 #sys.path.append('../common')
 #import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, crysupp
+#import comline, pypacker, crysupp
 #
 #sys.path.append('../bluepy')
 #import bluepy
@@ -28,7 +28,8 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+from common import pysyslog, comline, pypacker
+
 
 '''
 # test encrypt with large keys
@@ -106,10 +107,13 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client(["hello", "world"] , "", False)
-    print("Hello Response: ", resp3)
+    resp3 = hand.client(["hello",] , "", False)
+    print("Hello Response:", resp3[1])
 
-    ret = hand.start_session(hand, conf)
+    ret = hand.start_session(conf)
+
+    #if ret[0] == "OK":
+    #    print("Sess Key ACCEPTED:",  ret[1])
 
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
@@ -118,37 +122,23 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Make a note of the session key
-    print("Sess Key ACCEPTED:",  ret[1])
+    #print("Sess Key ACCEPTED:",  resp3[1])
     print("Post session, all is encrypted")
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
-    print("Server hello Response:", resp4[1])
+    print("Hello sess Response:", resp4)
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
-    print ("Server user  response:", cresp)
+    print ("Server user response:", cresp[1])
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    print ("Server pass  response:", cresp)
+    print ("Server pass response:", cresp[1])
 
-    #resp = hand.client(["pass", "12345"], conf.sess_key)
-    #print ("Server pass  response:", cresp)
+    #cresp = hand.client(["chpass", "1234"], conf.sess_key)
+    #print ("Server chpass response:", cresp[1])
 
-    #resp = hand.client(["pass", "12345"], conf.sess_key)
-    #print ("Server pass response:", cresp)
-
-    #cresp = hand.client(["pass", "12345"], conf.sess_key)
-    #print ("Server pass response:", cresp[1])
-    #if(cresp[1][:2] != "OK"): sys.exit(1)
-
-    #cresp = hand.client(["pass", "1234"], conf.sess_key)
-    #print ("Server pass  response:", cresp[1])
-
-    #cresp = hand.client(["hello", "1234"], conf.sess_key)
-    #print ("Server hello response:", cresp[1])
-
-    cresp = hand.client(["quit",],conf.sess_key)
-    print ("Server quit  response:", cresp[1])
+    hand.client(["quit",], conf.sess_key)
     hand.close();
 
     sys.exit(0)

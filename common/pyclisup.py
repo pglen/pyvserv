@@ -189,8 +189,8 @@ class CliSup():
             return
 
         cresp = self.client(["fget", fname], key)
-        #if self.verbose:
-        #    print ("Server  fget response:", cresp)
+        if self.verbose:
+            print ("Server  fget response:", cresp)
 
         if cresp[0] != "OK":
             return cresp

@@ -7,7 +7,7 @@ from __future__ import print_function
 
 from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
-import  random, stat
+import  random, stat, datetime
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
@@ -17,7 +17,7 @@ from Crypto import Random
 
 #sys.path.append('../common')
 #import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, crysupp
+#import comline, pypacker, crysupp
 #
 #sys.path.append('../bluepy')
 #import bluepy
@@ -28,7 +28,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+from common import pysyslog, comline, pypacker
 
 '''
 # test encrypt with large keys
@@ -106,10 +106,13 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client(["hello", "world"] , "", False)
-    print("Hello Response: ", resp3)
+    resp3 = hand.client(["hello",] , "", False)
+    #print("Hello Response:", resp3[1])
 
-    ret = hand.start_session(hand, conf)
+    ret = hand.start_session(conf)
+
+    #if ret[0] == "OK":
+    #    print("Sess Key ACCEPTED:",  ret[1])
 
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
@@ -118,37 +121,53 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Make a note of the session key
-    print("Sess Key ACCEPTED:",  ret[1])
+    #print("Sess Key ACCEPTED:",  resp3[1])
     print("Post session, all is encrypted")
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
-    print("Server hello Response:", resp4[1])
+    print("Hello Response:", resp4[1])
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
-    print ("Server user  response:", cresp)
+    print ("Server user response:", cresp[1])
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    print ("Server pass  response:", cresp)
+    print ("Server pass response:", cresp[1])
 
-    #resp = hand.client(["pass", "12345"], conf.sess_key)
-    #print ("Server pass  response:", cresp)
+    # Error responses
+    #cresp = hand.client(["pwd",], conf.sess_key)
+    #print ("Server pwd response:", cresp)
 
-    #resp = hand.client(["pass", "12345"], conf.sess_key)
-    #print ("Server pass response:", cresp)
+    cresp = hand.client(["lsd",], conf.sess_key)
+    print ("Server lsd response:", cresp)
 
-    #cresp = hand.client(["pass", "12345"], conf.sess_key)
-    #print ("Server pass response:", cresp[1])
-    #if(cresp[1][:2] != "OK"): sys.exit(1)
+    ''' Stat return values are as in python os.stat() + OK and name prefix
+    "OK", fname,
+    st_mode, st_ino, st_dev, st_nlink
+    st_uid, st_gid, st_size
+    st_atime, st_mtime, st_ctime
+    st_atime_ns
+    st_mtime_ns
+    st_ctime_ns '''
 
-    #cresp = hand.client(["pass", "1234"], conf.sess_key)
-    #print ("Server pass  response:", cresp[1])
+    print ("Server stat response:")
+    for aa in cresp[1:]:
+        bb = support.unescape(aa)
+        cresp2 = hand.client(["stat", aa], conf.sess_key)
+        #print("cresp2", cresp2)
+        if cresp2[0] != "OK":
+            print("Bad entry from remote", cresp2)
+        else:
+            ddd = datetime.datetime.fromtimestamp(int(cresp2[10]))
+            print ("%s %-24s %-8d %s" %
+                (
+                support.mode2str(int(cresp2[2])), support.unescape(cresp2[1]),
+                        int(cresp2[8]), ddd)
+                )
+            #int(cresp2[9]), int(cresp2[10]), int(cresp2[11])
+            #print(ddd)
 
-    #cresp = hand.client(["hello", "1234"], conf.sess_key)
-    #print ("Server hello response:", cresp[1])
-
-    cresp = hand.client(["quit",],conf.sess_key)
-    print ("Server quit  response:", cresp[1])
+    hand.client(["quit",],conf.sess_key)
     hand.close();
 
     sys.exit(0)

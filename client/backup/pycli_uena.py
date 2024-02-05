@@ -8,16 +8,8 @@ import random, stat
 
 #sys.path.append('..')
 #sys.path.append('../bluepy')
-#sys.path.append('../common')
-#import support, pycrypt, pyservsup, pyclisup, syslog, comline
-
-# Set parent as module include path
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
-
-from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+sys.path.append('../common')
+import support, pycrypt, pyservsup, pyclisup, syslog, comline
 
 # ------------------------------------------------------------------------
 # Globals
@@ -30,7 +22,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
+    print( "            -p        - Port to use (default: 9999)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -44,7 +36,7 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
+    ["p:",  "port",     9999,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \
@@ -86,11 +78,11 @@ if __name__ == '__main__':
     print("Sess Response:", resp3)
 
     resp3 = hand.client(["hello",] , conf.sess_key, False)
-    print("Hello sess Response:", resp3[1])
+    print("Hello Response:", resp3)
 
     resp = hand.client(["user", "admin"], conf.sess_key)
-    print("user Response:", resp[1])
-    if resp[1].split()[0] != "OK":
+    print("user Response:", resp)
+    if resp[0] != "OK":
         raise ValueError("No user", resp[1])
 
     resp = hand.client(["pass", "1234"], conf.sess_key)
@@ -98,25 +90,10 @@ if __name__ == '__main__':
     if resp[1].split()[0] != "OK":
         raise ValueError("Not authorized", resp[1])
 
-    resp = hand.client(["uadd", "peter2", "1234"], conf.sess_key)
-    print("uadd Response:", resp[1])
+    resp = hand.client(["uena", "peter2", "enable"], conf.sess_key)
+    print("uena Response:", resp[1])
     if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
-
-    resp = hand.client(["uadd", "peter3,comma", "1234"], conf.sess_key)
-    print("uadd Response:", resp[1])
-    if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
-
-    resp = hand.client(["uadd", "peter4 space", "1234"], conf.sess_key)
-    print("uadd Response:", resp[1])
-    if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
-
-    resp = hand.client(["aadd", "admin", "1234"], conf.sess_key)
-    print("aadd Response:", resp[1])
-    if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
+        raise ValueError("user enable", resp[1])
 
     hand.client(["quit"], conf.sess_key)
 

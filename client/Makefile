@@ -3,7 +3,7 @@
 .PHONY: testx, testx2, tests
 
 all:
-	@echo Targets: server tests testx testx2 hello clean init
+	@echo Targets: server tests test test2 hello clean init
 
 server:
 	@# Start server

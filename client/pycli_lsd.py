@@ -17,7 +17,7 @@ from Crypto import Random
 
 #sys.path.append('../common')
 #import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, pypacker, crysupp
+#import comline, crysupp
 #
 #sys.path.append('../bluepy')
 #import bluepy
@@ -28,7 +28,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline, pypacker
+from common import pysyslog, comline
 
 '''
 # test encrypt with large keys

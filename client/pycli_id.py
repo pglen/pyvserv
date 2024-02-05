@@ -17,7 +17,7 @@ import  random, stat
 #sys.path.append(os.path.join(base, '../bluepy'))
 #sys.path.append(os.path.join(base, '../common'))
 #sys.path.append(os.path.join(base,  '../../pycommon'))
-#import support, pycrypt, pyservsup, pyclisup, pysyslog, comline, pypacker
+#import support, pycrypt, pyservsup, pyclisup, pysyslog, comline
 
 # Set parent as module include path
 current = os.path.dirname(os.path.realpath(__file__))
@@ -25,7 +25,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline, pypacker
+from common import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #print("dir", pypacker.__doc__)
+    #print("dir".__doc__)
 
     try:
         resp2 = hand.connect(ip, conf.port)

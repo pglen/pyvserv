@@ -84,9 +84,9 @@ class   wrapper():
         #print(type(ssss))
         ssss  = bytes(ssss, "utf-8")
 
-        # compress too expensive, throttled
-        #fff = zlib.compress(ssss, 1)
-        fff = ssss
+        # Compress throttled to low
+        fff = zlib.compress(ssss, 1)
+        #fff = ssss
 
         # use AES and Bluepoint
         if key:
@@ -140,10 +140,10 @@ class   wrapper():
             fff4 = fff3
         else:
             #fff3 = bluepy.decrypt(fff2, defkey)
-            fff4 = fff3
+            fff4 = fff2
 
-        #fff = zlib.decompress(fff4)
-        fff = fff4
+        fff = zlib.decompress(fff4)
+        #fff = fff4
 
         #if sys.version_info[0] > 2:
         #    fff = fff.decode("utf-8")

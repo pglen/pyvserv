@@ -165,8 +165,8 @@ class StateHandler():
     def _run_state_worker(self, strx):
         got = False; ret = False
 
-        if self.pgdebug > 8:
-            print( "Incoming strx: \n", crysupp.hexdump(strx, len(strx)))
+        #if self.pgdebug > 8:
+        #    print( "Incoming strx: \n", crysupp.hexdump(strx, len(strx)))
 
         dstr = ""
         try:
@@ -180,7 +180,9 @@ class StateHandler():
             return False
 
         if self.pgdebug > 3:
-            print( "Incoming Line: \n", dstr)
+            print( "Incoming data:")
+            for aa in dstr[1]:
+                print(aa[:12])
 
         comx = dstr[1] #.split()
 

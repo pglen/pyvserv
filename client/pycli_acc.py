@@ -25,7 +25,7 @@ from Crypto import Random
 #sys.path.append(os.path.join(base,  '../../pycommon'))
 #
 #import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, pypacker, crysupp
+#import comline, crysupp
 #import bluepy
 
 # Set parent as module include path

@@ -17,7 +17,7 @@ from Crypto import Random
 
 #sys.path.append('../common')
 #import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, pypacker, crysupp
+#import comline, crysupp
 
 # Set parent as module include path
 current = os.path.dirname(os.path.realpath(__file__))
@@ -125,7 +125,9 @@ if __name__ == '__main__':
     #if conf.pgdebug > 4:
     #    print ("Server response2:\n" +  "'" + resp[1].decode("cp437") +  "'\n")
 
-    hhh = SHA512.new(); hhh.update(bytes(resp[2], "cp437"))
+    hhh = SHA512.new();
+    #hhh.update(bytes(resp[2], "utf-8"))
+    hhh.update(resp[2])
 
     if conf.pgdebug > 3:
         print("Hash1:  '" + resp[1] + "'")

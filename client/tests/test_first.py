@@ -9,7 +9,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline, pypacker
+from common import pysyslog, comline
 
 hand = None
 fname = createname(__file__)

@@ -17,7 +17,7 @@ from Crypto import Random
 
 #sys.path.append('../common')
 #import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, crysupp
+#import comline, pypacker, crysupp
 
 # Set parent as module include path
 current = os.path.dirname(os.path.realpath(__file__))
@@ -25,7 +25,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+from common import pysyslog, comline, pypacker
 
 #sys.path.append('../bluepy')
 from bluepy import bluepy

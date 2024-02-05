@@ -190,7 +190,8 @@ def get_ls_func(self, strx):
 
 def get_fget_func(self, strx):
 
-    #print("fget strx", strx)
+    if pgdebug > 1:
+        print("fget strx", strx)
 
     dname = ""
     if len(strx) == 1:
@@ -239,6 +240,9 @@ def get_fget_func(self, strx):
 
         buff = cipher.encrypt(buff)
         try:
+            if pgdebug > 3:
+                print("putraw", len(buff), buff[:12])
+
             #ret = self.resp.datahandler.putencode([str(blen), buff,], self.resp.ekey, False)
             ret = self.resp.datahandler.putraw(buff)
             #ret = self.resp.datahandler.wfile.write(buff)
@@ -425,7 +429,8 @@ def get_ver_func(self, strx):
                         "%s" % pyservsup.globals.siteid]
 
     if pgdebug > 2:
-        print( "get_ver_func->output", "'" + res + "'")
+        print( "get_ver_func->output", res)
+
     self.resp.datahandler.putencode(res, self.resp.ekey)
 
 def get_id_func(self, strx):
@@ -1005,7 +1010,7 @@ def get_help_func(self, strx):
                 harr.appnd(strx[0])
 
     if pgdebug > 2:
-        print( "get_help_func->output", "[" + harr + "]")
+        print( "get_help_func->output", harr)
 
     self.resp.datahandler.putencode(harr, self.resp.ekey)
 

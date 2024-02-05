@@ -31,13 +31,12 @@ def phelp():
     print()
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
-    print( "Options:    -d level   - Debug level 0-10")
-    print( "            -c dirname - Directory to create. default: test_3")
-    print( "            -p         - Port to use (default: 9999)")
-    print( "            -v         - Verbose")
-    print( "            -q         - Quiet")
-    print( "            -n         - No encryption (plain)")
-    print( "            -h         - Help")
+    print( "Options:    -d level  - Debug level 0-10")
+    print( "            -p        - Port to use (default: 9999)")
+    print( "            -v        - Verbose")
+    print( "            -q        - Quiet")
+    print( "            -n        - No encryption (plain)")
+    print( "            -h        - Help")
     print()
     sys.exit(0)
 
@@ -48,7 +47,6 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["c:",  "fname",    "test_3", None],    \
     ["p:",  "port",     6666,   None],      \
     ["f:",  "file",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
@@ -129,8 +127,18 @@ if __name__ == '__main__':
     #    hand.close();
     #    sys.exit(0)
 
-    ret2 = hand.client(["mkdir", conf.fname], conf.sess_key)
-    print ("Server mkdir response:", ret2)
+    #zfile = "zeros"
+    #ret2 = hand.getfile(zfile, zfile+"_local", conf.sess_key)
+    #print ("Server  fget response:", ret2)
+
+    bfile ="bigfile"
+    print("Started bigfile ...", bfile)
+    ttt = time.time()
+    ret = hand.getfile(bfile, bfile + "_local", conf.sess_key)
+    filesize = support.fsize(bfile+ "_local")
+    print("filesize", filesize)
+    rate = filesize / (time.time() - ttt)
+    print ("Server fget response:", ret, "time %.2f kbytes/sec" % (rate/1024))
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)

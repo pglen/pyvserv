@@ -34,7 +34,7 @@ parser.add_argument("-f", '--file', dest='file',  nargs='?',
 args = parser.parse_args()
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+from common import pysyslog, comline, pypacker
 
 for aa in range(args.count):
     subprocess.Popen(args.file)

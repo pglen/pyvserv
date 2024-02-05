@@ -2,6 +2,11 @@
 
 from __future__ import print_function
 
+import sys
+if sys.version_info[0] < 3:
+    print("Python 2 is not supported as of 1/1/2020")
+    sys.exit(1)
+
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
 
@@ -12,7 +17,7 @@ import  random, stat
 #sys.path.append(os.path.join(base, '../bluepy'))
 #sys.path.append(os.path.join(base, '../common'))
 #sys.path.append(os.path.join(base,  '../../pycommon'))
-#import support, pycrypt, pyservsup, pyclisup, pysyslog, comline
+#import support, pycrypt, pyservsup, pyclisup, pysyslog, comline, pypacker
 
 # Set parent as module include path
 current = os.path.dirname(os.path.realpath(__file__))
@@ -20,7 +25,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+from common import pysyslog, comline, pypacker
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -61,7 +66,7 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #print("dir".__doc__)
+    #print("dir", pypacker.__doc__)
 
     try:
         resp2 = hand.connect(ip, conf.port)
@@ -74,7 +79,7 @@ if __name__ == '__main__':
         respini = hand.pb.decode_data(resp2[1])[0]
         print ("Server initial:", respini)
 
-    resp = hand.client(["hello"])
+    resp = hand.client(["id"])
     if conf.quiet == False:
         print("resp", resp)
 

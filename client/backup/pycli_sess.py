@@ -17,7 +17,7 @@ from Crypto import Random
 
 #sys.path.append('../common')
 #import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, crysupp
+#import comline, pypacker, crysupp
 
 # Set parent as module include path
 current = os.path.dirname(os.path.realpath(__file__))
@@ -238,12 +238,7 @@ if __name__ == '__main__':
 
     # Session estabilished, try a simple command
     resp5 = hand.client(["hello",], conf.sess_key2)
-    print("Hello (encrypted2) Response:", resp5)
-
-    time.sleep(10)
-
-    resp5 = hand.client(["hello",], conf.sess_key2)
-    print("Hello (encrypted2) Response:", resp5)
+    print("Hello (encrypted2) Response:", resp5[1])
 
     hand.client(["quit",],conf.sess_key2)
     hand.close();

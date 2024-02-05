@@ -127,7 +127,7 @@ class DataHandler():
 
         try:
             if type(dstr) == type(""):
-                response2 = bytes(dstr, "cp437")
+                response2 = bytes(dstr, "utf-8")
             else:
                 response2 = dstr
 
@@ -138,7 +138,7 @@ class DataHandler():
             strx = struct.pack("!h", len(response2)) + response2
 
             #if self.pgdebug > 2:
-            #    print ("sending: '", strx ) # + strx.decode("cp437") + "'")
+            #    print ("sending: '", strx ) # + strx.decode("utf-8") + "'")
 
             #ret = self.par.request.send(strx)
             ret = self.wfile.write(strx)
@@ -170,7 +170,7 @@ class DataHandler():
 
         #if self.pgdebug > 8:
         #    print("got len", amount, "got data:", sss)
-        #return sss.decode("cp437")
+        #return sss.decode("utf-8")
 
         return sss
 
@@ -221,7 +221,7 @@ class DataHandler():
         #if self.pgdebug > 8:
         #   print(b"got data: '" + newdata + b"'")
 
-        #return bytes(newdata, "cp437")
+        #return bytes(newdata, "utf-8")
         return newdata
 
 # Create a class with the needed members to send / recv

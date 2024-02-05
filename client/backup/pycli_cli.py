@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sys
+import sys, os
+
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)
@@ -31,13 +32,12 @@ def phelp():
     print()
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
-    print( "Options:    -d level   - Debug level 0-10")
-    print( "            -c dirname - Directory to create. default: test_3")
-    print( "            -p         - Port to use (default: 9999)")
-    print( "            -v         - Verbose")
-    print( "            -q         - Quiet")
-    print( "            -n         - No encryption (plain)")
-    print( "            -h         - Help")
+    print( "Options:    -d level  - Debug level 0-10")
+    print( "            -p        - Port to use (default: 9999)")
+    print( "            -v        - Verbose")
+    print( "            -q        - Quiet")
+    print( "            -n        - No encryption (plain)")
+    print( "            -h        - Help")
     print()
     sys.exit(0)
 
@@ -48,7 +48,6 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["c:",  "fname",    "test_3", None],    \
     ["p:",  "port",     6666,   None],      \
     ["f:",  "file",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
@@ -94,6 +93,7 @@ if __name__ == '__main__':
     #resp3 = hand.client(["id",] , "", False)
     #print("ID Response:", resp3[1])
 
+    conf.sess_key = ""
     #ret = ["OK",];  conf.sess_key = ""
     ret = hand.start_session(conf)
     if ret[0] != "OK":
@@ -118,23 +118,62 @@ if __name__ == '__main__':
     cresp = hand.login(conf, "admin", "1234")
     print ("Server login response:", cresp)
 
-    #cresp = hand.client(["ls", ], conf.sess_key)
-    #print ("Server  ls response:", cresp)
+    # Interactive, need more time
+    hand.client(["tout", "30",], conf.sess_key)
 
-    #cresp = hand.client(["buff", "10", ], conf.sess_key)
-    #print ("Server buff response:", cresp)
-    #if cresp[0] != "OK":
-    #    print("Error on buff command", cresp[1])
-    #    hand.client(["quit"], conf.sess_key)
-    #    hand.close();
-    #    sys.exit(0)
+    print ("Enter commands, Ctrl-C or 'done' to quit. Prefix local commands with '!'")
 
-    ret2 = hand.client(["mkdir", conf.fname], conf.sess_key)
-    print ("Server mkdir response:", ret2)
+    import readline
+    while(True):
+        try:
+            onecom = input(">> ")
+            #print ("'" + onecom.split() + "'")
+            ss = onecom.split()
+            if ss  != []:
+                # process commands that need additional data
+                if ss[0] == "done":
+                    break
+                elif ss[0] == "sess":
+                    cresp = hand.start_session(conf)
+                    if conf.sess_key:
+                        print("Post session, session key:", conf.sess_key[:12], "...")
 
+                elif ss[0] == "file":
+                    if not os.path.isfile(ss[1]):
+                        print("File must exist.")
+                        continue
+                    #hand.
+
+                    cresp = hand.start_session(conf)
+                    if conf.sess_key:
+                        print("Post session, session key:", conf.sess_key[:12], "...")
+                if ss[0][0] == "!":
+                    #print ("#local")
+                    os.system(ss[0][1:] + " " + " ".join(ss[1:]))
+                    continue
+                else:
+                    cresp = hand.client(ss, conf.sess_key)
+
+                print ("Server response:", cresp)
+
+        except:
+            print(sys.exc_info())
+            break
+
+    #ret2 = hand.getfile("zeros", "zeros_local", conf.sess_key)
+    #print ("Server  fget response:", ret2)
+    #
+    #bfile ="bigfile"
+    #print("Started bigfile ...", bfile)
+    #ttt = time.time()
+    #ret = hand.getfile(bfile, bfile + "_local", conf.sess_key)
+    #filesize = support.fsize(bfile+ "_local")/1024
+    #print("filesize", filesize)
+    #rate = filesize / (time.time() - ttt)
+    #print ("Server fget response:", ret, "time %.2f kbytes/sec" % rate)
+    #
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)
-
+    hand.sock.shutdown(socket.SHUT_RDWR)
     sys.exit(0)
-
 
