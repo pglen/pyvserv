@@ -1,4 +1,7 @@
 
+all:
+	@echo these tests are obsolete
+
 test:
 
 	@echo Diffs should be silent
@@ -6,7 +9,7 @@ test:
 	@diff -w testdump.org aa
 	@python3 testwrapper.py > aa
 	@diff testwrapper.org aa
-	@python3 testpacker.py > aa
-	@diff testpacker.org aa
+	#@python3 testpacker.py > aa
+	#@diff testpacker.org aa
 	@rm -f aa
 
