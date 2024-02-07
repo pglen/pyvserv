@@ -47,8 +47,8 @@ def hasharr(arrx):
     # Replicate without hash field:
     arrx2 = []; asave = []
     for aa in range(len(arrx)):
+        #print("hash element", arrx[aa])
         try:
-            #print("element", arrx[aa])
             if Hash in arrx[aa]:
                 #print("noadd", arrx[aa])
                 pass  # no add
@@ -59,25 +59,25 @@ def hasharr(arrx):
             elif PowRand in arrx[aa]:
                 asave.append(arrx[aa])
             elif Proof in arrx[aa]:
+                print("asave proof", arrx[aa])
                 asave.append(arrx[aa])
             else:
                 arrx2.append(arrx[aa])
 
-        except (AttributeError, TypeError):
+        except (AttributeError, TypeError, KeyError):
             arrx2.append(arrx[aa])
-
-        except KeyError:
-            pass
         except:
             print (sys.exc_info())
             pass
 
+    #print("arrx2", arrx2)
     ssss = pb.encode_data("", arrx2)
 
     #print(type(ssss))
     #print(ssss)
     ssss  = bytes(ssss, "utf-8")
     hhh = shahex(ssss)
+    #print("asave", asave)
     arrx2 += asave
     arrx2.append({Hash: hhh})
 
@@ -89,7 +89,7 @@ def powarr(arrx):
     arrx2 = []; asave = []
     for aa in range(len(arrx)):
         try:
-            #print("element", arrx[aa])
+            # print("element", arrx[aa])
             if Proof in arrx[aa]:
                 pass  # no add
             elif PowRand in arrx[aa]:
@@ -123,8 +123,6 @@ def powarr(arrx):
     cnt = 0
     while True:
         ssss = pb.encode_data("", arrx2)
-
-        #print(type(ssss))
         #print(ssss)
         ssss  = bytes(ssss, "utf-8")
         hhh = shahex(ssss)
@@ -137,6 +135,7 @@ def powarr(arrx):
         var[PowRand] = rrr.read(12)
 
     #print (cnt)
+    #print("asave", asave)
     arrx2 += asave
     arrx2.append({Proof: hhh})
 
@@ -193,6 +192,7 @@ def linkarr(arrx, prevhash):
     #print(ssss)
     ssss  = bytes(ssss, "utf-8")
     hhh = shahex(ssss)
+    #print("asave", asave)
     arrx2 += asave
     arrx2.append({Link: hhh})
 
@@ -213,6 +213,11 @@ def checkhash(arrx):
             elif PowRand in arrx[aa]:
                 pass  # no add
             elif Proof in arrx[aa]:
+                pass  # no add
+            elif Link in arrx[aa]:
+                #print("noadd", arrx[aa])
+                pass  # no add
+            elif PrevHash in arrx[aa]:
                 #print("noadd", arrx[aa])
                 pass  # no add
             else:
@@ -222,6 +227,7 @@ def checkhash(arrx):
         except:
             print (sys.exc_info())
             pass
+    #print("arrx2", arrx2)
     ssss = pb.encode_data("", arrx2)
     #print(ssss)
     ssss  = bytes(ssss, "utf-8")
@@ -237,6 +243,12 @@ def checkpow(arrx):
         try:
             #print("element", arrx[aa])
             if Hash in arrx[aa]:
+                pass  # no add
+            elif Link in arrx[aa]:
+                #print("noadd", arrx[aa])
+                pass  # no add
+            elif PrevHash in arrx[aa]:
+                #print("noadd", arrx[aa])
                 pass  # no add
             elif Proof in arrx[aa]:
                 org =  arrx[aa][Proof]
