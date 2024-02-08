@@ -21,28 +21,27 @@ import pyvhash, support, pypacker, crysupp
 
 if __name__ == '__main__':
 
-    rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
-            "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
-
     # The hash field will be overridden
     arrx =  [123, "hello", {"Hash":12},]
 
-    err = pyvhash.checkhash(arrx)
+    thd = pyvhash.BcData()
+
+    err = thd.checkhash()
     print("match hash:", err)
 
-    err = pyvhash.checkhash(arrx)
+    err = thd.checkhash()
     print("match pow:", err)
 
-    arrh = pyvhash.hasharr(arrx)
+    arrh = thd.hasharr()
     print(arrh)
 
-    arrp = pyvhash.powarr(arrh)
+    arrp = thd.powarr()
     print(arrp)
 
-    err = pyvhash.checkhash(arrp)
+    err = thd.checkhash()
     print("match hash:", err)
 
-    err = pyvhash.checkpow(arrp)
+    err = thd.checkpow()
     print("match pow:", err)
 
     # Damage
@@ -50,10 +49,10 @@ if __name__ == '__main__':
     #arrp[4]["Proof"]  = "a"
     arrp[1] = 'aa'
 
-    err = pyvhash.checkhash(arrp)
+    err = thd.checkhash()
     print("dam match hash:", err)
 
-    err = pyvhash.checkpow(arrp)
+    err = thd.checkpow()
     print("dam match pow:", err)
 
 

@@ -48,16 +48,16 @@ def teardown_module(module):
 
 def test_func(capsys):
 
-    arrx =  [123, "hello", {"Hash":12},]
+    thd = pyvhash.BcData()
 
-    arrp = pyvhash.powarr(arrx)
+    arrp = thd.powarr()
     #print(arrp)
 
-    err = pyvhash.checkpow(arrp)
+    err = thd.checkpow()
     assert err == True
 
     arrp[1] = 'aa'
-    err = pyvhash.checkpow(arrp)
+    err = thd.checkpow()
     assert err == False
 
 # EOF

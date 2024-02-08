@@ -48,29 +48,30 @@ def teardown_module(module):
 
 def test_func(capsys):
 
-    arrx =  [123, "hello", {"Hash":12},]
+    thd = pyvhash.BcData()
+
     # Hypothetical old hash
     prevh = pyvhash.shahex(b"1234")
 
     wasexc = False
     try:
-        arrp = pyvhash.linkarr(arrx, prevh)
+        arrp = thd.linkarr(prevh)
         #print(arrp)
     except:
         #print(sys.exc_info())
         wasexc = True
     assert wasexc == True
 
-    arrp = pyvhash.powarr(arrx)
-    err = pyvhash.checkpow(arrp)
+    arrp = thd.powarr()
+    err = thd.checkpow()
     assert err == True
 
-    arrl = pyvhash.linkarr(arrp, prevh)
-    err = pyvhash.checklink(arrl)
+    arrl = thd.linkarr(prevh)
+    err = thd.checklink()
     assert err == True
 
-    arrp[1] = 'aa'
-    err = pyvhash.checklink(arrp)
+    thd.datax[1] = 'aa'
+    err = thd.checklink()
     assert err == False
 
 # EOF

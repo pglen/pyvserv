@@ -18,60 +18,44 @@ hand = None
 
 def setup_module(module):
     """ setup any state specific to the execution of the given module."""
-    global hand
-
-    try:
-        # Fresh start
-        os.remove(fname)
-        os.remove(iname)
-    except:
-        #print(sys.exc_info())
-        pass
+    pass
 
 def teardown_module(module):
     """ teardown any state that was previously setup with a setup_module
     method.
     """
-
-    try:
-        # No dangling data
-        #os.remove(fname)
-        #os.remove(iname)
-        pass
-    except:
-        #print(sys.exc_info())
-        #assert 0
-        pass
-
+    pass
     #assert 0
 
 
 def test_func(capsys):
 
-    arrx =  [123, "hello", {"Hash":12},]
+    thd = pyvhash.BcData()
+
     # Hypothetical old hash
     prevh = pyvhash.shahex(b"1234")
 
-    arrh = pyvhash.hasharr(arrx)
-    err = pyvhash.checkhash(arrh)
+    arrh = thd.hasharr()
+    err = thd.checkhash()
     assert err == True
 
-    arrp = pyvhash.powarr(arrh)
-    err = pyvhash.checkpow(arrp)
+    arrp = thd.powarr()
+    err = thd.checkpow()
     assert err == True
 
-    arrl = pyvhash.linkarr(arrp, prevh)
-    err = pyvhash.checklink(arrl)
+    arrl = thd.linkarr(prevh)
+    err = thd.checklink()
     assert err == True
 
-    err = pyvhash.checkpow(arrl)
+    # Post link checks
+    err = thd.checkpow()
     assert err == True
 
-    err = pyvhash.checkhash(arrl)
+    err = thd.checkhash()
     assert err == True
 
-    arrp[1] = 'aa'
-    err = pyvhash.checklink(arrp)
+    thd.datax[1] = 'aa'
+    err = thd.checklink()
     assert err == False
 
 # EOF

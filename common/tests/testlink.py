@@ -34,30 +34,32 @@ if __name__ == '__main__':
         #print(sys.exc_info())
         pass
 
-    arrh = pyvhash.hasharr(arrx)
+    thd = pyvhash.BcData()
+
+    arrh = thd.hasharr()
     print(arrh)
 
-    err = pyvhash.checkhash(arrh)
-    print("normal match:", err)
+    err = thd.checkhash()
+    print("normal match:", )
 
-    arrh = pyvhash.powarr(arrh)
+    arrh = thd.powarr()
     print(arrh)
-    err = pyvhash.checkpow(arrh)
+    err = thd.checkpow()
     print("pow match:", err)
 
-    err = pyvhash.checkhash(arrh)
+    err = thd.checkhash()
     print("after pow hash match:", err)
 
-    arrp = pyvhash.linkarr(arrh, prevh)
+    arrp = thd.linkarr(prevh)
     print(arrp)
 
-    err = pyvhash.checklink(arrp)
+    err = thd.checklink()
     print("match link:", err)
 
-    err = pyvhash.checkpow(arrp)
+    err = thd.checkpow()
     print("after link pow match:", err)
 
-    err = pyvhash.checkhash(arrp)
+    err = thd.checkhash()
     print("after link hash match:", err)
 
     # Damage

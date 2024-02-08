@@ -21,30 +21,29 @@ import pyvhash, support, pypacker, crysupp
 
 if __name__ == '__main__':
 
-    rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
-            "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
-
     # The hash field will be overridden
     arrx =  [123, "hello", {"Hash":12},]
     arrx2 =  [123, "hello", ]
 
-    print(arrx2)
-    err = pyvhash.checkhash(arrx2)
+    thd = pyvhash.BcData()
+
+    #print(arrx2)
+    err = thd.checkhash()
     print("unhashed match:", err)
 
-    arrh = pyvhash.hasharr(arrx)
+    arrh = thd.hasharr()
     print(arrh)
 
-    err = pyvhash.checkhash(arrh)
+    err = thd.checkhash()
     print("normal match:", err)
 
-    arrh2 = pyvhash.hasharr(arrh)
+    arrh2 = thd.hasharr()
     print(arrh2)
 
     print("Modified: (ucase H)")
     arrh2[1] = "Hello"
     print(arrh2)
-    err = pyvhash.checkhash(arrh2)
+    err = thd.checkhash()
     print("modded match:", err)
 
 

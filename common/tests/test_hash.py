@@ -48,22 +48,21 @@ def teardown_module(module):
 
 def test_func(capsys):
 
-    arrx =  [123, "hello", {"Hash":12},]
-    arrx2 =  [123, "hello"]
+    thd = pyvhash.BcData()
 
     #print(arrx2)
-    err = pyvhash.checkhash(arrx2)
+    err = thd.checkhash()
     #print("unhashed match:", err)
     assert err == False
 
-    arrh = pyvhash.hasharr(arrx)
-    err = pyvhash.checkhash(arrh)
+    arrh = thd.hasharr()
+    err = thd.checkhash()
     assert err == True
 
-    arrh2 = pyvhash.hasharr(arrx2)
+    arrh2 = thd.hasharr()
     #print("Modified: (ucase H)")
     arrh2[1] = "Hello"
-    err = pyvhash.checkhash(arrh2)
+    err = thd.checkhash()
     assert err == False
 
 # EOF
