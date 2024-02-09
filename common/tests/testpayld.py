@@ -24,37 +24,28 @@ if __name__ == '__main__':
     # Hypothetical old hash
     prevh = pyvhash.shahex(b"1234")
 
-    # The hash field will be overridden
-    arrx =  [123, "hello", {"PayLoad": {"Date":1, "Time":2}},]
+    thd = pyvhash.BcData()
+    #print (thd.datax)
 
-    #arrh = pyvhash.hasharr(arrx)
-    ##print(arrh)
-    #err = pyvhash.checkhash(arrh)
-    #print("normal match:", err)
-    #arrh = pyvhash.powarr(arrh)
-    ##print(arrh)
+    thd.addpayload({1:1,2:2, "delx":99})
+    #print (thd.datax)
 
-    var = None
-    for aa in range(len(arrx)):
-        #print(type(arrx[aa]), type({}), arrx[aa])
-        if type(arrx[aa]) == type({}):
-            #print(arrx[aa])
-            if "PayLoad" in arrx[aa]:
-                #print("payload")
-                var = arrx[aa]["PayLoad"]
+    thd.allarr(prevh)
+    print(thd.datax)
 
-    print (var)
-    var |= {1:1,2:2, "delx":99}
-    print (var)
-    del var["delx"]
-    print (var)
-
-    arrp = pyvhash.allarr(arrx, prevh)
-    print(arrp)
-
-    err = pyvhash.checklink(arrp)
+    err = thd.checklink()
     print("match link:", err)
 
+    err = thd.checkpow()
+    print("match pow:", err)
+
+    thd.delpayload("Default")
+    thd.delpayload("delx")
+    thd.delpayload(1)
+    thd.delpayload(2)
+    thd.addpayload({"Default":99})
+
+    print(thd.datax)
 
 
 

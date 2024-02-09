@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random, zlib, uuid
+import struct, stat, base64, random, zlib, uuid, datetime
 
 from Crypto import Random
 from Crypto.Hash import SHA512
@@ -54,17 +54,21 @@ class BcData():
             self.datax = datax
 
     def newdata(self):
-        self.datax = [uuid.uuid4().hex, time.time(), {"Payload" : {}}]
+        uuu = uuid.uuid1()
+        #dd = datetime.datetime.fromtimestamp(\
+        #            (uuu.time - 0x01b21dd213814000)*100/1e9)
+        #print(dd)
+        self.datax = [uuu.hex, time.time(), {"PayLoad" : { "Default": ""}}]
 
 
-    def allarr(self, arrx, prevhash):
+    def allarr(self, prevhash):
 
         ''' Exec all ops '''
 
-        arrx2 = hasharr(arrx)
-        arrx3 = powarr(arrx2)
-        arrx4 = linkarr(arrx3, prevhash)
-        return arrx4
+        self.hasharr()
+        self.powarr()
+        self.linkarr(prevhash)
+        return self.datax
 
     def hasharr(self):
 
@@ -332,5 +336,35 @@ class BcData():
         hhh = shahex(ssss)
         #print (hhh, org)
         return(hhh == org)
+
+    def _getpayvar(self):
+
+        var = None
+        for aa in range(len(self.datax)):
+            #print("iter", self.datax[aa])
+            if type(self.datax[aa]) == type({}):
+                #print("var", self.datax[aa])
+                if "PayLoad" in self.datax[aa]:
+                    #print("payload")
+                    var = self.datax[aa]["PayLoad"]
+        if not var:
+            raise ValueError("Cannot find Payload field.")
+        return var
+
+    def addpayload(self, newpay):
+
+        '''Add new entry to payload. Override existing values. '''
+
+        var = self._getpayvar()
+        var |= newpay
+
+    def delpayload(self, paykey):
+
+        if paykey == "Default":
+            print ("Cannot delete default key", "'" + paykey +"'.")
+            return
+        var = self._getpayvar()
+        del var[paykey]
+
 
 # EOF

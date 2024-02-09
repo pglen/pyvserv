@@ -27,7 +27,6 @@ def teardown_module(module):
     pass
     #assert 0
 
-
 def test_func(capsys):
 
     thd = pyvhash.BcData()
