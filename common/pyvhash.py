@@ -9,6 +9,18 @@ from Crypto import Random
 from Crypto.Hash import SHA512
 from Crypto.Hash import SHA256
 
+__doc__ = \
+'''
+
+    This module is responsible for the operation of the blockchain.
+    The Proof of Work is in Python, but calling 'C' modules. One possible
+    improvement is to call out to a specially crafted 'C' module. Please
+    be forwarned that replicating the python packer function is
+    going to be a doosy task.
+    (calling back to PY from C would defeat the speedup)
+
+'''
+
 base = os.path.dirname(os.path.realpath(__file__))
 
 sys.path.append(os.path.join(base, '../'))
@@ -34,15 +46,23 @@ class NoProof(Exception):
 
 def shahex(val):
 
+    ''' Shorthand to exec hash op '''
+
     hh = USEHASH.new();
     hh.update(val)
     hhh = hh.hexdigest()
     return hhh
 
+# Enable the bigger one for production
 #USEHASH = SHA512
 USEHASH = SHA256
 
 class BcData():
+
+    '''
+        This class manipulates the block chain data.
+        Use it to create / add / remove / modify payload.
+    '''
 
     def __init__(self, datax = None):
 
@@ -117,6 +137,8 @@ class BcData():
 
     def powarr(self):
 
+        ''' Provide proof of work '''
+
         arrx = self.datax
 
         # Replicate without pow and random:
@@ -178,6 +200,8 @@ class BcData():
 
     def linkarr(self, prevhash):
 
+        ''' Add linked hash to previous records '''
+
         arrx = self.datax
         pow = False
         for aa in range(len(arrx)):
@@ -236,6 +260,8 @@ class BcData():
 
     def checkhash(self):
 
+        ''' Check record's hash against the hash filed '''
+
         arrx = self.datax
 
         # Replicate without hash field:
@@ -273,6 +299,8 @@ class BcData():
 
     def checkpow(self):
 
+        ''' Check record's proof of work against the POW filed '''
+
         arrx = self.datax
 
         # Replicate without hash field:
@@ -308,6 +336,8 @@ class BcData():
 
     def checklink(self):
 
+        ''' Check record's link hash against the previos hash filed '''
+
         arrx = self.datax
 
         # Replicate without hash field:
@@ -339,6 +369,7 @@ class BcData():
 
     def _getpayvar(self):
 
+        ''' Internal: get reference to payload '''
         var = None
         for aa in range(len(self.datax)):
             #print("iter", self.datax[aa])
@@ -360,11 +391,12 @@ class BcData():
 
     def delpayload(self, paykey):
 
+        ''' Delete key from payload. Will not delete default key '''
+
         if paykey == "Default":
             print ("Cannot delete default key", "'" + paykey +"'.")
             return
         var = self._getpayvar()
         del var[paykey]
-
 
 # EOF

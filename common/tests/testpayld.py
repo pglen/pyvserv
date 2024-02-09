@@ -27,7 +27,7 @@ if __name__ == '__main__':
     thd = pyvhash.BcData()
     #print (thd.datax)
 
-    thd.addpayload({1:1,2:2, "delx":99})
+    thd.addpayload({1:1,2:2, "delx":99, "new": 1234})
     #print (thd.datax)
 
     thd.allarr(prevh)
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     thd.delpayload("delx")
     thd.delpayload(1)
     thd.delpayload(2)
-    thd.addpayload({"Default":99})
+    thd.addpayload({"Default": "Immutable"})
 
     print(thd.datax)
 
