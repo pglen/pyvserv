@@ -7,6 +7,7 @@ import os, sys, getopt, signal, select, string, time, stat, base64
 import inspect
 
 base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '..'))
 sys.path.append(os.path.join(base,  '../../pypacker'))
 import pypacker
 
@@ -88,6 +89,7 @@ tout_help  = "Usage: tout new_val -- Set / Reset timeout in seconds"
 ekey_help  = "Usage: ekey encryption_key -- Set encryption key "
 sess_help  = "Usage: sess session data -- Start session "
 buff_help  = "Usage: buff buff_size -- limited to 64k"
+rput_help  = "Usage: rput header, field1, field2... -- put record in blockcain"
 xxxx_help  = "Usage: no data"
 
 # ------------------------------------------------------------------------
@@ -130,6 +132,8 @@ state_table = [
     ("pwd",     all_in,  none_in,    auth_pass, get_pwd_func,   pwdd_help),
     ("stat",    all_in,  none_in,    auth_pass, get_stat_func,  stat_help),
     ("buff",    all_in,  none_in,    auth_pass, get_buff_func,  buff_help),
+    ("rput",    all_in,  none_in,    auth_pass, get_rput_func,  rput_help),
+
     ]
 # ------------------------------------------------------------------------
 

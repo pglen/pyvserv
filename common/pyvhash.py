@@ -78,7 +78,7 @@ class BcData():
         #dd = datetime.datetime.fromtimestamp(\
         #            (uuu.time - 0x01b21dd213814000)*100/1e9)
         #print(dd)
-        self.datax = [uuu.hex, time.time(), {"PayLoad" : { "Default": ""}}]
+        self.datax = [str(time.time()), uuu.hex,  {"PayLoad" : { "Default": ""}}]
 
 
     def allarr(self, prevhash):

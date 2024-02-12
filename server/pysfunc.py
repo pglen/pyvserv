@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from __future__ import absolute_import
+
+__doc__ = \
+'''
+Server functio nmodule.
+'''
 
 import os, sys, getopt, signal, select, string, time, stat, base64
 
@@ -13,12 +19,24 @@ from Crypto import Random
 from Crypto.Cipher import AES
 
 base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join(base, '../bluepy'))
-#sys.path.append(os.path.join(base, '../common'))
-#sys.path.append(os.path.join(base,  '../../pycommon'))
+parent = os.path.dirname(base)
+sys.path.append(parent)
+sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base, '../bluepy'))
+sys.path.append(os.path.join(base,  '../../pydbase'))
+sys.path.append(os.path.join(base,  '../../pypacker'))
 
 import support, pyservsup, pyclisup, crysupp, pysyslog, pystate
 import bluepy
+import twincore
+import pypacker
+
+#__doc__ = \
+#'''
+#    This module executes the functions corresponding to keywords.
+#    The keyword is embedded into the function name.
+#
+#'''
 
 OK = "OK"
 ERR = "ERR"
@@ -49,9 +67,6 @@ def contain_path(self, strp):
 # ------------------------------------------------------------------------
 # State transition and action functions
 
-# ------------------------------------------------------------------------
-# Also stop timeouts
-
 def get_exit_func(self, strx):
     #print( "get_exit_func", strx)
     self.resp.datahandler.putencode([OK, "Bye"], self.resp.ekey)
@@ -62,6 +77,9 @@ def get_exit_func(self, strx):
         self.resp.datahandler.tout.cancel()
 
     return True
+
+# ------------------------------------------------------------------------
+# Also stop timeouts
 
 def get_tout_func(self, strx):
 
@@ -370,6 +388,28 @@ def get_pwd_func(self, strx):
     response = [OK,  dname2]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
+def get_rput_func(self, strx):
+
+    if len(strx) < 2:
+        response = [ERR, "Must specify blockchain data", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print("strx", strx)
+    pp = pypacker.packbin()
+    dd = pp.encode_data("", strx[2][1:])
+    #print(dd)
+    core = twincore.TwinCore("vote")
+    #core.core_verbose = 2
+    #print(core.fname)
+    dbsize = core.getdbsize()
+    print("DBsize", dbsize)
+    #print(strx[2][0], dd)
+    core.save_data(strx[2][0], dd)
+
+    response = [OK,  "Blockchain data added."]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
 def get_cd_func(self, strx):
 
     if len(strx) < 2:
@@ -440,6 +480,7 @@ def get_ver_func(self, strx):
         print( "get_ver_func->output", res)
 
     self.resp.datahandler.putencode(res, self.resp.ekey)
+
 
 def get_id_func(self, strx):
     if pgdebug > 1:
@@ -1021,5 +1062,9 @@ def get_help_func(self, strx):
         print( "get_help_func->output", harr)
 
     self.resp.datahandler.putencode(harr, self.resp.ekey)
+
+
+if __name__ == '__main__':
+    pass
 
 # EOF

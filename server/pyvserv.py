@@ -2,6 +2,10 @@
 
 from __future__ import print_function
 
+__doc__ = \
+'''
+Server module.
+'''
 import sys
 
 if sys.version_info[0] < 3:
@@ -25,13 +29,13 @@ else:
 ##print("pd", parent_dir)
 
 # getting the name of the directory
-current = os.path.dirname(os.path.realpath(__file__))
+base = os.path.dirname(os.path.realpath(__file__))
 # Getting the parent directory name
-parent = os.path.dirname(current)
+parent = os.path.dirname(base)
 sys.path.append(parent)
 
 #sys.path.append(os.path.join(base, '../bluepy'))
-#sys.path.append(os.path.join(base, '../common'))
+sys.path.append(os.path.join(base, '../common'))
 #sys.path.append(os.path.join(base,  '../../pycommon'))
 
 import pystate, support, pyservsup, pyclisup

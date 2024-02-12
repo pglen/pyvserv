@@ -7,7 +7,7 @@ from __future__ import print_function
 
 from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
-import  random, stat
+import  random, stat, uuid
 
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
@@ -28,7 +28,10 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+from common import pysyslog, comline, pyvhash
+
+import pypacker
+
 
 '''
 # test encrypt with large keys
@@ -131,21 +134,24 @@ if __name__ == '__main__':
     cresp = hand.client(["pass", "1234"], conf.sess_key)
     print ("Server pass  response:", cresp)
 
-    #resp = hand.client(["pass", "12345"], conf.sess_key)
-    #print ("Server pass  response:", cresp)
+    pvh = pyvhash.BcData()
+    pvh.addpayload({"Vote": '0', "UID": uuid.uuid4().hex, })
 
-    #resp = hand.client(["pass", "12345"], conf.sess_key)
-    #print ("Server pass response:", cresp)
+    pvh.hasharr()
+    pvh.powarr()
 
-    #cresp = hand.client(["pass", "12345"], conf.sess_key)
-    #print ("Server pass response:", cresp[1])
-    #if(cresp[1][:2] != "OK"): sys.exit(1)
-
-    #cresp = hand.client(["pass", "1234"], conf.sess_key)
-    #print ("Server pass  response:", cresp[1])
-
-    #cresp = hand.client(["hello", "1234"], conf.sess_key)
-    #print ("Server hello response:", cresp[1])
+    #pp = pypacker.packbin()
+    #dd = pp.encode_data("", pvh.datax)
+    #print(dd)
+    #import twincore
+    #core = twincore.TwinCore()
+    #dbsize = core.getdbsize()
+    #print("DBsize", dbsize)
+    #print('abcd', "zzz", pvh.datax)
+    #core.save_data('abcd', dd)
+    #print(pvh.datax)
+    cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
+    print ("Server rput  response:", cresp[1])
 
     cresp = hand.client(["quit",],conf.sess_key)
     print ("Server quit  response:", cresp[1])
