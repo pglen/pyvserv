@@ -6,10 +6,11 @@
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-#sys.path.append('..')
-#sys.path.append('../bluepy')
-sys.path.append('../common')
-import support, pycrypt, pyservsup, pyclisup, syslog, comline
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '..' + os.sep + 'common'))
+
+import support, pycrypt, pyservsup, pyclisup
+import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Globals
@@ -36,7 +37,7 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     9999,   None],      \
+    ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \

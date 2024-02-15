@@ -14,24 +14,13 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '..' + os.sep + 'common'))
 
-#sys.path.append('../common')
-#import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, crysupp
-#
-#sys.path.append('../bluepy')
-#import bluepy
+import support, pycrypt, pyservsup, pyclisup, pyvhash
+import pysyslog, comline
 
-# Set parent as module include path
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
-
-from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline, pyvhash
-
-import pypacker
-
+import pyvpacker
 
 '''
 # test encrypt with large keys
@@ -140,7 +129,7 @@ if __name__ == '__main__':
     pvh.hasharr()
     pvh.powarr()
 
-    #pp = pypacker.packbin()
+    #pp = pyvpacker.packbin()
     #dd = pp.encode_data("", pvh.datax)
     #print(dd)
     #import twincore

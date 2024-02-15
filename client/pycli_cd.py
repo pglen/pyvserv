@@ -15,13 +15,11 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
 
-# Set parent as module include path
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '..' + os.sep + 'common'))
 
-from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+import support, pycrypt, pyservsup, pyclisup
+import pysyslog, comline
 
 def errexit(hand, retstr, msg = "exiting"):
     print(msg, retstr)

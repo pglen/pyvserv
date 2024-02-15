@@ -19,22 +19,11 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.Hash import SHA
 from Crypto import Random
 
-#base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join(base, '../bluepy'))
-#sys.path.append(os.path.join(base, '../common'))
-#sys.path.append(os.path.join(base,  '../../pycommon'))
-#
-#import support, pycrypt, pyservsup, pyclisup, syslog
-#import comline, crysupp
-#import bluepy
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '..' + os.sep + 'common'))
 
-# Set parent as module include path
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
-
-from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+import support, pycrypt, pyservsup, pyclisup
+import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Functions from command line

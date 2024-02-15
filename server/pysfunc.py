@@ -18,16 +18,7 @@ from Crypto.Hash import SHA512
 from Crypto import Random
 from Crypto.Cipher import AES
 
-base = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(base)
-sys.path.append(parent)
-sys.path.append(os.path.join(base, '../common'))
-sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base,  '../../pydbase'))
-sys.path.append(os.path.join(base,  '../../pypacker'))
-
 import support, pyservsup, pyclisup, crysupp, pysyslog, pystate
-import bluepy
 import twincore
 import pyvpacker
 
@@ -417,7 +408,7 @@ def get_rput_func(self, strx):
 
             #self.resp.dir = dname[len(self.resp.cwd):]
 
-    pp = pypacker.packbin()
+    pp = pyvpacker.packbin()
     dd = pp.encode_data("", strx[2][1:])
     #print(dd)
     core = twincore.TwinCore(os.path.join(dname,  "initial.pydb"))

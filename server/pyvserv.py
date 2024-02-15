@@ -29,10 +29,13 @@ else:
 ##print("pd", parent_dir)
 
 # getting the name of the directory
-current = os.path.dirname(os.path.realpath(__file__))
-# Getting the parent directory name
-parent = os.path.dirname(current)
-sys.path.append(parent)
+#current = os.path.dirname(os.path.realpath(__file__))
+## Getting the parent directory name
+#parent = os.path.dirname(current)
+#sys.path.append(parent)
+
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '../common'))
 
 #sys.path.append(os.path.join(base, '../bluepy'))
 #sys.path.append(os.path.join(base, '../common'))

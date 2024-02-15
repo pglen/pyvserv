@@ -11,10 +11,10 @@ from Crypto.Cipher import AES
 
 import support, crysupp, support, pyvpacker
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../bluepy'))
-
-import bluepy.bluepy as bluepy
+#base = os.path.dirname(os.path.realpath(__file__))
+#sys.path.append(os.path.join(base, '../bluepy'))
+#
+#import bluepy.bluepy as bluepy
 
 # If comm is with no keys, still do some mudding
 

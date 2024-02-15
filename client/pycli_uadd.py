@@ -6,18 +6,11 @@
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-#sys.path.append('..')
-#sys.path.append('../bluepy')
-#sys.path.append('../common')
-#import support, pycrypt, pyservsup, pyclisup, syslog, comline
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '..' + os.sep + 'common'))
 
-# Set parent as module include path
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
-
-from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+import support, pycrypt, pyservsup, pyclisup
+import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Globals

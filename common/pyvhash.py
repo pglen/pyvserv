@@ -67,7 +67,7 @@ class BcData():
 
     def __init__(self, datax = None):
 
-        self.pb  = pypvacker.packbin()
+        self.pb  = pyvpacker.packbin()
         self.rrr = Random.new()
         if not datax:
             self.newdata()

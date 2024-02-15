@@ -12,13 +12,11 @@ if sys.version_info[0] < 3:
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-# Set parent as module include path
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '../common'))
 
-from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
+import support, pycrypt, pyclisup
+import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Globals
