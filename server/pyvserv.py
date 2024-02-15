@@ -29,16 +29,16 @@ else:
 ##print("pd", parent_dir)
 
 # getting the name of the directory
-base = os.path.dirname(os.path.realpath(__file__))
+current = os.path.dirname(os.path.realpath(__file__))
 # Getting the parent directory name
-parent = os.path.dirname(base)
+parent = os.path.dirname(current)
 sys.path.append(parent)
 
 #sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
+#sys.path.append(os.path.join(base, '../common'))
 #sys.path.append(os.path.join(base,  '../../pycommon'))
 
-import pystate, support, pyservsup, pyclisup
+import pyvpacker, pystate, support, pyservsup, pyclisup
 import pysyslog, pydata, comline, pysfunc
 
 # Globals

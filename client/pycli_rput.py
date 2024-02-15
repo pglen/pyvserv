@@ -151,7 +151,7 @@ if __name__ == '__main__':
     #core.save_data('abcd', dd)
     #print(pvh.datax)
     cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
-    print ("Server rput  response:", cresp[1])
+    print ("Server rput  response:", cresp[1:])
 
     cresp = hand.client(["quit",],conf.sess_key)
     print ("Server quit  response:", cresp[1])

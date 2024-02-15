@@ -29,7 +29,7 @@ sys.path.append(os.path.join(base,  '../../pypacker'))
 import support, pyservsup, pyclisup, crysupp, pysyslog, pystate
 import bluepy
 import twincore
-import pypacker
+import pyvpacker
 
 #__doc__ = \
 #'''
@@ -391,15 +391,36 @@ def get_pwd_func(self, strx):
 def get_rput_func(self, strx):
 
     if len(strx) < 2:
-        response = [ERR, "Must specify blockchain data", strx[0]]
+        response = [ERR, "Must specify blockchain kind and data", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     #print("strx", strx)
+    #print('curr', self.resp.dir)
+
+    dname = contain_path(self, strx[1])
+
+    if not dname:
+        response = [ERR, "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    print("dname", dname)
+    if not os.path.isdir(dname):
+        try:
+            os.mkdir(dname)
+        except:
+            support.put_exception("rput")
+            response = [ERR, "Cannot make directory", strx[0]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+            #self.resp.dir = dname[len(self.resp.cwd):]
+
     pp = pypacker.packbin()
     dd = pp.encode_data("", strx[2][1:])
     #print(dd)
-    core = twincore.TwinCore("vote")
+    core = twincore.TwinCore(os.path.join(dname,  "initial.pydb"))
     #core.core_verbose = 2
     #print(core.fname)
     dbsize = core.getdbsize()

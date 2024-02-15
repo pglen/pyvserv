@@ -11,9 +11,9 @@ from Crypto.Cipher import AES
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base, '../bluepy'))
 sys.path.append(os.path.join(base, '../common'))
-sys.path.append(os.path.join(base,  '../../pycommon'))
+#sys.path.append(os.path.join(base,  '../../pycommon'))
 
-import pydata, pyservsup, pypacker, crysupp
+import pydata, pyservsup, pyvpacker, crysupp
 import support, comline, pywrap
 
 from Crypto.Hash import SHA512
@@ -45,7 +45,7 @@ class CliSup():
             self.mydathand  = pydata.xHandler(self.sock)
             self.myhandler  = pydata.DataHandler(self.sock)
         self.wr = pywrap.wrapper()
-        self.pb = pypacker.packbin()
+        self.pb = pyvpacker.packbin()
 
         #self.wr.pgdebug = 2
         self.rr = Random.new()

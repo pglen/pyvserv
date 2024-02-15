@@ -9,7 +9,7 @@ from Crypto.Hash import SHA512
 from Crypto import Random
 from Crypto.Cipher import AES
 
-import support, crysupp, support, pypacker
+import support, crysupp, support, pyvpacker
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base, '../bluepy'))
@@ -30,7 +30,7 @@ if inspect.isbuiltin(time.process_time):
 class   wrapper():
 
     def __init__(self):
-        self.pb = pypacker.packbin()
+        self.pb = pyvpacker.packbin()
         self.rr = Random.new()
         self.pgdebug = 0
         # Seed random;

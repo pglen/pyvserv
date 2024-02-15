@@ -8,8 +8,9 @@ import inspect
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base,  '..'))
-sys.path.append(os.path.join(base,  '../../pypacker'))
-import pypacker
+#sys.path.append(os.path.join(base,  '../../pypacker'))
+
+#import pyvpacker
 
 import common.pyservsup as pyservsup, common.pyclisup as pyclisup
 import common.support as support
@@ -146,7 +147,7 @@ class StateHandler():
         self.resp.fh = None
         self.badpass = 0
         self.wr = pywrap.wrapper()
-        self.pb = pypacker.packbin()
+        self.pb = pyvpacker.packbin()
         self.wr.pgdebug = 0
         self.buffsize = pyservsup.buffsize
 

@@ -16,13 +16,13 @@ base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base, '../bluepy'))
 sys.path.append(os.path.join(base, '../common'))
 sys.path.append(os.path.join(base, '../server'))
-#sys.path.append(os.path.join(base,  '../../pycommon'))
-sys.path.append(os.path.join(base,  '../../pypacker'))
 
+#sys.path.append(os.path.join(base,  '../../pycommon'))
+#sys.path.append(os.path.join(base,  '../../pypacker'))
 
 import bluepy
 import support, pycrypt, pyservsup, pyclisup, pysyslog, pystate
-import pypacker, pywrap
+import pyvpacker, pywrap
 
 # Walk thru the server (chunk) state machine
 # Chunk is our special buffer (short [16 bit])len + (str)message
@@ -43,7 +43,7 @@ class DataHandler():
         self.pgdebug = 0
         self.pglog = 0
         self.wr = pywrap.wrapper()
-        self.pb = pypacker.packbin()
+        self.pb = pyvpacker.packbin()
         self.rfile = sock.makefile("rb")
         self.wfile = sock.makefile("wb")
         self.sock = sock

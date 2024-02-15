@@ -25,9 +25,10 @@ base = os.path.dirname(os.path.realpath(__file__))
 
 sys.path.append(os.path.join(base, '../'))
 sys.path.append(os.path.join(base, '../../'))
-sys.path.append(os.path.join(base,  '../../../pypacker'))
 
-import support, pypacker, crysupp
+#sys.path.append(os.path.join(base,  '../../../pypacker'))
+
+import support, pyvpacker, crysupp
 
 Hash     = "_Hash"
 Link     = "_Link"
@@ -66,7 +67,7 @@ class BcData():
 
     def __init__(self, datax = None):
 
-        self.pb  = pypacker.packbin()
+        self.pb  = pypvacker.packbin()
         self.rrr = Random.new()
         if not datax:
             self.newdata()
