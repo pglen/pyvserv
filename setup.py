@@ -1,0 +1,62 @@
+import setuptools
+
+descx = '''pyvserv is modern multi-process data server.
+'''
+
+classx = [
+          'Development Status :: Mature',
+          'Environment :: GUI',
+          'Intended Audience :: End Users/Desktop',
+          'Intended Audience :: Developers',
+          'Intended Audience :: System Administrators',
+          'License :: OSI Approved :: Python Software Foundation License',
+          'Operating System :: Microsoft :: Windows',
+          'Operating System :: POSIX',
+          'Programming Language :: Python',
+          'Topic :: Editors',
+          'Topic :: Software Development :: Servers',
+        ]
+
+includex = ["*", "pyvclient/", "pyvserver/",
+                    "pyvcommon/", "pyvtools/",  ]
+
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
+setuptools.setup(
+    name="pyvserv",
+    version="1.0.0",
+    author="Peter Glen",
+    author_email="peterglen99@gmail.com",
+    description="High power secure server with blockchain backend.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/pglen/pyvserv",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    include_package_data=True,
+    packages=setuptools.find_packages(include=includex),
+
+    #str(['pedlib', 'panglib', 'pycommon'])),
+    scripts = ["pyvserver/pyvserv.py", "pyvclient/pycli_cli.py",
+                "pyvtools/pyvgenkey.py"],
+
+    package_dir = {
+                    'pyvcommon':    'pyvcommon',
+                    'pyvserver':    'pyvserver',
+                    'pyvclient':    'pyvclient',
+                    'pyvtools':     'pyvtools',
+                   },
+
+    python_requires='>=3',
+    install_requires=['pyvpacker', 'pydbase', ],
+    entry_points={
+        'console_scripts': [ "pyvserv=pyvserv:mainfunc",
+            ],
+    },
+)
+
+# EOF

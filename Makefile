@@ -36,18 +36,20 @@ deb:  build build3
 	./build-deb.sh
 
 clean:
-	@make -C client clean
-	@make -C bluepy clean
-	@make -C server clean
-	@make -C common clean
+	@make -C pyvclient clean
+	@make -C pyvserver clean
+	@make -C pyvcommon clean
 	@rm -f aa bb cc pyvserv.deb
 	@rm -rf ./build-tmp
+
+freshdata:
+	@rm -rf ~/pyvserver/*
 
 cleankeys:
 	@rm -rf ./data/keys
 
 md5:
-
+	echo md5
 
 
 
