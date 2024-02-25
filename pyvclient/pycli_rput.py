@@ -102,6 +102,9 @@ if __name__ == '__main__':
     resp3 = hand.client(["hello", "world"] , "", False)
     print("Hello Response: ", resp3)
 
+    resp4 = hand.client(["tout", "30",], conf.sess_key)
+    print("Server tout Response:", resp4)
+
     ret = hand.start_session(conf)
 
     if ret[0] != "OK":
@@ -113,6 +116,9 @@ if __name__ == '__main__':
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  conf.sess_key[:12], '...' )
     print("Post session, all is encrypted")
+
+    resp4 = hand.client(["tout", "30",], conf.sess_key)
+    print("Server tout Response:", resp4)
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)

@@ -36,7 +36,7 @@ import pyvpacker, pywrap
 
 class DataHandler():
 
-    def __init__(self, sock, timeout = 7):
+    def __init__(self, sock, timeout = 20):
         #print(  "DataHandler __init__")
         self.src = None; self.tout = None
         self.timeout = timeout

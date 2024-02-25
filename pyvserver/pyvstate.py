@@ -12,9 +12,9 @@ sys.path.append(os.path.join(base,  '../pyvserver'))
 
 import pyservsup, pyclisup, support
 import crysupp, pysyslog
-import pywrap
+import pywrap, pyvstate
 
-from pysfunc import *
+from pyvfunc import *
 
 # Ping pong state machine
 
@@ -176,7 +176,7 @@ class StateHandler():
             support.put_exception("While in _run state(): "\
                                          + str(self.curr_state))
             sss =  ERR, "cannot unwrap / decode data." #, strx
-            #print("pystate.py %s" % (sss,));
+            #print("pyvstate.py %s" % (sss,));
             self.resp.datahandler.putencode(sss, self.resp.ekey)
             return False
 

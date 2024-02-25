@@ -12,7 +12,7 @@ import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
 base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..' + os.sep + 'common'))
+sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
 
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
@@ -44,15 +44,15 @@ def pversion():
 
     # option, var_name, initial_val, function
 optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["f:",  "file",     6666,   None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["n",   "plain",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
+    ["d:",  "pgdebug",  0,          None],      \
+    ["p:",  "port",     6666,       None],      \
+    ["f:",  "fname",    "test.txt", None],      \
+    ["v",   "verbose",  0,          None],      \
+    ["q",   "quiet",    0,          None],      \
+    ["n",   "plain",    0,          None],      \
+    ["t",   "test",     "x",        None],      \
+    ["V",   None,       None,       pversion],  \
+    ["h",   None,       None,       phelp]      \
 
 conf = comline.Config(optarr)
 
@@ -125,18 +125,8 @@ if __name__ == '__main__':
     #    hand.close();
     #    sys.exit(0)
 
-    #zfile = "zeros"
-    #ret2 = hand.getfile(zfile, zfile+"_local", conf.sess_key)
-    #print ("Server  fget response:", ret2)
-
-    bfile ="bigfile"
-    print("Started bigfile ...", bfile)
-    ttt = time.time()
-    ret = hand.getfile(bfile, bfile + "_local", conf.sess_key)
-    filesize = support.fsize(bfile+ "_local")
-    print("filesize", filesize)
-    rate = filesize / (time.time() - ttt)
-    print ("Server fget response:", ret, "time %.2f kbytes/sec" % (rate/1024))
+    ret2 = hand.getfile(conf.fname, conf.fname + "_local", conf.sess_key)
+    print ("Server  fget response:", ret2)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)

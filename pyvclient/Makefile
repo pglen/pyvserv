@@ -17,7 +17,6 @@ tests:
 	@cd tests
 	@pytest
 
-
 test:
 	-python3 ./pycli_ping.py
 	-python3 ./pycli_hello.py
@@ -28,6 +27,7 @@ test:
 	-python3 ./pycli_pass.py
 	-python3 ./pycli_ls.py
 	-python3 ./pycli_lsd.py
+	-python3 ./pycli_fdel.py -q
 	-python3 ./pycli_fput.py -q
 	-python3 ./pycli_fget.py -q
 

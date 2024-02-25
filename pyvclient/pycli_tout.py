@@ -14,7 +14,7 @@ import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
 base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..' + os.sep + 'common'))
+sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
 
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline

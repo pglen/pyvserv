@@ -16,7 +16,7 @@ from Crypto.Hash import SHA
 from Crypto import Random
 
 base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..' + os.sep + 'common'))
+sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
 
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline

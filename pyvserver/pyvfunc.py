@@ -18,19 +18,18 @@ from Crypto.Hash import SHA512
 from Crypto import Random
 from Crypto.Cipher import AES
 
-from pyvcommon import support, pyservsup, pyclisup, crysupp, pysyslog
-
-#, pystate
+from pyvcommon import support, pyservsup, pyclisup, pysyslog
+from pyvserver import pyvstate
 
 import twincore
 import pyvpacker
 
-#__doc__ = \
-#'''
-#    This module executes the functions corresponding to keywords.
-#    The keyword is embedded into the function name.
-#
-#'''
+__doc__ = \
+'''
+    This module executes the functions corresponding to keywords.
+    The keyword is embedded into the function name.
+
+'''
 
 OK = "OK"
 ERR = "ERR"
@@ -183,7 +182,7 @@ def get_ls_func(self, strx):
     dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
     dname2 = support.dirclean(dname2)
 
-    print("dname2", dname2)
+    #print("dname2", dname2)
 
     response = [OK]
     try:
@@ -332,7 +331,8 @@ def get_fput_func(self, strx):
         if not dstr[1]:
             break
 
-        fh.write(bytes(dstr[1], "cp437"))
+        #fh.write(bytes(dstr[1], "cp437"))
+        fh.write(dstr[1])
 
     fh.close()
 
@@ -1094,11 +1094,11 @@ def get_help_func(self, strx):
     harr = []
     if len(strx) == 1:
         harr.append(OK)
-        for aa in pystate.state_table:
+        for aa in pyvstate.state_table:
             harr.append(aa[0])
     else:
         ff = False
-        for aa in pystate.state_table:
+        for aa in pyvstate.state_table:
             if strx[1] == aa[0]:
                 harr.append(OK)
                 harr.append(aa[5])

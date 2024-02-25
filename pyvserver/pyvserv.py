@@ -29,13 +29,9 @@ else:
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base,  '..'))
-#sys.path.append(os.path.join(base,  '../pyvcommon'))
-#sys.path.append(os.path.join(base,  '../pyvserver'))
 
-import pyvpacker
-
-from pyvserver import pystate
-from pyvserver import pysfunc
+from pyvserver import pyvstate
+from pyvserver import pyvfunc
 
 from pyvcommon import support
 from pyvcommon import pyservsup
@@ -44,10 +40,7 @@ from pyvcommon import pydata
 from pyvcommon import pysyslog
 from pyvcommon import comline
 
-# Globals
-#detach = False
-#verbose = False
-#quiet  = False
+import pyvpacker
 
 version = "1.0"
 
@@ -134,7 +127,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         #if pgdebug > 1:
         #    put_debug("Connection from %s" % self.a2)
 
-        self.statehandler = pystate.StateHandler(self)
+        self.statehandler = pyvstate.StateHandler(self)
         self.statehandler.verbose = conf.verbose
         self.statehandler.pglog = conf.pglog
         self.statehandler.pgdebug = conf.pgdebug
@@ -312,7 +305,7 @@ class serve_one():
         #if pgdebug > 1:
         #    put_debug("Connection from %s" % self.a2)
 
-        self.statehandler = pystate.StateHandler(self)
+        self.statehandler = pyvstate.StateHandler(self)
         self.statehandler.verbose = conf.verbose
         self.statehandler.pglog = conf.pglog
         self.statehandler.pgdebug = conf.pgdebug
@@ -467,8 +460,8 @@ def mainfunc():
     # Comline processed, go
     support.lock_process(pyservsup.globals.lockfname)
 
-    pysfunc.pgdebug = conf.pgdebug
-    pysfunc.pglog = conf.pglog
+    pyvfunc.pgdebug = conf.pgdebug
+    pyvfunc.pglog = conf.pglog
 
     if conf.pglog > 0:
         pysyslog.openlog("pyvserv.py")

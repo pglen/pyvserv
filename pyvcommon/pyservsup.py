@@ -71,7 +71,7 @@ class   Global_Vars:
 
         self.siteid     =  None
         self.throttle   =  10       # seconds
-        self.instance   =  10       # max instace from one IP/host
+        self.instance   =  15       # max instace from one IP/host
         self.maxthdat   =  100      # max data in throttle var
 
         #print("init globals");
