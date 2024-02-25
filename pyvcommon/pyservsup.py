@@ -4,6 +4,9 @@ from __future__ import print_function
 
 import os, sys, string, time, traceback, random, uuid, datetime, base64
 
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../pyvcommon'))
+
 import support, pyclisup, crysupp, pysyslog
 
 #from Crypto.Hash import SHA512
@@ -29,8 +32,10 @@ class   Global_Vars:
 
     def __init__(self, scriptname):
 
+        self._script_home = scriptname    # where the original script lives
+        self.verbose = 0
 
-        self._script_home = scriptname
+        # Underscore names are definitions - others are calculated
 
         self._dataroot  =  "pyvserver"
         self._passfile  =  "passwd.secret"
@@ -40,42 +45,47 @@ class   Global_Vars:
         self.myhome     =  os.path.expanduser(
                                 "~" + os.sep + self._dataroot + os.sep)
 
+        # make sure it exists
         self._mkdir(self.myhome)
-        #print("Myhome", self.myhome)
 
-        self._datadir   =  self.myhome + ".pyvserv" + os.sep
-        self._keydir    =  self.myhome + "keys"
-        self._privdir   =  self.myhome + "private"
-        self._paydir    =  self.myhome + "payload"
+        if self.verbose:
+            print("myhome dir:", self.myhome)
 
-        self.lockfname = self._datadir + "lockfile"
-        self.passfile = self._datadir + self._passfile
-        self.keyfile = self._datadir + self._keyfile
-        self.idfile = self._datadir + self._idfile
+        self.passdir   =  self.myhome + ".pyvserv" + os.sep
+        self.keydir    =  self.myhome + "keys"  + os.sep
+        self.privdir   =  self.myhome + "private"  + os.sep
+        self.paydir    =  self.myhome + "payload"  + os.sep
+        self.tmpdir    =  self.myhome + "tmp"  + os.sep
 
-        self.keydir = self._datadir + self._keydir
-        self.paydir = self._datadir + self._paydir
+        self._mkdir(self.passdir, "Pass dir")
+        self._mkdir(self.paydir, "Payload dir")
+        self._mkdir(self.keydir, "Key dir")
+        self._mkdir(self.privdir, "Private dir")
+        self._mkdir(self.tmpdir, "Temporary dir")
 
-        self._mkdir(self._datadir, "Data dir")
-        self._mkdir(self._paydir, "Payload dir")
-        self._mkdir(self._keydir, "Key dir")
-        self._mkdir(self._privdir, "Private dir")
+        self.lockfname = self.tmpdir + "lockfile"
+        self.passfile = self.passdir + self._passfile
+        #self.keyfile = self._datadir + self._keyfile
+        self.idfile = self.myhome + self._idfile
+
 
         self.siteid     =  None
-        self.throttle   =  10     # seconds
-        self.instance   =  10      # max instace from one IP/host
-        self.maxthdat   =  100    # max data in throttle var
+        self.throttle   =  10       # seconds
+        self.instance   =  10       # max instace from one IP/host
+        self.maxthdat   =  100      # max data in throttle var
 
         #print("init globals");
         pass
 
+    # Soft make dir
     def _mkdir(self, ddd, fff="data"):
-        try:
-            if not os.path.isdir(ddd):
+
+        if not os.path.isdir(ddd):
+            try:
                 os.mkdir(ddd, 0o700)
-        except:
-            print( "Cannot make " + fff + " dir", sys.exc_info())
-            sys.exit(1)
+            except:
+                print( "Cannot make " + fff + " dir", sys.exc_info())
+                sys.exit(1)
 
     # --------------------------------------------------------------------
 

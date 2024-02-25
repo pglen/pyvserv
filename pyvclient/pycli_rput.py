@@ -14,11 +14,12 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..' + os.sep + 'common'))
 
-import support, pycrypt, pyservsup, pyclisup, pyvhash
-import pysyslog, comline
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '..'))
+
+from pyvcommon import support, pycrypt, pyservsup, pyclisup, pyvhash
+from pyvcommon import pysyslog, comline
 
 import pyvpacker
 

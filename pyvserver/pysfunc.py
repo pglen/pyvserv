@@ -183,7 +183,7 @@ def get_ls_func(self, strx):
     dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
     dname2 = support.dirclean(dname2)
 
-    #print("dname2", dname2)
+    print("dname2", dname2)
 
     response = [OK]
     try:
@@ -255,7 +255,8 @@ def get_fget_func(self, strx):
                 print("fread", blen, buff[:12])
 
         except:
-            print("Cannot read local file", sys.exc_info())
+            #print("Cannot read local file", sys.exc_info())
+            put_exception("Cannot read local file")
             break
 
         buff = cipher.encrypt(buff)
@@ -268,7 +269,8 @@ def get_fget_func(self, strx):
             #ret = self.resp.datahandler.wfile.write(buff)
             self.resp.datahandler.wfile.flush()
         except:
-            print(sys.exc_info())
+            #print(sys.exc_info())
+            suppport.put_exception("fget")
             break;
 
         prog += blen
@@ -384,7 +386,7 @@ def get_pwd_func(self, strx):
 
 def get_rput_func(self, strx):
 
-    if len(strx) < 2:
+    if len(strx) < 3:
         response = [ERR, "Must specify blockchain kind and data", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return

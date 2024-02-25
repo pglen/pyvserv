@@ -45,9 +45,10 @@ from pyvcommon import pysyslog
 from pyvcommon import comline
 
 # Globals
-detach = False
-verbose = False
-quiet  = False
+#detach = False
+#verbose = False
+#quiet  = False
+
 version = "1.0"
 
 mydata = {}
@@ -75,9 +76,9 @@ def throttle(peer):
     sss = 0; slept = False
     for aa in connlist:
         if aa[0][0] == peer[0]:
-            if now - aa[1] <  global_vars.throttle:
+            if now - aa[1] <  pyservsup.globals.throttle:
                 sss += 1
-    if sss >  global_vars.instance:
+    if sss >  pyservsup.globals.instance:
         for aa in range(len(connlist)-1, -1 ,-1):
             if connlist[aa][0][0] == peer[0]:
                 if now - connlist[aa][1] > pyservsup.globals.throttle:
@@ -86,7 +87,7 @@ def throttle(peer):
         slept = True
 
     # Clean throtle data periodically
-    if len(connlist) > global_vars.maxthdat:
+    if len(connlist) > pyservsup.globals.maxthdat:
         for aa in range(len(connlist)-1, -1 ,-1):
             if connlist[aa][0][0] == peer[0]:
                 if now - connlist[aa][1] > pyservsup.globals.throttle:
@@ -203,14 +204,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def finish(self):
 
-        global mydata
+        global mydata, conf
 
         cli = str(mydata[self.name].client_address)
         usr = str(mydata[self.name].user)
         #print( "Logoff '" + usr + "'", cli)
         del mydata[self.name]
 
-        if verbose:
+        if conf.verbose:
             print( "Closed socket on", self.name)
 
         if conf.pglog > 0:
@@ -252,7 +253,7 @@ def usersig(arg1, arg2):
 def terminate(arg1, arg2):
 
 
-    global mydata, server, global_vars
+    global mydata, server
 
     if mydata != {}:
         print( "Dumping connection info:")
@@ -266,29 +267,18 @@ def terminate(arg1, arg2):
         #print("Shutdown exception")
         pass
 
-    if not quiet:
+    if not conf.quiet:
         print( "Terminated pyvserv.py.")
 
     if conf.pglog > 0:
         pysyslog.syslog("Terminated Server")
 
-    support.unlock_process(global_vars.lockfname)
+    support.unlock_process(pyservsup.globals.lockfname)
 
     # Attempt to unhook all pending clients
     sys.exit(2)
 
 # ------------------------------------------------------------------------
-
-optarr =  comline.optarr
-optarr.append ( ["e",   "detach",      0,       None, "Detach from terminal"] )
-optarr.append ( ["r:",  "dataroot",    None,    None, "Data root"] )
-optarr.append ( ["l:",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
-optarr.append ( ["m",   "mem",         0,       None, "Show memory trace."] )
-
-#print (optarr)
-
-conf = comline.Config(optarr)
-
 # Execute one server cycle
 
 class serve_one():
@@ -374,6 +364,8 @@ class serve_one():
             print("ended thread", self.name)
 
 
+# This was a test server, left it in
+
 def simple_server(HOST, PORT):
     with socket.socket() as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -385,20 +377,36 @@ def simple_server(HOST, PORT):
             client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             serve_one(client, addr, args)
 
+# ------------------------------------------------------------------------
+
+optarr =  comline.optarr
+optarr.append ( ["e",   "detach",      0,       None, "Detach from terminal"] )
+optarr.append ( ["r:",  "dataroot",    None,    None, "Data root"] )
+optarr.append ( ["l:",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
+optarr.append ( ["n:",   "host",   "127.0.0.1",  None, "Set server hostname"] )
+optarr.append ( ["m",   "mem",         0,       None, "Show memory trace."] )
+
+#print (optarr)
+
+conf = comline.Config(optarr)
+
+# The pip install will call this script:
 
 def mainfunc():
-
-    global global_vars
 
     if sys.version_info[0] < 3:
         print("Warning! This script was meant for python 3.x")
         time.sleep(.1)
-        #sys.exit(0)
+        sys.exit(0)
 
     args = conf.comline(sys.argv[1:])
 
-    #for aa in vars(conf):
-    #    print(aa, getattr(conf, aa))
+    # Print comline args
+    if conf.pgdebug > 0:
+        for aa in vars(conf):
+            if aa != "optarr":
+                print(aa, "=", getattr(conf, aa), end = "   ")
+        print()
 
     if conf.verbose:
         pass
@@ -407,40 +415,40 @@ def mainfunc():
         #print("Script name:     ", __file__)
         #print("Exec argv:       ", sys.argv[0])
 
-    global_vars = pyservsup.Global_Vars(__file__)
-    global_vars._mkdir(global_vars.myhome)
-    pyservsup.globals =  global_vars
+    pyservsup.globals  = pyservsup.Global_Vars(__file__)
+    pyservsup.globals._mkdir(pyservsup.globals.myhome)
 
     # Change directory to the data dir
-    os.chdir(global_vars.myhome)
+    os.chdir(pyservsup.globals.myhome)
     #print("cwd", os.getcwd())
 
-    global_vars.config(global_vars.myhome, conf)
+    pyservsup.globals .config(pyservsup.globals.myhome, conf)
 
     if conf.verbose:
-        print("Script Dir:      ", global_vars._script_home)
-        print("Data Dir:        ", global_vars._datadir)
-        print("Key Dir:         ", global_vars._keydir)
-        print("Payload Dir:     ", global_vars._paydir)
-        print("Lockfile:        ", global_vars.lockfname)
-        print("Passfile:        ", global_vars.passfile)
-        print("Keyfile:         ", global_vars.keyfile)
-        print("IDfile:          ", global_vars.idfile)
+        #print("Script Dir:      ", pyservsup.globals._script_home)
+        print("Pass Dir:        ", pyservsup.globals.passdir)
+        print("Key Dir:         ", pyservsup.globals.keydir)
+        print("Payload Dir:     ", pyservsup.globals.paydir)
+        print("Lockfile:        ", pyservsup.globals.lockfname)
+        print("Passfile:        ", pyservsup.globals.passfile)
+        print("IDfile:          ", pyservsup.globals.idfile)
+        #print("Keyfile:         ", pyservsup.globals .keyfile)
     try:
-        keyfroot = pyservsup.pickkey(global_vars._keydir)
+        keyfroot = pyservsup.pickkey(pyservsup.globals.keydir)
     except:
         print("No keys generated yet. Please run pyvgenkey.py first.")
         if conf.verbose:
-            print("exc", sys.exc_info())
-            print("keydir was", global_vars._keydir)
+            #print("exc", sys.exc_info())
+            support.put_exception("Generating keys")
+            print("keydir was", pyservsup.globals.keydir)
         sys.exit(1)
 
-    iii = pyservsup.create_read_idfile(global_vars.idfile)
+    iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
     if not iii:
         print("Cannot read / create site ID, exiting.")
         sys.exit(1)
 
-    global_vars.siteid = iii
+    pyservsup.globals.siteid = iii
 
     #if conf.verbose:
     #    print("Current dir:     ", os.getcwd())
@@ -457,7 +465,7 @@ def mainfunc():
     sys.stderr = support.Unbuffered(sys.stderr)
 
     # Comline processed, go
-    support.lock_process(global_vars.lockfname)
+    support.lock_process(pyservsup.globals.lockfname)
 
     pysfunc.pgdebug = conf.pgdebug
     pysfunc.pglog = conf.pglog
@@ -466,17 +474,16 @@ def mainfunc():
         pysyslog.openlog("pyvserv.py")
 
     # Port 0 would mean to select an arbitrary unused port
-    HOST, PORT = "", 6666
+    HOST, PORT = conf.host, conf.port
 
-
-    if not quiet:
+    if not conf.quiet:
         try:
             import distro
             strx = distro.name()
         except:
             strx = "Win or Unkn."
 
-        print("MainSiteID:", global_vars.siteid)
+        print("MainSiteID:      ", pyservsup.globals.siteid)
         print("Server running: ", "'"+HOST+"'", "Port:", PORT)
         pyver = support.list2str(sys.version_info) #[0:3], ".")
         print("Running python", platform.python_version(), "on", platform.system(), strx)
@@ -486,18 +493,17 @@ def mainfunc():
         server.allow_reuse_address = True
         ip, port = server.server_address
         server.allow_reuse_address = True
-        server.verbose = verbose
+        server.verbose = conf.verbose
 
         # Start a thread with the server -- that thread will then start one
         # or more threads for each request
         server_thread = threading.Thread(target=server.serve_forever)
 
         # Exit the server thread when the main thread terminates
-        server_thread.verbose = verbose
+        server_thread.verbose = conf.verbose
         #server_thread.setDaemon(True)
         server_thread.daemon = True
-        server_thread.paydir =  global_vars.paydir
-
+        #server_thread.paydir =  pyservsup.globals.paydir
         server_thread.start()
 
     except:

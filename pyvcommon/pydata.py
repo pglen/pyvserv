@@ -74,7 +74,8 @@ class DataHandler():
         if self.pgdebug > 0:
             print( "in handler_timeout %s" % self.name )
 
-        print( "handler_timeout()")
+        if self.verbose:
+            print( "handler_timeout()")
 
         if self.pglog > 0:
             pysyslog.syslog("Timeout on " + " " + str(self.par.client_address))

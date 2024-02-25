@@ -9,13 +9,11 @@ from Crypto import Random
 from Crypto.Cipher import AES
 
 base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, '../pyvcommon'))
 
-#sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
-#sys.path.append(os.path.join(base,  '../../pycommon'))
+import pydata, pyservsup, crysupp, support, comline, pywrap
 
-import pydata, pyservsup, pyvpacker, crysupp
-import support, comline, pywrap
+import pyvpacker
 
 from Crypto.Hash import SHA512
 from Crypto.PublicKey import RSA

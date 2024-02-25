@@ -35,6 +35,7 @@ def phelp():
 
 optarr = [\
     ["d:",  "pgdebug",  0,      None,       "Debug level 0-10" ], \
+    ["p:",  "port",     6666,   None,       "Listen on port"],    \
     ["v",   "verbose",  0,      None,       "Verbose"],           \
     ["q",   "quiet",    0,      None,       "Quiet"],             \
     ["V",   "version",  None,   pversion,   "Print Version"],     \

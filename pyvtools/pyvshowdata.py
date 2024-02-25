@@ -15,15 +15,14 @@ from Crypto.Hash import SHA
 from Crypto import Random
 
 base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../bluepy'))
-sys.path.append(os.path.join(base, '../common'))
-sys.path.append(os.path.join(base,  '../../pycommon'))
+sys.path.append(os.path.join(base, '..'))
+sys.path.append(os.path.join(base, '../pyvcommon'))
 sys.path.append('guilib')
 
 from mainwin import  *
 from pgutil import  *
 
-import pydata, pyservsup, pypacker, crysupp
+import pydata, pyservsup, pyvpacker, crysupp
 import support, comline, pywrap
 
 # -----------------------------------------------------------------------
