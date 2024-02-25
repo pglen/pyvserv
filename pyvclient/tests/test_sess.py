@@ -11,14 +11,6 @@ from Crypto import Random
 
 from mytest import *
 
-# Set parent as module include path
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
-
-from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
-
 hand = None
 fname = createname(__file__)
 iname = createidxname(__file__)
@@ -54,9 +46,6 @@ def teardown_module(module):
 
     #assert 0
 
-
-
-
 def test_func(capsys):
 
     global ip
@@ -76,7 +65,8 @@ def test_func(capsys):
     #print(hand)
     #assert 0
 
-    respx = hand.client(["hello",] , "", False)
+    resp = hand.client(["hello",] , "", False)
+    assert resp[0] == 'OK'
 
     resp = hand.client(["akey"])
     assert resp[0] == 'OK'

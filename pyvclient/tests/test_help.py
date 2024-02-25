@@ -3,14 +3,6 @@
 import pytest, os, sys
 from mytest import *
 
-# Set parent as module include path
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
-
-from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
-
 hand = None
 fname = createname(__file__)
 iname = createidxname(__file__)

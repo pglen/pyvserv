@@ -1,6 +1,13 @@
 import os, string, random, sys
 sys.path.append("..")
 
+# Set parent as module include path
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  '..', '..' ))
+
+from pyvcommon import support, pycrypt, pyservsup, pyclisup
+from pyvcommon import pysyslog, comline
+
 #import twincore
 # Common file for pytest
 

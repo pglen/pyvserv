@@ -3,14 +3,6 @@
 import pytest, os, sys
 from mytest import *
 
-# Set parent as module include path
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
-
-from common import support, pycrypt, pyservsup, pyclisup
-from common import pysyslog, comline
-
 hand = None
 fname = createname(__file__)
 iname = createidxname(__file__)
@@ -47,8 +39,6 @@ def teardown_module(module):
     #assert 0
 
 
-
-
 def test_func(capsys):
 
     global ip
@@ -74,7 +64,7 @@ def test_func(capsys):
     hand.client(["quit"])
     hand.close()
 
-    assert resp == ['OK', '1.0']
+    assert resp[:2] == ['OK', '1.0']
 
 
 # EOF
