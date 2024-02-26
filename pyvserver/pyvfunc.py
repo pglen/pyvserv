@@ -13,10 +13,12 @@ import os, sys, getopt, signal, select, string, time, stat, base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
-from Crypto.Hash import SHA512
 from Crypto import Random
 from Crypto.Cipher import AES
+
+from Crypto.Hash import SHA
+#from Crypto.Hash import SHA512
+from Crypto.Hash import SHA256
 
 from pyvcommon import support, pyservsup, pyclisup, pysyslog
 from pyvserver import pyvstate
@@ -588,7 +590,7 @@ def get_sess_func(self, strx):
         print("Got session key command.")
 
     #sss = SHA512.new(); sss.update(bytes(strx[3], "cp437"))
-    sss = SHA512.new(); sss.update(strx[3])
+    sss = SHA256.new(); sss.update(strx[3])
 
     # Arrived safely?
     if strx[2] != sss.hexdigest():
@@ -601,7 +603,7 @@ def get_sess_func(self, strx):
     message2 = self.priv_cipher.decrypt(strx[3], sentinel)
 
     # Decoded OK?
-    ttt = SHA512.new(); ttt.update(message2)
+    ttt = SHA256.new(); ttt.update(message2)
 
     if pgdebug > 3:
         print("Hash1:", strx[1])
@@ -697,7 +699,7 @@ def get_akey_func(self, strx):
     # Clean private key from memory
     # cccc
 
-    hh = SHA512.new(); hh.update(self.keyx)
+    hh = SHA256.new(); hh.update(self.keyx)
     if pgdebug > 3:
         print("Key digest: \n'" + hh.hexdigest() + "'\n")
 

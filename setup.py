@@ -42,7 +42,7 @@ setuptools.setup(
 
     #str(['pedlib', 'panglib', 'pycommon'])),
     scripts = ["pyvserver/pyvserv.py", "pyvclient/pycli_cli.py",
-                "pyvtools/pyvgenkey.py"],
+                "pyvtools/pyvgenkey.py", "pyvtools/pyvgenkeys.py"],
 
     package_dir = {
                     'pyvcommon':    'pyvcommon',
@@ -55,6 +55,8 @@ setuptools.setup(
     install_requires=['pyvpacker', 'pydbase', ],
     entry_points={
         'console_scripts': [ "pyvserv=pyvserv:mainfunc",
+                             "pyvgenkey=pyvgenkey:mainfunct",
+                             "pyvgenkeys=pyvgenkeys:mainfunct",
             ],
     },
 )

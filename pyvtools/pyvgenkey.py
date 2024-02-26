@@ -13,12 +13,28 @@ from Crypto import Random
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base,  '..'))
-#sys.path.append(os.path.join(base,  '../pyvcommon'))
 
 from pyvcommon import pyservsup
 
+import argparse
+
+parser = argparse.ArgumentParser(description='Genetrate RSA keypair.')
+
+parser.add_argument("-v", '--verbose', dest='verbose',
+                    default=0,  action='count',
+                    help='verbocity on (default: off)')
+
+parser.add_argument("-b:", '--bits', dest='bits',
+                    default=4096,  action='store', type=int,
+                    help='Key to generate (default: 4096)')
+
 # Deprecated, pad it
 time.clock = time.process_time
+
+# ------------------------------------------------------------------------
+
+def is_power_of_two(n):
+    return (n != 0) and (n & (n-1) == 0)
 
 def genfname():
 
@@ -93,7 +109,6 @@ def genkey(keylen):
 keydir = './keys/'
 privdir = './private/'
 
-
 def position():
 
     global_vars = pyservsup.Global_Vars(__file__)
@@ -104,9 +119,15 @@ def position():
     if not os.path.isdir(global_vars.privdir):
         os.mkdir(global_vars.privdir)
 
-rstr = Random.new().read(random.randint(14, 24))
+#rstr = Random.new().read(random.randint(14, 24))
 
-if __name__ == '__main__':
+def mainfunct():
+
+    args = parser.parse_args()
+
+    if not is_power_of_two(args.bits):
+        print("Bitness must be a power of 2")
+        sys.exit(1)
 
     #script_home = os.path.dirname(os.path.realpath(__file__)) + "/../data/"
     #print ("Script home:     ", script_home)
@@ -114,11 +135,15 @@ if __name__ == '__main__':
     position()
 
     #print("Current dir:     ", os.getcwd())
-    print ("Started pyvserv keygen - (long wait for [8192 bits]) ", end=""); sys.stdout.flush()
-    fname = genkey(8192)
-    #fname = genkey(4096)
+    print ("Started pyvserv keygen - (long wait for [", args.bits, " bits]) "); sys.stdout.flush()
+    fname = genkey(args.bits)
     print("OK, Generated files:")
     print("'" + keydir + os.sep + fname + ".pem'", "'" + privdir + os.sep + fname + ".pub'")
+    sys.exit(0)
+
+if __name__ == '__main__':
+    mainfunct()
+
 
 # EOF
 

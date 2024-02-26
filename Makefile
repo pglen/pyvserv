@@ -1,12 +1,16 @@
 # Use to build modules
 
+# These scripts work on the default installation
+
 .PHONY: test clean
 
+#@echo Target \'init\' generates an initial key.
+#@echo Target \'cleankeys\' deletes all keys.
+#@echo Target \'freshdata\' deletes all data.
+
 all:
-	@echo Targets: git build test clean deb init cleankeys
-	@echo Target \'build\' makes the \'C\' libs
-	@echo Target \'init\' generates an initial key.
-	@echo Target \'cleankeys\' deletes all keys.
+	@echo Targets: git test clean deb init cleankeys \
+            freshdata md5 genmd5 checkmd5
 
 init:
 	@python3 ./tools/genkey.py
@@ -35,19 +39,15 @@ freshdata:
 	@rm -rf ~/pyvserver/*
 
 cleankeys:
-	@rm -rf ~/pyvserver/keys
+	@rm -rf ~/pyvserver/keys/*
 
 md5:
-	echo md5
+	@cat md5sum.txt
 
+checkmd5:
+	@md5sum -c --quiet md5sum.txt
 
+genmd5:
+	./iterproj.py -m > md5sum.txt
 
-
-
-
-
-
-
-
-
-
+# EOF

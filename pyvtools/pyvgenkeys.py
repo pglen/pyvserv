@@ -13,11 +13,26 @@ import struct, stat, base64, random
 from Crypto import Random
 
 import pyvgenkey
+import argparse
 
-if __name__ == '__main__':
+parser = argparse.ArgumentParser(description='Genetrate RSA keypair.')
 
-    # Randomize
-    #rstr = Random.new().read(random.randint(14, 64))
+parser.add_argument("-v", '--verbose', dest='verbose',
+                    default=0,  action='count',
+                    help='verbocity on (default: off)')
+
+parser.add_argument("-b:", '--bits', dest='bits',
+                    default=4096,  action='store', type=int,
+                    help='Key to generate (default: 4096)')
+
+
+def mainfunct():
+
+    args = parser.parse_args()
+
+    if not pyvgenkey.is_power_of_two(args.bits):
+        print("Bitness must be a power of 2")
+        sys.exit(1)
 
     pyvgenkey.position()
     #print("Current dir:     ", os.getcwd())
@@ -26,20 +41,21 @@ if __name__ == '__main__':
     while(True):
         cnt += 1;
         #print ("Key %d ... " % cnt, end="");    sys.stdout.flush()
-        pyvgenkey.genkey(8192)
+        pyvgenkey.genkey(args.bits)
         #print ("OK. ")
 
+        sleepy  = 0.2
         # Ease on hogging the system
         if cnt > 100:
-            time.sleep(1000)
+            sleepy = 200
         elif cnt > 10:
-            time.sleep(100)
+            sleepy = 100
         elif cnt > 5:
-            time.sleep(10)
-        else:
-            time.sleep(0.2)
+            sleepy = 10
 
+        time.sleep(sleepy)
 
+if __name__ == '__main__':
+    mainfunct()
 
-
-
+# EOF

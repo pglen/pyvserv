@@ -216,8 +216,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 # ------------------------------------------------------------------------
 # Override stock methods
 
-class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-#class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
+#class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
 
     #def __init__(self, arg1, arg2):
     #    self._BaseServer__shutdown_request = True

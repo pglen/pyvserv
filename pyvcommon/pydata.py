@@ -41,6 +41,7 @@ class DataHandler():
         self.src = None; self.tout = None
         self.timeout = timeout
         self.pgdebug = 0
+        self.verbose = 0
         self.pglog = 0
         self.wr = pywrap.wrapper()
         self.pb = pyvpacker.packbin()

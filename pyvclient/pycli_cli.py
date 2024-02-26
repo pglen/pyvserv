@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
+import readline
 
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
@@ -13,7 +14,7 @@ import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
 base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '../pyvcommon'))
+#sys.path.append(os.path.join(base,  '../pyvcommon'))
 sys.path.append(os.path.join(base,  '..'))
 
 from pyvcommon import support, pycrypt, pyclisup
@@ -60,7 +61,7 @@ conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def mainfunc():
 
     args = conf.comline(sys.argv[1:])
 
@@ -122,7 +123,27 @@ if __name__ == '__main__':
 
     print ("Enter commands, Ctrl-C or 'done' to quit. Prefix local commands with '!'")
 
-    import readline
+    mainloop(conf, hand)
+
+    #ret2 = hand.getfile("zeros", "zeros_local", conf.sess_key)
+    #print ("Server  fget response:", ret2)
+    #bfile ="bigfile"
+    #print("Started bigfile ...", bfile)
+    #ttt = time.time()
+    #ret = hand.getfile(bfile, bfile + "_local", conf.sess_key)
+    #filesize = support.fsize(bfile+ "_local")/1024
+    #print("filesize", filesize)
+    #rate = filesize / (time.time() - ttt)
+    #print ("Server fget response:", ret, "time %.2f kbytes/sec" % rate)
+
+    cresp = hand.client(["quit", ], conf.sess_key)
+    print ("Server quit response:", cresp)
+    hand.sock.shutdown(socket.SHUT_RDWR)
+    sys.exit(0)
+
+
+def mainloop(conf, hand):
+
     while(True):
         try:
             onecom = input(">> ")
@@ -137,42 +158,41 @@ if __name__ == '__main__':
                     if conf.sess_key:
                         print("Post session, session key:", conf.sess_key[:12], "...")
 
+                elif ss[0] == "fget":
+                    if len(ss) < 2:
+                        print("Use: fget fname")
+                        continue
+                    ret2 = hand.getfile(ss[1], "", conf.sess_key)
+                    print ("Server fget response:", ret2)
+
+                elif ss[0] == "fput":
+                    if len(ss) < 2:
+                        print("Use: fput fname")
+                        continue
+                    ret2 = hand.putfile(ss[1], "", conf.sess_key)
+                    print ("Server fput response:", ret2)
+
                 elif ss[0] == "file":
                     if not os.path.isfile(ss[1]):
                         print("File must exist.")
                         continue
-                    #hand.
-
                     cresp = hand.start_session(conf)
                     if conf.sess_key:
                         print("Post session, session key:", conf.sess_key[:12], "...")
                 if ss[0][0] == "!":
-                    #print ("#local")
+                    #print ("local command")
                     os.system(ss[0][1:] + " " + " ".join(ss[1:]))
                     continue
                 else:
+                    # No wrapper needed
                     cresp = hand.client(ss, conf.sess_key)
-
                 print ("Server response:", cresp)
 
         except:
             print(sys.exc_info())
             break
 
-    #ret2 = hand.getfile("zeros", "zeros_local", conf.sess_key)
-    #print ("Server  fget response:", ret2)
-    #
-    #bfile ="bigfile"
-    #print("Started bigfile ...", bfile)
-    #ttt = time.time()
-    #ret = hand.getfile(bfile, bfile + "_local", conf.sess_key)
-    #filesize = support.fsize(bfile+ "_local")/1024
-    #print("filesize", filesize)
-    #rate = filesize / (time.time() - ttt)
-    #print ("Server fget response:", ret, "time %.2f kbytes/sec" % rate)
-    #
-    cresp = hand.client(["quit", ], conf.sess_key)
-    print ("Server quit response:", cresp)
-    hand.sock.shutdown(socket.SHUT_RDWR)
-    sys.exit(0)
 
+
+if __name__ == '__main__':
+    mainfunc()

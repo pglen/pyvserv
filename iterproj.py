@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 import os, sys, glob, string, time,  traceback, getopt, random
-import subprocess
+import subprocess, fnmatch, shlex
 
-sys.path.append('common')
-import support, pysyslog
+''' Iterate every python file in project '''
+
+sys.path.append('pyvcommon')
+
+import comline, support, pysyslog
+
+version = "1.1.0"
 
 relarr = []
 rel = "."
@@ -16,23 +19,34 @@ def gotfile(fname):
 
     global sumstr, conf
 
-    if conf.filter != "":
-        if not conf.filter in fname:
+    #if conf.filter != "":
+    #    if not conf.filter in fname:
+    #        return
+
+    if conf.wild != "":
+        #print(fname, conf.wild)
+
+        if not fnmatch.fnmatch(os.path.split(fname)[1], conf.wild):
             return
 
     if conf.verbose:
         print ("file:", fname)
 
-    # filter extensions
-    gotext = [".pyc", ".o", ".so", ".pem", ".pub", ]
     eee = os.path.splitext(fname)
+    #print(eee)
+
+    # Filter non py files
+    #if eee[1] != ".py":
+    #    return
+
+    # Filter extensions
+    gotext = [".pyc", ".o", ".so", ".pem", ".pub", ]
     for aa in gotext:
         if aa == eee[1]:
             return
 
+    # Filter common garbage names
     gotfname = ["__pycache__", "md5sums", ]
-
-    # filter names
     for bb in gotfname:
         if bb in fname:
             return
@@ -41,35 +55,32 @@ def gotfile(fname):
         try:
             ret = subprocess.check_output(["md5sum", fname])
             #print("ret", ret, end="")
-
         except:
             ret = "Cannot sum file: %s\n", fname
             print(ret)
+        sumstr += ret.decode()  #+ b'\r\n'
 
-        sumstr += ret
     elif conf.xexec != "":
-        xxx = string.split(conf.xexec)
+        xxx = shlex.split(conf.xexec)
         xxx.append(fname)
         #print ("executing:", xxx)
         try:
             ret = subprocess.check_output(xxx)
-            print(ret, end="")
+            print(ret.decode(), end = "") #, end="")
         except subprocess.CalledProcessError as err:
             if conf.showret:
                 ret = "Ret code of '%s %s' = %d" % \
                             (conf.xexec, fname, err.returncode)
-                print(ret)
+                print(ret.decode())
         except:
             ret = "Cannot execute '%s' on: %s" % \
                         (conf.xexec, fname)
-            print(ret)
-
+            print("dd", ret.decode())
     else:
         print (fname )
 
     #if ret.returncode:
     #    print ("camnnot exec", fname)
-
 
 def listit():
     global rel
@@ -106,27 +117,33 @@ def phelp():
     print()
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] startdir")
     print()
+    print( "Execute options on every selected file in subtree. Default is to ")
+    print( "print file names.")
+    print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -v        - Verbose, show file names")
+    print( "            -V        - Version")
     print( "            -q        - Quiet")
-    print( "            -m        - Do md5 sum")
+    print( "            -m        - Do MD5 sum")
     print( "            -e prog   - Execute prog on file (use quotes for prog options)")
     print( "            -r        - Show prog exec exit code")
-    print( "            -f        - filter (match) to file name ")
+    #print( "            -f        - filter (match) to file name ")
     print( "            -w        - filter (wild card) to file name ")
-    print( "            -m        - Do md5 sum")
+    print( "            -m        - Do MD5 sum")
     print( "            -h        - Help")
+    print()
 
     sys.exit(0)
 
 def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", support.version)
+    print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
+
+#    ["f:",  "filter",   "",     None],      \
 
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
     ["e:",  "xexec",    "",     None],      \
-    ["f:",  "filter",   "",     None],      \
     ["w:",  "wild",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["r",   "showret",  0,      None],      \
@@ -137,13 +154,15 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = support.Config(optarr)
+comline.version = "1.1"
+conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def mainfunc():
 
     args = conf.comline(sys.argv[1:])
+    #print("args", args)
     if len(args):
         os.chdir(args[0])
 
@@ -155,5 +174,7 @@ if __name__ == '__main__':
     #if conf.xexec != "":
     #    print ("xexec", conf.xexec)
 
+if __name__ == '__main__':
+    mainfunc()
 
-
+# EOF

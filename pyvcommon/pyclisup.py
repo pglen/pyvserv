@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+#from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random, socket, datetime
@@ -15,12 +15,14 @@ import pydata, pyservsup, crysupp, support, comline, pywrap
 
 import pyvpacker
 
-from Crypto.Hash import SHA512
+#from Crypto.Hash import SHA512
+from Crypto.Hash import SHA256
+#from Crypto.Hash import SHA
+from Crypto import Random
+
+from Crypto.PublicKey import RSA
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
-from Crypto import Random
 
 #rbuffsize = 1024
 rbuffsize = 4096
@@ -29,8 +31,6 @@ rbuffsize = 4096
 # Globals
 
 random.seed()
-
-# ------------------------------------------------------------------------
 
 class CliSup():
 
@@ -146,6 +146,10 @@ class CliSup():
 
         if not toname:
             toname = fname
+        try:
+            fp = open(fname, "rb")
+        except:
+            return ["ERR", "Cannot open", sys.exc_info()]
 
         cresp = self.client(["fput", toname], key)
         if self.verbose:
@@ -156,7 +160,6 @@ class CliSup():
                 print ("Server fput response:", cresp)
             return  cresp
 
-        try:
             fp = open(fname, "rb")
             while 1:
                 try:
@@ -168,8 +171,6 @@ class CliSup():
                         break
                 except:
                     return ["ERR", "Cannot send", sys.exc_info()]
-        except:
-            return ["ERR", "Cannot open", sys.exc_info()]
 
         return ["OK", "Sent Successfully", fname]
 
@@ -374,7 +375,7 @@ class CliSup():
             pass
 
         #hhh = SHA512.new(); hhh.update(bytes(resp[2], "cp437"))
-        hhh = SHA512.new(); hhh.update(resp[2])
+        hhh = SHA256.new(); hhh.update(resp[2])
 
         if conf.pgdebug > 3:
             print("Hash1:  '" + resp[1] + "'")
@@ -412,8 +413,8 @@ class CliSup():
         #    print("Got ", self.pubkey) #, "size =", self.pubkey.size())
 
         # Generate communication key
-        conf.sess_key = Random.new().read(512)
-        sss = SHA512.new(); sss.update(conf.sess_key)
+        conf.sess_key = Random.new().read(256)
+        sss = SHA256.new(); sss.update(conf.sess_key)
 
         cipher = PKCS1_v1_5.new(self.pubkey)
         #print ("cipher", cipher.can_encrypt())
@@ -423,7 +424,7 @@ class CliSup():
 
         if conf.sess_key:
             sess_keyx = cipher.encrypt(conf.sess_key)
-            ttt = SHA512.new(); ttt.update(sess_keyx)
+            ttt = SHA256.new(); ttt.update(sess_keyx)
 
             if conf.pgdebug > 2:
                 support.shortdump("sess_keyx", sess_keyx )
