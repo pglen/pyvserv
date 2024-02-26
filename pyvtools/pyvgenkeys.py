@@ -25,6 +25,13 @@ parser.add_argument("-b:", '--bits', dest='bits',
                     default=4096,  action='store', type=int,
                     help='Key to generate (default: 4096)')
 
+parser.add_argument("-r:", '--rsa', dest='use_rsa',
+                    default=False,  action='store_true',
+                    help='Key to generate (default: 4096)')
+
+parser.add_argument("-x:", '--max', dest='mxcount',
+                    default=25, type=int,
+                    help='Max mumber of keys. Default 25')
 
 def mainfunct():
 
@@ -39,21 +46,20 @@ def mainfunct():
     print ("Started pyvserv continuous keygen. Press Ctrl-C to abort.")
     cnt = 0
     while(True):
+        if cnt >= args.mxcount:
+            break
         cnt += 1;
-        #print ("Key %d ... " % cnt, end="");    sys.stdout.flush()
-        pyvgenkey.genkey(args.bits)
-        #print ("OK. ")
-
-        sleepy  = 0.2
+        sys.stdout.flush()
+        files = pyvgenkey.genkey(args.bits, args.use_rsa)
+        print ("\rKey %-4d %s %s " % (cnt, files[0], files[1]), end="");
         # Ease on hogging the system
+        sleepy  = 0.2
         if cnt > 100:
-            sleepy = 200
+            sleepy = 1
         elif cnt > 10:
-            sleepy = 100
-        elif cnt > 5:
-            sleepy = 10
-
+            sleepy = .5
         time.sleep(sleepy)
+    print()
 
 if __name__ == '__main__':
     mainfunct()

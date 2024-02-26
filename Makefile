@@ -40,6 +40,7 @@ freshdata:
 
 cleankeys:
 	@rm -rf ~/pyvserver/keys/*
+	@rm -rf ~/pyvserver/private/*
 
 md5:
 	@cat md5sum.txt

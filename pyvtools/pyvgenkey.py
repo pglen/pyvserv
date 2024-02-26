@@ -1,10 +1,22 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+#from __future__ import print_function
+
+'''
+    Small ECC keys have the equivalent strength of larger RSA keys because of
+    the algorithm used to generate them. For example, a 256-bit ECC key is
+    equivalent to a 3072-bit RSA key and a 384-bit ECC key is equivalent to a
+    7680-bit RSA key.
+'''
 
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random, threading
 
+if sys.version_info[0] < 3:
+    print("needs py 3")
+    sys.exit(0)
+
+from Crypto.PublicKey import ECC
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -26,6 +38,10 @@ parser.add_argument("-v", '--verbose', dest='verbose',
 
 parser.add_argument("-b:", '--bits', dest='bits',
                     default=4096,  action='store', type=int,
+                    help='Key to generate (default: 4096)')
+
+parser.add_argument("-r:", '--rsa', dest='use_rsa',
+                    default=False,  action='store_true',
                     help='Key to generate (default: 4096)')
 
 # Deprecated, pad it
@@ -51,17 +67,24 @@ def genfname():
 
 stopthread = 0
 gl_keylen = 8
+gl_use_rsa = 0
 gl_key = None
 
 def genkey_thread():
 
     global stopthread, gl_keylen, gl_key
 
-    gl_key = RSA.generate(gl_keylen)
-    stopthread = True
-    time.sleep(1)
+    if not gl_use_rsa:
+        #gl_key = ECC.generate(curve='P-256')
+        #gl_key = ECC.generate(curve='P-256')
+        gl_key = ECC.generate(curve='P-384')
+    else:
+        gl_key = RSA.generate(gl_keylen)
 
-def genkey(keylen):
+    stopthread = True
+    time.sleep(.1)
+
+def genkey(keylen, use_rsa):
 
     ''' Generate key, give feedback '''
 
@@ -69,42 +92,60 @@ def genkey(keylen):
 
     fff  = genfname()
     gl_keylen = keylen
-    fb_thread = threading.Thread(target=genkey_thread)
-    fb_thread.daemon = True
-    fb_thread.start()
-    print(fff, end = " ")
-    while True:
-        if stopthread:
-            break
-        print(".", end = "")
-        sys.stdout.flush()
-        time.sleep(2)
+    #fb_thread = threading.Thread(target=genkey_thread)
+    #fb_thread.daemon = True
+    #fb_thread.start()
+    #print(fff, end = " ")
+    #while True:
+    #    if stopthread:
+    #        break
+    #    print(".", end = "")
+    #    sys.stdout.flush()
+    #    time.sleep(.5)
+    #
+    #if fb_thread.is_alive():
+    #    fb_thread.join(1)
+    #print()    ; sys.stdout.flush()
+    #stopthread = False
 
-    if fb_thread.is_alive():
-        fb_thread.join(1)
-    print()    ; sys.stdout.flush()
-    stopthread = False
+    genkey_thread()
 
     #print ("Generated:", key, key.size())
 
-    f2 = open(privdir + fff + '.pem','w')
+    # Private key
+    privname = privdir + fff + '.pem'
+    f2 = open(privname,'w')
 
-    if sys.version_info[0] > 2:
-        f2.write(gl_key.exportKey('PEM').decode("cp437"))
+    if not use_rsa:
+        #print("export ecc", privname )
+        f2.write(gl_key.export_key(format='PEM'))
     else:
-        f2.write(gl_key.exportKey('PEM'))
+        if sys.version_info[0] > 2:
+            f2.write(gl_key.export_key('PEM').decode("cp437"))
+        else:
+            f2.write(gl_key.export_key('PEM'))
     f2.close()
 
-    pkey = gl_key.publickey()
-    f3 = open(keydir + fff + '.pub','w')
-
-    if sys.version_info[0] > 2:
-        f3.write(pkey.exportKey('PEM').decode("cp437"))
+    # Public Key
+    if not use_rsa:
+        pkey = gl_key.public_key()
     else:
-        f3.write(pkey.exportKey('PEM'))
+        pkey = gl_key.public_key()
+
+    pubname = keydir + fff + '.pub'
+    f3 = open(pubname,'w')
+
+    if not use_rsa:
+        #print("export ecc pub", pubname)
+        f3.write(pkey.export_key(format='PEM'))
+    else:
+        if sys.version_info[0] > 2:
+            f3.write(pkey.exportKey('PEM').decode("cp437"))
+        else:
+            f3.write(pkey.exportKey('PEM'))
     f3.close()
 
-    return fff
+    return privname, pubname
 
 keydir = './keys/'
 privdir = './private/'
@@ -125,6 +166,8 @@ def mainfunct():
 
     args = parser.parse_args()
 
+    gl_use_rsa = args.use_rsa
+
     if not is_power_of_two(args.bits):
         print("Bitness must be a power of 2")
         sys.exit(1)
@@ -135,15 +178,13 @@ def mainfunct():
     position()
 
     #print("Current dir:     ", os.getcwd())
-    print ("Started pyvserv keygen - (long wait for [", args.bits, " bits]) "); sys.stdout.flush()
-    fname = genkey(args.bits)
-    print("OK, Generated files:")
-    print("'" + keydir + os.sep + fname + ".pem'", "'" + privdir + os.sep + fname + ".pub'")
+    print ("Started pyvserv keygen, ECC "); sys.stdout.flush()
+    fnames = genkey(args.bits, args.use_rsa)
+    print("Generated files:")
+    print("'" + fnames[0] + "'",  "'" + fnames[1] + "'")
     sys.exit(0)
 
 if __name__ == '__main__':
     mainfunct()
 
-
 # EOF
-
