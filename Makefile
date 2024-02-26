@@ -18,17 +18,6 @@ git:
 	git push
 	#git push local
 
-build:
-	#obsolete, build for py3 only
-	#@make -C bluepy build
-	@make -C bluepy build3
-
-build3:
-	@make -C bluepy build3
-
-tests:
-	@make -C client tests
-
 hello:
 	@make -C client hello
 
@@ -46,7 +35,7 @@ freshdata:
 	@rm -rf ~/pyvserver/*
 
 cleankeys:
-	@rm -rf ./data/keys
+	@rm -rf ~/pyvserver/keys
 
 md5:
 	echo md5

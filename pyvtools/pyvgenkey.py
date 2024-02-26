@@ -13,7 +13,7 @@ from Crypto import Random
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base,  '..'))
-sys.path.append(os.path.join(base,  '../pyvcommon'))
+#sys.path.append(os.path.join(base,  '../pyvcommon'))
 
 from pyvcommon import pyservsup
 

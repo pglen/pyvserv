@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-from __future__ import absolute_import
-from __future__ import print_function
+#from __future__ import absolute_import
+#from __future__ import print_function
 
 import os, sys, getopt, signal, select, socket, time, struct
 import random, string, stat, base64, random, datetime
@@ -15,16 +15,16 @@ from Crypto.Hash import SHA
 from Crypto import Random
 
 base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '..'))
 sys.path.append(os.path.join(base, '../pyvcommon'))
 sys.path.append('guilib')
 
 from mainwin import  *
 from pgutil import  *
 
-import pydata, pyservsup, pyvpacker, crysupp
+import pydata, pyservsup,  crysupp
 import support, comline, pywrap
 
+import pyvpacker
 # -----------------------------------------------------------------------
 # Globals
 
