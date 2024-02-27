@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-from __future__ import absolute_import
+#from __future__ import print_function
+#from __future__ import absolute_import
 
 __doc__ = \
 '''
@@ -10,8 +10,11 @@ Server functio nmodule.
 
 import os, sys, getopt, signal, select, string, time, stat, base64
 
-from Crypto.PublicKey import ECC
-from Crypto.PublicKey import RSA
+from pyvecc.Key import Key
+
+#from Crypto.PublicKey import ECC
+#from Crypto.PublicKey import RSA
+
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto import Random
@@ -24,8 +27,11 @@ from Crypto.Hash import SHA256
 from pyvcommon import support, pyservsup, pyclisup, pysyslog
 from pyvserver import pyvstate
 
-import twincore
-import pyvpacker
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(".",  'pydbase'))
+
+from pydbase import twincore
+
 
 __doc__ = \
 '''
@@ -581,6 +587,7 @@ def get_sess_func(self, strx):
 
     #if pgdebug > 4:
     #    print("get_sess_func() called")
+    #print("sess args[3]", strx[3].encode()[:24])
 
     if len(strx) < 4:
         self.resp.datahandler.putencode(\
@@ -591,20 +598,23 @@ def get_sess_func(self, strx):
         print("Got session key command.")
 
     #sss = SHA512.new(); sss.update(bytes(strx[3], "cp437"))
-    sss = SHA256.new(); sss.update(strx[3])
+    sss = SHA256.new(); sss.update(strx[3].encode())
 
     # Arrived safely?
     if strx[2] != sss.hexdigest():
         self.resp.datahandler.putencode([ERR, "session key damaged on transport."], self.resp.ekey)
         return
 
-    dsize = SHA.digest_size
-    sentinel = Random.new().read(dsize)
+    #dsize = SHA.digest_size
+    #sentinel = Random.new().read(dsize)
     #message2 = self.priv_cipher.decrypt(bytes(strx[3], "cp437"), sentinel)
-    message2 = self.priv_cipher.decrypt(strx[3], sentinel)
+    #message2 = self.priv_cipher.decrypt(strx[3], sentinel)
+    message2 = self.priv_cipher.decrypt(strx[3])
+
+    #print("sess_key", message2[:24])
 
     # Decoded OK?
-    ttt = SHA256.new(); ttt.update(message2)
+    ttt = SHA256.new(); ttt.update(message2.encode())
 
     if pgdebug > 3:
         print("Hash1:", strx[1])
@@ -653,13 +663,12 @@ def get_akey_func(self, strx):
 
     try:
         # Do public import
-        fp = open(ddd + os.sep + self.keyfroot + ".pub", "rb")
+        fp = open(ddd + os.sep + self.keyfroot + ".pub", "rt")
         self.keyx = fp.read()
         fp.close()
 
         if pgdebug > 4:
             print("Key read: \n'" + self.keyx.decode("utf-8") + "'\n")
-
     except:
         print("Cannot read key:", self.keyfroot, sys.exc_info()[1])
         support.put_exception("read key")
@@ -668,7 +677,10 @@ def get_akey_func(self, strx):
 
     try:
         #self.pubkey = RSA.importKey(self.keyx)
-        self.pubkey = ECC.import_key(self.keyx)
+        #self.pubkey = ECC.import_key(self.keyx)
+        self.pubkey = Key.import_pub(self.keyx)
+        #print("validate", self.pubkey.validate())
+        #print("finger", self.pubkey.fingerprint())
 
     except:
         print("Cannot read key:", self.keyx[:12], sys.exc_info()[1])
@@ -680,17 +692,23 @@ def get_akey_func(self, strx):
     #print("akey 2 %.3f" % ((time.time() - ttt) * 1000) )
 
     # Do private import; we are handleing it here, so key signals errors
-    fp2 = open(ppp + os.sep + self.keyfroot + ".pem", "rb")
+    fp2 = open(ppp + os.sep + self.keyfroot + ".pem", "rt")
     self.keyx2 = fp2.read()
     fp2.close()
+
+    #print(self.keyx2)
 
     #print("akey 3 %.3f" % ((time.time() - ttt) * 1000) )
 
     try:
         #self.privkey = RSA.importKey(self.keyx2)
-        self.privkey = ECC.import_key(self.keyx2)
+        #self.privkey = ECC.import_key(self.keyx2)
+        self.privkey = Key.import_priv(self.keyx2)
+
         #print("akey 3.1 %.3f" % ((time.time() - ttt) * 1000) )
-        self.priv_cipher = PKCS1_v1_5.new(self.privkey)
+        #self.priv_cipher = PKCS1_v1_5.new(self.privkey)
+        # Bypass
+        self.priv_cipher = self.privkey
 
     except:
         print("Cannot create private key:", self.keyx2[:12], sys.exc_info()[1])
@@ -702,7 +720,7 @@ def get_akey_func(self, strx):
     #print("akey 4 %.3f" % ((time.time() - ttt) * 1000) )
 
     # Clean private key from memory
-    hh = SHA256.new(); hh.update(self.keyx)
+    hh = SHA256.new(); hh.update(self.keyx.encode())
     if pgdebug > 3:
         print("Key digest: \n'" + hh.hexdigest() + "'\n")
 

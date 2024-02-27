@@ -5,14 +5,16 @@ from __future__ import print_function
 from Crypto.Hash import SHA512
 import os, sys, getopt, signal, select, string, time, stat, base64
 import inspect
+import pyvpacker
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base,  '../pyvcommon'))
-sys.path.append(os.path.join(base,  '../pyvserver'))
 
 import pyservsup, pyclisup, support
-import crysupp, pysyslog
-import pywrap, pyvstate
+import crysupp, pysyslog, pywrap
+
+sys.path.append(os.path.join(base,  '../pyvserver'))
+import pyvstate
 
 from pyvfunc import *
 
@@ -137,6 +139,7 @@ class StateHandler():
 
     def __init__(self, resp):
         # Fill in class globals
+
         self.curr_state = initial
         self.resp = resp
         self.resp.fh = None

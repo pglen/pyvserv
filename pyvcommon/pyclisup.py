@@ -5,8 +5,7 @@
 import os, sys, getopt, signal, select, string, time
 import struct, stat, base64, random, socket, datetime
 
-from Crypto import Random
-from Crypto.Cipher import AES
+from pyvecc.Key import Key
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base, '../pyvcommon'))
@@ -15,10 +14,11 @@ import pydata, pyservsup, crysupp, support, comline, pywrap
 
 import pyvpacker
 
-#from Crypto.Hash import SHA512
-from Crypto.Hash import SHA256
-#from Crypto.Hash import SHA
 from Crypto import Random
+from Crypto.Cipher import AES
+#from Crypto.Hash import SHA512
+#from Crypto.Hash import SHA
+from Crypto.Hash import SHA256
 
 from Crypto.PublicKey import ECC
 from Crypto.PublicKey import RSA
@@ -27,6 +27,12 @@ from Crypto.Cipher import PKCS1_OAEP
 
 #rbuffsize = 1024
 rbuffsize = 4096
+
+privtest = '''\
+-----BEGIN PRIVATE ECC-----
+ZMOOwr3Dg0sSw7oTAQAAQMOpM8O+D8O2w53ClsOjwr4KwpRxZcKmCMOVwrZ8w54/McOqY8K7w7VtD8KTBcKKwq4uwosvMHLDj3TDgMOtw6w+wrHDqRtCecO5w5vCmnE6w5jDi8KAw58Gw7vCqcKLw5XDn8KEwpsAIC56akoEOsO6w5hYwpwfADHCrcOvwrxIwqMUwrXClkXDsW8OJcO/fMOaT8O+w7c=
+-----END PRVATE ECC-----
+'''
 
 # -----------------------------------------------------------------------
 # Globals
@@ -372,7 +378,7 @@ class CliSup():
             print("Got akey:", resp)
 
         if resp[0] != "OK":
-            print("Error on getting key:", resp[1])
+            print("Error on getting key:", resp)
             self.client(["quit"])
             self.close();
             sys.exit(0)
@@ -381,7 +387,7 @@ class CliSup():
             print("Got hash:", "'" + resp[1] + "'")
 
         #hhh = SHA512.new(); hhh.update(bytes(resp[2], "cp437"))
-        hhh = SHA256.new(); hhh.update(resp[2])
+        hhh = SHA256.new(); hhh.update(resp[2].encode())
 
         if conf.pgdebug > 1:
             print("Hash1:  '" + resp[1] + "'")
@@ -405,12 +411,17 @@ class CliSup():
             print ("Server response:", "'" + hhh.hexdigest() + "'")
 
         try:
+            #print(self.pkey)
             #self.pubkey = RSA.importKey(self.pkey)
-            self.pubkey = ECC.import_key(self.pkey)
+            #self.pubkey = ECC.import_key(self.pkey)
+            self.pubkey = Key.import_pub(self.pkey)
+            print("finger", self.pubkey.fingerprint())
+            print("validate", self.pubkey.validate())
+
             if conf.pgdebug > 4:
                 print (self.pubkey)
         except:
-            print("Cannot import public key.")
+            print("Cannot import public key.", sys.exc_info())
             support.put_exception("import key")
             self.client(["quit"])
             self.close();
@@ -420,11 +431,13 @@ class CliSup():
         #    print("Got ", self.pubkey) #, "size =", self.pubkey.size())
 
         # Generate communication key
-        conf.sess_key = Random.new().read(256)
+        conf.sess_key = base64.b64encode(Random.new().read(128))
         sss = SHA256.new(); sss.update(conf.sess_key)
 
+        print("sess_key", conf.sess_key[:24])
         #cipher = PKCS1_v1_5.new(self.pubkey)
-        cipher = PKCS1_OAEP.new(self.pubkey)
+        #cipher = PKCS1_OAEP.new(self.pubkey)
+        cipher = self.pubkey
         #print(dir(cipher))
         #print ("cipher", cipher.can_encrypt())
 
@@ -433,12 +446,20 @@ class CliSup():
 
         if conf.sess_key:
             sess_keyx = cipher.encrypt(conf.sess_key)
-            ttt = SHA256.new(); ttt.update(sess_keyx)
+            print("sess_keyx", sess_keyx.encode()[:24])
+
+            #self.privkey = Key.import_priv(privtest)
+            #print("validate", self.privkey.validate())
+            #print("finger", self.privkey.fingerprint())
+            #sess_keyx3 = self.privkey.decrypt(sess_keyx)
+            #print(sess_keyx3)
+
+            ttt = SHA256.new(); ttt.update(sess_keyx.encode())
 
             if conf.pgdebug > 2:
                 support.shortdump("sess_keyx", sess_keyx )
         else:
-            session_keyx = ""
+            sess_keyx = ""
 
         #print("Key Hexdigest", ttt.hexdigest()[:16])
         resp3 = self.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx],
@@ -446,10 +467,10 @@ class CliSup():
         #print("Sess Response:", resp3[1])
 
         if resp3[0] != "OK":
-            print("Error on setting session:", resp3[1])
-            self.client(["quit"])
-            self.close();
-            return None
+            print("Error on setting session:", resp3)
+            #self.client(["quit"])
+            #self.close();
+            return resp3
 
         self.sess = True
         return resp3

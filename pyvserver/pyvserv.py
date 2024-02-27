@@ -30,6 +30,8 @@ else:
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base,  '..'))
 
+import pyvpacker
+
 from pyvserver import pyvstate
 from pyvserver import pyvfunc
 
@@ -39,8 +41,6 @@ from pyvcommon import pyclisup
 from pyvcommon import pydata
 from pyvcommon import pysyslog
 from pyvcommon import comline
-
-import pyvpacker
 
 version = "1.0"
 

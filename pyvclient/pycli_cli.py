@@ -65,7 +65,7 @@ def mainfunc():
 
     args = conf.comline(sys.argv[1:])
 
-    print(vars(conf))
+    #print(vars(conf))
 
     #if conf.comm:
     #    print("Save to filename", conf.comm)
@@ -95,8 +95,8 @@ def mainfunc():
 
     conf.sess_key = ""
     #ret = ["OK",];  conf.sess_key = ""
-    ret = hand.start_session(conf)
-    if ret[0] != "OK":
+    resp3 = hand.start_session(conf)
+    if resp3[0] != "OK":
         print("Error on setting session:", resp3[1])
         hand.client(["quit"])
         hand.close();
@@ -191,8 +191,6 @@ def mainloop(conf, hand):
         except:
             print(sys.exc_info())
             break
-
-
 
 if __name__ == '__main__':
     mainfunc()

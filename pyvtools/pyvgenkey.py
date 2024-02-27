@@ -16,6 +16,11 @@ if sys.version_info[0] < 3:
     print("needs py 3")
     sys.exit(0)
 
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  'pyvecc'))
+
+from pyvecc.Key import Key
+
 from Crypto.PublicKey import ECC
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
@@ -67,18 +72,13 @@ def genfname():
 
 stopthread = 0
 gl_keylen = 8
-gl_use_rsa = 0
 gl_key = None
 
 def genkey_thread():
 
     global stopthread, gl_keylen, gl_key
 
-    if not gl_use_rsa:
-        #gl_key = ECC.generate(curve='P-256')
-        gl_key = ECC.generate(curve='P-384')
-    else:
-        gl_key = RSA.generate(gl_keylen)
+    gl_key = Key.generate(256)
 
     stopthread = True
     time.sleep(.1)
@@ -115,34 +115,13 @@ def genkey(keylen, use_rsa):
     # Private key
     privname = privdir + fff + '.pem'
     f2 = open(privname,'w')
-
-    if not use_rsa:
-        #print("export ecc", privname )
-        f2.write(gl_key.export_key(format='PEM'))
-    else:
-        if sys.version_info[0] > 2:
-            f2.write(gl_key.export_key('PEM').decode("cp437"))
-        else:
-            f2.write(gl_key.export_key('PEM'))
+    f2.write(gl_key.export_priv())
     f2.close()
 
     # Public Key
-    if not use_rsa:
-        pkey = gl_key.public_key()
-    else:
-        pkey = gl_key.public_key()
-
     pubname = keydir + fff + '.pub'
     f3 = open(pubname,'w')
-
-    if not use_rsa:
-        #print("export ecc pub", pubname)
-        f3.write(pkey.export_key(format='PEM'))
-    else:
-        if sys.version_info[0] > 2:
-            f3.write(pkey.exportKey('PEM').decode("cp437"))
-        else:
-            f3.write(pkey.exportKey('PEM'))
+    f3.write(gl_key.export_pub())
     f3.close()
 
     return privname, pubname
@@ -165,8 +144,6 @@ def position():
 def mainfunct():
 
     args = parser.parse_args()
-
-    gl_use_rsa = args.use_rsa
 
     if not is_power_of_two(args.bits):
         print("Bitness must be a power of 2")
