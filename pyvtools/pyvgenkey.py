@@ -76,7 +76,6 @@ def genkey_thread():
 
     if not gl_use_rsa:
         #gl_key = ECC.generate(curve='P-256')
-        #gl_key = ECC.generate(curve='P-256')
         gl_key = ECC.generate(curve='P-384')
     else:
         gl_key = RSA.generate(gl_keylen)
@@ -86,12 +85,13 @@ def genkey_thread():
 
 def genkey(keylen, use_rsa):
 
-    ''' Generate key, give feedback '''
+    ''' Generate key, give optional feedback '''
 
     global stopthread, gl_keylen, gl_key
 
     fff  = genfname()
     gl_keylen = keylen
+
     #fb_thread = threading.Thread(target=genkey_thread)
     #fb_thread.daemon = True
     #fb_thread.start()
@@ -172,13 +172,10 @@ def mainfunct():
         print("Bitness must be a power of 2")
         sys.exit(1)
 
-    #script_home = os.path.dirname(os.path.realpath(__file__)) + "/../data/"
-    #print ("Script home:     ", script_home)
-
     position()
 
     #print("Current dir:     ", os.getcwd())
-    print ("Started pyvserv keygen, ECC "); sys.stdout.flush()
+    print ("Started pyvserv keygen, ECC 384"); sys.stdout.flush()
     fnames = genkey(args.bits, args.use_rsa)
     print("Generated files:")
     print("'" + fnames[0] + "'",  "'" + fnames[1] + "'")

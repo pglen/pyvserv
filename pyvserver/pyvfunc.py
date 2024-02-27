@@ -10,6 +10,7 @@ Server functio nmodule.
 
 import os, sys, getopt, signal, select, string, time, stat, base64
 
+from Crypto.PublicKey import ECC
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -666,7 +667,9 @@ def get_akey_func(self, strx):
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
     try:
-        self.pubkey = RSA.importKey(self.keyx)
+        #self.pubkey = RSA.importKey(self.keyx)
+        self.pubkey = ECC.import_key(self.keyx)
+
     except:
         print("Cannot read key:", self.keyx[:12], sys.exc_info()[1])
         support.put_exception("import  key")
@@ -684,9 +687,11 @@ def get_akey_func(self, strx):
     #print("akey 3 %.3f" % ((time.time() - ttt) * 1000) )
 
     try:
-        self.privkey = RSA.importKey(self.keyx2)
+        #self.privkey = RSA.importKey(self.keyx2)
+        self.privkey = ECC.import_key(self.keyx2)
         #print("akey 3.1 %.3f" % ((time.time() - ttt) * 1000) )
         self.priv_cipher = PKCS1_v1_5.new(self.privkey)
+
     except:
         print("Cannot create private key:", self.keyx2[:12], sys.exc_info()[1])
         support.put_exception("import private key")
@@ -697,8 +702,6 @@ def get_akey_func(self, strx):
     #print("akey 4 %.3f" % ((time.time() - ttt) * 1000) )
 
     # Clean private key from memory
-    # cccc
-
     hh = SHA256.new(); hh.update(self.keyx)
     if pgdebug > 3:
         print("Key digest: \n'" + hh.hexdigest() + "'\n")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
+#from __future__ import print_function
 
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
@@ -74,6 +74,7 @@ conf = comline.Config(optarr)
 if __name__ == '__main__':
 
     args = conf.comline(sys.argv[1:])
+    #print(vars(conf))
 
     if conf.comm:
         print("Save to filename", conf.comm)
@@ -108,10 +109,6 @@ if __name__ == '__main__':
         hand.client(["quit"])
         hand.close();
         sys.exit(0)
-
-    if conf.verbose:
-        print("Got akey hash:", "'" + resp[1] + "'")
-        pass
 
     #if conf.pgdebug > 4:
     #    print ("Server response2:\n" +  "'" + resp[1].decode("cp437") +  "'\n")

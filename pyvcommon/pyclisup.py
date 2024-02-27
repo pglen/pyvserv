@@ -20,9 +20,10 @@ from Crypto.Hash import SHA256
 #from Crypto.Hash import SHA
 from Crypto import Random
 
-from Crypto.PublicKey import RSA
+from Crypto.PublicKey import ECC
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
+from Crypto.Cipher import PKCS1_OAEP
 
 #rbuffsize = 1024
 rbuffsize = 4096
@@ -362,7 +363,13 @@ class CliSup():
         #if not hasattr(conf, "sess_key"):
         conf.sess_key2 = conf.sess_key[:]
 
+        #if conf.verbose:
+        #    print("Got akey:", resp)
+
         resp = self.client(["akey"], conf.sess_key2)
+
+        if conf.verbose:
+            print("Got akey:", resp)
 
         if resp[0] != "OK":
             print("Error on getting key:", resp[1])
@@ -371,13 +378,12 @@ class CliSup():
             sys.exit(0)
 
         if conf.verbose:
-            #print("Got hash:", "'" + resp[1] + "'")
-            pass
+            print("Got hash:", "'" + resp[1] + "'")
 
         #hhh = SHA512.new(); hhh.update(bytes(resp[2], "cp437"))
         hhh = SHA256.new(); hhh.update(resp[2])
 
-        if conf.pgdebug > 3:
+        if conf.pgdebug > 1:
             print("Hash1:  '" + resp[1] + "'")
             print("Hash2:  '" + hhh.hexdigest() + "'")
 
@@ -399,7 +405,8 @@ class CliSup():
             print ("Server response:", "'" + hhh.hexdigest() + "'")
 
         try:
-            self.pubkey = RSA.importKey(self.pkey)
+            #self.pubkey = RSA.importKey(self.pkey)
+            self.pubkey = ECC.import_key(self.pkey)
             if conf.pgdebug > 4:
                 print (self.pubkey)
         except:
@@ -416,7 +423,9 @@ class CliSup():
         conf.sess_key = Random.new().read(256)
         sss = SHA256.new(); sss.update(conf.sess_key)
 
-        cipher = PKCS1_v1_5.new(self.pubkey)
+        #cipher = PKCS1_v1_5.new(self.pubkey)
+        cipher = PKCS1_OAEP.new(self.pubkey)
+        #print(dir(cipher))
         #print ("cipher", cipher.can_encrypt())
 
         if conf.pgdebug > 2:

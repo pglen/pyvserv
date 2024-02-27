@@ -52,7 +52,7 @@ setuptools.setup(
                    },
 
     python_requires='>=3',
-    install_requires=['pyvpacker', 'pydbase', ],
+    install_requires=["pyvpacker", "pydbase", "pycryptodome", "eciespy"],
     entry_points={
         'console_scripts': [ "pyvserv=pyvserv:mainfunc",
                              "pyvgenkey=pyvgenkey:mainfunct",

@@ -65,7 +65,7 @@ def mainfunc():
 
     args = conf.comline(sys.argv[1:])
 
-    #print(dir(conf))
+    print(vars(conf))
 
     #if conf.comm:
     #    print("Save to filename", conf.comm)
