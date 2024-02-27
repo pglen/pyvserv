@@ -1,0 +1,3 @@
+[submodule "pyvecc"]
+	path = pyvecc
+	url = ./pyvecc
