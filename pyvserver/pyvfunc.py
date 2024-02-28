@@ -12,17 +12,15 @@ import os, sys, getopt, signal, select, string, time, stat, base64
 
 from pyvecc.Key import Key
 
-#from Crypto.PublicKey import ECC
-#from Crypto.PublicKey import RSA
-
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Cipher import AES
-
 from Crypto.Hash import SHA
 #from Crypto.Hash import SHA512
 from Crypto.Hash import SHA256
+
+import pyvpacker
 
 from pyvcommon import support, pyservsup, pyclisup, pysyslog
 from pyvserver import pyvstate
@@ -31,7 +29,6 @@ base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(".",  'pydbase'))
 
 from pydbase import twincore
-
 
 __doc__ = \
 '''
@@ -421,28 +418,30 @@ def get_rput_func(self, strx):
             return
 
     fname = "initial"
-    lfile = os.path.join(dname, fname + ".lock")
+    lfile = os.path.join(dname, fname + ".bclock")
 
-    #pyservsup.pgdebug = 3
-    #pyservsup.waitlock(lfile)
-    #
-    #print("loacked as lfile", lfile)
+    pyservsup.waitlock(lfile)
 
-    #pp = pyvpacker.packbin()
-    #dd = pp.encode_data("", strx[2][1:])
+    #print("locked as lfile", lfile)
+
+    ttt = time.time()
+
+    pp = pyvpacker.packbin()
+    dd = pp.encode_data("", strx[2][1:])
+
     #print(dd)
+    #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
+    core = twincore.TwinCore(os.path.join(dname, fname + ".pydb"), 0)
+    #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
 
-    #core = twincore.TwinCore(os.path.join(dname, fname + ".pydb"))
-    ##core.core_verbose = 2
-    ##print(core.fname)
+    #print(core.fname)
     #dbsize = core.getdbsize()
     #print("DBsize", dbsize)
-    #
-    ##print(strx[2][0], dd)
-    #
-    ##core.save_data(strx[2][0], dd)
-    #
-    ##pyservsup.dellock(lfile)
+    #print(strx[2][0], dd)
+    core.save_data(strx[2][0], dd)
+    pyservsup.dellock(lfile)
+
+    #print("db op3 %.3f" % ((time.time() - ttt) * 1000) )
 
     response = [OK,  "Blockchain data added."]
     self.resp.datahandler.putencode(response, self.resp.ekey)

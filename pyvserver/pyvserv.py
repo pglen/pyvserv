@@ -263,8 +263,8 @@ def terminate(arg1, arg2):
     if not conf.quiet:
         print( "Terminated pyvserv.py.")
 
-    if conf.pglog > 0:
-        pysyslog.syslog("Terminated Server")
+    #if conf.pglog > 0:
+    #    pysyslog.syslog("Terminated Server")
 
     support.unlock_process(pyservsup.globals.lockfname)
 
@@ -508,8 +508,8 @@ def mainfunc():
         terminate(None, None)
         #sys.exit(1)
 
-    if conf.pglog > 0:
-        pysyslog.syslog("Started Server")
+    #if conf.pglog > 0:
+    #    pysyslog.syslog("Started Server")
 
     # Block
     #simple_server(HOST, PORT)

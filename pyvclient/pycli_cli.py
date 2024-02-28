@@ -106,17 +106,17 @@ def mainfunc():
     #print("Sess Key ACCEPTED:",  resp3[1])
 
     if conf.sess_key:
-        print("Post session, session key:", conf.sess_key[:12], "...")
+        print(" ------ Post session, session key:", conf.sess_key[:12], "...")
 
     resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    print("Hello Response:", resp3)
+    print("Hello Resp:", resp3)
 
     # Session estabilished, try a simple command
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
     cresp = hand.login(conf, "admin", "1234")
-    print ("Server login response:", cresp)
+    print ("Login resp:", cresp)
 
     # Interactive, need more time
     hand.client(["tout", "30",], conf.sess_key)

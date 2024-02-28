@@ -93,6 +93,9 @@ class DataHandler():
         if self.toutflag:
             ddd = ["ERR", "Timeout occured, disconnecting."]
 
+        if self.pglog > 4:
+            pysyslog.syslog("putencode", ddd)
+
         response = self.pb.encode_data("", ddd)
         self._putdata(response, key, rand)
 

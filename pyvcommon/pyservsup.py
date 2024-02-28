@@ -714,31 +714,24 @@ def dellock(lockname):
         if pgdebug > 1:
             print("Del lock failed", sys.exc_info())
 
-def waitlock(lockname, locktout = 100):
+def waitlock(lockname, locktout = 30):
 
     ''' Wait for lock file to become available. '''
 
     cnt = 0
     while True:
         if os.path.isfile(lockname):
-
             if pgdebug > 1:
                 print("Waiting on", lockname)
-
-            if cnt == 0:
-                try:
-                    fpx = open(lockname)
-                    pid = int(fpx.read())
-                    fpx.close()
-                    #print("pid", pid, psutil.pids())
-                    #if not pid in psutil.pids():
-                    #    #print("breaking on dead process")
-                    #    break
-                except:
-                    print("Exc in pid test", sys.exc_info())
-                    pass
+            #if cnt == 0:
+            #    try:
+            #        fpx = open(lockname)
+            #        pid = int(fpx.read())
+            #        fpx.close()
+            #    except:
+            #        print("Exc in pid test", sys.exc_info())
             cnt += 1
-            time.sleep(0.1)
+            time.sleep(0.3)
             if cnt > locktout:
                 # Taking too long; break in
                 if pgdebug > 1:

@@ -415,8 +415,8 @@ class CliSup():
             #self.pubkey = RSA.importKey(self.pkey)
             #self.pubkey = ECC.import_key(self.pkey)
             self.pubkey = Key.import_pub(self.pkey)
-            print("finger", self.pubkey.fingerprint())
-            print("validate", self.pubkey.validate())
+            #print("finger", self.pubkey.fingerprint())
+            #print("validate", self.pubkey.validate())
 
             if conf.pgdebug > 4:
                 print (self.pubkey)
@@ -434,7 +434,7 @@ class CliSup():
         conf.sess_key = base64.b64encode(Random.new().read(128))
         sss = SHA256.new(); sss.update(conf.sess_key)
 
-        print("sess_key", conf.sess_key[:24])
+        #print("sess_key", conf.sess_key[:24])
         #cipher = PKCS1_v1_5.new(self.pubkey)
         #cipher = PKCS1_OAEP.new(self.pubkey)
         cipher = self.pubkey
@@ -446,7 +446,7 @@ class CliSup():
 
         if conf.sess_key:
             sess_keyx = cipher.encrypt(conf.sess_key)
-            print("sess_keyx", sess_keyx.encode()[:24])
+            #print("sess_keyx", sess_keyx.encode()[:24])
 
             #self.privkey = Key.import_priv(privtest)
             #print("validate", self.privkey.validate())

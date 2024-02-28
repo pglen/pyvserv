@@ -100,7 +100,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     resp3 = hand.client(["hello", "world"] , "", False)
-    print("Hello Response: ", resp3)
+    print("Hello Resp:", resp3)
 
     resp4 = hand.client(["tout", "30",], conf.sess_key)
     print("Server tout Response:", resp4)
@@ -115,20 +115,20 @@ if __name__ == '__main__':
 
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  conf.sess_key[:12], '...' )
-    print("Post session, all is encrypted")
+    print(" ----- Post session, all is encrypted ----- ")
 
     resp4 = hand.client(["tout", "30",], conf.sess_key)
     print("Server tout Response:", resp4)
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
-    print("Server hello Response:", resp4[1])
+    print("Server hello resp:", resp4[1])
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
-    print ("Server user  response:", cresp)
+    print ("Server user respo:", cresp)
 
-    cresp = hand.client(["pass", "1234"], conf.sess_key)
-    print ("Server pass  response:", cresp)
+    cresp = hand.client(["pass", "12345"], conf.sess_key)
+    print ("Server pass resp:", cresp)
 
     # Interactive, need more time
     tout = hand.client(["tout", "200",], conf.sess_key)
@@ -150,11 +150,12 @@ if __name__ == '__main__':
     #print('abcd', "zzz", pvh.datax)
     #core.save_data('abcd', dd)
     #print(pvh.datax)
+
     cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
-    print ("Server rput  response:", cresp[1:])
+    print ("Server rput  response:", cresp)
 
     cresp = hand.client(["quit",],conf.sess_key)
-    print ("Server quit  response:", cresp[1:])
+    print ("Server quit  response:", cresp)
     hand.close();
 
     sys.exit(0)

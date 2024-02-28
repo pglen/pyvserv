@@ -3,7 +3,7 @@
 import os, sys, getopt, signal, select, string, time, stat
 import platform
 try:
-    import syslog as slog
+    import logging
 except:
     print("using fake syslog")
 
@@ -28,24 +28,40 @@ LOG_CONS = 2
 LOG_NDELAY = 8
 LOG_NOWAIT = 16
 
-def syslog(message):
+def syslog(*message, **options):
 
-    #print("loging:", message)
+    #print("syslog:", message)
+    mmm = ""
+    for aa in message:
+        mmm += str(aa)
+    logging.info(mmm)
 
-    if "Linux" in platform.system():
-        #print("syslog linux")
-        slog.syslog(message)
-    else:
-        print (message)
-    pass
+    #if "Linux" in platform.system():
+    #    #print("syslog linux", message)
+    #    #syslog.syslog(message)
+    #    logging.info(message)
+    #else:
+    #    print (message)
+    #pass
 
 def openlog(ident=sys.argv[0], logoptions=0, facility=LOG_NOTICE):
 
-    if "Linux" in platform.system():
-        #print("openlog:", ident)
-        slog.openlog(ident) #, logoptions, facility)
-    else:
-        pass
+    logname = os.path.expanduser("~/pyvserver/log")
+    print("openlog", logname)
+    if not os.path.isdir(logname):
+        os.mkdir(logname)
+
+    logging.basicConfig(filename=os.path.join(logname, "pyvserv.log"),
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%Y/%m/%d %H:%M:%S',
+                    level=logging.DEBUG)
+
+    #if "Linux" in platform.system():
+    #    print("openlog:", ident)
+    #    syslog.openlog(ident) #, logoptions, facility)
+    #else:
+    #    pass
 
 def closelog():
     pass
@@ -54,9 +70,3 @@ def setlogmask(maskpri):
     pass
 
 #EOF
-
-
-
-
-
-
