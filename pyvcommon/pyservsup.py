@@ -56,12 +56,14 @@ class   Global_Vars:
         self.privdir   =  self.myhome + "private"  + os.sep
         self.paydir    =  self.myhome + "payload"  + os.sep
         self.tmpdir    =  self.myhome + "tmp"  + os.sep
+        self.logdir    =  self.myhome + "log"  + os.sep
 
         self._mkdir(self.passdir, "Pass dir")
         self._mkdir(self.paydir, "Payload dir")
         self._mkdir(self.keydir, "Key dir")
         self._mkdir(self.privdir, "Private dir")
         self._mkdir(self.tmpdir, "Temporary dir")
+        self._mkdir(self.logdir, "Log dir")
 
         self.lockfname = self.tmpdir + "lockfile"
         self.passfile = self.passdir + self._passfile
