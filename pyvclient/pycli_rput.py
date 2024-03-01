@@ -46,6 +46,7 @@ def phelp():
     print( "            -l level  - Log level (default: 0)")
     print( "            -c file   - Save comm to file")
     print( "            -s        - Showkey")
+    print( "            -n        - Number of records to put")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -65,6 +66,7 @@ optarr = \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["s",   "showkey",  "",     None],      \
+    ["n:",   "numrec",   1,     None],      \
     ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
@@ -76,6 +78,7 @@ conf = comline.Config(optarr)
 if __name__ == '__main__':
 
     args = conf.comline(sys.argv[1:])
+    #print(vars(conf))
 
     if conf.comm:
         print("Save to filename", conf.comm)
@@ -127,8 +130,14 @@ if __name__ == '__main__':
     cresp = hand.client(["user", "admin"], conf.sess_key)
     print ("Server user respo:", cresp)
 
-    cresp = hand.client(["pass", "12345"], conf.sess_key)
+    cresp = hand.client(["pass", "1234"], conf.sess_key)
     print ("Server pass resp:", cresp)
+
+    #print("Enter twofa code: (ret to skip)", end = "")
+    #sesscode = input()
+    #if sesscode:
+    #    cresp = hand.client(["twofa", sesscode], conf.sess_key)
+    #    print ("Server twofa resp:", cresp)
 
     # Interactive, need more time
     tout = hand.client(["tout", "200",], conf.sess_key)
@@ -140,19 +149,9 @@ if __name__ == '__main__':
     pvh.hasharr()
     pvh.powarr()
 
-    #pp = pyvpacker.packbin()
-    #dd = pp.encode_data("", pvh.datax)
-    #print(dd)
-    #import twincore
-    #core = twincore.TwinCore()
-    #dbsize = core.getdbsize()
-    #print("DBsize", dbsize)
-    #print('abcd', "zzz", pvh.datax)
-    #core.save_data('abcd', dd)
-    #print(pvh.datax)
-
-    cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
-    print ("Server rput  response:", cresp)
+    for aa in range(conf.numrec):
+        cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
+        print ("Server rput  response:", cresp)
 
     cresp = hand.client(["quit",],conf.sess_key)
     print ("Server quit  response:", cresp)

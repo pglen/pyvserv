@@ -90,7 +90,6 @@ def throttle(peer):
     sem.release()
     return slept
 
-
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def __init__(self, a1, a2, a3):
@@ -146,7 +145,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.datahandler.pglog      = conf.pglog
         self.datahandler.verbose    = conf.verbose
         self.datahandler.par        = self
-
 
         self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
@@ -378,6 +376,7 @@ optarr.append ( ["r:",  "dataroot",    None,    None, "Data root"] )
 optarr.append ( ["l:",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
 optarr.append ( ["n:",   "host",   "127.0.0.1",  None, "Set server hostname"] )
 optarr.append ( ["m",   "mem",         0,       None, "Show memory trace."] )
+optarr.append ( ["D",   "dmode",       0,       None, "Dev mode (no twofa)"] )
 
 #print (optarr)
 
@@ -409,13 +408,14 @@ def mainfunc():
         #print("Exec argv:       ", sys.argv[0])
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__)
+    pyservsup.globals.conf = conf
     pyservsup.globals._mkdir(pyservsup.globals.myhome)
 
     # Change directory to the data dir
     os.chdir(pyservsup.globals.myhome)
     #print("cwd", os.getcwd())
 
-    pyservsup.globals .config(pyservsup.globals.myhome, conf)
+    pyservsup.globals.config(pyservsup.globals.myhome, conf)
 
     if conf.verbose:
         #print("Script Dir:      ", pyservsup.globals._script_home)
@@ -481,6 +481,7 @@ def mainfunc():
         pyver = support.list2str(sys.version_info) #[0:3], ".")
         print("Running python", platform.python_version(), "on", platform.system(), strx)
 
+        pyvstate.init_state_table()
     try:
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
         server.allow_reuse_address = True

@@ -3,12 +3,14 @@
 #from __future__ import print_function
 #from __future__ import absolute_import
 
+import pyotp
+
 __doc__ = \
 '''
-Server functio nmodule.
+    Server function module.
 '''
 
-import os, sys, getopt, signal, select, string, time, stat, base64
+import os, sys, getopt, signal, select, string, time, stat, base64, uuid
 
 from pyvecc.Key import Key
 
@@ -26,9 +28,9 @@ from pyvcommon import support, pyservsup, pyclisup, pysyslog
 from pyvserver import pyvstate
 
 base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(".",  'pydbase'))
+sys.path.append(os.path.join("..",  'pydbase'))
 
-from pydbase import twincore
+from pydbase import twincore, twinchain
 
 __doc__ = \
 '''
@@ -390,6 +392,42 @@ def get_pwd_func(self, strx):
     response = [OK,  dname2]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
+def get_rlist_func(self, strx):
+
+    if len(strx) < 3:
+        response = [ERR, "Must specify blockchain kind", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    dname = contain_path(self, strx[1])
+    if not dname:
+        response = [ERR, "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, "Directory does not exist", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    fname = "initial"
+    lfile = os.path.join(dname, fname + ".bclock")
+
+    #ttt = time.time()
+
+    #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
+    core = twinchain.TwinChain(os.path.join(dname, fname + ".pydb"), 0)
+    #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
+
+    dbsize = core.getdbsize()
+    for aa in range(1, dbsize):
+        rec = core.get_header(aa)
+        ddd = pyservsup.uuid2timestamp(uuid.UUID(rec))
+        print(ddd)
+
+    response = [OK,  "rec", "%d records" % dbsize]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+
 def get_rput_func(self, strx):
 
     if len(strx) < 3:
@@ -418,32 +456,19 @@ def get_rput_func(self, strx):
             return
 
     fname = "initial"
-    lfile = os.path.join(dname, fname + ".bclock")
-
-    pyservsup.waitlock(lfile)
-
-    #print("locked as lfile", lfile)
-
-    ttt = time.time()
+    #ttt = time.time()
 
     pp = pyvpacker.packbin()
     dd = pp.encode_data("", strx[2][1:])
 
     #print(dd)
     #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
-    core = twincore.TwinCore(os.path.join(dname, fname + ".pydb"), 0)
+    core = twinchain.TwinChain(os.path.join(dname, fname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
-
-    #print(core.fname)
-    #dbsize = core.getdbsize()
-    #print("DBsize", dbsize)
-    #print(strx[2][0], dd)
-    core.save_data(strx[2][0], dd)
-    pyservsup.dellock(lfile)
-
+    core.append(dd)
     #print("db op3 %.3f" % ((time.time() - ttt) * 1000) )
-
-    response = [OK,  "Blockchain data added."]
+    dbsize = core.getdbsize()
+    response = [OK,  "Blockchain data added.", "%d records" % dbsize]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_cd_func(self, strx):
@@ -1108,6 +1133,37 @@ def put_data_func(self, strx):
     #self.resp.datahandler.putencode("OK Got data", self.resp.ekey)
     self.resp.datahandler.putencode([OK,  "Got data"], self.resp.ekey)
 
+def get_qr_func(self, strx):
+
+    #print("QRfunc called")
+
+    fp = open('qr.png', 'rb')
+    buff = fp.read()
+    fp.close()
+    self.resp.datahandler.putencode([OK, buff], self.resp.ekey)
+
+def get_twofa_func(self, strx):
+
+    #print("get_twofa_func called")
+
+    retval = True
+    if len(strx) < 2:
+        response = [ERR, "Must pass 2fa code.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    key = "pyvserverkey"
+    totp = pyotp.TOTP(key)
+    res = totp.verify(strx[1])
+    if not res:
+        self.resp.datahandler.putencode(["ERR", "Invalid 2FA code"],  self.resp.ekey)
+    else:
+        self.resp.datahandler.putencode(["OK", "Code Auth OK",],  self.resp.ekey)
+        retval = False
+
+    return retval
+
+
 def get_help_func(self, strx):
 
     if pgdebug > 1:
@@ -1135,7 +1191,6 @@ def get_help_func(self, strx):
         print( "get_help_func->output", harr)
 
     self.resp.datahandler.putencode(harr, self.resp.ekey)
-
 
 if __name__ == '__main__':
     pass

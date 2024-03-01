@@ -748,6 +748,24 @@ def waitlock(lockname, locktout = 30):
     xfp.write(str(os.getpid()).encode())
     xfp.close()
 
+# ------------------------------------------------------------------------
+# Get date out of UUID
+
+def uuid2date(uuu):
+
+    UUID_EPOCH = 0x01b21dd213814000
+    dd = datetime.datetime.fromtimestamp(\
+                    (uuu.time - UUID_EPOCH)*100/1e9)
+    #print(dd.timestamp())
+    return dd
+
+def uuid2timestamp(uuu):
+
+    UUID_EPOCH = 0x01b21dd213814000
+    dd = datetime.datetime.fromtimestamp(\
+                    (uuu.time - UUID_EPOCH)*100/1e9)
+    return dd.timestamp()
+
 if __name__ == '__main__':
     print( "This module was not meant to be used directly.")
 

@@ -14,7 +14,6 @@ import pyservsup, pyclisup, support
 import crysupp, pysyslog, pywrap
 
 sys.path.append(os.path.join(base,  '../pyvserver'))
-import pyvstate
 
 from pyvfunc import *
 
@@ -28,10 +27,11 @@ auth_sess   = 2
 auth_user   = 3
 auth_key    = 4
 auth_pass   = 5
-in_idle     = 6
-got_fname   = 7
-in_trans    = 8
-got_file    = 9
+auth_twofa  = 6
+in_idle     = 7
+got_fname   = 8
+in_trans    = 9
+got_file    = 10
 
 # The commands in this state are allowed always
 all_in       = 100
@@ -87,7 +87,9 @@ tout_help  = "Usage: tout new_val -- Set / Reset timeout in seconds"
 ekey_help  = "Usage: ekey encryption_key -- Set encryption key "
 sess_help  = "Usage: sess session data -- Start session "
 buff_help  = "Usage: buff buff_size -- limited to 64k"
-rput_help  = "Usage: rput header, field1, field2... -- put record in blockcain"
+rput_help  = "Usage: rput header, field1, field2... -- put record in blockcain."
+qr_help  = "Usage: qr -- get qrcode image for 2fa"
+twofa_help = "Usage: twofa -- two factor authentication"
 xxxx_help  = "Usage: no data"
 
 # ------------------------------------------------------------------------
@@ -95,7 +97,19 @@ xxxx_help  = "Usage: no data"
 # The table is searched for a mathing start_state, and the corresponding
 # function is executed. The new state set to end_state
 
-state_table = [
+def init_state_table():
+
+    global state_table
+    #print("pystate init table")
+    # This is to develop without entering auth code every time
+    if pyservsup.globals.conf.dmode:
+        print("Warning! devmode ON")
+        minauth =  auth_pass
+    else:
+        minauth =  auth_twofa
+
+    state_table = \
+    [
     # Command; start_state; end_state; min_auth; action func;   help func
     ("ver",     all_in,     none_in,    initial,  get_ver_func,   vers_help),
     ("id",      all_in,     none_in,    initial,  get_id_func,    id_help),
@@ -109,10 +123,11 @@ state_table = [
     ("akey",    all_in,     none_in,    initial,  get_akey_func,  akey_help),
     ("uini",    all_in,     none_in,    initial,  get_uini_func,  uini_help),
     ("kadd",    all_in,     none_in,    initial,  get_kadd_func,  kadd_help),
-    ("user",    all_in,     none_in,  initial, get_user_func,  user_help),
-    ("pass",    all_in,     auth_pass,  initial, get_pass_func,  pass_help),
+    ("user",    all_in,     none_in,    initial,  get_user_func,  user_help),
+    ("pass",    all_in,     auth_pass,  initial,  get_pass_func,  pass_help),
     ("sess",    all_in,     none_in,    initial,  get_sess_func,  sess_help),
     ("tout",    all_in,     none_in,    initial,  get_tout_func,  tout_help),
+    ("qr",      all_in,     none_in,    initial,  get_qr_func,    qr_help),
     ("chpass",  all_in,  none_in,    auth_pass, get_chpass_func,  chpass_help),
     ("file",    all_in,  none_in,    auth_pass, put_file_func, file_help),
     ("mkdir",   all_in,  none_in,    auth_pass, get_mkdir_func, file_help),
@@ -130,8 +145,11 @@ state_table = [
     ("pwd",     all_in,  none_in,    auth_pass, get_pwd_func,   pwdd_help),
     ("stat",    all_in,  none_in,    auth_pass, get_stat_func,  stat_help),
     ("buff",    all_in,  none_in,    auth_pass, get_buff_func,  buff_help),
-    ("rput",    all_in,  none_in,    auth_pass, get_rput_func,  rput_help),
+    ("twofa",   all_in,  auth_twofa, auth_pass, get_twofa_func,  twofa_help),
 
+    # Following the two factor auth commands. Disabled during development
+    ("rput",    all_in,  none_in,    minauth, get_rput_func,  rput_help),
+    ("rlist",    all_in,  none_in,    minauth, get_rlist_func,  rput_help),
     ]
 # ------------------------------------------------------------------------
 
@@ -224,6 +242,9 @@ class StateHandler():
                                 self.curr_state = aa[2]
                             got = True
                             if comx[0] == "pass":
+                                if ret2:
+                                    self.badpass += 1
+                            elif comx[0] == "twofa":
                                 if ret2:
                                     self.badpass += 1
                             else:
