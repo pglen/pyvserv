@@ -2,12 +2,7 @@
 
 import pytest, os, sys
 
-from Crypto.Hash import SHA512
 from Crypto.Hash import SHA256
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
 from Crypto import Random
 
 from mytest import *
@@ -29,6 +24,8 @@ def setup_module(module):
     except:
         #print(sys.exc_info())
         pass
+    start_server()
+
 
 def teardown_module(module):
     """ teardown any state that was previously setup with a setup_module

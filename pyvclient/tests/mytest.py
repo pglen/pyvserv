@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, string, random, sys, subprocess, time
+import os, string, random, sys, subprocess, time, signal
 sys.path.append("..")
 
 # Set parent as module include path
@@ -21,6 +21,17 @@ def start_server():
         print("servfile", os.path.isfile(exename))
         print("servfile", exename)
         subprocess.Popen([exename, "-D"])
+        time.sleep(1)
+
+def stop_server():
+    # Start server if needed
+    if os.path.isfile(fdirx + lockname):
+        print("lockfile", os.path.isfile(fdirx + lockname))
+        fp = open(fdirx + lockname)
+        buff = fp.read()
+        print("buff:", buff)
+        fp.close()
+        os.kill(int(buff), signal.SIGINT)
         time.sleep(1)
 
 # Return a random string based upon length
@@ -118,10 +129,4 @@ def randbin(lenx):
     return strx.encode("cp437", errors="ignore")
 
 # EOF
-
-
-
-
-
-
 

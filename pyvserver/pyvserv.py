@@ -243,8 +243,9 @@ def usersig(arg1, arg2):
 
 def terminate(arg1, arg2):
 
-
     global mydata, server
+
+    print("terminate")
 
     if mydata != {}:
         print( "Dumping connection info:")

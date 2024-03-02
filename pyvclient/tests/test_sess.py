@@ -3,13 +3,7 @@
 import pytest, os, sys, base64
 
 from pyvecc.Key import Key
-
 from Crypto.Hash import SHA256
-from Crypto.Hash import SHA256
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
 from Crypto import Random
 
 from mytest import *
@@ -31,6 +25,7 @@ def setup_module(module):
     except:
         #print(sys.exc_info())
         pass
+    start_server()
 
 def teardown_module(module):
     """ teardown any state that was previously setup with a setup_module
@@ -55,6 +50,7 @@ def test_func(capsys):
 
     #ip = "192.168.1.22"
     ip = '127.0.0.1'
+    global hand
     hand = pyclisup.CliSup()
 
     try:
@@ -97,10 +93,11 @@ def test_func(capsys):
         hand.client(["quit"])
         assert 0
 
-    #cipher = PKCS1_v1_5.new(hand.pubkey)
+    global cipher
     cipher = hand.pubkey
 
     # Generate communication key
+    global sess_key
     sess_key = base64.b64encode(Random.new().read(128))
     sss = SHA256.new(); sss.update(sess_key)
 
@@ -113,19 +110,29 @@ def test_func(capsys):
 
     resp5 = hand.client(["hello",], sess_key, False)
     print("Hello (encrypted2) Response:", resp5[1])
+    assert resp5[0] ==  "OK"
+
+def test_sec_sess():
+
+    global cipher, sess_key
 
     # Generate communication key2
-    #sess_key2 = Random.new().read(512)
-    #sss2 = SHA256.new(); sss2.update(sess_key2)
-    #
-    #sess_keyx2 = cipher.encrypt(sess_key2)
-    #ttt2 = SHA256.new(); ttt2.update(sess_keyx2)
-    #
-    #resp3 = hand.client(["sess", sss2.hexdigest(), ttt2.hexdigest(), sess_keyx2], sess_key, False)
-    #assert resp3[0] ==  "OK"
-    #
-    #resp = hand.client(["quit",], sess_key2)
-    #hand.close()
+    sess_key2 = base64.b64encode(Random.new().read(128))
+    sss2 = SHA256.new(); sss2.update(sess_key2)
+
+    sess_keyx2 = cipher.encrypt(sess_key2)
+    ttt2 = SHA256.new(); ttt2.update(sess_keyx2.encode())
+
+    resp3 = hand.client(["sess", sss2.hexdigest(), ttt2.hexdigest(),
+                                sess_keyx2], sess_key, False)
+    assert resp3[0] ==  "OK"
+
+    resp5 = hand.client(["hello",], sess_key2, False)
+    print("Hello (encrypted3) Response:", resp5[1])
+    assert resp5[0] ==  "OK"
+
+    resp = hand.client(["quit",], sess_key2)
+    hand.close()
 
     assert resp[0] == 'OK'
 

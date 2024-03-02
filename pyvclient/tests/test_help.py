@@ -20,12 +20,12 @@ def setup_module(module):
     except:
         #print(sys.exc_info())
         pass
+    start_server()
 
 def teardown_module(module):
     """ teardown any state that was previously setup with a setup_module
     method.
     """
-
     try:
         # No dangling data
         #os.remove(fname)
@@ -35,13 +35,10 @@ def teardown_module(module):
         #print(sys.exc_info())
         #assert 0
         pass
-
     #assert 0
+    start_server()
 
-
-
-
-def test_func(capsys):
+def test_help(capsys):
 
     global ip
 
@@ -57,15 +54,19 @@ def test_func(capsys):
         sys.exit(1)
         assert 0
 
-    #print(hand)
-    #assert 0
-
     resp = hand.client(["help"])
-    #print ("Server response:", resp); assert 0
+    assert resp[0] == 'OK'
+
+    #print ("Server response:", resp);
+    fff = 0
+    # Look for a command
+    for aa in resp:
+        print(aa)
+        if aa == 'ver':
+            fff += 1
+    assert fff != 0
 
     hand.client(["quit"])
-    hand.close()
-
     assert resp[0] == 'OK'
 
 

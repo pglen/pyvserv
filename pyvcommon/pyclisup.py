@@ -219,16 +219,14 @@ class CliSup():
                 fh.close()
                 cresp = [ERR,"Cannot write local file",]
                 return cresp
-
             fsize -= len(response)
             if fsize <= 0:
                 break
         fh.close()
-
         if self.verbose:
             print()
-
-        return  cresp
+        resp = self.recvx()
+        return  resp
 
     def  getreply(self, key = "", rand = True):
         response = self.myhandler.handle_one(self.mydathand)

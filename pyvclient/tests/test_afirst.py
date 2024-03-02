@@ -34,6 +34,7 @@ def teardown_module(module):
         #print(sys.exc_info())
         #assert 0
         pass
+    #stop_server()
     #assert 0
 
 def test_func(capsys):

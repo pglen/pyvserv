@@ -25,7 +25,6 @@ def teardown_module(module):
     """ teardown any state that was previously setup with a setup_module
     method.
     """
-
     try:
         # No dangling data
         #os.remove(fname)
@@ -35,6 +34,7 @@ def teardown_module(module):
         #print(sys.exc_info())
         #assert 0
         pass
+    stop_server()
 
     #assert 0
 

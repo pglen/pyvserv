@@ -296,7 +296,7 @@ def lock_process(lockfile):
             sys.exit(2)
 
     fh = open(lockfile, "w");
-    fh.write( str() );
+    fh.write(str(pid) );
     fh.close()
 
 def shortdump(msg, strx):
