@@ -328,21 +328,22 @@ def get_fput_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    # Loop, break when file end or transmission error
+    # Loop, break when EOF or transmission error
     while 1:
         data = self.resp.datahandler.handle_one(self.resp)
+        #print("data", data)
         if not data:
             break
         dstr = self.wr.unwrap_data(self.resp.ekey, data)
-        #print("dstr", dstr)
-
+        #print("dstr[1]", dstr[1])
         if not dstr[1]:
             break
-
-        #fh.write(bytes(dstr[1], "cp437"))
         fh.write(dstr[1])
 
     fh.close()
+    response = [OK, "File received", strx[1]]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
 
 def get_ekey_func(self, strx):
 

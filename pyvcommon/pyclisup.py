@@ -167,17 +167,17 @@ class CliSup():
                 print ("Server fput response:", cresp)
             return  cresp
 
-            fp = open(fname, "rb")
-            while 1:
-                try:
-                    buf = fp.read(rbuffsize)
-                    #print("sending", buf)
-                    dstr = self.wrapx(buf, key)
-                    self.sendx(dstr)
-                    if len(buf) == 0:
-                        break
-                except:
-                    return ["ERR", "Cannot send", sys.exc_info()]
+        fp = open(fname, "rb")
+        while 1:
+            try:
+                buf = fp.read(rbuffsize)
+                #print("sending", buf)
+                dstr = self.wrapx(buf, key)
+                self.sendx(dstr)
+                if len(buf) == 0:
+                    break
+            except:
+                return ["ERR", "Cannot send", sys.exc_info()]
 
         return ["OK", "Sent Successfully", fname]
 
