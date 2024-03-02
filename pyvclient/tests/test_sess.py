@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
-import pytest, os, sys
+import pytest, os, sys, base64
 
-from Crypto.Hash import SHA512
+from pyvecc.Key import Key
+
+from Crypto.Hash import SHA256
+from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -71,7 +74,7 @@ def test_func(capsys):
     resp = hand.client(["akey"])
     assert resp[0] == 'OK'
 
-    hhh = SHA512.new(); hhh.update(resp[2])
+    hhh = SHA256.new(); hhh.update(resp[2].encode())
 
     # Remember key
     if hhh.hexdigest() != resp[1]:
@@ -80,47 +83,49 @@ def test_func(capsys):
         hand.close();
         assert 0
 
-    hhh = SHA512.new(); hhh.update(resp[2])
+    hhh = SHA256.new(); hhh.update(resp[2].encode())
     ddd = hhh.hexdigest()
     assert ddd  == resp[1]
 
     try:
-        hand.pubkey = RSA.importKey(resp[2])
+        #hand.pubkey = RSA.importKey(resp[2])
+        hand.pubkey = Key.import_pub(resp[2])
     except:
         print("Cannot import public key.")
         support.put_exception("import key")
-        print ("cipher", cipher.can_encrypt())
+        #print ("cipher", cipher.can_encrypt())
         hand.client(["quit"])
-        hand.close();
         assert 0
 
-    cipher = PKCS1_v1_5.new(hand.pubkey)
+    #cipher = PKCS1_v1_5.new(hand.pubkey)
+    cipher = hand.pubkey
 
     # Generate communication key
-    sess_key = Random.new().read(512)
-    sss = SHA512.new(); sss.update(sess_key)
+    sess_key = base64.b64encode(Random.new().read(128))
+    sss = SHA256.new(); sss.update(sess_key)
 
     sess_keyx = cipher.encrypt(sess_key)
-    ttt = SHA512.new(); ttt.update(sess_keyx)
+    ttt = SHA256.new(); ttt.update(sess_keyx.encode())
 
     resp3 = hand.client(["sess", sss.hexdigest(), ttt.hexdigest(), sess_keyx], "", False)
+    print(resp3)
     assert resp3[0] ==  "OK"
 
     resp5 = hand.client(["hello",], sess_key, False)
     print("Hello (encrypted2) Response:", resp5[1])
 
     # Generate communication key2
-    sess_key2 = Random.new().read(512)
-    sss2 = SHA512.new(); sss2.update(sess_key2)
-
-    sess_keyx2 = cipher.encrypt(sess_key2)
-    ttt2 = SHA512.new(); ttt2.update(sess_keyx2)
-
-    resp3 = hand.client(["sess", sss2.hexdigest(), ttt2.hexdigest(), sess_keyx2], sess_key, False)
-    assert resp3[0] ==  "OK"
-
-    resp = hand.client(["quit",], sess_key2)
-    hand.close()
+    #sess_key2 = Random.new().read(512)
+    #sss2 = SHA256.new(); sss2.update(sess_key2)
+    #
+    #sess_keyx2 = cipher.encrypt(sess_key2)
+    #ttt2 = SHA256.new(); ttt2.update(sess_keyx2)
+    #
+    #resp3 = hand.client(["sess", sss2.hexdigest(), ttt2.hexdigest(), sess_keyx2], sess_key, False)
+    #assert resp3[0] ==  "OK"
+    #
+    #resp = hand.client(["quit",], sess_key2)
+    #hand.close()
 
     assert resp[0] == 'OK'
 

@@ -20,6 +20,7 @@ def setup_module(module):
     except:
         #print(sys.exc_info())
         pass
+    start_server()
 
 def teardown_module(module):
     """ teardown any state that was previously setup with a setup_module

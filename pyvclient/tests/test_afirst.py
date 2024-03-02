@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import pytest, os, sys
+import pytest, os, sys, subprocess, time
 from mytest import *
 
 hand = None
@@ -12,7 +12,6 @@ iname = createidxname(__file__)
 def setup_module(module):
     """ setup any state specific to the execution of the given module."""
     global hand
-
     try:
         # Fresh start
         os.remove(fname)
@@ -20,12 +19,12 @@ def setup_module(module):
     except:
         #print(sys.exc_info())
         pass
+    start_server()
 
 def teardown_module(module):
     """ teardown any state that was previously setup with a setup_module
     method.
     """
-
     try:
         # No dangling data
         #os.remove(fname)
@@ -35,11 +34,7 @@ def teardown_module(module):
         #print(sys.exc_info())
         #assert 0
         pass
-
     #assert 0
-
-
-
 
 def test_func(capsys):
 
@@ -54,7 +49,7 @@ def test_func(capsys):
     except:
         #support.put_exception("On connect")
         print( "Cannot connect to:", ip + ":" , sys.exc_info()[1])
-        sys.exit(1)
+        #sys.exit(1)
         assert 0
 
     #print(hand)

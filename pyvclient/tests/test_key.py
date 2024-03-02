@@ -3,6 +3,7 @@
 import pytest, os, sys
 
 from Crypto.Hash import SHA512
+from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -33,7 +34,6 @@ def teardown_module(module):
     """ teardown any state that was previously setup with a setup_module
     method.
     """
-
     try:
         # No dangling data
         #os.remove(fname)
@@ -43,10 +43,8 @@ def teardown_module(module):
         #print(sys.exc_info())
         #assert 0
         pass
-
     #assert 0
-
-
+    start_server()
 
 
 def test_func(capsys):
@@ -71,11 +69,12 @@ def test_func(capsys):
     resp = hand.client(["akey"])
     assert resp[0] == 'OK'
 
-    hhh = SHA512.new(); hhh.update(resp[2])
+    hhh = SHA256.new(); hhh.update(resp[2].encode())
     ddd = hhh.hexdigest()
+
     assert ddd  == resp[1]
 
-    hand.pubkey = RSA.importKey(resp[2])
+    #hand.pubkey = RSA.importKey(resp[2])
 
     hand.client(["quit"])
     hand.close()

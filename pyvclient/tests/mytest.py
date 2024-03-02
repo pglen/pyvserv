@@ -1,4 +1,6 @@
-import os, string, random, sys
+#!/usr/bin/env python3
+
+import os, string, random, sys, subprocess, time
 sys.path.append("..")
 
 # Set parent as module include path
@@ -8,11 +10,20 @@ sys.path.append(os.path.join(base,  '..', '..' ))
 from pyvcommon import support, pycrypt, pyservsup, pyclisup
 from pyvcommon import pysyslog, comline
 
-#import twincore
-# Common file for pytest
+fdirx = "/home/peterglen/pyvserver/"
+lockname = "tmp/lockfile"
+exename = "../../pyvserver/pyvserv.py"
+
+def start_server():
+    # Start server if needed
+    if not os.path.isfile(fdirx + lockname):
+        print("lockfile", os.path.isfile(fdirx + lockname))
+        print("servfile", os.path.isfile(exename))
+        print("servfile", exename)
+        subprocess.Popen([exename, "-D"])
+        time.sleep(1)
 
 # Return a random string based upon length
-
 allstr =  string.ascii_lowercase +  string.ascii_uppercase
 
 def randstr(lenx):
@@ -105,7 +116,6 @@ def randbin(lenx):
         ridx = random.randint(0, 255)
         strx += chr(ridx)
     return strx.encode("cp437", errors="ignore")
-
 
 # EOF
 
