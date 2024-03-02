@@ -107,20 +107,14 @@ class CliSup():
             fp.close()
 
         self.sock.sendall(strx)
-        #self.sock.recv(0)
 
     def recvx(self, key):
         resp = self.getreply(key)
-        #self.sock.send(b"")
         if self.pgdebug > 3:
             print("resp:", resp[:24])
-
         response = self.pb.decode_data(resp[1])
-        #response = self.pb.decode_data(resp[0])
-
         if self.pgdebug > 2:
             print( "    recvx: '%s'" % response[:24])
-
         return response[0]
 
     # ------------------------------------------------------------------------
@@ -147,7 +141,7 @@ class CliSup():
         return newkey
 
     # ------------------------------------------------------------------------
-    # Receive File. Return True for success.
+    # Send File. Return True for success.
 
     def putfile(self, fname, toname, key = ""):
 
@@ -179,7 +173,8 @@ class CliSup():
             except:
                 return ["ERR", "Cannot send", sys.exc_info()]
 
-        return ["OK", "Sent Successfully", fname]
+        response = self.recvx(key)
+        return response
 
     # ------------------------------------------------------------------------
     # Receive File. Return True for success.
@@ -204,38 +199,30 @@ class CliSup():
 
         fsize = int(cresp[1])
 
-        #key = b'Sixteen byte key'
-        key = key[:32]
-        cipher = AES.new(key, AES.MODE_CTR,
-                        use_aesni=True, nonce = b'12345678')
-
+        #key2 = b'Sixteen byte key'
+        key2 = key[:32]
+        cipher = AES.new(key2, AES.MODE_CTR,
+                        use_aesni=True, nonce = key[-8:])
+                            #b'12345678')
         while(True):
-            #response = self.recvx(key)
             response = self.myhandler.handle_one(self.mydathand)
-            #response = self.myhandler.rfile.read(1024)
-            #response = self.myhandler.sock.recv(1024)
-
             if self.pgdebug > 2:
                 print("getfile resp", response[:12])
-
             if not response:
                 break
-
             response = cipher.encrypt(response)
-
             try:
-                #fh.write(bytes(response, "cp437"))
                 fh.write(response)
             except:
                 #if self.verbose:
                 print( "Cannot write to local file: '" + toname + "'", sys.exc_info())
                 fh.close()
-                return
+                cresp = [ERR,"Cannot write local file",]
+                return cresp
 
             fsize -= len(response)
             if fsize <= 0:
                 break
-
         fh.close()
 
         if self.verbose:
@@ -283,8 +270,8 @@ class CliSup():
     # Add random stuff and wrap
     def wrapx(self, message, key):
 
-        rstr = self.rr.read(random.randint(14, 24))
-        xstr = self.rr.read(random.randint(24, 36))
+        rstr = self.rr.read(random.randint(4, 14))
+        xstr = self.rr.read(random.randint(4, 16))
         datax = [rstr, message, xstr]
 
         dstr = self.wr.wrap_data(key, datax)
@@ -389,7 +376,7 @@ class CliSup():
         #hhh = SHA512.new(); hhh.update(bytes(resp[2], "cp437"))
         hhh = SHA256.new(); hhh.update(resp[2].encode())
 
-        if conf.pgdebug > 1:
+        if self.pgdebug > 1:
             print("Hash1:  '" + resp[1] + "'")
             print("Hash2:  '" + hhh.hexdigest() + "'")
 
@@ -404,10 +391,10 @@ class CliSup():
 
         #print("Key response:", resp[0], resp[2][:32], "...")
 
-        if conf.pgdebug > 4:
+        if self.pgdebug > 4:
              print(self.pkey)
 
-        if conf.pgdebug > 2:
+        if self.pgdebug > 2:
             print ("Server response:", "'" + hhh.hexdigest() + "'")
 
         try:

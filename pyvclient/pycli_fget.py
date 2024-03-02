@@ -117,16 +117,11 @@ if __name__ == '__main__':
     #cresp = hand.client(["ls", ], conf.sess_key)
     #print ("Server  ls response:", cresp)
 
-    #cresp = hand.client(["buff", "10", ], conf.sess_key)
-    #print ("Server buff response:", cresp)
-    #if cresp[0] != "OK":
-    #    print("Error on buff command", cresp[1])
-    #    hand.client(["quit"], conf.sess_key)
-    #    hand.close();
-    #    sys.exit(0)
-
     ret2 = hand.getfile(conf.fname, conf.fname + "_local", conf.sess_key)
     print ("Server  fget response:", ret2)
+
+    cresp = hand.client(["ls", ], conf.sess_key)
+    print ("Server  ls response:", cresp)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)

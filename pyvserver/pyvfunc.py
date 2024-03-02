@@ -42,7 +42,7 @@ __doc__ = \
 OK = "OK"
 ERR = "ERR"
 
-pgdebug = 0
+#pgdebug = 0
 
 def contain_path(self, strp):
 
@@ -144,7 +144,7 @@ def get_buff_func(self, strx):
     elif num > 0xf000:
         num = 0xf000
 
-    if pgdebug > 2:
+    if pyservsup.globals.conf.pgdebug > 2:
         print("buffer set to %d" % num)
 
     self.buffsize = num
@@ -157,7 +157,7 @@ def get_lsd_func(self, strx):
     dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep
     dname2 = support.dirclean(dname2)
 
-    if pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 1:
         print("get_lsd_func", dname2)
 
     response = [ OK, ]
@@ -213,7 +213,7 @@ def get_ls_func(self, strx):
 
 def get_fget_func(self, strx):
 
-    if pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 1:
         print("fget strx", strx)
 
     dname = ""
@@ -247,10 +247,11 @@ def get_fget_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    #key = b'Sixteen byte key'
-    key = self.resp.ekey[:32]
-    cipher = AES.new(key, AES.MODE_CTR,
-                        use_aesni=True, nonce = b'12345678')
+    #key2 = b'Sixteen byte key'
+    key2 = self.resp.ekey[:32].encode()
+    cipher = AES.new(key2, AES.MODE_CTR,
+                        use_aesni=True, nonce = self.resp.ekey[-8:].encode() )
+                        #nonce = b'12345678')
 
     prog = 0
     # Loop, break when file end or transmission error
@@ -258,7 +259,7 @@ def get_fget_func(self, strx):
         try:
             buff = fh.read(self.buffsize)
             blen = len(buff)
-            if pgdebug > 3:
+            if pyservsup.globals.conf.pgdebug > 3:
                 print("fread", blen, buff[:12])
 
         except:
@@ -268,13 +269,13 @@ def get_fget_func(self, strx):
 
         buff = cipher.encrypt(buff)
         try:
-            if pgdebug > 5:
+            if pyservsup.globals.conf.pgdebug > 5:
                 print("putraw", len(buff), buff[:12])
 
             #ret = self.resp.datahandler.putencode([str(blen), buff,], self.resp.ekey, False)
             ret = self.resp.datahandler.putraw(buff)
             #ret = self.resp.datahandler.wfile.write(buff)
-            self.resp.datahandler.wfile.flush()
+            #self.resp.datahandler.wfile.flush()
         except:
             #print(sys.exc_info())
             suppport.put_exception("fget")
@@ -289,12 +290,16 @@ def get_fget_func(self, strx):
         if blen == 0:
             break
 
+    response = [OK, "Sent File", strx[1]]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
     #ret = self.resp.datahandler.wfile.write(b" ")
     #self.resp.datahandler.wfile.flush()
 
     # Lof and set state to IDLE
     xstr = "Sent file: '" + dname + \
                 "' " + str(flen) + " bytes"
+
     #print(xstr)
     pysyslog.syslog(xstr)
 
@@ -313,9 +318,30 @@ def get_fput_func(self, strx):
         return
 
     if os.path.isfile(dname):
-        response = [ERR, "File exists. Please delete first", strx[1]]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
+        was = False
+        for aa in range(3):
+            tmpname = "%s_%d" % (dname, aa)
+            if not os.path.isfile(tmpname):
+                #print("Saving to backup: %s", tmpname)
+                was = True
+                try:
+                    os.rename(dname, tmpname)
+                except:
+                    print(sys.exc_info())
+                break
+        if not was:
+            # Wrap around
+            tmpname = "%s_%d" % (dname, 0)
+            #print("Forced back 0", tmpname)
+            try:
+                os.remove(tmpname)
+                os.rename(dname, tmpname)
+            except:
+                print(sys.exc_info())
+
+        #response = [ERR, "File exists. Please delete first", strx[1]]
+        #self.resp.datahandler.putencode(response, self.resp.ekey)
+        #return
 
     response = [OK, "Send file", strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -341,7 +367,7 @@ def get_fput_func(self, strx):
         fh.write(dstr[1])
 
     fh.close()
-    response = [OK, "File received", strx[1]]
+    response = [OK, "File received.", strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 
@@ -532,33 +558,33 @@ def get_del_func(self, strx):
 # ------------------------------------------------------------------------
 
 def get_ver_func(self, strx):
-    if pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 1:
         print( "get_ver_func()", strx)
 
     res = [OK, "%s" % pyservsup.version,
                         "%s" % pyservsup.globals.siteid]
 
-    if pgdebug > 2:
+    if pyservsup.globals.conf.pgdebug > 2:
         print( "get_ver_func->output", res)
 
     self.resp.datahandler.putencode(res, self.resp.ekey)
 
 
 def get_id_func(self, strx):
-    if pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 1:
         print( "get_id_func()", strx)
     res = []
     res.append(OK);    res.append("%s" % pyservsup.globals.siteid)
-    if pgdebug > 2:
+    if pyservsup.globals.conf.pgdebug > 2:
         print( "get_ver_func->output", "'" + res + "'")
     self.resp.datahandler.putencode(res, self.resp.ekey)
 
 #@support.timeit
 def get_hello_func(self, strx):
-    if pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 1:
         print( "get_hello_func()", strx)
     strres = [OK, "Hello", str(pyservsup.globals.siteid), self.name]
-    if pgdebug > 2:
+    if pyservsup.globals.conf.pgdebug > 2:
         print( "get_hello_func->output", "'" + str(strres) + "'")
     self.resp.datahandler.putencode(strres, self.resp.ekey)
 
@@ -610,16 +636,16 @@ def get_user_func(self, strx):
 
 def get_sess_func(self, strx):
 
-    #if pgdebug > 4:
-    #    print("get_sess_func() called")
-    #print("sess args[3]", strx[3].encode()[:24])
+    #if pyservsup.globals.conf.pgdebug > 4:
+    #    for aa in strx:
+    #        print("arg:", aa)
 
     if len(strx) < 4:
         self.resp.datahandler.putencode(\
                 [ERR, "Not enough arguments."], self.resp.ekey)
         return
 
-    if pgdebug > 4:
+    if pyservsup.globals.conf.pgdebug > 4:
         print("Got session key command.")
 
     #sss = SHA512.new(); sss.update(bytes(strx[3], "cp437"))
@@ -630,10 +656,10 @@ def get_sess_func(self, strx):
         self.resp.datahandler.putencode([ERR, "session key damaged on transport."], self.resp.ekey)
         return
 
-    #dsize = SHA.digest_size
-    #sentinel = Random.new().read(dsize)
-    #message2 = self.priv_cipher.decrypt(bytes(strx[3], "cp437"), sentinel)
-    #message2 = self.priv_cipher.decrypt(strx[3], sentinel)
+    # Re init cypher (test)
+    #self.privkey = Key.import_priv(self.keyx2)
+    #self.priv_cipher = self.privkey
+
     message2 = self.priv_cipher.decrypt(strx[3])
 
     #print("sess_key", message2[:24])
@@ -641,9 +667,9 @@ def get_sess_func(self, strx):
     # Decoded OK?
     ttt = SHA256.new(); ttt.update(message2.encode())
 
-    if pgdebug > 3:
+    if pyservsup.globals.conf.pgdebug > 3:
         print("Hash1:", strx[1])
-        print("Hash2:",   ttt.hexdigest())
+        print("Hash2:", ttt.hexdigest())
 
     if ttt.hexdigest() != strx[1]:
         self.resp.datahandler.putencode(\
@@ -653,8 +679,8 @@ def get_sess_func(self, strx):
     self.resp.datahandler.putencode([OK, "Session estabilished."], self.resp.ekey)
     self.resp.ekey = message2
 
-    if pgdebug > 1:
-        support.shortdump("session key:", self.resp.ekey )
+    if pyservsup.globals.conf.pgdebug > 1:
+        support.shortdump("session key:", self.resp.ekey.encode() )
 
 # ------------------------------------------------------------------------
 
@@ -663,7 +689,7 @@ def get_akey_func(self, strx):
 
     ttt = time.time()
 
-    if pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 1:
         print("get_akey_func() called")
 
     ddd = os.path.abspath("keys")
@@ -678,10 +704,10 @@ def get_akey_func(self, strx):
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
-    if pgdebug > 2:
+    if pyservsup.globals.conf.pgdebug > 2:
        print("self.keyfroot", self.keyfroot)
 
-    if pgdebug > 2:
+    if pyservsup.globals.conf.pgdebug > 2:
         print("fname", ddd + os.sep + self.keyfroot + ".pub")
 
     #print("akey 1 %.3f" % ((time.time() - ttt) * 1000) )
@@ -692,8 +718,8 @@ def get_akey_func(self, strx):
         self.keyx = fp.read()
         fp.close()
 
-        if pgdebug > 4:
-            print("Key read: \n'" + self.keyx.decode("utf-8") + "'\n")
+        if pyservsup.globals.conf.pgdebug > 4:
+            print("Key read: \n'" + self.keyx + "'\n")
     except:
         print("Cannot read key:", self.keyfroot, sys.exc_info()[1])
         support.put_exception("read key")
@@ -729,7 +755,6 @@ def get_akey_func(self, strx):
         #self.privkey = RSA.importKey(self.keyx2)
         #self.privkey = ECC.import_key(self.keyx2)
         self.privkey = Key.import_priv(self.keyx2)
-
         #print("akey 3.1 %.3f" % ((time.time() - ttt) * 1000) )
         #self.priv_cipher = PKCS1_v1_5.new(self.privkey)
         # Bypass
@@ -746,7 +771,7 @@ def get_akey_func(self, strx):
 
     # Clean private key from memory
     hh = SHA256.new(); hh.update(self.keyx.encode())
-    if pgdebug > 3:
+    if pyservsup.globals.conf.pgdebug > 3:
         print("Key digest: \n'" + hh.hexdigest() + "'\n")
 
     # Deliver the answer in two parts:
@@ -1167,7 +1192,7 @@ def get_twofa_func(self, strx):
 
 def get_help_func(self, strx):
 
-    if pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 1:
         print( "get_help_func()", strx)
 
     harr = []
@@ -1188,7 +1213,7 @@ def get_help_func(self, strx):
                 harr.append("No such command")
                 harr.appnd(strx[0])
 
-    if pgdebug > 2:
+    if pyservsup.globals.conf.pgdebug > 2:
         print( "get_help_func->output", harr)
 
     self.resp.datahandler.putencode(harr, self.resp.ekey)

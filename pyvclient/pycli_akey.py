@@ -8,7 +8,10 @@ from __future__ import print_function
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
+from pyvecc.Key import Key
+
 from Crypto.Hash import SHA512
+from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -100,7 +103,7 @@ if __name__ == '__main__':
     if conf.pgdebug > 3:
         print ("Server pub key response:\n" +  "'" + str(resp[2]) +  "'\n")
 
-    hhh = SHA512.new(); hhh.update(resp[2])
+    hhh = SHA256.new(); hhh.update(resp[2].encode())
     ddd = hhh.hexdigest()
 
     if conf.pgdebug > 1:
@@ -116,20 +119,20 @@ if __name__ == '__main__':
 
     if conf.showkey:
         print("Key:")
-        print(hand.pkey.decode("cp437"))
+        print(hand.pkey)
 
     try:
-        hand.pubkey = RSA.importKey(hand.pkey)
+        #hand.pubkey = RSA.importKey(hand.pkey)
+        hand.pubkey = Key.import_pub(hand.pkey)
         if conf.pgdebug > 0:
             print (hand.pubkey)
     except:
         print("Cannot import public key.")
         support.put_exception("import key")
 
-    print("Got ", hand.pubkey )
+    #print("Got ", hand.pubkey )
     #print(hand.pubkey.size_in_bits(), "bits", hand.pubkey.export_key()[27:48])
-    print(hand.pubkey.size_in_bits(), "bits, Hash: ",  ddd[:24])
-
+    #print(hand.pubkey.size_in_bits(), "bits, Hash: ",  ddd[:24])
     #for aa in dir(hand.pubkey):
     #    print("Got ", aa, hand.pubkey.__getattribute__(aa))
 

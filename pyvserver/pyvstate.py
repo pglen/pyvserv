@@ -201,7 +201,7 @@ class StateHandler():
             self.resp.datahandler.putencode(sss, self.resp.ekey)
             return False
 
-        if self.pgdebug > 3:
+        if self.pgdebug > 6:
             print( "Incoming data:")
             for aa in dstr[1]:
                 print(aa[:12])

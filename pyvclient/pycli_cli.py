@@ -111,6 +111,19 @@ def mainfunc():
     resp3 = hand.client(["hello", ],  conf.sess_key, False)
     print("Hello Resp:", resp3)
 
+    resp3 = hand.start_session(conf)
+    if resp3[0] != "OK":
+        print("Error on setting session:", resp3[1])
+        hand.client(["quit"])
+        hand.close();
+        sys.exit(0)
+
+    if conf.sess_key:
+        print(" ------ Post session, session key:", conf.sess_key[:12], "...")
+
+    resp3 = hand.client(["hello", ],  conf.sess_key, False)
+    print("Hello2 Resp:", resp3)
+
     # Session estabilished, try a simple command
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
@@ -187,7 +200,6 @@ def mainloop(conf, hand):
                     # No wrapper needed
                     cresp = hand.client(ss, conf.sess_key)
                 print ("Server response:", cresp)
-
         except:
             print(sys.exc_info())
             break

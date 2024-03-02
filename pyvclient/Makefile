@@ -3,7 +3,7 @@
 .PHONY: testx, testx2, tests
 
 all:
-	@echo Targets: server tests test test2 hello clean init
+	@echo Targets: server tests test test2 hello clean cleandata init
 
 server:
 	@# Start server
@@ -57,6 +57,9 @@ clean:
 	@rm -f *.pyd
 	@rm -f *.dll
 	@rm -f *.pyc
+
+cleandata:
+	@rm -rf ~/pyvserver/payload/*
 
 
 

@@ -118,10 +118,16 @@ if __name__ == '__main__':
         print ("Server quit response:", cresp)
         sys.exit()
 
-    rate = filesize / (time.time() - ttt)
-    print ("fput resp:", resp, "time %.2f kbytes/sec" % rate)
+    if conf.verbose:
+        rate = filesize / (time.time() - ttt)
+        print ("fput resp:", resp, " %.2f kbytes/sec" % rate)
+
+    cresp = hand.client(["ls", ], conf.sess_key)
+    print ("Server  ls response:", cresp)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)
 
     sys.exit(0)
+
+# EOF
