@@ -1,7 +1,7 @@
-#                                Python vServer
-## 	Python fully encrypted server
+#  PyvServer
+## 	Python fully encrypted TCP/IP server
 
- PyvServ is a fully fledged encrypting TCP/IP server written in Python. The
+ &nbsp;PyvServ is a fully fledged encrypting TCP/IP server written in Python. The
 encryption algorithm is AES. The server can be fully administered from
 the protocol side.
 
