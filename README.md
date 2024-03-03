@@ -1,14 +1,14 @@
 #  PyvServer
 ## 	Python fully encrypted TCP/IP server
 
- &nbsp;PyvServ is a fully fledged encrypting TCP/IP server written in Python. The
+ &nbsp; &nbsp; PyvServ is a fully fledged encrypting TCP/IP server written in Python. The
 encryption algorithm is AES. The server can be fully administered from
 the protocol side.
 
- PyvServ contains protocol level encryption, which can be switched on by
+ &nbsp; &nbsp; PyvServ contains protocol level encryption, which can be switched on by
 instructing the server to use an encryption (session) key.
 
- PyvServ contains key exchange protocol, so the new session keys
+ &nbsp; &nbsp; PyvServ contains key exchange protocol, so the new session keys
 can be transmitted securely. The key exchange is based on ECC.
 
  PyvServ has utilities to generate encryption keys. At least one
@@ -86,22 +86,21 @@ sample client examples in the client source tree. (Files named pycli_*)
  at the first test, and terminates it after the last test. Please make sure it does not
  interfere with production.
 
-============================= test session starts ==============================
-platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.0.0
-rootdir: /home/peterglen/pgpygtk/pyvserv
-collected 9 items
+    ============================= test session starts ==============================
+    platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.0.0
+    rootdir: /home/peterglen/pgpygtk/pyvserv
+    collected 9 items
 
-test_afirst.py .                                                         [ 11%]
-test_file.py .                                                           [ 22%]
-test_help.py .                                                           [ 33%]
-test_id.py .                                                             [ 44%]
-test_key.py .                                                            [ 55%]
-test_login.py .                                                          [ 66%]
-test_sess.py ..                                                          [ 88%]
-test_ver.py .                                                            [100%]
+    test_afirst.py .                                                         [ 11%]
+    test_file.py .                                                           [ 22%]
+    test_help.py .                                                           [ 33%]
+    test_id.py .                                                             [ 44%]
+    test_key.py .                                                            [ 55%]
+    test_login.py .                                                          [ 66%]
+    test_sess.py ..                                                          [ 88%]
+    test_ver.py .                                                            [100%]
 
-============================== 9 passed in 1.35s ===============================
-
+    ============================== 9 passed in 1.35s ===============================
 
 ## History:
 
