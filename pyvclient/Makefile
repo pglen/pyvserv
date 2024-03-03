@@ -14,8 +14,7 @@ init:
 	-python3 ./pycli_uini.py -q
 
 tests:
-	@cd tests
-	@pytest
+	@cd tests; pytest
 
 test:
 	-python3 ./pycli_ping.py

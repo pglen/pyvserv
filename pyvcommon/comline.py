@@ -12,12 +12,23 @@ def pversion():
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
+glargs = ""
+glfoot = ""
+
+def setargs(args):
+    global glargs
+    glargs = args
+
+def setfoot(args):
+    global glfoot
+    glfoot = args
+
 # ------------------------------------------------------------------------
 
 def phelp():
 
     print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
+    print( "Usage: " + os.path.basename(sys.argv[0]), "[options]", glargs)
     print()
     print( "Options:")
 
@@ -26,6 +37,8 @@ def phelp():
         print("        ", "-" + aa[0][0], " ", aa[1], pad, " - ", aa[4])
 
     print()
+    if glfoot:
+        print(glfoot)
 
     sys.exit(0)
 

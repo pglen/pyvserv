@@ -192,17 +192,12 @@ class DataHandler():
         try:
             while 1:
                 buff =  self.getdata(xlen)
-                #buff =  self.getdata(1024)
-
                 if len(buff) == 0:
                     break
-
                 self.cumm += buff
-
                 #print("sock", buff)
                 #print("xlen", xlen)
                 #print("cummlen", len(self.cumm))
-
                 if state == 0:
                     if len(self.cumm) >= 2:
                         xlen = struct.unpack("!h", self.cumm[:2])[0]
@@ -226,7 +221,6 @@ class DataHandler():
         #if self.pgdebug > 8:
         #   print(b"got data: '" + newdata + b"'")
 
-        #return bytes(newdata, "utf-8")
         return newdata
 
 # Create a class with the needed members to send / recv

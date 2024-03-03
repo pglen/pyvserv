@@ -203,7 +203,6 @@ class CliSup():
         key2 = key[:32]
         cipher = AES.new(key2, AES.MODE_CTR,
                         use_aesni=True, nonce = key[-8:])
-                            #b'12345678')
         while(True):
             response = self.myhandler.handle_one(self.mydathand)
             if self.pgdebug > 2:
@@ -225,7 +224,8 @@ class CliSup():
         fh.close()
         if self.verbose:
             print()
-        resp = self.recvx()
+
+        resp = self.recvx(key)
         return  resp
 
     def  getreply(self, key = "", rand = True):

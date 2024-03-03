@@ -27,6 +27,8 @@ else:
 #parent = os.path.dirname(current)
 #sys.path.append(parent)
 
+progname = os.path.split(sys.argv[0])[1]
+
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base,  '..'))
 
@@ -245,7 +247,7 @@ def terminate(arg1, arg2):
 
     global mydata, server
 
-    print("terminate")
+    #print("terminate")
 
     if mydata != {}:
         print( "Dumping connection info:")
@@ -256,11 +258,11 @@ def terminate(arg1, arg2):
         server.socket.close()
         server.shutdown()
     except:
-        #print("Shutdown exception")
+        print("Shutdown exception", sys.exc_info())
         pass
 
     if not conf.quiet:
-        print( "Terminated pyvserv.py.")
+        print( "Terminated", progname)
 
     #if conf.pglog > 0:
     #    pysyslog.syslog("Terminated Server")
@@ -380,6 +382,8 @@ optarr.append ( ["m",   "mem",         0,       None, "Show memory trace."] )
 optarr.append ( ["D",   "dmode",       0,       None, "Dev mode (no twofa)"] )
 
 #print (optarr)
+comline.setargs("")
+comline.setfoot("Use quotes for argument separations.")
 
 conf = comline.Config(optarr)
 
@@ -393,6 +397,7 @@ def mainfunc():
         sys.exit(0)
 
     args = conf.comline(sys.argv[1:])
+    #print(args)
 
     # Print comline args
     if conf.pgdebug > 0:
@@ -465,7 +470,7 @@ def mainfunc():
     pyvfunc.pglog = conf.pglog
 
     if conf.pglog > 0:
-        pysyslog.openlog("pyvserv.py")
+        pysyslog.openlog("pyvserver")
 
     # Port 0 would mean to select an arbitrary unused port
     HOST, PORT = conf.host, conf.port
@@ -484,6 +489,7 @@ def mainfunc():
 
         pyvstate.init_state_table()
     try:
+        global server
         server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
         server.allow_reuse_address = True
         ip, port = server.server_address

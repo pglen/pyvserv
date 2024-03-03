@@ -47,7 +47,7 @@ def syslog(*message, **options):
 def openlog(ident=sys.argv[0], logoptions=0, facility=LOG_NOTICE):
 
     logname = os.path.expanduser("~/pyvserver/log")
-    print("openlog", logname)
+    #print("openlog", logname)
     if not os.path.isdir(logname):
         os.mkdir(logname)
 

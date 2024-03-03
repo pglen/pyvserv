@@ -247,13 +247,10 @@ def get_fget_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    #key2 = b'Sixteen byte key'
-    key2 = self.resp.ekey[:32].encode()
-    cipher = AES.new(key2, AES.MODE_CTR,
+    cipher = AES.new(self.resp.ekey[:32].encode(), AES.MODE_CTR,
                         use_aesni=True, nonce = self.resp.ekey[-8:].encode() )
-                        #nonce = b'12345678')
-
     prog = 0
+
     # Loop, break when file end or transmission error
     while 1:
         try:
@@ -261,7 +258,6 @@ def get_fget_func(self, strx):
             blen = len(buff)
             if pyservsup.globals.conf.pgdebug > 3:
                 print("fread", blen, buff[:12])
-
         except:
             #print("Cannot read local file", sys.exc_info())
             put_exception("Cannot read local file")
@@ -271,11 +267,10 @@ def get_fget_func(self, strx):
         try:
             if pyservsup.globals.conf.pgdebug > 5:
                 print("putraw", len(buff), buff[:12])
-
-            #ret = self.resp.datahandler.putencode([str(blen), buff,], self.resp.ekey, False)
+            #ret = self.resp.datahandler.putencode([str(blen), buff,],
+            #            self.resp.ekey, False)
+            #dstr = self.resp.datahandler.wrapx(buf, key)
             ret = self.resp.datahandler.putraw(buff)
-            #ret = self.resp.datahandler.wfile.write(buff)
-            #self.resp.datahandler.wfile.flush()
         except:
             #print(sys.exc_info())
             suppport.put_exception("fget")
@@ -284,7 +279,6 @@ def get_fget_func(self, strx):
         prog += blen
         if prog >= flen:
             break
-
         if ret == 0:
             break
         if blen == 0:
