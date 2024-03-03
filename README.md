@@ -25,6 +25,10 @@ previous record. Utilities to verify the data are also provided.
 
  Project is still in motion, but a lot of it is usable.
 
+#### Installation:
+
+    pip install pyvserv
+
  Dependencies:
 
  Most linux system have all the dependencies by default. Some dependencies
@@ -39,21 +43,13 @@ For example (assuming port 6666):
 sudo iptables -A INPUT -p tcp --dport 6666
 sudo iptables -A INPUT -p tcp --sport 6666
 
-#### Installation:
-
-    pip install pyvserv
-
-#### Partially Working:
+#### Working parts:
 
     Server.     subdir: pyvserver       -- Server has 90% of the commands done
     Client.     subdir: pyvclient       -- 90% the commands
     Tool Suite. subdir: pyvtools        -- Key generation etc ...
     Test Suite. subdir: pyvclient/tests -- Test pass
     Studies.    subdir: study           -- testing/learning subsystems (ignore it)
-
-#### Installation:
-
-    pip install pyvserv
 
 #### Quick start:
 
