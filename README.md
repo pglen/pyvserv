@@ -9,16 +9,19 @@ the protocol side.
 instructing the server to use an encryption (session) key.
 
  PyvServ contains key exchange protocol, so the new session keys
-can be transmitted securely. The key exchange is base on ECC.
+can be transmitted securely. The key exchange is based on ECC.
 
  PyvServ has utilities to generate encryption keys. At least one
 key needs to be generated before use. The server picks from a pool of keys,
 so communication data is always distinctive.
 
  PyvServ has blockchain capable back end. The new data is linked to the
-previous record. Utilities to verify the data
+previous record. Utilities to verify the data are also provided.
 
- PyvServ has file upload / download capabilities.
+ PyvServ has file upload / download capabilities with encrypted transport.
+
+ PyvServ has replication facilities via a client based  'I have You have'
+ mechanism featuring encrypted transport.
 
  Project is still in motion, but a lot of it is usable.
 
@@ -36,22 +39,17 @@ For example (assuming port 6666):
 sudo iptables -A INPUT -p tcp --dport 6666
 sudo iptables -A INPUT -p tcp --sport 6666
 
-### Working so far:
+#### Installation:
 
-    make test;     # operational
-
-    Only py3 supported. Disabled py2
+    pip install pyvserv
 
 #### Partially Working:
 
-    Server.     subdir: pyvserver      -- Server has 50% of the commands done
-    Client.     subdir: pyvclient      -- 90% the commands
-    Test Suite. subdir: tests          -- Test pass
-
-    Studies.    subdir: study          -- testing/learning subsystems (ignore it)
-
-#### Version-ing.
-
+    Server.     subdir: pyvserver       -- Server has 90% of the commands done
+    Client.     subdir: pyvclient       -- 90% the commands
+    Tool Suite. subdir: pyvtools        -- Key generation etc ...
+    Test Suite. subdir: pyvclient/tests -- Test pass
+    Studies.    subdir: study           -- testing/learning subsystems (ignore it)
 
 #### Installation:
 
