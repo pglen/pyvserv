@@ -48,7 +48,7 @@ def stop_server():
         buff = fp.read()
         print("buff:", buff)
         fp.close()
-        os.kill(int(buff), signal.SIGINT)
+        os.kill(int(buff), signal.SIGTERM)
         time.sleep(1)
 
 # Return a random string based upon length

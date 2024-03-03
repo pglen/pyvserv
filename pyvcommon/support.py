@@ -255,7 +255,7 @@ def unlock_process(lockfile):
         os.unlink(lockfile)
     except:
         pass
-        print("Cannot unlink lockfile.")
+        print("Cannot unlink lockfile.", sys.exc_info())
 
 
 def lock_process(lockfile):

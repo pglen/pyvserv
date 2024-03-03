@@ -93,9 +93,9 @@ class   wrapper():
             #fff2 = bluepy.encrypt(fff, key)
             fff2 = fff
 
-            key2 = key[:32]
+            key2 = key[:32]; key3 = key[-8:]
             cipher = AES.new(key2, AES.MODE_CTR,
-                        use_aesni=True, nonce = b'12345678')
+                        use_aesni=True, nonce = key3)
             fff3 = cipher.encrypt(fff2)
             #fff3 = fff2
         else:
@@ -130,9 +130,9 @@ class   wrapper():
         fff2 = xddd
 
         if key:
-            key2 = key[:32]
+            key2 = key[:32]; key3 = key[-8:]
             cipher = AES.new(key2, AES.MODE_CTR,
-                        use_aesni=True, nonce = b'12345678')
+                        use_aesni=True, nonce = key3)
             fff3 = cipher.decrypt(fff2)
             #fff3 = fff2
 

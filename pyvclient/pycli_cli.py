@@ -111,6 +111,14 @@ def mainfunc():
     resp3 = hand.client(["hello", ],  conf.sess_key, False)
     print("Hello Resp:", resp3)
 
+    # Session estabilished, try a simple command
+    #resp4 = hand.client(["hello",], conf.sess_key)
+    #print("Hello Response:", resp4[1])
+
+    cresp = hand.login(conf, "admin", "1234")
+    print ("Login resp:", cresp)
+
+    # Start a new session for the rest of the work
     resp3 = hand.start_session(conf)
     if resp3[0] != "OK":
         print("Error on setting session:", resp3[1])
@@ -123,13 +131,6 @@ def mainfunc():
 
     resp3 = hand.client(["hello", ],  conf.sess_key, False)
     print("Hello2 Resp:", resp3)
-
-    # Session estabilished, try a simple command
-    #resp4 = hand.client(["hello",], conf.sess_key)
-    #print("Hello Response:", resp4[1])
-
-    cresp = hand.login(conf, "admin", "1234")
-    print ("Login resp:", cresp)
 
     # Interactive, need more time
     hand.client(["tout", "30",], conf.sess_key)
@@ -157,14 +158,17 @@ def mainfunc():
 
 def mainloop(conf, hand):
 
+    cresp = ""
     while(True):
         try:
             onecom = input(">> ")
             #print ("'" + onecom.split() + "'")
             ss = onecom.split()
             if ss  != []:
+
                 # process commands that need additional data
-                if ss[0] == "done":
+
+                if ss[0] == "quit":
                     break
                 elif ss[0] == "sess":
                     cresp = hand.start_session(conf)
@@ -175,8 +179,9 @@ def mainloop(conf, hand):
                     if len(ss) < 2:
                         print("Use: fget fname")
                         continue
-                    ret2 = hand.getfile(ss[1], "", conf.sess_key)
+                    ret2 = hand.getfile(ss[1], ss[1] + "_local", conf.sess_key)
                     print ("Server fget response:", ret2)
+                    continue
 
                 elif ss[0] == "fput":
                     if len(ss) < 2:
@@ -184,6 +189,7 @@ def mainloop(conf, hand):
                         continue
                     ret2 = hand.putfile(ss[1], "", conf.sess_key)
                     print ("Server fput response:", ret2)
+                    continue
 
                 elif ss[0] == "file":
                     if not os.path.isfile(ss[1]):
@@ -192,14 +198,17 @@ def mainloop(conf, hand):
                     cresp = hand.start_session(conf)
                     if conf.sess_key:
                         print("Post session, session key:", conf.sess_key[:12], "...")
-                if ss[0][0] == "!":
+                    continue
+
+                elif ss[0][0] == "!":
                     #print ("local command")
                     os.system(ss[0][1:] + " " + " ".join(ss[1:]))
                     continue
                 else:
                     # No wrapper needed
                     cresp = hand.client(ss, conf.sess_key)
-                print ("Server response:", cresp)
+                    # post process
+                    print ("Server response:", cresp)
         except:
             print(sys.exc_info())
             break

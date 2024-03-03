@@ -27,6 +27,9 @@ else:
 #parent = os.path.dirname(current)
 #sys.path.append(parent)
 
+# Create a placeholder
+server = None
+
 progname = os.path.split(sys.argv[0])[1]
 
 base = os.path.dirname(os.path.realpath(__file__))
@@ -234,12 +237,42 @@ class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
 def usersig(arg1, arg2):
 
     global mydata, server
-    #print("usersig", arg1, arg2)
+    print("usersig", arg1, arg2)
     if conf.pglog > 0:
         pysyslog.syslog("Got user signal %d" % arg1)
 
     print("Current clients:")
     print( mydata)
+
+def usersig2(arg1, arg2):
+
+    global mydata, server
+    print("usersig2", arg1, arg2)
+    if conf.pglog > 0:
+        pysyslog.syslog("Got user signal2 %d" % arg1)
+
+def soft_terminate(arg1, arg2):
+
+    #global mydata, server
+    ##print("soft_terminate")
+    #
+    #try:
+    #
+    #    for aa in mydata:
+    #        print(aa, mydata[aa])
+    #        mydata[aa].finish()
+    #except:
+    #    pass
+    #
+    terminate(0, 0)
+
+    #while True:
+    #    print( "Dumping connection info:")
+    #    print( mydata)
+    #    if mydata == {}:
+    #        terminate(0, 0);
+    #        break
+    #    time.sleep (1)
 
 # ------------------------------------------------------------------------
 
@@ -248,17 +281,17 @@ def terminate(arg1, arg2):
     global mydata, server
 
     #print("terminate")
-
-    if mydata != {}:
-        print( "Dumping connection info:")
-        print( mydata)
+    #if mydata != {}:
+    #    print( "Dumping connection info:")
+    #    print( mydata)
 
     try:
-        server.socket.shutdown(socket.SHUT_RDWR)
-        server.socket.close()
-        server.shutdown()
+        if server:
+            server.socket.shutdown(socket.SHUT_RDWR)
+            server.socket.close()
+            server.shutdown()
     except:
-        print("Shutdown exception", sys.exc_info())
+        print("Exception in shutdown", sys.exc_info())
         pass
 
     if not conf.quiet:
@@ -373,19 +406,20 @@ def simple_server(HOST, PORT):
 
 # ------------------------------------------------------------------------
 
-optarr =  comline.optarr
-optarr.append ( ["e",   "detach",      0,       None, "Detach from terminal"] )
-optarr.append ( ["r:",  "dataroot",    None,    None, "Data root"] )
-optarr.append ( ["l:",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
-optarr.append ( ["n:",   "host",   "127.0.0.1",  None, "Set server hostname"] )
-optarr.append ( ["m",   "mem",         0,       None, "Show memory trace."] )
-optarr.append ( ["D",   "dmode",       0,       None, "Dev mode (no twofa)"] )
+optarr =  comline.optarrlong
+optarr.append ( ["e",   "detach=",   "detach",      0,       None, "Detach from terminal"] )
+optarr.append ( ["r:",  "dataroot=", "dataroot",   "",      None, "Data root"] )
+optarr.append ( ["l:",  "loglevel",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
+optarr.append ( ["n:",  "host",      "host",   "127.0.0.1",  None, "Set server hostname"] )
+optarr.append ( ["m",   "mem",       "mem",         0,       None, "Show memory trace."] )
+optarr.append ( ["D",   "dmode",     "dmode",       0,       None, "Dev mode (no twofa)"] )
 
 #print (optarr)
 comline.setargs("")
 comline.setfoot("Use quotes for argument separations.")
 
-conf = comline.Config(optarr)
+conf = comline.ConfigLong(optarr)
+#conf.printvars()
 
 # The pip install will call this script:
 
@@ -397,10 +431,11 @@ def mainfunc():
         sys.exit(0)
 
     args = conf.comline(sys.argv[1:])
+
     #print(args)
 
     # Print comline args
-    if conf.pgdebug > 0:
+    if conf.pgdebug > 7:
         for aa in vars(conf):
             if aa != "optarr":
                 print(aa, "=", getattr(conf, aa), end = "   ")
@@ -454,9 +489,10 @@ def mainfunc():
 
     # Set termination handlers, so lock will be deleted
     signal.signal(signal.SIGTERM, terminate)
-    signal.signal(signal.SIGINT, terminate)
+    signal.signal(signal.SIGINT, soft_terminate)
     try:
         signal.signal(signal.SIGUSR1, usersig)
+        signal.signal(signal.SIGUSR2, usersig2)
     except:
         print("User signal may not be available.")
 

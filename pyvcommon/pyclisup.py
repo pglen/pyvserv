@@ -145,27 +145,30 @@ class CliSup():
 
     def putfile(self, fname, toname, key = ""):
 
+        if self.verbose:
+            print("putfile(), fname")
+
         if not toname:
             toname = fname
         try:
             fp = open(fname, "rb")
         except:
-            return ["ERR", "Cannot open", sys.exc_info()]
+            if self.verbose:
+                print("Cannot open file", sys.exc_info())
+            cresp = ["ERR", "Cannot open", fname]
+            return cresp
 
         cresp = self.client(["fput", toname], key)
         if self.verbose:
-            print ("Server fput response:", cresp)
+            print ("fput response:", cresp)
 
         if cresp[0] != "OK":
-            if self.verbose:
-                print ("Server fput response:", cresp)
             return  cresp
 
-        fp = open(fname, "rb")
         while 1:
             try:
                 buf = fp.read(rbuffsize)
-                #print("sending", buf)
+                #print("sending buffer", buf)
                 dstr = self.wrapx(buf, key)
                 self.sendx(dstr)
                 if len(buf) == 0:
@@ -187,21 +190,19 @@ class CliSup():
         try:
             fh = open(toname, "wb+")
         except:
-            print( "Cannot create local file: '" + toname + "'")
-            return
+            cresp = [ERR, "Cannot create local file: '" + toname + "'", ]
+            return cresp
 
         cresp = self.client(["fget", fname], key)
         if self.verbose:
-            print ("Server  fget response:", cresp)
+            print ("fget  response:", cresp)
 
         if cresp[0] != "OK":
             return cresp
 
         fsize = int(cresp[1])
 
-        #key2 = b'Sixteen byte key'
-        key2 = key[:32]
-        cipher = AES.new(key2, AES.MODE_CTR,
+        cipher = AES.new(key[:32], AES.MODE_CTR,
                         use_aesni=True, nonce = key[-8:])
         while(True):
             response = self.myhandler.handle_one(self.mydathand)
@@ -219,11 +220,12 @@ class CliSup():
                 cresp = [ERR,"Cannot write local file",]
                 return cresp
             fsize -= len(response)
-            if fsize <= 0:
-                break
+            #if fsize <= 0:
+            #   break
+            #if not response:
+            #    break
+
         fh.close()
-        if self.verbose:
-            print()
 
         resp = self.recvx(key)
         return  resp

@@ -45,6 +45,8 @@ def test_func(capsys):
 
     global ip
 
+    global hand
+
     #ip = "192.168.1.22"
     ip = '127.0.0.1'
     hand = pyclisup.CliSup()
@@ -58,6 +60,7 @@ def test_func(capsys):
         assert 0
 
     org_sess_key = ""
+    global sess_key
     sess_key = session(hand, org_sess_key)
 
     resp = login(hand, sess_key)
@@ -67,12 +70,13 @@ def test_func(capsys):
     #print("Hello encr:", resp5)
     assert resp5[0] ==  "OK"
 
-    fname = "test_data/test.txt"
+    global fname
+    fname = "test.txt"
     fp = open(fname, "wb")
     fp.write(b"Test Data" * 10)
     fp.close()
 
-    resp = hand.client(["fput", "test.txt"], sess_key)
+    resp = hand.client(["fput", fname], sess_key)
     print ("fput response:", resp)
     assert resp[0] ==  "OK"
 
@@ -92,41 +96,45 @@ def test_func(capsys):
     resp = hand.recvx(sess_key)
     print ("fput transfer:", resp)
 
+def test_get(capsys):
+
     # --------------------------------------------------------------------
     # Get back the same file
 
-    resp = hand.client(["fget", "test.txt"], sess_key)
-    print ("fget response:", resp)
-    assert resp[0] ==  "OK"
+    #resp = hand.client(["fget", "test.txt"], sess_key)
+    #print ("fget response:", resp)
+    #assert resp[0] ==  "OK"
+    #
+    fname2 = "test.txt_local"
+    #
+    #fh = open(fname2, 'wb')
+    #
+    #fsize = int(resp[1])
+    #cipher = AES.new(sess_key[:32], AES.MODE_CTR, use_aesni=True, nonce=sess_key[-8:])
+    #while(True):
+    #    response = hand.myhandler.handle_one(hand.mydathand)
+    #    if not response:
+    #        break
+    #    response = cipher.encrypt(response)
+    #    try:
+    #        fh.write(response)
+    #    except:
+    #        print( "Cannot write to local file: '" + fname2 + "'", sys.exc_info())
+    #        cresp = [ERR,"Cannot write local file",]
+    #        break
+    #    fsize -= len(response)
+    #    if fsize <= 0:
+    #        break
+    #    if not response:
+    #        break
+    #fh.close()
+    #resp = hand.recvx(sess_key)
 
-    fname2 = "test_data/test.txt_local"
-
-    fh = open(fname2, 'wb')
-
-    fsize = int(resp[1])
-    cipher = AES.new(sess_key[:32], AES.MODE_CTR, use_aesni=True, nonce=sess_key[-8:])
-    while(True):
-        response = hand.myhandler.handle_one(hand.mydathand)
-        if not response:
-            break
-        response = cipher.encrypt(response)
-        try:
-            fh.write(response)
-        except:
-            print( "Cannot write to local file: '" + fname2 + "'", sys.exc_info())
-            cresp = [ERR,"Cannot write local file",]
-            break
-        fsize -= len(response)
-        if fsize <= 0:
-            break
-    fh.close()
-
-    resp = hand.recvx(sess_key)
-    print ("fget transfer:", resp)
+    ret2 = hand.getfile(fname, fname2, sess_key)
+    print ("fget transfer:", ret2)
 
     buff1 = open(fname, 'rb').read()
     buff2 = open(fname2, 'rb').read()
-
     assert buff1 == buff2
 
     resp = hand.client(["hello"], sess_key)

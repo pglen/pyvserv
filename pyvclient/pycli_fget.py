@@ -118,7 +118,7 @@ if __name__ == '__main__':
     #print ("Server  ls response:", cresp)
 
     ret2 = hand.getfile(conf.fname, conf.fname + "_local", conf.sess_key)
-    print ("Server  fget response:", ret2)
+    print ("Server fget response:", ret2)
 
     cresp = hand.client(["ls", ], conf.sess_key)
     print ("Server  ls response:", cresp)
@@ -126,6 +126,4 @@ if __name__ == '__main__':
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)
 
-    sys.exit(0)
-
-
+# EOF

@@ -236,6 +236,7 @@ def get_fget_func(self, strx):
         flen = os.stat(dname)[stat.ST_SIZE]
     except:
         flen = 0
+
     response = [OK, str(flen), strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -260,7 +261,7 @@ def get_fget_func(self, strx):
                 print("fread", blen, buff[:12])
         except:
             #print("Cannot read local file", sys.exc_info())
-            put_exception("Cannot read local file")
+            put_exception("Cannot read file")
             break
 
         buff = cipher.encrypt(buff)
@@ -276,9 +277,10 @@ def get_fget_func(self, strx):
             suppport.put_exception("fget")
             break;
 
-        prog += blen
-        if prog >= flen:
-            break
+        #prog += blen
+        #if prog >= flen:
+        #    break
+
         if ret == 0:
             break
         if blen == 0:
@@ -298,7 +300,7 @@ def get_fget_func(self, strx):
     pysyslog.syslog(xstr)
 
 def get_fput_func(self, strx):
-    #print("fget strx", strx)
+    #print("fput strx", strx)
 
     if len(strx) < 2:
         response = [ERR, "Must specify file name.", strx[0]]
