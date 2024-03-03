@@ -40,8 +40,8 @@ previous record. Utilities to verify the data are also provided.
 
 For example (assuming port 6666):
 
-sudo iptables -A INPUT -p tcp --dport 6666
-sudo iptables -A INPUT -p tcp --sport 6666
+    sudo iptables -A INPUT -p tcp --dport 6666
+    sudo iptables -A INPUT -p tcp --sport 6666
 
 #### Working parts:
 
@@ -58,13 +58,13 @@ of the client / server interaction before live deployment. This
 chapter assumes installation from github, replicating directory
 structure on the local drive.
 
-  open terminal window
-  navigate to the server's pyvserver subdir
-  type ./pyvserv.py
+    open terminal window
+    navigate to the server's pyvserver subdir
+    type ./pyvserv.py
 
-  open another terminal window
-  navigate to the pyvclient subdir
-  type ./pycli_hello.py
+    open another terminal window
+    navigate to the pyvclient subdir
+    type ./pycli_hello.py
 
 The following (and more) should be printed on command line:
 
@@ -82,9 +82,9 @@ sample client examples in the client source tree. (Files named pycli_*)
 
 ## Testing:
 
- Pytests app pass. Note that the pytest process starts the pyvserv at the first
- test, and terminates it after the last test. Please make sure it does not
- interfer with production.
+ Pytest tyest cases all pass. Note that the pytest process starts the pyvserv.py
+ at the first test, and terminates it after the last test. Please make sure it does not
+ interfere with production.
 
 ============================= test session starts ==============================
 platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.0.0
