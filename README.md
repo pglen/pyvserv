@@ -82,9 +82,9 @@ sample client examples in the client source tree. (Files named pycli_*)
 
 ## Testing:
 
- Pytest tyest cases all pass. Note that the pytest process starts the pyvserv.py
+ Pytest test cases all pass. Note that the pytest process starts the pyvserv.py
  at the first test, and terminates it after the last test. Please make sure it does not
- interfere with production.
+ interfere with production. More test coming soon ....
 
     ============================= test session starts ==============================
     platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.0.0
