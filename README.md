@@ -2,29 +2,34 @@
 ## 	Python fully encrypted server
 
  PyvServ is a fully fledged encrypting TCP/IP server written in Python. The
-encryption algorithm is bluepy. The server can be fully administered from
+encryption algorithm is AES. The server can be fully administered from
 the protocol side.
 
  PyvServ contains protocol level encryption, which can be switched on by
-instructing the server to use an encryption key.
+instructing the server to use an encryption (session) key.
 
  PyvServ contains key exchange protocol, so the new session keys
-can be transmitted securely, even with zero knowledge.
+can be transmitted securely. The key exchange is base on ECC.
 
- PyvServ internally generates random keys, and spools asymmetric key generation,
+ PyvServ has utilities to generate encryption keys. At least one
+key needs to be generated before use. The server picks from a pool of keys,
 so communication data is always distinctive.
 
- Project is still in motion, not much is usable yet.
+ PyvServ has blockchain capable back end. The new data is linked to the
+previous record. Utilities to verify the data
+
+ PyvServ has file upload / download capabilities.
+
+ Project is still in motion, but a lot of it is usable.
 
  Dependencies:
 
  Most linux system have all the dependencies by default. Some dependencies
- may need adding, like the following:
+ are added automatically on installation.
 
-sudo apt install python3-psutil
-sudo apt install python3-bcrypt
+     pydbase, pyvpacker, pyvecc
 
- The firewall needs to be opened for incoming connections on port 9999.
+ The firewall needs to be opened for incoming connections on port xxxx
 
 For example (assuming port 6666):
 
@@ -33,53 +38,84 @@ sudo iptables -A INPUT -p tcp --sport 6666
 
 ### Working so far:
 
- Bluepoint2. The subdir bluepy contains the 'c' code and the python binding.
-
-    make build;    # operational
     make test;     # operational
 
     Only py3 supported. Disabled py2
 
 #### Partially Working:
 
-    Server.     subdir: server      -- Server has 50% of the commands done
-    Client.     subdir: client      -- quarter of the commands
-    Test Suite. subdir: test
+    Server.     subdir: pyvserver      -- Server has 50% of the commands done
+    Client.     subdir: pyvclient      -- 90% the commands
+    Test Suite. subdir: tests          -- Test pass
 
-    Studies.    subdir: study       -- testing subsystems
-                subdir: pycrypto    -- test crypto functions
+    Studies.    subdir: study          -- testing/learning subsystems (ignore it)
 
 #### Version-ing.
 
-  The 'C' module has a date API, that is generated automatically. Use it to
-distinguish algorithm version.
 
-    print( "Builddate: ",  bluepy.builddate())
+#### Installation:
+
+    pip install pyvserv
 
 #### Quick start:
 
+ One can mimic global connectivity on a single machine. This would allow the study
+of the client / server interaction before live deployment. This
+chapter assumes installation from github, replicating directory
+structure on the local drive.
+
   open terminal window
-  navigate to server subdir
+  navigate to the server's pyvserver subdir
   type ./pyvserv.py
 
   open another terminal window
-  navigate to client subdir
+  navigate to the pyvclient subdir
   type ./pycli_hello.py
 
-The following should be printed on command line:
+The following (and more) should be printed on command line:
 
-         ./pycli_hello.py
-         Server initial: OK pyserv ready
-         Server response: OK Hello
+    ./pycli_hello.py
+    Server initial: ['OK', 'pyvserv 1.0 ready']
+    resp ['OK', 'Hello', '6ccdaaf1-a22d-4140-9608-8fb93a8845af', '11812']
+    Server quit response: ['OK', 'Bye', '11812']
+
+Quick rundown of the above test: 1.) Server responds to connection
+2.) Delivers OK status, hello message, server serial number, unique id
+3.) Server signs off. This interaction is typical of all the commands.
 
  The best way to learn about the operation of the server is to look at the
 sample client examples in the client source tree. (Files named pycli_*)
 
-All tests are base on python3, most (not all) modules do function on both py2 and py3.
+## Testing:
 
-4/12/22		No py2 support
+ Pytests app pass. Note that the pytest process starts the pyvserv at the first
+ test, and terminates it after the last test. Please make sure it does not
+ interfer with production.
 
-Peter Glen
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.0.0
+rootdir: /home/peterglen/pgpygtk/pyvserv
+collected 9 items
 
+test_afirst.py .                                                         [ 11%]
+test_file.py .                                                           [ 22%]
+test_help.py .                                                           [ 33%]
+test_id.py .                                                             [ 44%]
+test_key.py .                                                            [ 55%]
+test_login.py .                                                          [ 66%]
+test_sess.py ..                                                          [ 88%]
+test_ver.py .                                                            [100%]
+
+============================== 9 passed in 1.35s ===============================
+
+
+## History:
+
+    1.0.0.  4/12/22		       No py2 support (no release yet)
+    1.0.0   Sun 03.Mar.2024    Beta ready
+
+Written by Peter Glen
+
+// EOF
 
 

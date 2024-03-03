@@ -39,8 +39,8 @@ setuptools.setup(
     ],
     include_package_data=True,
     packages=setuptools.find_packages(include=includex),
+    py_modules = ["pyvpacker", "pydbase", "pyvecc"],
 
-    #str(['pedlib', 'panglib', 'pycommon'])),
     scripts = ["pyvserver/pyvserv.py", "pyvclient/pycli_cli.py",
                 "pyvtools/pyvgenkey.py", "pyvtools/pyvgenkeys.py"],
 
