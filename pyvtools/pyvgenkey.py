@@ -53,6 +53,10 @@ parser.add_argument("-m:", '--homedir', dest='homedir',
                     default="pyvserver",  action='store',
                     help='pyvserv home directory')
 
+parser.add_argument("-q:", '--quiet', dest='quiet',
+                    default=0,  action='store_true',
+                    help='Display less information')
+
 # Deprecated, pad it
 time.clock = time.process_time
 
@@ -136,7 +140,7 @@ privdir = './private/'
 def position():
 
     global_vars = pyservsup.Global_Vars(__file__, args.homedir)
-    global_vars._mkdir(global_vars.myhome)
+    global_vars._softmkdir(global_vars.myhome)
 
     if args.verbose:
         print("dir", global_vars.myhome)
@@ -161,10 +165,12 @@ def mainfunct():
     position()
 
     #print("Current dir:     ", os.getcwd())
-    print ("Started pyvserv keygen, ECC 384"); sys.stdout.flush()
+    if not args.quiet:
+        print ("Started pyvserv keygen, ECC 384"); sys.stdout.flush()
     fnames = genkey(args.bits, args.use_rsa)
-    print("Generated files:")
-    print("'" + fnames[0] + "'",  "'" + fnames[1] + "'")
+    if not args.quiet:
+        print("Generated files:")
+        print("'" + fnames[0] + "'",  "'" + fnames[1] + "'")
     sys.exit(0)
 
 if __name__ == '__main__':

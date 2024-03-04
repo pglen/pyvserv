@@ -134,7 +134,7 @@ if __name__ == '__main__':
     print ("Server pass resp:", cresp)
 
     cresp = hand.client(["dmode",], conf.sess_key)
-    print("dmode", cresp)
+    #print("dmode", cresp)
     if cresp[1] == '0':
         print("Enter twofa code: (ret to skip)", end = "")
         sesscode = input()
@@ -150,10 +150,13 @@ if __name__ == '__main__':
     #print (tout)
 
     pvh = pyvhash.BcData()
-    pvh.addpayload({"Vote": '0', "UID": uuid.uuid4().hex, })
+    pvh.addpayload({"Vote": '0', "UID":  str(uuid.uuid1()), })
 
     pvh.hasharr()
     pvh.powarr()
+
+    if hand.verbose:
+        print("Sending Data:", pvh.datax)
 
     for aa in range(conf.numrec):
         cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)

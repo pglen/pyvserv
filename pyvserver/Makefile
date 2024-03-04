@@ -16,15 +16,10 @@
 # ------------------------------------------------------------------------
 
 all:
-	@echo Targets: build test test3 git clean
+	@echo Targets: clean cleanpayload
 
-# Building modules:
-
-# Testing modules:
-
-test:
-	@echo Starting server ...
-	./pyvserver/pyserv.py
+cleanpayload:
+	@rm -rf ~/pyvserver/payload/*
 
 clean:
 	@rm -f aa bb cc dd ee
@@ -35,22 +30,4 @@ clean:
 	@rm -f *.pyc
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# EOF

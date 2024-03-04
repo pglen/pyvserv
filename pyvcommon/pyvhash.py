@@ -75,12 +75,14 @@ class BcData():
             self.datax = datax
 
     def newdata(self):
+
+        ''' Create default (new) data for blockchain '''
+
         uuu = uuid.uuid1()
         #dd = datetime.datetime.fromtimestamp(\
         #            (uuu.time - 0x01b21dd213814000)*100/1e9)
         #print(dd)
-        self.datax = [str(time.time()), uuu.hex,  {"PayLoad" : { "Default": ""}}]
-
+        self.datax = [str(uuu),  {"PayLoad" : { "Default": ""}}]
 
     def allarr(self, prevhash):
 

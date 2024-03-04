@@ -45,11 +45,14 @@ class   Global_Vars:
         self._keyfile   =  "keys.secret"
         self._idfile    =  "pyservid.init"
 
-        self.myhome     =  os.path.expanduser(
+        if self._dataroot[0] != os.sep:
+            self.myhome     =  os.path.expanduser(
                                 "~" + os.sep + self._dataroot + os.sep)
+        else:
+            self.myhome     =  self._dataroot + os.sep
 
         # make sure it exists
-        self._mkdir(self.myhome)
+        self._softmkdir(self.myhome)
 
         if self.verbose:
             print("myhome dir:", self.myhome)
@@ -61,12 +64,12 @@ class   Global_Vars:
         self.tmpdir    =  self.myhome + "tmp"  + os.sep
         self.logdir    =  self.myhome + "log"  + os.sep
 
-        self._mkdir(self.passdir, "Pass dir")
-        self._mkdir(self.paydir, "Payload dir")
-        self._mkdir(self.keydir, "Key dir")
-        self._mkdir(self.privdir, "Private dir")
-        self._mkdir(self.tmpdir, "Temporary dir")
-        self._mkdir(self.logdir, "Log dir")
+        self._softmkdir(self.passdir, "Pass dir")
+        self._softmkdir(self.paydir, "Payload dir")
+        self._softmkdir(self.keydir, "Key dir")
+        self._softmkdir(self.privdir, "Private dir")
+        self._softmkdir(self.tmpdir, "Temporary dir")
+        self._softmkdir(self.logdir, "Log dir")
 
         self.lockfname = self.tmpdir + "lockfile"
         self.passfile = self.passdir + self._passfile
@@ -83,7 +86,7 @@ class   Global_Vars:
         pass
 
     # Soft make dir
-    def _mkdir(self, ddd, fff="data"):
+    def _softmkdir(self, ddd, fff="data"):
 
         if not os.path.isdir(ddd):
             try:

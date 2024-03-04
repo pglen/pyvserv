@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
 __doc__ = \
 '''
 Server module.
@@ -46,6 +44,8 @@ from pyvcommon import pyclisup
 from pyvcommon import pydata
 from pyvcommon import pysyslog
 from pyvcommon import comline
+
+import pyvreplic
 
 version = "1.0"
 
@@ -410,9 +410,9 @@ def simple_server(HOST, PORT):
 
 optarr =  comline.optarrlong
 optarr.append ( ["e",   "detach=",   "detach",      0,       None, "Detach from terminal"] )
-optarr.append ( ["r:",  "dataroot=", "dataroot",   "pyvserver",      None, "Data root"] )
 optarr.append ( ["l:",  "loglevel",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
 optarr.append ( ["n:",  "host",      "host",   "127.0.0.1",  None, "Set server hostname"] )
+optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
 optarr.append ( ["m",   "mem",       "mem",         0,       None, "Show memory trace."] )
 optarr.append ( ["D",   "dmode",     "dmode",       0,       None, "Dev mode (no twofa)"] )
 
@@ -450,10 +450,10 @@ def mainfunc():
         #print("Script name:     ", __file__)
         #print("Exec argv:       ", sys.argv[0])
 
-    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.dataroot)
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
     pyservsup.globals.lockfname += "_" + str(conf.port)  # Lock file + port
-    pyservsup.globals._mkdir(pyservsup.globals.myhome)
+    pyservsup.globals._softmkdir(pyservsup.globals.myhome)
 
     # Change directory to the data dir
     os.chdir(pyservsup.globals.myhome)
@@ -473,13 +473,21 @@ def mainfunc():
     try:
         keyfroot = pyservsup.pickkey(pyservsup.globals.keydir)
     except:
-        print("No keys generated yet. Please run pyvgenkey.py first.")
-        if conf.verbose:
-            #print("exc", sys.exc_info())
-            #support.put_exception("Generating keys")
-            print("keydir was", pyservsup.globals.keydir)
+        #print("No keys generated yet. Please run pyvgenkey.py first.")
+        exec = os.path.dirname(os.path.split(pyservsup.globals._script_home)[0]) + os.sep
+        exec += "../pyvtools/pyvgenkey.py"
+        print("Notice: Generating key in", "'" + pyservsup.globals.keydir + "'")
+        if conf.pgdebug > 2:
+            print("Exec:  ", exec)
 
-        sys.exit(1)
+        try:
+            os.system("%s -q -m %s " % (exec, pyservsup.globals.keydir))
+            #if conf.verbose:
+                #print("exc", sys.exc_info())
+                #support.put_exception("Generating keys")
+        except:
+            print("Could not generate key. Keydir was", pyservsup.globals.keydir)
+            sys.exit(1)
 
     iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
     if not iii:
@@ -508,6 +516,8 @@ def mainfunc():
 
     pyvfunc.pgdebug = conf.pgdebug
     pyvfunc.pglog = conf.pglog
+
+    pyvreplic.start_replication()
 
     if conf.pglog > 0:
         pysyslog.openlog("pyvserver")

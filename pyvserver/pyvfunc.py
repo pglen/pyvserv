@@ -559,14 +559,23 @@ def get_rput_func(self, strx):
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
 
-    fname = "initial"
-    #ttt = time.time()
-
     pp = pyvpacker.packbin()
-    dd = pp.encode_data("", strx[2][1:])
 
-    #print(dd)
-    #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
+    fname = "initial";  cname = "replic"
+
+    # Prepare data. Do strings so it can be re-written in place
+    rrr = ["00000", "00000", "00000"]
+    #print("repl", rrr)
+    rr =  pp.encode_data("", rrr)
+
+    repcore = twinchain.TwinCore(os.path.join(dname, cname + ".pydb"), 0)
+    repcore.save_data(strx[2][0], rr, True)
+
+    #ttt = time.time()
+    ddd = strx[2]; ddd.append(0); ddd.append(0)
+    dd = pp.encode_data("", ddd)
+    print("data:", strx[2], dd)
+
     core = twinchain.TwinChain(os.path.join(dname, fname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     core.append(dd)
