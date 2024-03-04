@@ -251,11 +251,11 @@ def usersig2(arg1, arg2):
     if conf.pglog > 0:
         pysyslog.syslog("Got user signal2 %d" % arg1)
 
+# Did not behave as expected
 def soft_terminate(arg1, arg2):
 
     #global mydata, server
     ##print("soft_terminate")
-    #
     #try:
     #
     #    for aa in mydata:
@@ -264,6 +264,7 @@ def soft_terminate(arg1, arg2):
     #except:
     #    pass
     #
+
     terminate(0, 0)
 
     #while True:
@@ -406,9 +407,10 @@ def simple_server(HOST, PORT):
 
 # ------------------------------------------------------------------------
 
+
 optarr =  comline.optarrlong
 optarr.append ( ["e",   "detach=",   "detach",      0,       None, "Detach from terminal"] )
-optarr.append ( ["r:",  "dataroot=", "dataroot",   "",      None, "Data root"] )
+optarr.append ( ["r:",  "dataroot=", "dataroot",   "pyvserver",      None, "Data root"] )
 optarr.append ( ["l:",  "loglevel",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
 optarr.append ( ["n:",  "host",      "host",   "127.0.0.1",  None, "Set server hostname"] )
 optarr.append ( ["m",   "mem",       "mem",         0,       None, "Show memory trace."] )
@@ -448,8 +450,9 @@ def mainfunc():
         #print("Script name:     ", __file__)
         #print("Exec argv:       ", sys.argv[0])
 
-    pyservsup.globals  = pyservsup.Global_Vars(__file__)
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.dataroot)
     pyservsup.globals.conf = conf
+    pyservsup.globals.lockfname += "_" + str(conf.port)  # Lock file + port
     pyservsup.globals._mkdir(pyservsup.globals.myhome)
 
     # Change directory to the data dir
@@ -473,8 +476,9 @@ def mainfunc():
         print("No keys generated yet. Please run pyvgenkey.py first.")
         if conf.verbose:
             #print("exc", sys.exc_info())
-            support.put_exception("Generating keys")
+            #support.put_exception("Generating keys")
             print("keydir was", pyservsup.globals.keydir)
+
         sys.exit(1)
 
     iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
@@ -554,6 +558,9 @@ def mainfunc():
 
     #if conf.pglog > 0:
     #    pysyslog.syslog("Started Server")
+
+    if conf.pglog > 0:
+        pysyslog.syslog("Server started. Devmode %d" % conf.dmode)
 
     # Block
     #simple_server(HOST, PORT)

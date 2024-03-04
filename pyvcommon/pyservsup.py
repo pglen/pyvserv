@@ -30,14 +30,17 @@ buffsize = 4096;
 
 class   Global_Vars:
 
-    def __init__(self, scriptname):
+    def __init__(self, scriptname, dataroot):
+
+        self.verbose = 0
 
         self._script_home = scriptname    # where the original script lives
-        self.verbose = 0
 
         # Underscore names are definitions - others are calculated
 
-        self._dataroot  =  "pyvserver"
+        #self._dataroot  =  "pyvserver"
+        #self._dataroot  =  os.path.expanduser(dataroot)
+        self._dataroot  =   dataroot
         self._passfile  =  "passwd.secret"
         self._keyfile   =  "keys.secret"
         self._idfile    =  "pyservid.init"
@@ -86,7 +89,7 @@ class   Global_Vars:
             try:
                 os.mkdir(ddd, 0o700)
             except:
-                print( "Cannot make " + fff + " dir", sys.exc_info())
+                print( "Cannot make " + ddd + " " + fff + " dir", sys.exc_info())
                 sys.exit(1)
 
     # --------------------------------------------------------------------
@@ -679,7 +682,7 @@ def pickkey(keydir):
     #print("Getting keys", keydir)
     dl = os.listdir(keydir)
     if dl == 0:
-        print("No keys yet")
+        print("No keys yet", keydir)
         raise (Valuerror("No keys generated yet"))
 
     dust = random.randint(0, len(dl)-1)

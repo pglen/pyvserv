@@ -73,23 +73,25 @@ lsld_help  = "Usage: lsd [dir] -- List dirs in dir"
 cdcd_help  = "Usage: cd dir -- Change to dir. Capped to server root"
 pwdd_help  = "Usage: pwd -- Show current dir"
 stat_help  = "Usage: stat fname  -- Get file stat. Field list:\n"\
-"   1.  ST_MODE Inode protection mode.\n"\
-"   2.  ST_INO Inode number.\n"\
-"   3.  ST_DEV Device inode resides on.\n"\
-"   4.  ST_NLINK  Number of links to the inode.\n"\
-"   5.  ST_UID User id of the owner.\n"\
-"   6.  ST_GID Group id of the owner.\n"\
-"   7.  ST_SIZE Size in bytes of a plain file.\n"\
-"   8.  ST_ATIME Time of last access.\n"\
-"   9.  ST_MTIME Time of last modification.\n"\
-"   10. ST_CTIME Time of last metadata change."
+    "   1.  ST_MODE Inode protection mode.\n"\
+    "   2.  ST_INO Inode number.\n"\
+    "   3.  ST_DEV Device inode resides on.\n"\
+    "   4.  ST_NLINK  Number of links to the inode.\n"\
+    "   5.  ST_UID User id of the owner.\n"\
+    "   6.  ST_GID Group id of the owner.\n"\
+    "   7.  ST_SIZE Size in bytes of a plain file.\n"\
+    "   8.  ST_ATIME Time of last access.\n"\
+    "   9.  ST_MTIME Time of last modification.\n"\
+    "   10. ST_CTIME Time of last metadata change."
 tout_help  = "Usage: tout new_val -- Set / Reset timeout in seconds"
 ekey_help  = "Usage: ekey encryption_key -- Set encryption key "
 sess_help  = "Usage: sess session data -- Start session "
 buff_help  = "Usage: buff buff_size -- limited to 64k"
 rput_help  = "Usage: rput header, field1, field2... -- put record in blockcain."
-qr_help  = "Usage: qr -- get qrcode image for 2fa"
+rget_help  = "Usage: rget header -- get record from blockcain."
+qr_help    = "Usage: qr -- get qrcode image for 2fa"
 twofa_help = "Usage: twofa -- two factor authentication"
+dmode_help = "Usage: dmode -- get dmode flag"
 xxxx_help  = "Usage: no data"
 
 # ------------------------------------------------------------------------
@@ -147,9 +149,12 @@ def init_state_table():
     ("buff",    all_in,  none_in,    auth_pass, get_buff_func,  buff_help),
     ("twofa",   all_in,  auth_twofa, auth_pass, get_twofa_func,  twofa_help),
 
+    ("dmode",   all_in,  none_in,    initial, get_dmode_func,  dmode_help),
+
     # Following the two factor auth commands. Disabled during development
-    ("rput",    all_in,  none_in,    minauth, get_rput_func,  rput_help),
+    ("rput",    all_in,  none_in,     minauth, get_rput_func,  rput_help),
     ("rlist",    all_in,  none_in,    minauth, get_rlist_func,  rput_help),
+    ("rget",     all_in,  none_in,    minauth, get_rget_func,  rget_help),
     ]
 # ------------------------------------------------------------------------
 

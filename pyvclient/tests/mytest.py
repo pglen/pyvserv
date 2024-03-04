@@ -14,7 +14,7 @@ from Crypto import Random
 from pyvcommon import support, pycrypt, pyservsup, pyclisup
 from pyvcommon import pysyslog, comline
 
-fdirx = "/home/peterglen/pyvserver/"
+fdirx = os.path.expanduser("~/pyvserver/")
 lockname = "tmp/lockfile"
 exename = "../../pyvserver/pyvserv.py"
 
@@ -41,7 +41,7 @@ def start_server():
         hand.client(["quit"], "")
 
 def stop_server():
-    # Start server if needed
+    # Stop server if needed
     if os.path.isfile(fdirx + lockname):
         print("lockfile", os.path.isfile(fdirx + lockname))
         fp = open(fdirx + lockname)

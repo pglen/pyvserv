@@ -49,6 +49,10 @@ parser.add_argument("-r:", '--rsa', dest='use_rsa',
                     default=False,  action='store_true',
                     help='Key to generate (default: 4096)')
 
+parser.add_argument("-m:", '--homedir', dest='homedir',
+                    default="pyvserver",  action='store',
+                    help='pyvserv home directory')
+
 # Deprecated, pad it
 time.clock = time.process_time
 
@@ -131,8 +135,12 @@ privdir = './private/'
 
 def position():
 
-    global_vars = pyservsup.Global_Vars(__file__)
+    global_vars = pyservsup.Global_Vars(__file__, args.homedir)
     global_vars._mkdir(global_vars.myhome)
+
+    if args.verbose:
+        print("dir", global_vars.myhome)
+
     os.chdir(global_vars.myhome)
     if not os.path.isdir(global_vars.keydir):
         os.mkdir(global_vars.keydir)
@@ -143,6 +151,7 @@ def position():
 
 def mainfunct():
 
+    global args
     args = parser.parse_args()
 
     if not is_power_of_two(args.bits):

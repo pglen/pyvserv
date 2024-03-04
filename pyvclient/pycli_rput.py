@@ -133,11 +133,17 @@ if __name__ == '__main__':
     cresp = hand.client(["pass", "1234"], conf.sess_key)
     print ("Server pass resp:", cresp)
 
-    #print("Enter twofa code: (ret to skip)", end = "")
-    #sesscode = input()
-    #if sesscode:
-    #    cresp = hand.client(["twofa", sesscode], conf.sess_key)
-    #    print ("Server twofa resp:", cresp)
+    cresp = hand.client(["dmode",], conf.sess_key)
+    print("dmode", cresp)
+    if cresp[1] == '0':
+        print("Enter twofa code: (ret to skip)", end = "")
+        sesscode = input()
+        if sesscode:
+            cresp = hand.client(["twofa", sesscode], conf.sess_key)
+            print ("Server twofa resp:", cresp)
+            if cresp[0] != OK:
+                print ("Server twofa failed")
+                sys.exit(0)
 
     # Interactive, need more time
     tout = hand.client(["tout", "200",], conf.sess_key)

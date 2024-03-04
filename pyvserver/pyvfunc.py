@@ -7,10 +7,12 @@ import pyotp
 
 __doc__ = \
 '''
-    Server function module.
+    Server functions. The pyvstate calls routines from this module.
+
 '''
 
-import os, sys, getopt, signal, select, string, time, stat, base64, uuid
+import os, sys, getopt, signal, select, string
+import datetime,  time, stat, base64, uuid
 
 from pyvecc.Key import Key
 
@@ -417,10 +419,27 @@ def get_pwd_func(self, strx):
 
 def get_rlist_func(self, strx):
 
-    if len(strx) < 3:
+    if len(strx) < 2:
         response = [ERR, "Must specify blockchain kind", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
+
+    if len(strx) < 3:
+        response = [ERR, "Must specify starting point", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 4:
+        response = [ERR, "Must specify ending point", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if pyservsup.globals.conf.pgdebug > 3:
+        print("list: start", strx[2], "end", strx[3])
+
+    if pyservsup.globals.conf.pgdebug > 2:
+        print("rlist begin:", datetime.datetime.fromtimestamp(strx[2]),
+                            "end:", datetime.datetime.fromtimestamp(strx[3]) )
 
     dname = contain_path(self, strx[1])
     if not dname:
@@ -428,28 +447,90 @@ def get_rlist_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     if not os.path.isdir(dname):
-        response = [ERR, "Directory does not exist", strx[0]]
+        response = [ERR, "Directory does not exist", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     fname = "initial"
-    lfile = os.path.join(dname, fname + ".bclock")
-
     #ttt = time.time()
 
     #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
     core = twinchain.TwinChain(os.path.join(dname, fname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
 
+    arr = []
     dbsize = core.getdbsize()
     for aa in range(1, dbsize):
         rec = core.get_header(aa)
         ddd = pyservsup.uuid2timestamp(uuid.UUID(rec))
-        print(ddd)
+        #ttt = pyservsup.uuid2date(uuid.UUID(rec))
+        #print(ddd, ttt)
 
-    response = [OK,  "rec", "%d records" % dbsize]
+        if ddd > strx[2] and ddd < strx[3]:
+            arr.append(rec)
+        if len(arr) > 100:
+            break
+
+    #print("rec", "%d records" % dbsize, "got: %d" % len(arr))
+
+    # Prevent overload from
+    if len(arr) > 100:
+        response = [ERR,  "Too many records, narrow date range"]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    response = [OK,  arr]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
+def get_rget_func(self, strx):
+
+    if len(strx) < 2:
+        response = [ERR, "Must specify blockchain kind", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 3:
+        response = [ERR, "Must specify data header", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    dname = contain_path(self, strx[1])
+
+    if not dname:
+        response = [ERR, "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print("dname", dname)
+    if not os.path.isdir(dname):
+        response = [ERR, "Blockchain kind directory does not exist.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if pyservsup.globals.conf.pgdebug > 2:
+        print("rget", strx[1], strx[2])
+
+    fname = "initial"
+    core = twinchain.TwinChain(os.path.join(dname, fname + ".pydb"), 0)
+    #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
+
+    data = []
+    dbsize = core.getdbsize()
+    for aa in range(1, dbsize):
+        rec = core.get_header(aa)
+        if rec == strx[2]:
+            ppp = core.linkintegrity(aa)
+            ccc = core.checkdata(aa)
+            if not ppp:
+                data = [rec, "Invalid Record, link damaged"]
+            elif not ccc:
+                data = [rec, "Invalid Record, bad checksum"]
+            else:
+                data = core.get_payload(aa)
+            break;
+
+    response = [OK, data, strx[1]]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rput_func(self, strx):
 
@@ -493,6 +574,7 @@ def get_rput_func(self, strx):
     dbsize = core.getdbsize()
     response = [OK,  "Blockchain data added.", "%d records" % dbsize]
     self.resp.datahandler.putencode(response, self.resp.ekey)
+    pysyslog.syslog("Blockchain data %s added" % strx[2][0])
 
 def get_cd_func(self, strx):
 
@@ -1185,6 +1267,10 @@ def get_twofa_func(self, strx):
 
     return retval
 
+def get_dmode_func(self, strx):
+
+    flag = pyservsup.globals.conf.dmode
+    self.resp.datahandler.putencode(["OK", "%d" % flag],  self.resp.ekey)
 
 def get_help_func(self, strx):
 
