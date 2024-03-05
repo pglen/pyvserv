@@ -41,6 +41,9 @@ __doc__ = \
 
 '''
 
+chainfname = "initial"
+repfname = "replic"
+
 OK = "OK"
 ERR = "ERR"
 
@@ -48,18 +51,33 @@ ERR = "ERR"
 
 def contain_path(self, strp):
 
+    '''
+        Make sure the path is pointing to our universe
+    '''
     dname = support.unescape(strp);
+
+    #print("dname", dname)
+    self.resp.dir = support.dirclean(self.resp.dir)
+    self.resp.cwd = support.dirclean(self.resp.cwd)
+
     # Absolute path?
     if len(strp) > 0 and strp[0] == os.sep:
-        dname2 = self.resp.cwd + os.sep + dname
+        dname2 = os.path.join(self.resp.cwd, dname)
     else:
-        dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
+        dname2 = os.path.join(self.resp.cwd, self.resp.dir, dname)
+
+    #print("dname2", dname2)
 
     dname3 = support.dirclean(dname2)
+    #print("dname3", dname3)
+
     dname4 = os.path.abspath(dname3)
 
-    #print("base dir", self.resp.cwd, self.resp.dir)
-    #print("res dir", dname4)
+    #print("base dir", self.resp.cwd)
+    #print("resp_dir", self.resp.dir)
+
+    #print("dname4", dname4)
+    #print("slice", dname4[:len(self.resp.cwd)])
 
     # Compare root
     if dname4[:len(self.resp.cwd)] != self.resp.cwd:
@@ -451,11 +469,10 @@ def get_rlist_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    fname = "initial"
     #ttt = time.time()
 
     #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
-    core = twinchain.TwinChain(os.path.join(dname, fname + ".pydb"), 0)
+    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
 
     arr = []
@@ -510,8 +527,7 @@ def get_rget_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 2:
         print("rget", strx[1], strx[2])
 
-    fname = "initial"
-    core = twinchain.TwinChain(os.path.join(dname, fname + ".pydb"), 0)
+    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
 
     data = []
@@ -539,7 +555,7 @@ def get_rput_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    #print("strx", strx)
+    #print("strx", strx[1])
     #print('curr', self.resp.dir)
 
     dname = contain_path(self, strx[1])
@@ -561,29 +577,91 @@ def get_rput_func(self, strx):
 
     pp = pyvpacker.packbin()
 
-    fname = "initial";  cname = "replic"
-
     # Prepare data. Do strings so it can be re-written in place
     rrr = ["00000", "00000", "00000"]
     #print("repl", rrr)
     rr =  pp.encode_data("", rrr)
 
-    repcore = twinchain.TwinCore(os.path.join(dname, cname + ".pydb"), 0)
-    repcore.save_data(strx[2][0], rr, True)
+    repcore = twincore.TwinCore(os.path.join(dname, repfname + ".pydb"), 0)
+    #print("save_data", strx[2][0])
+    ret = repcore.save_data(strx[2][0], rr, True)
+    #print("Save Data ret", ret)
 
     #ttt = time.time()
     ddd = strx[2]; ddd.append(0); ddd.append(0)
     dd = pp.encode_data("", ddd)
-    print("data:", strx[2], dd)
+    #print("data:", strx[2], dd)
 
-    core = twinchain.TwinChain(os.path.join(dname, fname + ".pydb"), 0)
+    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
-    core.append(dd)
+    core.appendwith(ddd[0], dd)
     #print("db op3 %.3f" % ((time.time() - ttt) * 1000) )
     dbsize = core.getdbsize()
-    response = [OK,  "Blockchain data added.", "%d records" % dbsize]
+    response = [OK,  "Blockchain data added.", "%d total records" % dbsize]
     self.resp.datahandler.putencode(response, self.resp.ekey)
     pysyslog.syslog("Blockchain data %s added" % strx[2][0])
+
+def get_ihost_func(self, strx):
+
+    if len(strx) < 2:
+        response = [ERR, "Must specify operation (add / remove)", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 3:
+        response = [ERR, "Must specify host/port.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    print(strx)
+    ihname = "ihosts.pydb"
+    repcore = twincore.TwinCore(ihname)
+
+    if strx[1] == 'add':
+        pp = pyvpacker.packbin()
+        ddd = pp.encode_data("", strx[2])
+        ret = repcore.save_data(strx[2], ddd, True)
+        print("add ret", ret, strx[2])
+        response = [OK, "Added replication host/port.", strx[2]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+
+    elif strx[1] == 'del':
+        ret = repcore.del_rec_bykey(strx[2])
+        print("del ret", ret, strx[2])
+        response = [OK, "Deleted replication host/port.", strx[2]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+
+    elif strx[1] == 'get':
+        arr = []
+        for aa in range(repcore.getdbsize()):
+            ddd = repcore.get_rec(aa)
+            if ddd:
+                arr.append(str(ddd[0]))
+        print("got recs", arr)
+        response = [OK,  arr, strx[2]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+    else:
+        response = [ERR, "Operation must be 'add' or 'del'.", strx[2]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+
+
+def get_ihave_func(self, strx):
+
+    if len(strx) < 2:
+        response = [ERR, "Must specify blockchain kind.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 3:
+        response = [ERR, "Must specify record header.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    uuid = uuid.UUID(strx[2])
+
+    print("ihave", strx[1], strx[2])
+    response = [OK,  "Ihave processed", strx[0], ]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_cd_func(self, strx):
 

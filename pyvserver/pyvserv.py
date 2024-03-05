@@ -517,7 +517,7 @@ def mainfunc():
     pyvfunc.pgdebug = conf.pgdebug
     pyvfunc.pglog = conf.pglog
 
-    pyvreplic.start_replication()
+    replicator = pyvreplic.Replicator(conf.verbose, conf.pgdebug)
 
     if conf.pglog > 0:
         pysyslog.openlog("pyvserver")

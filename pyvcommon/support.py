@@ -28,6 +28,13 @@ def put_debug(xstr):
         print( "Failed on debug output.")
         print( sys.exc_info())
 
+def exc_last():
+    a,b,c = sys.exc_info()
+    ttt = traceback.extract_tb(c)
+    aa = ttt[0]
+    sss = (os.path.basename(aa[0]), aa[1], aa[2])
+    return sss
+
 def put_exception(xstr):
 
     cumm = xstr + " "

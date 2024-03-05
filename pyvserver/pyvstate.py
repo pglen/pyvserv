@@ -91,7 +91,9 @@ rput_help  = "Usage: rput header, field1, field2... -- put record in blockcain."
 rget_help  = "Usage: rget header -- get record from blockcain."
 qr_help    = "Usage: qr -- get qrcode image for 2fa"
 twofa_help = "Usage: twofa -- two factor authentication"
-dmode_help = "Usage: dmode -- get dmode flag"
+dmode_help = "Usage: dmode -- get dmode (Developer Mode) flag"
+ihave_help = "Usage: ihave -- 'i have you have' protocol entry point"
+ihost_help = "Usage: ihost -- add / delete replicator host"
 xxxx_help  = "Usage: no data"
 
 # ------------------------------------------------------------------------
@@ -150,6 +152,8 @@ def init_state_table():
     ("twofa",   all_in,  auth_twofa, auth_pass, get_twofa_func,  twofa_help),
 
     ("dmode",   all_in,  none_in,    initial, get_dmode_func,  dmode_help),
+    ("ihave",   all_in,  none_in,    initial, get_ihave_func,  ihave_help),
+    ("ihost",   all_in,  none_in,    initial, get_ihost_func,  ihost_help),
 
     # Following the two factor auth commands. Disabled during development
     ("rput",    all_in,  none_in,     minauth, get_rput_func,  rput_help),
@@ -183,8 +187,9 @@ class StateHandler():
         try:
             ret = self._run_state_worker(strx)
         except:
-            support.put_exception("While in run state(): " + str(self.curr_state))
-            sss =  ERR, "on processing request.", sys.exc_info()
+            #print("last:", support.exc_last())
+            support.put_exception("run state() = " + str(self.curr_state) + ":")
+            sss =  [ERR, "on processing request.", str(sys.exc_info()[1]), ]
             self.resp.datahandler.putencode(sss, self.resp.ekey)
             ret = False
         return ret

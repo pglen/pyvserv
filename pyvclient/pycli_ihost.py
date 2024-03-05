@@ -41,15 +41,16 @@ def phelp():
     print()
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 6666)")
-    print( "            -l level  - Log level (default: 0)")
-    print( "            -c file   - Save comm to file")
-    print( "            -s        - Showkey")
-    print( "            -n        - Number of records to put")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
+    print( "Options:    -d level        - Debug level 0-10")
+    print( "            -p port         - Port to use (default: 6666)")
+    print( "            -l level        - Log level (default: 0)")
+    print( "            -A  host/port   - Add host/port to replicate to")
+    print( "            -D  host/port   - Delete host/port to replicate to")
+    print( "            -S              - Show remote replication hosts")
+    print( "            -n              - Number of records to put")
+    print( "            -v              - Verbose")
+    print( "            -q              - Quiet")
+    print( "            -h              - Help")
     #print( " Needs debug level or verbose to have any output.")
     print()
     sys.exit(0)
@@ -66,8 +67,10 @@ optarr = \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["s",   "showkey",  "",     None],      \
-    ["n:",   "numrec",   1,     None],      \
-    ["t",   "test",     "x",    None],      \
+    ["n:",  "numrec",   1,     None],      \
+    ["A:",  "addx",      "",    None],      \
+    ["D:",  "delx",      "",    None],      \
+    ["S",   "showx",     0,    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -141,7 +144,7 @@ if __name__ == '__main__':
         if sesscode:
             cresp = hand.client(["twofa", sesscode], conf.sess_key)
             print ("Server twofa resp:", cresp)
-            if cresp[0] != OK:
+            if cresp[0] != "OK":
                 print ("Server twofa failed")
                 sys.exit(0)
 
@@ -149,21 +152,16 @@ if __name__ == '__main__':
     tout = hand.client(["tout", "200",], conf.sess_key)
     #print (tout)
 
-    pvh = pyvhash.BcData()
-    pvh.addpayload({"Vote": '0', "UID":  str(uuid.uuid1()), })
+    if conf.showx:
+        cresp = hand.client(["ihost", "get", "",], conf.sess_key)
+    elif conf.addx:
+        cresp = hand.client(["ihost", "add", conf.addx,], conf.sess_key)
+    elif conf.delx:
+        cresp = hand.client(["ihost", "del", conf.delx,], conf.sess_key)
+    else:
+        cresp = hand.client(["ihost", "add", "localhost:5555",], conf.sess_key)
 
-    pvh.hasharr()
-    pvh.powarr()
-
-    if conf.pgdebug > 2:
-        print(pvh.datax)
-
-    if hand.verbose:
-        print("Sending Data:", pvh.datax)
-
-    for aa in range(conf.numrec):
-        cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
-        print ("Server rput response:", cresp)
+    print ("Server ihost response:", cresp)
 
     cresp = hand.client(["quit",],conf.sess_key)
     print ("Server quit  response:", cresp)

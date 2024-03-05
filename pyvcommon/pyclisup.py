@@ -353,6 +353,14 @@ class CliSup():
     #@support.timeit
     def start_session(self, conf):
 
+        # Patch expected variables
+        if not hasattr(conf, "sess_key"):
+            conf.sess_key = ""
+        if not hasattr(conf, "verbose"):
+            conf.verbose = 0
+        if not hasattr(conf, "pgdebug"):
+            conf.pgdebug = 0
+
         #if not hasattr(conf, "sess_key"):
         conf.sess_key2 = conf.sess_key[:]
 
@@ -444,7 +452,7 @@ class CliSup():
             ttt = SHA256.new(); ttt.update(sess_keyx.encode())
 
             if conf.pgdebug > 2:
-                support.shortdump("sess_keyx", sess_keyx )
+                print("sess_keyx", sess_keyx[:24])
         else:
             sess_keyx = ""
 
