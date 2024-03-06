@@ -6,7 +6,7 @@ import pytest, os, sys
 # Set parent as module include path
 base = os.path.dirname(os.path.realpath(__file__))
 
-sys.path.append(os.path.join(base,  '../pyvcommon'))
+sys.path.append(os.path.join(base,  '../../pyvcommon'))
 
 import pyvhash
 hand = None
@@ -47,23 +47,67 @@ def teardown_module(module):
 
 def test_func(capsys):
 
+    global thd
     thd = pyvhash.BcData()
 
-    #print(arrx2)
-    err = thd.checkhash()
-    #print("unhashed match:", err)
-    assert err == False
+    #print("unhashed match:", ret)
+    assert False == thd.checkhash()
 
-    arrh = thd.hasharr()
-    err = thd.checkhash()
-    assert err == True
+    thd.hasharr()
+    assert True == thd.checkhash()
 
-    arrh2 = thd.hasharr()
-    #print("Modified: (ucase H)")
-    arrh2[1] = "Hello"
-    err = thd.checkhash()
-    assert err == False
+    thd.hasharr()
+    assert True == thd.checkhash()
+
+    thd.powarr()
+    assert True == thd.checkpow()
+
+    vvv = thd._getpayvar()
+    print (vvv)
+    assert vvv != None
+    assert vvv['Default'] != None
+
+    #print(thd.datax)
+
+def test_modulate(capsys):
+
+    pvh2 = pyvhash.BcData(thd)
+    pvh2.addpayload({"Added New": "new stuff"})
+
+    assert pvh2.checkpow() == False
+    assert pvh2.checkhash() == False
+
+    pvh2.hasharr()
+    pvh2.powarr()
+    #print(pvh2.datax)
+
+    assert pvh2.checkpow() == True
+    assert pvh2.checkhash() == True
+
+    assert thd.checkpow() == True
+    assert thd.checkhash() == True
+
+def test_paydel(capsys):
+
+    delkey = "May Delete"
+    pvh2 = pyvhash.BcData(thd)
+    pvh2.addpayload({"Added New": "new stuff again"})
+    pvh2.addpayload({delkey: "deletable stuff"})
+    #print(pvh2.datax)
+
+    assert pvh2._getpayvar()[delkey] != None
+    pvh2.delpayload(delkey)
+    #print(pvh2._getpayvar())
+
+    # Test for raised exception
+    exc = False
+    try:
+        ddd = pvh2._getpayvar()[delkey]
+    except:
+        print(sys.exc_info())
+        exc = True
+
+    assert exc == True
 
 # EOF
-
 

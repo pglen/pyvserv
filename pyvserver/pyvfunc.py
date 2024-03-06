@@ -555,7 +555,7 @@ def get_rput_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    #print("strx", strx[1])
+    #print("strx[1]", strx[1])
     #print('curr', self.resp.dir)
 
     dname = contain_path(self, strx[1])
@@ -582,7 +582,9 @@ def get_rput_func(self, strx):
     #print("repl", rrr)
     rr =  pp.encode_data("", rrr)
 
-    repcore = twincore.TwinCore(os.path.join(dname, repfname + ".pydb"), 0)
+    fname = os.path.join(dname, repfname + ".pydb")
+    #print("Saving at", fname)
+    repcore = twincore.TwinCore(fname, 0)
     #print("save_data", strx[2][0])
     ret = repcore.save_data(strx[2][0], rr, True)
     #print("Save Data ret", ret)
@@ -592,14 +594,26 @@ def get_rput_func(self, strx):
     dd = pp.encode_data("", ddd)
     #print("data:", strx[2], dd)
 
-    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
+    cfname = os.path.join(dname, chainfname + ".pydb")
+    #print("cfname", cfname)
+    core = twinchain.TwinChain(cfname, 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
-    core.appendwith(ddd[0], dd)
+    try:
+        ret = core.appendwith(ddd[0], dd)
+    except:
+        #print("appendwith", sys.exc_info()[1])
+        response = [ERR, "Cannot save record, invalid UUID", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
     #print("db op3 %.3f" % ((time.time() - ttt) * 1000) )
-    dbsize = core.getdbsize()
-    response = [OK,  "Blockchain data added.", "%d total records" % dbsize]
+    #dbsize = core.getdbsize()
+    #print("%d total records" % dbsize_
+
+    #pysyslog.syslog("Blockchain data %s added" % strx[2][0])
+
+    response = [OK,  "Blockchain data added.", strx[0]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
-    pysyslog.syslog("Blockchain data %s added" % strx[2][0])
 
 def get_ihost_func(self, strx):
 

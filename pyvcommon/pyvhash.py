@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-import os, sys, getopt, signal, select, string, time
+import os, sys, getopt, signal, select, string, time, copy
 import struct, stat, base64, random, zlib, uuid, datetime
 
 from Crypto import Random
@@ -65,14 +65,15 @@ class BcData():
         Use it to create / add / remove / modify payload.
     '''
 
-    def __init__(self, datax = None):
+    def __init__(self, old_data = None):
 
         self.pb  = pyvpacker.packbin()
         self.rrr = Random.new()
-        if not datax:
+        if not old_data:
             self.newdata()
         else:
-            self.datax = datax
+            #print("old_data", old_data)
+            self.datax = copy.deepcopy(old_data.datax)
 
     def newdata(self):
 
@@ -114,7 +115,7 @@ class BcData():
                 elif PowRand in arrx[aa]:
                     asave.append(arrx[aa])
                 elif Proof in arrx[aa]:
-                    print("asave proof", arrx[aa])
+                    #print("asave proof", arrx[aa])
                     asave.append(arrx[aa])
                 else:
                     arrx2.append(arrx[aa])

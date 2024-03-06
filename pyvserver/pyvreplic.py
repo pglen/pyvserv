@@ -109,37 +109,39 @@ class Replicator():
 
     # Replicate this to all the hostsin the list
     def replicate(self, dirname, recx):
+
+        print("replicate", dirname, recx)
         ret = 0
         fname = os.path.join(pyservsup.globals.paydir, dirname)
         dfname = os.path.join(fname, datafname)
-        #print("dfname: ", dfname)
+        print("dfname: ", dfname)
+        #if not os.path.isfile(dfname):
+        #    return
         datacore = self.softcreate(self.dbdarr, dfname, twinchain.TwinChain)
         #print("dbsize", datacore.getdbsize())
         #print("recx", recx)
         rec = datacore.retrieve(recx, 1)
-        #print("rec", rec[0][1])
-
+        #print("rec", rec)
+        if not rec:
+            print("Empty record on replicate")
+            return
         arr = self.packer.decode_data(rec[0][1])[0]
         #print("arr", arr)
-
         dicx = {}
         for aa in range(len(arr)//2):
             dicx[arr[2*aa]] = arr[2*aa+1]
-
         if not dicx.get('replicated'):
             dicx['replicated'] = 1
         else:
             dicx['replicated'] += 1
-        rec2 =  [recx, dicx]
-        #print("rec2", rec2)
         #print("dicx", dicx)
-        #arr2 = self.packer.encode_data("", recx, dicx)
-        #print(arr2)
+        rec2 =  [recx, dicx]
+        print("rec2", rec2)
 
         # Relicate on a per host basis
         hfname = os.path.join(pyservsup.globals.myhome, ihostfname)
-        pyservsup.globals.paydir
-        print("hfname: ", hfname)
+        #pyservsup.globals.paydir
+        #print("hfname: ", hfname)
         hostcore = self.softcreate(self.hostdarr, hfname, twinchain.TwinChain)
         ret = 0
         for bb in range(hostcore.getdbsize()):
@@ -160,6 +162,7 @@ class Replicator():
         hp = hostport.split(":")
 
         print("Replicating to Host", hp, "dirname", dirname)
+        print("Data", data)
 
         hand = pyclisup.CliSup()
         try:
