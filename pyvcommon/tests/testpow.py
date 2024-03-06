@@ -23,23 +23,28 @@ import pyvpacker
 if __name__ == '__main__':
 
     # The hash field will be overridden
-    arrx =  [123, "hello", {"Hash": 12},]
+    #arrx =  [123, "hello", {"Hash": 12},]
 
     thd = pyvhash.BcData()
 
     ret = thd.checkhash()
     print("1 match hash: [False]", ret)
 
+    thd.hasharr()
+    ret = thd.checkhash()
+    print("2 match hash: [True]", ret)
+
+    thd.powarr()
     ret = thd.checkpow()
-    print("2 match  pow: [False]", ret)
+    print("4 match  pow: [True]", ret)
+
+    #ret = thd.checkpow()
+    #print("2 match  pow: [False]", ret)
 
     thd.hasharr()
     ret = thd.checkhash()
     print("3 match hash: [True]", ret)
 
-    thd.powarr()
-    ret = thd.checkpow()
-    print("4 match  pow: [True]", ret)
 
     thd.hasharr()
     ret = thd.checkhash()

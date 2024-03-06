@@ -35,38 +35,42 @@ def teardown_module(module):
 
 def test_func(capsys):
 
+    global thd
+
     # Hypothetical old hash
     prevh = pyvhash.shahex(b"1234")
 
     thd = pyvhash.BcData()
 
-    thd.addpayload({1:1,2:2, "delx":99})
+    thd.addpayload( {1:1, 2:2, "delx": 1234 })
+    thd.hasharr()
+    thd.powarr()
 
-    thd.allarr(prevh)
+    assert thd.datax['PayLoad']['delx'] == 1234
 
-    err = thd.checklink()
-    assert err == True
+    ret = thd.checkhash()
+    assert ret == True
 
-    err = thd.checkpow()
-    assert err == True
+    ret = thd.checkpow()
+    assert ret == True
 
-    #thd.delpayload("Default")
+def test_del():
+
+    print(thd.datax)
+
+    ret = thd.delpayload("Default")
+    assert ret == True
+
     thd.delpayload("delx")
     thd.delpayload(1)
     thd.delpayload(2)
     thd.addpayload({"Default":99})
-    var = thd._getpayvar()
-    #print(var)
-    assert var == {'Default': 99}
+    print(thd.datax)
 
-    err = thd.checkpow()
-    assert err == False
+    assert thd.datax['PayLoad']['Default'] == 99
 
-    thd.allarr(prevh)
-
-    err = thd.checklink()
-    assert err == True
-
+    ret = thd.checkpow()
+    assert ret == False
 
 # EOF
 

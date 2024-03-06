@@ -52,5 +52,11 @@ if __name__ == '__main__':
     ret = thd.checkhash()
     print("5 recalc match: [True]", ret)
 
+    #print(thd.datax)
+    thd2 = pyvhash.BcData(thd)
+    thd3 = pyvhash.BcData({"Test": 0})
+    thd4 = pyvhash.BcData(["Array", 1])
+    thd4 = pyvhash.BcData(["Array", 1])
+
 # EOF
 

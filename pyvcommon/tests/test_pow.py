@@ -50,12 +50,14 @@ def test_func(capsys):
 
     thd = pyvhash.BcData()
 
-    arrp = thd.hasharr()
+    thd.hasharr()
     assert thd.checkhash() == True
+
     assert thd.checkhash() == True
 
     arrp = thd.powarr()
-    #print(arrp)
+    ret = thd.checkpow()
+    assert ret == True
 
     ret = thd.checkhash()
     assert ret == True
@@ -63,9 +65,17 @@ def test_func(capsys):
     ret = thd.checkpow()
     assert ret == True
 
-    arrp[1] = 'aa'
+    thd.addpayload({"Hello": 1234})
+
     ret = thd.checkpow()
     assert ret == False
+
+    thd.hasharr()
+    assert thd.checkhash() == True
+
+    arrp = thd.powarr()
+    ret = thd.checkpow()
+    assert ret == True
 
 # EOF
 

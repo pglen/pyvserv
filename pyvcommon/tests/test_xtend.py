@@ -35,27 +35,29 @@ def test_func(capsys):
     prevh = pyvhash.shahex(b"1234")
 
     arrh = thd.hasharr()
-    err = thd.checkhash()
-    assert err == True
+    ret = thd.checkhash()
+    assert ret == True
 
     arrp = thd.powarr()
-    err = thd.checkpow()
-    assert err == True
+    ret = thd.checkpow()
+    assert ret == True
 
     arrl = thd.linkarr(prevh)
-    err = thd.checklink()
-    assert err == True
+
+    ret = thd.checklink()
+    assert ret == True
 
     # Post link checks
-    err = thd.checkpow()
-    assert err == True
+    ret = thd.checkpow()
+    assert ret == True
 
-    err = thd.checkhash()
-    assert err == True
+    ret = thd.checkhash()
+    assert ret == True
 
-    thd.datax[1] = 'aa'
-    err = thd.checklink()
-    assert err == False
+    thd.addpayload({"Hello": 1234})
+
+    ret = thd.checklink()
+    assert ret == False
 
 # EOF
 

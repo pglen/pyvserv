@@ -63,16 +63,20 @@ def test_func(capsys):
     assert wasexc == True
 
     arrp = thd.powarr()
-    err = thd.checkpow()
-    assert err == True
+    ret = thd.checkpow()
+    assert ret == True
 
     arrl = thd.linkarr(prevh)
-    err = thd.checklink()
-    assert err == True
+    ret = thd.checklink()
+    assert ret == True
 
-    thd.datax[1] = 'aa'
-    err = thd.checklink()
-    assert err == False
+    thd.addpayload({"Hello": 1234})
+
+    ret = thd.checklink()
+    assert ret == False
+
+    ret = thd.checklink()
+    assert ret == False
 
 # EOF
 

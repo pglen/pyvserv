@@ -14,8 +14,8 @@ sys.path.append(os.path.join(base, '../'))
 sys.path.append(os.path.join(base, '../../'))
 sys.path.append(os.path.join(base,  '../../../pypacker'))
 
-import pyvhash, support, pypacker, crysupp
-
+import pyvhash, support, crysupp
+import pyvpacker
 # ------------------------------------------------------------------------
 # Test harness
 
@@ -24,50 +24,43 @@ if __name__ == '__main__':
     # Hypothetical old hash
     prevh = pyvhash.shahex(b"1234")
 
-    # The hash field will be overridden
+    # The hash field will be ovretidden
     arrx =  [123, "hello", ]
 
+    exc = 0
     try:
         arrp = pyvhash.linkarr(arrx, prevh)
         print(arrp)
     except:
         #print(sys.exc_info())
+        #print("No power")
+        exc = True
         pass
 
+    assert exc == True
+
     thd = pyvhash.BcData()
+    thd.hasharr()
+    #print(thd.datax)
 
-    arrh = thd.hasharr()
-    print(arrh)
+    ret = thd.checkhash()
+    print("1 normal match: [True]", ret)
 
-    err = thd.checkhash()
-    print("normal match:", )
+    thd.powarr()
+    ret = thd.checkpow()
+    print("2 power  match: [True]", ret)
 
-    arrh = thd.powarr()
-    print(arrh)
-    err = thd.checkpow()
-    print("pow match:", err)
+    thd.linkarr(prevh)
 
-    err = thd.checkhash()
-    print("after pow hash match:", err)
+    ret = thd.checklink()
+    print("3  match  link: [True]", ret)
 
-    arrp = thd.linkarr(prevh)
-    print(arrp)
+    ret = thd.checkpow()
+    print("4 after  power: [True]", ret)
 
-    err = thd.checklink()
-    print("match link:", err)
+    ret = thd.checkhash()
+    print("5 after  link:  [True]", ret)
 
-    err = thd.checkpow()
-    print("after link pow match:", err)
-
-    err = thd.checkhash()
-    print("after link hash match:", err)
-
-    # Damage
-    #arrp[3]["Hash"]  = "a"
-    #arrp[4]["Proof"]  = "a"
-    #arrp[1] = 'aa'
-    #err = pyvhash.checklink(arrp)
-    #print("dam match link:", err)
 
 
 
