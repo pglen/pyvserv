@@ -575,44 +575,46 @@ def get_rput_func(self, strx):
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
 
-    pp = pyvpacker.packbin()
-
-    # Prepare data. Do strings so it can be re-written in place
-    rrr = ["00000", "00000", "00000"]
-    #print("repl", rrr)
-    rr =  pp.encode_data("", rrr)
-
-    fname = os.path.join(dname, repfname + ".pydb")
-    #print("Saving at", fname)
-    repcore = twincore.TwinCore(fname, 0)
-    #print("save_data", strx[2][0])
-    ret = repcore.save_data(strx[2][0], rr, True)
-    #print("Save Data ret", ret)
-
     #ttt = time.time()
-    ddd = strx[2]; ddd.append(0); ddd.append(0)
-    dd = pp.encode_data("", ddd)
-    #print("data:", strx[2], dd)
-
+    undec = self.pb.encode_data("", strx[2])
+    if  self.pgdebug > 5:
+        print("Save_data Header:", strx[2]["Header"], "Data:",  undec)
     cfname = os.path.join(dname, chainfname + ".pydb")
     #print("cfname", cfname)
-    core = twinchain.TwinChain(cfname, 0)
+    repcore = twinchain.TwinChain(cfname, 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     try:
-        ret = core.appendwith(ddd[0], dd)
+        ret = repcore.save_data(strx[2]['Header'], undec, True)
     except:
-        #print("appendwith", sys.exc_info()[1])
-        response = [ERR, "Cannot save record, invalid UUID", strx[0]]
+        print("save_data", sys.exc_info()[1])
+        response = [ERR, "Cannot save record, invalid UUID", str(sys.exc_info()[1]) ]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
+    try:
+        # if it is replicated, skip operation
+        if not "Replicated" in strx[2]:
+            # Prepare data. Do strings so it can be re-written in place
+            rrr = {'count1': "00000", 'count2' : "00000", 'count3' : "00000" }
+            strx[2] |= rrr
+            undec2 = self.pb.encode_data("", strx[2])
+            frname = os.path.join(dname, repfname + ".pydb")
+            ##print("Saving at", fname)
+            repcore = twincore.TwinCore(frname, 0)
+            if self.pgdebug > 5:
+                print("repl save_data", strx[2]["Header"], undec2)
+            try:
+                ret = repcore.save_data(strx[2]['Header'], undec2, True)
+            except:
+                print("exc on save_data", sys.exc_info())
+            #print("db op3 %.3f" % ((time.time() - ttt) * 1000) )
+            dbsize = repcore.getdbsize()
+            print("replicator %d total records" % dbsize)
+    except:
+        print("Cannot add replicator data", sys.exc_info(), strx[2]['Header'])
 
-    #print("db op3 %.3f" % ((time.time() - ttt) * 1000) )
-    #dbsize = core.getdbsize()
-    #print("%d total records" % dbsize_
+    pysyslog.syslog("Blockchain data %s added" % strx[2]['Header'])
 
-    #pysyslog.syslog("Blockchain data %s added" % strx[2][0])
-
-    response = [OK,  "Blockchain data added.", strx[0]]
+    response = [OK,  "Blockchain data added.",  strx[2]['Header']]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_ihost_func(self, strx):
@@ -632,8 +634,8 @@ def get_ihost_func(self, strx):
     repcore = twincore.TwinCore(ihname)
 
     if strx[1] == 'add':
-        pp = pyvpacker.packbin()
-        ddd = pp.encode_data("", strx[2])
+        #pp = pyvpacker.packbin()
+        ddd = self.pb.encode_data("", strx[2])
         ret = repcore.save_data(strx[2], ddd, True)
         print("add ret", ret, strx[2])
         response = [OK, "Added replication host/port.", strx[2]]

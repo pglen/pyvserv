@@ -48,8 +48,12 @@ class Replicator():
 
         while True:
             time.sleep(2)
-            if self.pgdebug > 5:
-                print("Replicator cycle", time.time())
+            if pyservsup.globals.conf.norepl:
+                #print("No replication")
+                continue
+
+            #if self.pgdebug > 5:
+            #    print("Replicator cycle", time.time())
             ddd = os.listdir(pyservsup.globals.paydir)
             for aa in ddd:
                 aaa = os.path.join(pyservsup.globals.paydir, aa)
@@ -65,11 +69,9 @@ class Replicator():
     def scandir(self, dirname):
 
         fname = os.path.join(pyservsup.globals.paydir, dirname)
-
         rfile = os.path.join(fname, replicname)
         #print("rfile: ", rfile)
         repcore = self.softcreate(self.dbfarr, rfile, twinchain.TwinCore)
-        #print(repcore)
 
         if self.pgdebug > 5:
             ttt = time.time()
@@ -79,81 +81,77 @@ class Replicator():
             except:
                 print("Database", sys.exc_info())
                 continue
-
             if not rec:
                 continue;   # Deleted record
+            #print("head:", rec[0], "arr:", rec[1])
+            arr = self.packer.decode_data(rec[1])[0]
 
             # Increment count:
-            arr = self.packer.decode_data(rec[1])[0]
-            #print("head:", rec[0], "arr:", arr[0])
-            arr[0] = "%05d" % (int(arr[0]) + 1)
+            cntstr = "%05d" % (int(arr['count1']) + 1)
+            arr['count1'] = cntstr
+
+            #print("arr:", arr)
+            if  not int(arr['count2']):
+                if  int(cntstr) > 1  and int(cntstr) < 4:
+                    success = self.replicate(dirname, rec[0])
+                    if success:
+                        print("Succeeded")
+                         # Increment success count:
+                        cntstr2 = "%05d" % (int(arr['count2']) + 1)
+                        arr['count2'] = cntstr2
+            else:
+                pass
+                #print("Marked done")
+
             strx = str(self.packer.encode_data("", arr))
             ret = repcore.save_data(rec[0], strx, True)
             repcore.flush()
 
-            if int(arr[0]) < 4:
-                #print("rec:", rec[0], arr[0], arr[1], arr[2])
-                success = self.replicate(dirname, rec[0])
-
-            #if int(arr[0]) < 14 and int(arr[0]) > 10:
-            #    print("rec:", rec[0], arr[0], arr[1], arr[2])
-            #    self.replicate(rec[0])
-
-            if int(arr[0]) > 6:
-                print("del rec:", rec[0], arr[0], arr[1], arr[2])
+            if int(cntstr) > 6:
+                print("del rec:", rec[0])
                 ret = repcore.del_rec_bykey(rec[0])
                 repcore.flush()
 
-        #if self.pgdebug > 5:
-        #    print("db repl %.3f" % ((time.time() - ttt) * 1000) )
-
-    # Replicate this to all the hostsin the list
+    # Replicate this to all the hosts in the list
     def replicate(self, dirname, recx):
-
         print("replicate", dirname, recx)
         ret = 0
         fname = os.path.join(pyservsup.globals.paydir, dirname)
         dfname = os.path.join(fname, datafname)
-        print("dfname: ", dfname)
+
+        #print("dfname: ", dfname)
         #if not os.path.isfile(dfname):
         #    return
         datacore = self.softcreate(self.dbdarr, dfname, twinchain.TwinChain)
         #print("dbsize", datacore.getdbsize())
         #print("recx", recx)
         rec = datacore.retrieve(recx, 1)
-        #print("rec", rec)
         if not rec:
             print("Empty record on replicate")
             return
+        #print("rec", rec)
         arr = self.packer.decode_data(rec[0][1])[0]
         #print("arr", arr)
-        dicx = {}
-        for aa in range(len(arr)//2):
-            dicx[arr[2*aa]] = arr[2*aa+1]
-        if not dicx.get('replicated'):
-            dicx['replicated'] = 1
+        if 'replicate' in arr:
+            arr['Replicated'] += 1
         else:
-            dicx['replicated'] += 1
-        #print("dicx", dicx)
-        rec2 =  [recx, dicx]
-        print("rec2", rec2)
+            arr['Replicated'] = 1
+        #print("arr", arr)
 
         # Relicate on a per host basis
         hfname = os.path.join(pyservsup.globals.myhome, ihostfname)
-        #pyservsup.globals.paydir
-        #print("hfname: ", hfname)
         hostcore = self.softcreate(self.hostdarr, hfname, twinchain.TwinChain)
         ret = 0
         for bb in range(hostcore.getdbsize()):
             try:
                 rec = hostcore.get_rec(bb)
-                #print(bb, "rec", rec)
             except:
-                #print("Database EXC", sys.exc_info())
                 pass
             if not rec:
                 continue;   # Deleted record
-            self.transmit(rec[0].decode(), dirname, rec2)
+            #print("host", rec[0])
+            self.transmit(rec[0].decode(), dirname, arr)
+            ret = True
         return ret
 
     def transmit(self, hostport, dirname, data):
@@ -174,7 +172,8 @@ class Replicator():
         class Blank(): pass
         conf = Blank()
         hand.start_session(conf)
-        print(conf.sess_key[:24])
+
+        #print(conf.sess_key[:24])
         #resp3 = hand.client(["hello", "world"] , conf.sess_key, False)
         #if resp3[0]  != "OK":
         #    print("Hello ERR Resp:", resp3)
@@ -187,13 +186,13 @@ class Replicator():
         cresp = hand.client(["pass", "1234"], conf.sess_key)
         print ("Server pass resp:", cresp)
 
-        resp3 = hand.client(["rput", dirname, data] , conf.sess_key, False)
-        if resp3[0]  != "OK":
-            print("rput ERR Resp:", resp3)
+        cresp = hand.client(["rput", dirname, data] , conf.sess_key, False)
+        if cresp[0]  != "OK":
+            print("rput ERR Resp:", cresp)
             return ret
         print ("Server rput resp:", cresp)
 
-        resp3 = hand.client(["quit"], conf.sess_key, False)
+        cresp = hand.client(["quit"], conf.sess_key, False)
         print ("Server quit resp:", cresp)
 
         # Success, mark record

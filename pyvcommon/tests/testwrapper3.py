@@ -15,7 +15,7 @@ sys.path.append(os.path.join(base, '../'))
 sys.path.append(os.path.join(base, '../../'))
 sys.path.append(os.path.join(base,  '../../../pypacker'))
 
-import pypacker, pywrap
+import pyvpacker, pywrap
 
 
 #key = b"12345"

@@ -14,7 +14,8 @@ sys.path.append(os.path.join(base, '../'))
 sys.path.append(os.path.join(base, '../../'))
 sys.path.append(os.path.join(base,  '../../../pypacker'))
 
-import support, pypacker, crysupp
+import support, crysupp
+import pyvpacker
 
 # ------------------------------------------------------------------------
 # Test harness
@@ -26,12 +27,4 @@ if __name__ == '__main__':
 
     print(crysupp.hexdump(rrr, len(rrr)))
 
-
-
-
-
-
-
-
-
-
+# EOF

@@ -153,17 +153,16 @@ if __name__ == '__main__':
     pvh.addpayload({"Vote": '0', "UID":  str(uuid.uuid1()), })
     #print(pvh.datax)
 
-    pvh.hasharr()
-    pvh.powarr()
-    print(pvh.checkpow(), pvh.checkhash())
+    pvh.hasharr();    pvh.powarr()
+    if not pvh.checkpow() or not pvh.checkhash():
+         print("Error on hshing pyloads")
 
-    pvh2 = pyvhash.BcData(pvh)
-    pvh2.addpayload({"Added New": "new stuff"})
-    pvh2.hasharr()
-    pvh2.powarr()
-    print(pvh2.datax)
-    print(pvh2.checkpow(), pvh2.checkhash())
-    print(pvh.checkpow(), pvh.checkhash())
+    #pvh2 = pyvhash.BcData(pvh)
+    #pvh2.addpayload({"Added New": "new stuff"})
+    #pvh2.hasharr();     pvh2.powarr()
+    #print(pvh2.datax)
+    #i2 not pvh2.checkpow() or not pvh2.checkhash():
+    #     print("Error on hshing pyloads2")
 
     if conf.pgdebug > 2:
         print(pvh.datax)
@@ -171,9 +170,9 @@ if __name__ == '__main__':
     if hand.verbose:
         print("Sending Data:", pvh.datax)
 
-    #for aa in range(conf.numrec):
-    #    cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
-    #    print ("Server rput response:", cresp)
+    for aa in range(conf.numrec):
+        cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
+        print ("Server rput response:", cresp)
 
     cresp = hand.client(["quit",],conf.sess_key)
     print ("Server quit  response:", cresp)

@@ -16,7 +16,7 @@ sys.path.append(os.path.join(base, '../../'))
 sys.path.append(os.path.join(base,  '../../../pypacker'))
 #sys.path.append(os.path.join(base,  '../../pycommon'))
 
-import pypacker, pywrap
+import pyvpacker, pywrap
 
 #key = b"12345"
 key = Random.new().read(512)

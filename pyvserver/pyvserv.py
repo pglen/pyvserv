@@ -415,6 +415,7 @@ optarr.append ( ["n:",  "host",      "host",   "127.0.0.1",  None, "Set server h
 optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
 optarr.append ( ["m",   "mem",       "mem",         0,       None, "Show memory trace."] )
 optarr.append ( ["D",   "dmode",     "dmode",       0,       None, "Dev mode (no twofa)"] )
+optarr.append ( ["N",   "norepl",    "norepl",      0,       None, "No replication (for test)"] )
 
 #print (optarr)
 comline.setargs("")

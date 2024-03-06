@@ -118,7 +118,7 @@ class DataHandler():
 
         dstr = self.wr.wrap_data(key, datax)
 
-        if self.pgdebug > 8:
+        if self.pgdebug > 9:
             print ("Server reply:\n", dstr)
             pass
         ret = self.putraw(dstr)
