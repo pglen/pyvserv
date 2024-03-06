@@ -14,7 +14,8 @@ sys.path.append(os.path.join(base, '../'))
 sys.path.append(os.path.join(base, '../../'))
 sys.path.append(os.path.join(base,  '../../../pypacker'))
 
-import pyvhash, support, pypacker, crysupp
+import pyvhash, support, crysupp
+import pyvpacker
 
 # ------------------------------------------------------------------------
 # Test harness
@@ -22,46 +23,49 @@ import pyvhash, support, pypacker, crysupp
 if __name__ == '__main__':
 
     # The hash field will be overridden
-    arrx =  [123, "hello", {"Hash":12},]
+    arrx =  [123, "hello", {"Hash": 12},]
 
     thd = pyvhash.BcData()
 
-    err = thd.checkhash()
-    print("match hash:", err)
+    ret = thd.checkhash()
+    print("1 match hash: [False]", ret)
 
-    err = thd.checkhash()
-    print("match pow:", err)
+    ret = thd.checkpow()
+    print("2 match  pow: [False]", ret)
 
-    arrh = thd.hasharr()
-    print(arrh)
+    thd.hasharr()
+    ret = thd.checkhash()
+    print("3 match hash: [True]", ret)
 
-    arrp = thd.powarr()
-    print(arrp)
+    thd.powarr()
+    ret = thd.checkpow()
+    print("4 match  pow: [True]", ret)
 
-    err = thd.checkhash()
-    print("match hash:", err)
+    thd.hasharr()
+    ret = thd.checkhash()
+    print("5 match hash: [True]", ret)
 
-    err = thd.checkpow()
-    print("match pow:", err)
+    #print(thd.datax)
 
-    # Damage
-    #arrp[3]["Hash"]  = "a"
-    #arrp[4]["Proof"]  = "a"
-    arrp[1] = 'aa'
+    # Damage sums
+    thd.addpayload({"testkey":"test"})
 
-    err = thd.checkhash()
-    print("dam match hash:", err)
+    ret = thd.checkhash()
+    print("6 match hash: [False]", ret)
 
-    err = thd.checkpow()
-    print("dam match pow:", err)
+    ret = thd.checkpow()
+    print("7 match pow: [False]", ret)
 
+    thd.hasharr()
+    ret = thd.checkhash()
+    print("8 match hash: [True]", ret)
 
+    thd.powarr()
+    ret = thd.checkpow()
+    print("9 match  pow: [True]", ret)
 
+    ret = thd.checkhash()
+    print("0 match hash: [True]", ret)
 
-
-
-
-
-
-
+# EOF
 

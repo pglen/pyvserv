@@ -24,8 +24,8 @@ __doc__ = \
 base = os.path.dirname(os.path.realpath(__file__))
 
 sys.path.append(os.path.join(base, '../'))
-sys.path.append(os.path.join(base, '../../'))
 
+#sys.path.append(os.path.join(base, '../../'))
 #sys.path.append(os.path.join(base,  '../../../pypacker'))
 
 import support, pyvpacker, crysupp
@@ -35,6 +35,7 @@ Link     = "_Link"
 PrevHash = "_PrevHash"
 PowRand  = "_PowRand"
 Proof    = "_Proof"
+PayLoad  = "PayLoad"
 
 class NoProof(Exception):
 
@@ -69,6 +70,9 @@ class BcData():
 
         self.pb  = pyvpacker.packbin()
         self.rrr = Random.new()
+
+        self.ignore = [Hash, PrevHash, Link, PowRand, Proof]
+
         if not old_data:
             self.newdata()
         else:
@@ -83,7 +87,8 @@ class BcData():
         #dd = datetime.datetime.fromtimestamp(\
         #            (uuu.time - 0x01b21dd213814000)*100/1e9)
         #print(dd)
-        self.datax = [str(uuu),  {"PayLoad" : { "Default": ""}}]
+        # Has to be one payload for minimum
+        self.datax = {"Header" : str(uuu),  PayLoad : { "Default": "None"} }
 
     def allarr(self, prevhash):
 
@@ -99,89 +104,42 @@ class BcData():
         ''' Hash a array of data '''
 
         arrx = self.datax
-
-        # Replicate without hash field:
-        arrx2 = []; asave = []
-        for aa in range(len(arrx)):
-            #print("hash element", arrx[aa])
-            try:
-                if Hash in arrx[aa]:
-                    #print("noadd", arrx[aa])
-                    pass  # no add
-                elif PrevHash in arrx[aa]:
-                    asave.append(arrx[aa])
-                elif Link in arrx[aa]:
-                    asave.append(arrx[aa])
-                elif PowRand in arrx[aa]:
-                    asave.append(arrx[aa])
-                elif Proof in arrx[aa]:
-                    #print("asave proof", arrx[aa])
-                    asave.append(arrx[aa])
-                else:
-                    arrx2.append(arrx[aa])
-
-            except (AttributeError, TypeError, KeyError):
-                arrx2.append(arrx[aa])
-            except:
-                print (sys.exc_info())
+        # Replicate without non participating fields:
+        arrx2 = [];
+        for aa in sorted(arrx.keys()):
+            if aa in self.ignore:
                 pass
+            else:
+                #print("hash element", aa, arrx[aa])
+                arrx2.append(arrx[aa])
 
-        #print("arrx2", arrx2)
+        #print("hash arrx2", arrx2)
         ssss = self.pb.encode_data("", arrx2)
-
         #print(type(ssss))
         #print(ssss)
         ssss  = bytes(ssss, "utf-8")
         hhh = shahex(ssss)
-        #print("asave", asave)
-        arrx2 += asave
-        arrx2.append({Hash: hhh})
-        self.datax = arrx2
-        return(arrx2)
+        arrx[Hash] = hhh
 
     def powarr(self):
 
-        ''' Provide proof of work '''
+        ''' Provide proof of work. Only payload and powhash '''
 
         arrx = self.datax
-
-        # Replicate without pow and random:
-        arrx2 = []; asave = []
-        for aa in range(len(arrx)):
-            try:
-                # print("element", arrx[aa])
-                if Proof in arrx[aa]:
-                    pass  # no add
-                elif PowRand in arrx[aa]:
-                    pass  # no add
-                elif PrevHash in arrx[aa]:
-                    asave.append(arrx[aa])
-                elif Link in arrx[aa]:
-                    asave.append(arrx[aa])
-                elif Hash in arrx[aa]:
-                    asave.append(arrx[aa])
-                else:
-                    arrx2.append(arrx[aa])
-            except (AttributeError, TypeError, KeyError):
-                arrx2.append(arrx[aa])
-            except:
-                print (sys.exc_info())
+        # Replicate without non participating fields:
+        arrx2 = [];
+        for aa in sorted(arrx.keys()):
+            if aa in self.ignore:
                 pass
+            else:
+                #print("hash element", aa, arrx[aa])
+                arrx2.append(arrx[aa])
         rr = self.rrr.read(12)
         var = None
-        arrx2.append({PowRand: rr})
-        for aa in range(len(arrx2)):
-                try:
-                    if arrx2[aa][PowRand]:
-                        # Mark place
-                        var = arrx2[aa]
-                        break
-                except:
-                    pass
 
-        #print("pow arr2x", arrx2)
-        cnt = 0
+        cnt = 0; hhh = ""
         while True:
+            arr2[PowRand] =  self.rrr.read(12)
             ssss = self.pb.encode_data("", arrx2)
             #print(ssss)
             ssss  = bytes(ssss, "utf-8")
@@ -192,15 +150,10 @@ class BcData():
             if hhh[-3:] == '000':
                 break
             #print(hhh)
-            var[PowRand] = self.rrr.read(12)
 
+        print("pow arr2x", arrx2)
         #print (cnt)
-        #print("asave", asave)
-        arrx2 += asave
-        arrx2.append({Proof: hhh})
-        self.datax = arrx2
-
-        return(arrx2)
+        self.datax |= arrx2
 
     def linkarr(self, prevhash):
 
@@ -268,75 +221,57 @@ class BcData():
 
         arrx = self.datax
 
-        # Replicate without hash field:
-        arrx2 = []; org = ""
-        for aa in range(len(arrx)):
-            try:
-                #print("element", arrx[aa])
-                if Hash in arrx[aa]:
-                    org = arrx[aa][Hash]
-                    pass  # no add
-                elif PowRand in arrx[aa]:
-                    pass  # no add
-                elif Proof in arrx[aa]:
-                    pass  # no add
-                elif Link in arrx[aa]:
-                    #print("noadd", arrx[aa])
-                    pass  # no add
-                elif PrevHash in arrx[aa]:
-                    #print("noadd", arrx[aa])
-                    pass  # no add
-                else:
-                    arrx2.append(arrx[aa])
-            except (AttributeError, TypeError, KeyError):
-                arrx2.append(arrx[aa])
-            except:
-                print (sys.exc_info())
+        # Early out if not hashed
+        if not Hash in arrx:
+            return False
+
+        # Replicate without non participating fields:
+        arrx2 = [];
+        for aa in sorted(arrx.keys()):
+            if aa in self.ignore:
                 pass
-        #print("arrx2", arrx2)
+            else:
+                #print("hash element", aa, arrx[aa])
+                arrx2.append(arrx[aa])
+
+        #print("hash arrx2", arrx2)
         ssss = self.pb.encode_data("", arrx2)
+        #print(type(ssss))
         #print(ssss)
         ssss  = bytes(ssss, "utf-8")
         hhh = shahex(ssss)
-        #print (hhh, org)
-        return(hhh == org)
+        #print("chk arrx2", arrx2)
+        hhh = shahex(ssss)
+        #print(hhh, arrx[Hash])
+        return(hhh == arrx[Hash])
 
     def checkpow(self):
 
         ''' Check record's proof of work against the POW filed '''
 
         arrx = self.datax
-
         # Replicate without hash field:
         arrx2 = []; org = ""
         for aa in range(len(arrx)):
             try:
-                #print("element", arrx[aa])
-                if Hash in arrx[aa]:
-                    pass  # no add
-                elif Link in arrx[aa]:
-                    #print("noadd", arrx[aa])
-                    pass  # no add
-                elif PrevHash in arrx[aa]:
-                    #print("noadd", arrx[aa])
-                    pass  # no add
-                elif Proof in arrx[aa]:
-                    org =  arrx[aa][Proof]
-                    pass  # no add
-                else:
+                if PayLoad in arrx[aa]:
                     arrx2.append(arrx[aa])
-            except (AttributeError, TypeError, KeyError):
-                arrx2.append(arrx[aa])
+                elif PowRand in arrx[aa]:
+                    arrx2.append(arrx[aa])
+                elif Proof in arrx[aa]:
+                    org = arrx[aa][Proof]
+                else:
+                    pass
             except:
                 print (sys.exc_info())
                 pass
-        #print("arrx2", arrx2)
+        #print("chk arrx2", arrx2)
         ssss = self.pb.encode_data("", arrx2)
         #print(ssss)
         ssss  = bytes(ssss, "utf-8")
         hhh = shahex(ssss)
-        #print (hhh, org)
-        return(hhh == org)
+        #print ("org", org, hhh)
+        return org == hhh
 
     def checklink(self):
 
@@ -390,8 +325,8 @@ class BcData():
 
         '''Add new entry to payload. Override existing values. '''
 
-        var = self._getpayvar()
-        var |= newpay
+        #var = self._getpayvar()
+        self.datax |= newpay
 
     def delpayload(self, paykey):
 

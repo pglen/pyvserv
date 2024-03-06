@@ -50,15 +50,22 @@ def test_func(capsys):
 
     thd = pyvhash.BcData()
 
+    arrp = thd.hasharr()
+    assert thd.checkhash() == True
+    assert thd.checkhash() == True
+
     arrp = thd.powarr()
     #print(arrp)
 
-    err = thd.checkpow()
-    assert err == True
+    ret = thd.checkhash()
+    assert ret == True
+
+    ret = thd.checkpow()
+    assert ret == True
 
     arrp[1] = 'aa'
-    err = thd.checkpow()
-    assert err == False
+    ret = thd.checkpow()
+    assert ret == False
 
 # EOF
 
