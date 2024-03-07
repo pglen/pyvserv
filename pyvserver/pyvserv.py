@@ -434,7 +434,6 @@ def mainfunc():
         sys.exit(0)
 
     args = conf.comline(sys.argv[1:])
-
     #print(args)
 
     # Print comline args
@@ -482,7 +481,7 @@ def mainfunc():
             print("Exec:  ", exec)
 
         try:
-            os.system("%s -q -m %s " % (exec, pyservsup.globals.keydir))
+            os.system("%s -q -m %s " % (exec, pyservsup.globals.myhome))
             #if conf.verbose:
                 #print("exc", sys.exc_info())
                 #support.put_exception("Generating keys")

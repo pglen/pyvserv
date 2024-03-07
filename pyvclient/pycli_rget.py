@@ -30,10 +30,10 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
+    print( "            -p        - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
-    print( "            -n        - No encryption (plain)")
+    print( "            -r        - Record ID to get")
     print( "            -h        - Help")
     print()
     sys.exit(0)
@@ -50,7 +50,7 @@ optarr = \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
     ["n",   "plain",    0,          None],      \
-    ["t",   "test",     "x",        None],      \
+    ["r",   "rget",      "",        None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
 
@@ -120,20 +120,28 @@ if __name__ == '__main__':
     ts2 =  dd2.timestamp();    ts3 = dd3.timestamp()
     #print(ts3, ts2)
 
-    cresp = hand.client(["rlist", "vote", ts3, ts2], conf.sess_key)
-    #print ("Server  rlist response:", cresp)
-    if cresp[0] != "OK":
-        print("Cannot get rList", cresp)
-        cresp = hand.client(["quit", ], conf.sess_key)
-        sys.exit(0)
-
-    for aa in cresp[1]:
-        #print("rget", aa)
+    if conf.rget:
         cresp = hand.client(["rget", "vote", aa], conf.sess_key)
-        if cresp[0] != "OK":
-            print("Cannot get record", cresp)
-            break
         print(cresp)
+    else:
+        cresp = hand.client(["rlist", "vote", ts3, ts2], conf.sess_key)
+        #print ("Server  rlist response:", cresp)
+        if cresp[0] != "OK":
+            print("Cannot get rList", cresp)
+            cresp = hand.client(["quit", ], conf.sess_key)
+            sys.exit(0)
+
+        for aa in cresp[1]:
+            if conf.verbose:
+                print("rget", aa)
+            cresp = hand.client(["rget", "vote", aa], conf.sess_key)
+            if cresp[0] != "OK":
+                print("Cannot get record", cresp)
+                #break
+            #print(cresp[1])
+            dec = hand.pb.decode_data(cresp[1][1])
+            print(dec)
+
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)

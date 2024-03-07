@@ -125,13 +125,13 @@ class Replicator():
         datacore = self.softcreate(self.dbdarr, dfname, twinchain.TwinChain)
         #print("dbsize", datacore.getdbsize())
         #print("recx", recx)
-        rec = datacore.retrieve(recx, 1)
+        rec = datacore.get_(recx)
         if not rec:
             print("Empty record on replicate")
             return
         #print("rec", rec)
         arr = self.packer.decode_data(rec[0][1])[0]
-        #print("arr", arr)
+        print("arr", arr)
         if 'replicate' in arr:
             arr['Replicated'] += 1
         else:

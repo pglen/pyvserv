@@ -16,7 +16,10 @@
 # ------------------------------------------------------------------------
 
 all:
-	@echo Targets: clean cleanpayload
+	@echo Targets: clean cleanpayload cleandata
+
+cleandata:
+	@rm -rf ~/pyvserver/*
 
 cleanpayload:
 	@rm -rf ~/pyvserver/payload/*

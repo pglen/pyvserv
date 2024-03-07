@@ -228,8 +228,8 @@ class StateHandler():
             # Command match
             if comx[0] == aa[0]:
                 comok = True
-                if self.pgdebug > 3:
-                    print("Found command, executing:", aa[0])
+                #if self.pgdebug > 3:
+                #    print("Found command, executing:", aa[0])
 
                 # See if command is in state or all_in is in effect
                 # or auth_in and stat > auth is in effect -- use early out

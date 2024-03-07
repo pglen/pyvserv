@@ -530,22 +530,45 @@ def get_rget_func(self, strx):
     core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
 
-    data = []
-    dbsize = core.getdbsize()
-    for aa in range(1, dbsize):
-        rec = core.get_header(aa)
-        if rec == strx[2]:
-            ppp = core.linkintegrity(aa)
-            ccc = core.checkdata(aa)
-            if not ppp:
-                data = [rec, "Invalid Record, link damaged"]
-            elif not ccc:
-                data = [rec, "Invalid Record, bad checksum"]
-            else:
-                data = core.get_payload(aa)
-            break;
+    data = []; ddd = []
+    try:
+        ddd = core.get_payoffs_bykey(strx[2])
+    except:
+        pass
+    if len(ddd) == 0:
+        response = [OK, "Data not found", strx[2],]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    try:
+        rechead = core.get_header(ddd[0])
+    except:
+        print(sys.exc_info())
 
-    response = [OK, data, strx[1]]
+    if not rechead:
+        response = [OK, "Cannot get data", strx[2],]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if self.pgdebug > 2:
+        print("got rechead", rechead)
+
+    if not core.checkdata(ddd[0]):
+        data = [ERR, "Invalid Record, bad checksum", rec]
+    elif not core.linkintegrity(ddd[0]):
+        data = [ERR, "Invalid Record, link damaged", rec]
+    else:
+        try:
+            data = core.get_payload(ddd[0])
+        except:
+            data = "error on get data", str(sys.exc_info())
+        if self.pgdebug > 4:
+            print("rec data", data)
+
+    if not data:
+        response = [OK, "Data not found", strx[2],]
+    else:
+        response = [OK, data, strx[2],]
+
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rput_func(self, strx):
@@ -584,7 +607,7 @@ def get_rput_func(self, strx):
     repcore = twinchain.TwinChain(cfname, 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     try:
-        ret = repcore.save_data(strx[2]['Header'], undec, True)
+        ret = repcore.appendwith(strx[2]['Header'], undec)
     except:
         print("save_data", sys.exc_info()[1])
         response = [ERR, "Cannot save record, invalid UUID", str(sys.exc_info()[1]) ]
@@ -817,17 +840,10 @@ def get_user_func(self, strx):
 
 def get_sess_func(self, strx):
 
-    #if pyservsup.globals.conf.pgdebug > 4:
-    #    for aa in strx:
-    #        print("arg:", aa)
-
     if len(strx) < 4:
-        self.resp.datahandler.putencode(\
-                [ERR, "Not enough arguments."], self.resp.ekey)
+        response = [ERR, "Not enough arguments for session."]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-
-    if pyservsup.globals.conf.pgdebug > 4:
-        print("Got session key command.")
 
     #sss = SHA512.new(); sss.update(bytes(strx[3], "cp437"))
     sss = SHA256.new(); sss.update(strx[3].encode())
