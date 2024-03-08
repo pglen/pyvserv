@@ -45,7 +45,7 @@ from pyvcommon import pydata
 from pyvcommon import pysyslog
 from pyvcommon import comline
 
-import pyvreplic
+#import pyvreplic
 
 version = "1.0"
 
@@ -517,7 +517,7 @@ def mainfunc():
     pyvfunc.pgdebug = conf.pgdebug
     pyvfunc.pglog = conf.pglog
 
-    replicator = pyvreplic.Replicator(conf.verbose, conf.pgdebug)
+    #replicator = pyvreplic.Replicator(conf.verbose, conf.pgdebug)
 
     if conf.pglog > 0:
         pysyslog.openlog("pyvserver")

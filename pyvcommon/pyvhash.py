@@ -35,8 +35,8 @@ Link     = "_Link"
 PrevHash = "_PrevHash"
 PowRand  = "_PowRand"
 Proof    = "_Proof"
-PayLoad  = "PayLoad"
-Header   = "Header"
+PayLoad  = "payload"
+Header   = "header"
 
 def DefPayload():
     return {PayLoad : { "Default": "None"}}

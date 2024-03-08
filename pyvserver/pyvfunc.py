@@ -520,7 +520,7 @@ def get_rget_func(self, strx):
 
     #print("dname", dname)
     if not os.path.isdir(dname):
-        response = [ERR, "Blockchain kind directory does not exist.", strx[1]]
+        response = [ERR, "Blockchain 'kind' directory does not exist.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -565,7 +565,7 @@ def get_rget_func(self, strx):
             print("rec data", data)
 
     if not data:
-        response = [OK, "Data not found", strx[2],]
+        response = [OK, "Record not found", strx[2],]
     else:
         response = [OK, data, strx[2],]
 
@@ -599,45 +599,54 @@ def get_rput_func(self, strx):
             return
 
     #ttt = time.time()
+    print("rput strx[2]", strx[2])
     undec = self.pb.encode_data("", strx[2])
     if  self.pgdebug > 5:
         print("Save_data Header:", strx[2]["Header"], "Data:",  undec)
     cfname = os.path.join(dname, chainfname + ".pydb")
     #print("cfname", cfname)
-    repcore = twinchain.TwinChain(cfname, 0)
+    savecore = twinchain.TwinChain(cfname, 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     try:
-        ret = repcore.appendwith(strx[2]['Header'], undec)
+        ret = savecore.appendwith(strx[2]['Header'], undec)
     except:
-        print("save_data", sys.exc_info()[1])
-        response = [ERR, "Cannot save record, invalid UUID", str(sys.exc_info()[1]) ]
+        del savecore
+        print("exc save_data", sys.exc_info()[1])
+        response = [ERR, "Cannot save record", str(sys.exc_info()[1]) ]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-    try:
-        # if it is replicated, skip operation
-        if not "Replicated" in strx[2]:
-            # Prepare data. Do strings so it can be re-written in place
-            rrr = {'count1': "00000", 'count2' : "00000", 'count3' : "00000" }
-            strx[2] |= rrr
-            undec2 = self.pb.encode_data("", strx[2])
-            frname = os.path.join(dname, repfname + ".pydb")
-            ##print("Saving at", fname)
-            repcore = twincore.TwinCore(frname, 0)
-            if self.pgdebug > 5:
-                print("repl save_data", strx[2]["Header"], undec2)
-            try:
-                ret = repcore.save_data(strx[2]['Header'], undec2, True)
-            except:
-                print("exc on save_data", sys.exc_info())
-            #print("db op3 %.3f" % ((time.time() - ttt) * 1000) )
-            dbsize = repcore.getdbsize()
-            print("replicator %d total records" % dbsize)
-    except:
-        print("Cannot add replicator data", sys.exc_info(), strx[2]['Header'])
+    del savecore
 
-    pysyslog.syslog("Blockchain data %s added" % strx[2]['Header'])
+    # if it is replicated, skip operation
+    if not "Replicated" in strx[2]:
+        # Prepare data. Do strings so it can be re-written in place
+        rrr = {'count1': "00000", 'count2' : "00000", 'count3' : "00000" }
+        strx[2] |= rrr
+        undec2 = self.pb.encode_data("", strx[2])
+        frname = os.path.join(dname, repfname + ".pydb")
+        print("Saving at", frname)
+        repcore = twincore.TwinCore(frname, 0)
+        #if self.pgdebug > 5:
+        print("repl save_data", strx[2]["Header"], undec2)
+        try:
+            ret = repcore.save_data(strx[2]['Header'], undec2)
+        except:
+            del repcore
+            print("exc on save_data", sys.exc_info()[1])
+            response = [ERR,  "Cannot save replicator",  str(sys.exc_info()[1]) ]
+            support.put_exception("save_data")
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+        del repcore
+
+        #print("db op3 %.3f" % ((time.time() - ttt) * 1000) )
+        #dbsize = repcore.getdbsize()
+        #print("replicator %d total records" % dbsize)
 
     response = [OK,  "Blockchain data added.",  strx[2]['Header']]
+    pysyslog.syslog("Blockchain data %s added" % strx[2]['Header'])
+
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_ihost_func(self, strx):

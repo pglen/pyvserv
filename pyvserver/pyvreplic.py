@@ -5,9 +5,35 @@ import os, sys, threading, time
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base,  '..'))
 
+import sys
+
+if sys.version_info[0] < 3:
+    print("Python 2 is not supported as of 1/1/2020")
+    sys.exit(1)
+
+import os, getopt, signal, select, string, time
+import tarfile, subprocess, struct, platform
+import socket, threading, tracemalloc, inspect
+
+if sys.version_info[0] < 3:
+    import SocketServer as socketserver
+else:
+    import socketserver
+
+from pyvcommon import support
+from pyvcommon import pyservsup
+from pyvcommon import pyclisup
+from pyvcommon import pydata
+from pyvcommon import pysyslog
+from pyvcommon import comline
+
 from pyvcommon import pyservsup, pyclisup
 
-import twinchain, twincore
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join("..",  'pydbase'))
+
+from pydbase import twincore, twinchain
+
 import pyvpacker
 
 replicname = "replic.pydb"
@@ -26,6 +52,7 @@ class Replicator():
         self.hostdarr = []
 
     def start_replication(self):
+        return    # disabled Thu 07.Mar.2024
         if self.pgdebug > 3:
             print("start_replication()")
         replic_thread = threading.Thread(target=self.rep_run)
@@ -47,10 +74,10 @@ class Replicator():
     def rep_run(self):
 
         while True:
-            time.sleep(2)
             if pyservsup.globals.conf.norepl:
                 #print("No replication")
                 continue
+            print("Rep cycle", time.time())
 
             #if self.pgdebug > 5:
             #    print("Replicator cycle", time.time())
@@ -64,6 +91,7 @@ class Replicator():
                 if not os.path.isfile(fname):
                     continue
                 self.scandir(aa)
+            time.sleep(1)
 
     # Scan chain dir for replication data
     def scandir(self, dirname):
@@ -72,9 +100,11 @@ class Replicator():
         rfile = os.path.join(fname, replicname)
         #print("rfile: ", rfile)
         repcore = self.softcreate(self.dbfarr, rfile, twinchain.TwinCore)
+        #repcore.pgdebug = 0
+        #repcore.core_verbose = 5
+        print(repcore)
+        #print("dbsize", repcore.getdbsize())
 
-        if self.pgdebug > 5:
-            ttt = time.time()
         for bb in range(repcore.getdbsize()):
             try:
                 rec = repcore.get_rec(bb)
@@ -83,16 +113,17 @@ class Replicator():
                 continue
             if not rec:
                 continue;   # Deleted record
-            #print("head:", rec[0], "arr:", rec[1])
+            print("head:", rec[0], "arr:", rec[1])
             arr = self.packer.decode_data(rec[1])[0]
-
+            print("arr", arr)
             # Increment count:
             cntstr = "%05d" % (int(arr['count1']) + 1)
             arr['count1'] = cntstr
 
             #print("arr:", arr)
             if  not int(arr['count2']):
-                if  int(cntstr) > 1  and int(cntstr) < 4:
+                #if  int(cntstr) > 1  and int(cntstr) < 4:
+                if  int(cntstr) == 1:
                     success = self.replicate(dirname, rec[0])
                     if success:
                         print("Succeeded")
@@ -104,7 +135,10 @@ class Replicator():
                 #print("Marked done")
 
             strx = str(self.packer.encode_data("", arr))
+            ttt = time.time()
             ret = repcore.save_data(rec[0], strx, True)
+            print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
+
             repcore.flush()
 
             if int(cntstr) > 6:
@@ -112,9 +146,14 @@ class Replicator():
                 ret = repcore.del_rec_bykey(rec[0])
                 repcore.flush()
 
+            del repcore
+
     # Replicate this to all the hosts in the list
     def replicate(self, dirname, recx):
         print("replicate", dirname, recx)
+        if type(recx) == type(b""):
+            recx = recx.decode()
+
         ret = 0
         fname = os.path.join(pyservsup.globals.paydir, dirname)
         dfname = os.path.join(fname, datafname)
@@ -125,43 +164,52 @@ class Replicator():
         datacore = self.softcreate(self.dbdarr, dfname, twinchain.TwinChain)
         #print("dbsize", datacore.getdbsize())
         #print("recx", recx)
-        rec = datacore.get_(recx)
+        try:
+            rec = datacore.get_data_bykey(recx)
+        except:
+            print("cannot get record", sys.exc_info)
         if not rec:
             print("Empty record on replicate")
             return
+
         #print("rec", rec)
-        arr = self.packer.decode_data(rec[0][1])[0]
-        print("arr", arr)
+        #print("rex", rec[0][1][1])
+
+        arr = self.packer.decode_data(rec[0][1][1])[0]
         if 'replicate' in arr:
             arr['Replicated'] += 1
         else:
             arr['Replicated'] = 1
-        #print("arr", arr)
+        #sss = self.packer.encode_data("", arr)
+        #arr2 = []
+        #arr2.append(rec[0][0])
+        #arr2.append(sss)
+        #print("arr2",  arr2)
 
-        # Relicate on a per host basis
+        # Replicate on a per host basis
         hfname = os.path.join(pyservsup.globals.myhome, ihostfname)
-        hostcore = self.softcreate(self.hostdarr, hfname, twinchain.TwinChain)
+        #print("hfname", hfname)
+        hostcore = self.softcreate(self.hostdarr, hfname, twincore.TwinCore)
         ret = 0
         for bb in range(hostcore.getdbsize()):
             try:
-                rec = hostcore.get_rec(bb)
+                hrec = hostcore.get_rec(bb)
             except:
                 pass
-            if not rec:
-                continue;   # Deleted record
-            #print("host", rec[0])
-            self.transmit(rec[0].decode(), dirname, arr)
-            ret = True
+            if not hrec:
+                continue;       # Deleted record
+            #print("host", hrec)
+            ret = self.transmit(hrec[0], dirname, arr)
         return ret
 
     def transmit(self, hostport, dirname, data):
 
-        ret = 0
-        hp = hostport.split(":")
-
-        print("Replicating to Host", hp, "dirname", dirname)
+        print("Replicating to Host", hostport, "dirname", dirname)
         print("Data", data)
+        #return   # test
 
+        hp = hostport.decode().split(":")
+        ret = 0
         hand = pyclisup.CliSup()
         try:
             respc = hand.connect(hp[0], int(hp[1]))
@@ -186,6 +234,7 @@ class Replicator():
         cresp = hand.client(["pass", "1234"], conf.sess_key)
         print ("Server pass resp:", cresp)
 
+        #print("rput", data)
         cresp = hand.client(["rput", dirname, data] , conf.sess_key, False)
         if cresp[0]  != "OK":
             print("rput ERR Resp:", cresp)
@@ -198,5 +247,21 @@ class Replicator():
         # Success, mark record
         ret = True
         return ret
+
+optarr =  comline.optarrlong
+
+optarr.append ( ["N",   "norepl",    "norepl",      0,       None, "No replication (for test)"] )
+optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
+
+if __name__ == '__main__':
+
+    conf = comline.ConfigLong(optarr)
+    # Comline processed, go
+
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+    pyservsup.globals.conf = conf
+
+    repl = Replicator(conf.verbose, conf.pgdebug)
+    repl.rep_run()
 
 # EOF
