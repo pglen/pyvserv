@@ -33,12 +33,18 @@ PowRand  = "_PowRand"
 Proof    = "_Proof"
 PayLoad  = "payload"
 Header   = "header"
+Now      = "now"
 
 def DefPayload():
     return {PayLoad : { "Default": "None"}}
 
 def DefHeader():
     return {Header : str(uuid.uuid1())}
+
+def DefNow():
+    dt = datetime.datetime.utcnow()
+    fdt = dt.strftime('%a, %d %b %Y %H:%M:%S`')
+    return {'now' : fdt}
 
 class NoProof(Exception):
 
@@ -102,6 +108,8 @@ class BcData():
             self.datax |= DefPayload()
         if not Header in self.datax:
             self.datax |= DefHeader()
+        if not Now in self.datax:
+            self.datax |= DefNow()
 
         if self.pgdebug:
             print(self.datax)
@@ -161,30 +169,37 @@ class BcData():
                 time.sleep(1)
             else:
                 break
-
         # Replicate without non participating fields:
         arrx2 = {};
         arrx2[PowRand] = self.rrr.read(12)
-
         for aa in sorted(self.datax.keys()):
             if aa in self.pow_ignore:
                 pass
             else:
                 #print("hash element", aa, self.datax[aa])
                 arrx2 |= {aa : self.datax[aa]}
-        #print("Raw arrx2", arrx2)
         var = None; cnt = 0; hhh = ""
         while True:
             if cnt >= self.maxtry:
                 break
             arrx2[PowRand] = self.rrr.read(12)
-            ssss = self.pb.encode_data("", arrx2)
+            arrx3 = []
+            # Re arrange to array for consistency
+            for aa in sorted(arrx2.keys()):
+                #print("sort element", aa, arrx2[aa])
+                arrx3.append(aa)
+                arrx3.append(str(arrx2[aa]))
+
+            #ssss = self.pb.encode_data("", arrx3)
+            ssss = "".join(arrx3)
+
             #print(ssss)
             ssss  = bytes(ssss, "utf-8")
             hhh = shahex(ssss)
             if hhh[-self.num_zeros:] == '0' * self.num_zeros:
                 break
             cnt += 1
+        #print("Raw gen arrx3", arrx3)
         #print(cnt, hhh)
         self.cnt = cnt
         if hhh[-self.num_zeros:] == '0' * self.num_zeros:
@@ -269,9 +284,16 @@ class BcData():
             else:
                 #print("hash element", aa, self.datax[aa])
                 arrx2 |= {aa : self.datax[aa]}
+        # Re arrange to array for consistency
+        arrx3 = []
+        for aa in sorted(arrx2.keys()):
+            arrx3.append(aa)
+            arrx3.append(str(arrx2[aa]))
+
         var = None; cnt = 0; hhh = ""
-        #print("Raw arrx2", arrx2)
-        ssss = self.pb.encode_data("", arrx2)
+        #print("Raw chk arrx2", arrx3)
+        #ssss = self.pb.encode_data("", arrx3)
+        ssss = "".join(arrx3)
         #print(ssss)
         ssss  = bytes(ssss, "utf-8")
         hhh = shahex(ssss)

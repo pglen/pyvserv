@@ -101,8 +101,8 @@ if __name__ == '__main__':
     pvh.addpayload({"Vote": '0', "UID":  str(uuid.uuid1()), })
     #print(pvh.datax)
 
-    #pvh.hasharr()
-    #pvh.powarr()
+    pvh.hasharr()
+    pvh.powarr()
     #if not pvh.checkhash():
     #    print("Error on hashing payload .. retrying ...")
     #elif not pvh.checkpow():

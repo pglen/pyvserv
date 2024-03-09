@@ -26,6 +26,7 @@ from pyvcommon import pyclisup
 from pyvcommon import pydata
 from pyvcommon import pysyslog
 from pyvcommon import comline
+from pyvcommon import pyvhash
 
 from pyvcommon import pyservsup, pyclisup
 
@@ -139,6 +140,8 @@ class Replicator():
                          # Increment success count:
                         cntstr2 = "%05d" % (int(arr['count2']) + 1)
                         arr['count2'] = cntstr2
+                    else:
+                        print("Failed")
             else:
                 pass
                 #print("Marked done")
@@ -191,11 +194,18 @@ class Replicator():
             arr['Replicated'] += 1
         else:
             arr['Replicated'] = 1
+        #print(arr)
+        pvh = pyvhash.BcData(arr)
+        pvh.hasharr()
+        pvh.powarr()
+        print("pyvhash" , pvh.datax, pvh.checkhash(), pvh.checkpow())
+
         #sss = self.packer.encode_data("", arr)
         #arr2 = []
         #arr2.append(rec[0][0])
         #arr2.append(sss)
         #print("arr2",  arr2)
+        del datacore
 
         # Replicate on a per host basis
         hfname = os.path.join(pyservsup.globals.myhome, ihostfname)
@@ -210,12 +220,13 @@ class Replicator():
             if not hrec:
                 continue;       # Deleted record
             #print("host", hrec)
-            ret = self.transmit(hrec[0], dirname, arr)
+            ret = self.transmit(hrec[0], dirname, pvh.datax)
+        del hostcore
         return ret
 
     def transmit(self, hostport, dirname, data):
 
-        print("Replicating to Host", hostport, "dirname", dirname)
+        print("Transmitting to Host", hostport, "dirname", dirname, data['header'])
         #print("Data", data)
         #return   # test
 
@@ -248,7 +259,10 @@ class Replicator():
         cresp = hand.client(["rput", dirname, data] , conf.sess_key, False)
         if cresp[0]  != "OK":
             print("rput ERR Resp:", cresp)
+            cresp = hand.client(["quit"], conf.sess_key, False)
+            print ("Server quit resp:", cresp)
             return ret
+
         print ("Server rput resp:", cresp)
 
         cresp = hand.client(["quit"], conf.sess_key, False)

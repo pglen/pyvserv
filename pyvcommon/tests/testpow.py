@@ -25,15 +25,22 @@ from testx import *
 if __name__ == '__main__':
 
     # The hash field will be overridden
-    #arrx =  [123, "hello", {"Hash": 12},]
+    arrx =  {"hello" : "wwww", "Hash": 12,}
+    thd = pyvhash.BcData(arrx)
 
-    thd = pyvhash.BcData()
+    #ddd = { "Hello": 1234 }
+    #thd = pyvhash.BcData(arrx)
+    #thd = pyvhash.BcData()
+
+    print(thd.datax)
+
+    #thd = pyvhash.BcData()
 
     ret = thd.checkhash()
-    print("1 match hash: [False]", ret, end = " "); diff(False, ret)
+    print("1 uncal hash: [False]", ret, end = " "); diff(False, ret)
 
     ret = thd.checkpow()
-    print("2 match  pow: [False]", ret, end = " "); diff(False, ret)
+    print("2 uncal  pow: [False]", ret, end = " "); diff(False, ret)
 
     thd.hasharr()
     ret = thd.checkhash()

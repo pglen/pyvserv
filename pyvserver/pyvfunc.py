@@ -603,6 +603,7 @@ def get_rput_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 0:
         print("rput", strx[2]['header'])
 
+    print("Got:", strx[2])
     pvh = pyvhash.BcData(strx[2])
     #print("pvh", pvh.datax)
     if not pvh.checkhash():
@@ -636,16 +637,18 @@ def get_rput_func(self, strx):
     # if it is replicated, skip operation
     if not "Replicated" in strx[2]:
         # Prepare data. Do strings so it can be re-written in place
-        rrr = {'count1': "00000", 'count2' : "00000", 'count3' : "00000" }
-        strx[2] |= rrr
-        undec2 = self.pb.encode_data("", strx[2])
+        rrr = {'count1': "00000", 'count2' : "00000",
+                        'count3' : "00000",  'header' : strx[2]['header'],
+                            'now' : strx[2]['now'],}
+        print("replic", rrr)
+        undec2 = self.pb.encode_data("", rrr)
         frname = os.path.join(dname, repfname + ".pydb")
         #print("Saving at", frname)
         repcore = twincore.TwinCore(frname, 0)
         #if self.pgdebug > 5:
         #print("repl save_data", strx[2]["Header"], undec2)
         try:
-            ret = repcore.save_data(strx[2]['header'], undec2)
+            ret = repcore.save_data(rrr['header'], undec2)
         except:
             del repcore
             print("exc on save_data", sys.exc_info()[1])

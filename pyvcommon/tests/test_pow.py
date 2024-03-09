@@ -48,11 +48,11 @@ def teardown_module(module):
 
 def test_func(capsys):
 
-    thd = pyvhash.BcData()
+    ddd = { "Hello": 1234, 'now': 12345 }
+    thd = pyvhash.BcData(ddd)
+    print(thd.datax)
 
     thd.hasharr()
-    assert thd.checkhash() == True
-
     assert thd.checkhash() == True
 
     arrp = thd.powarr()
