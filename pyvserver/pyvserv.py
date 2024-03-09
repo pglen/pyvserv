@@ -407,7 +407,6 @@ def simple_server(HOST, PORT):
 
 # ------------------------------------------------------------------------
 
-
 optarr =  comline.optarrlong
 optarr.append ( ["e",   "detach=",   "detach",      0,       None, "Detach from terminal"] )
 optarr.append ( ["l:",  "loglevel",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )

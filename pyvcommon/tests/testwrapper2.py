@@ -13,9 +13,8 @@ base = os.path.dirname(os.path.realpath(__file__))
 # Fudge the include path so test succeeds
 sys.path.append(os.path.join(base, '../'))
 sys.path.append(os.path.join(base, '../../'))
-sys.path.append(os.path.join(base,  '../../../pypacker'))
 
-import support, pypacker, pywrap
+import support, pyvpacker, pywrap
 
 #key = b"12345"
 key = Random.new().read(512)

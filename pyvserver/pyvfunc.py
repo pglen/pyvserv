@@ -26,7 +26,7 @@ from Crypto.Hash import SHA256
 
 import pyvpacker
 
-from pyvcommon import support, pyservsup, pyclisup, pysyslog
+from pyvcommon import support, pyservsup, pyclisup, pysyslog, pyvhash
 from pyvserver import pyvstate
 
 base = os.path.dirname(os.path.realpath(__file__))
@@ -599,16 +599,32 @@ def get_rput_func(self, strx):
             return
 
     #ttt = time.time()
-    print("rput strx[2]", strx[2])
+    #print("rput strx[2]", strx[2])
+    if pyservsup.globals.conf.pgdebug > 0:
+        print("rput", strx[2]['header'])
+
+    pvh = pyvhash.BcData(strx[2])
+    #print("pvh", pvh.datax)
+    if not pvh.checkhash():
+        response = [ERR, "Error on block hash", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if not pvh.checkpow():
+        response = [ERR, "Error on block POW", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
     undec = self.pb.encode_data("", strx[2])
     if  self.pgdebug > 5:
-        print("Save_data Header:", strx[2]["Header"], "Data:",  undec)
+        print("Save_data header:", strx[2]["header"], "Data:",  undec)
     cfname = os.path.join(dname, chainfname + ".pydb")
     #print("cfname", cfname)
     savecore = twinchain.TwinChain(cfname, 0)
+
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     try:
-        ret = savecore.appendwith(strx[2]['Header'], undec)
+        ret = savecore.appendwith(strx[2]['header'], undec)
     except:
         del savecore
         print("exc save_data", sys.exc_info()[1])
@@ -624,12 +640,12 @@ def get_rput_func(self, strx):
         strx[2] |= rrr
         undec2 = self.pb.encode_data("", strx[2])
         frname = os.path.join(dname, repfname + ".pydb")
-        print("Saving at", frname)
+        #print("Saving at", frname)
         repcore = twincore.TwinCore(frname, 0)
         #if self.pgdebug > 5:
-        print("repl save_data", strx[2]["Header"], undec2)
+        #print("repl save_data", strx[2]["Header"], undec2)
         try:
-            ret = repcore.save_data(strx[2]['Header'], undec2)
+            ret = repcore.save_data(strx[2]['header'], undec2)
         except:
             del repcore
             print("exc on save_data", sys.exc_info()[1])
@@ -639,15 +655,22 @@ def get_rput_func(self, strx):
             return
 
         del repcore
+    else:
+        #print("Not replicating")
+        pass
 
         #print("db op3 %.3f" % ((time.time() - ttt) * 1000) )
         #dbsize = repcore.getdbsize()
         #print("replicator %d total records" % dbsize)
 
-    response = [OK,  "Blockchain data added.",  strx[2]['Header']]
-    pysyslog.syslog("Blockchain data %s added" % strx[2]['Header'])
-
+    response = [OK,  "Blockchain data added.",  strx[2]['header']]
     self.resp.datahandler.putencode(response, self.resp.ekey)
+
+    #open_file_handles = os.listdir('/proc/self/fd')
+    #print('open file handles: ' + ', '.join(map(str, open_file_handles)))
+
+    pysyslog.syslog("BCD %s" % strx[2]['header'])
+
 
 def get_ihost_func(self, strx):
 
@@ -661,35 +684,45 @@ def get_ihost_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    print(strx)
+    #print(strx)
     ihname = "ihosts.pydb"
     repcore = twincore.TwinCore(ihname)
 
     if strx[1] == 'add':
-        #pp = pyvpacker.packbin()
         ddd = self.pb.encode_data("", strx[2])
+        rec = repcore.retrieve(strx[2])
+        if rec:
+            if rec[0][0].decode() == strx[2]:
+                #print("Identical", rec[0][0])
+                response = [ERR, "This entry is already in the list.", strx[2]]
+                self.resp.datahandler.putencode(response, self.resp.ekey)
+                return
         ret = repcore.save_data(strx[2], ddd, True)
-        print("add ret", ret, strx[2])
         response = [OK, "Added replication host/port.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
     elif strx[1] == 'del':
+        rec = repcore.retrieve(strx[2])
+        if not rec:
+            response = [ERR, "This entry does not exist.", strx[2]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
         ret = repcore.del_rec_bykey(strx[2])
-        print("del ret", ret, strx[2])
+        #print("del ret", ret, strx[2])
         response = [OK, "Deleted replication host/port.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
-    elif strx[1] == 'get':
+    elif strx[1] == 'list':
         arr = []
         for aa in range(repcore.getdbsize()):
             ddd = repcore.get_rec(aa)
             if ddd:
                 arr.append(str(ddd[0]))
-        print("got recs", arr)
+        #print("got recs", arr)
         response = [OK,  arr, strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
     else:
-        response = [ERR, "Operation must be 'add' or 'del'.", strx[2]]
+        response = [ERR, "Operation must be 'add' or 'del or list'.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
 

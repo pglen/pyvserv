@@ -61,7 +61,7 @@ def test_func(capsys):
     assert True == thd.checkhash()
 
     #print(thd.datax)
-    assert thd.datax['PayLoad'] != None
+    assert thd.datax['payload'] != None
 
     assert thd.checkhash() == True
 

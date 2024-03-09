@@ -4,7 +4,8 @@ from __future__ import print_function
 
 from Crypto.Hash import SHA512
 import os, sys, getopt, signal, select, string, time, stat, base64
-import inspect
+import inspect, fcntl, multiprocessing
+
 import pyvpacker
 
 base = os.path.dirname(os.path.realpath(__file__))
@@ -165,8 +166,8 @@ def init_state_table():
 class StateHandler():
 
     def __init__(self, resp):
-        # Fill in class globals
 
+        # Fill in class globals
         self.curr_state = initial
         self.resp = resp
         self.resp.fh = None
@@ -175,6 +176,30 @@ class StateHandler():
         self.pb = pyvpacker.packbin()
         self.wr.pgdebug = 0
         self.buffsize = pyservsup.buffsize
+        self.lockname = "lock.lock"
+        self.fpx = None
+
+    def waitlock(self):
+        while True:
+            if os.path.isfile(self.lockname):
+                time.sleep(1)
+            else:
+                break
+        try:
+            self.fpx = open(self.lockname, "wb")
+            fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+        except:
+            print(sys.exc_info())
+            pass
+
+    def dellock(self):
+        fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+        try:
+            self.fpx.close()
+            os.unlink(self.lockname)
+        except:
+            print(sys.exc_info())
+            pass
 
     # --------------------------------------------------------------------
     # This is the function where outside stimulus comes in.
@@ -182,8 +207,9 @@ class StateHandler():
     # Return True from handlers to signal session terminate request
 
     def run_state(self, strx):
-        ret = False
 
+        # ------------------------------------------------------
+        ret = False
         try:
             ret = self._run_state_worker(strx)
         except:
@@ -192,6 +218,8 @@ class StateHandler():
             sss =  [ERR, "on processing request.", str(sys.exc_info()[1]), ]
             self.resp.datahandler.putencode(sss, self.resp.ekey)
             ret = False
+        # ------------------------------------------------------
+
         return ret
 
     def _run_state_worker(self, strx):
@@ -278,4 +306,6 @@ class StateHandler():
             ret = False
         return ret
 
+    def __del(self):
+        print("del state handler")
 # EOF

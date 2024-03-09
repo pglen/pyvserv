@@ -40,6 +40,8 @@ replicname = "replic.pydb"
 datafname = "initial.pydb"
 ihostfname = "ihosts.pydb"
 
+class Blank(): pass
+
 class Replicator():
 
     def __init__(self, verbose = 0, pgdebug = 0):
@@ -50,6 +52,10 @@ class Replicator():
         self.dbfarr = []
         self.dbdarr = []
         self.hostdarr = []
+
+    def _print_handles(self):
+        open_file_handles = os.listdir('/proc/self/fd')
+        print('open file handles: ' + ', '.join(map(str, open_file_handles)))
 
     def start_replication(self):
         return    # disabled Thu 07.Mar.2024
@@ -77,7 +83,8 @@ class Replicator():
             if pyservsup.globals.conf.norepl:
                 #print("No replication")
                 continue
-            print("Rep cycle", time.time())
+
+            #print("Rep cycle", time.time())
 
             #if self.pgdebug > 5:
             #    print("Replicator cycle", time.time())
@@ -91,31 +98,32 @@ class Replicator():
                 if not os.path.isfile(fname):
                     continue
                 self.scandir(aa)
+
             time.sleep(1)
 
     # Scan chain dir for replication data
     def scandir(self, dirname):
 
+        was = False
         fname = os.path.join(pyservsup.globals.paydir, dirname)
         rfile = os.path.join(fname, replicname)
         #print("rfile: ", rfile)
         repcore = self.softcreate(self.dbfarr, rfile, twinchain.TwinCore)
         #repcore.pgdebug = 0
         #repcore.core_verbose = 5
-        print(repcore)
         #print("dbsize", repcore.getdbsize())
 
         for bb in range(repcore.getdbsize()):
             try:
                 rec = repcore.get_rec(bb)
             except:
-                print("Database", sys.exc_info())
+                print("Exc on get_rec", sys.exc_info())
                 continue
             if not rec:
                 continue;   # Deleted record
-            print("head:", rec[0], "arr:", rec[1])
+            #print("head:", rec[0], "arr:", rec[1])
             arr = self.packer.decode_data(rec[1])[0]
-            print("arr", arr)
+            #print("arr", arr)
             # Increment count:
             cntstr = "%05d" % (int(arr['count1']) + 1)
             arr['count1'] = cntstr
@@ -124,6 +132,7 @@ class Replicator():
             if  not int(arr['count2']):
                 #if  int(cntstr) > 1  and int(cntstr) < 4:
                 if  int(cntstr) == 1:
+                    was = True
                     success = self.replicate(dirname, rec[0])
                     if success:
                         print("Succeeded")
@@ -137,16 +146,18 @@ class Replicator():
             strx = str(self.packer.encode_data("", arr))
             ttt = time.time()
             ret = repcore.save_data(rec[0], strx, True)
-            print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
+            #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
 
             repcore.flush()
 
             if int(cntstr) > 6:
-                print("del rec:", rec[0])
+                #print("del rec:", rec[0])
                 ret = repcore.del_rec_bykey(rec[0])
                 repcore.flush()
 
-            del repcore
+        del repcore
+        if was:
+            self._print_handles()
 
     # Replicate this to all the hosts in the list
     def replicate(self, dirname, recx):
@@ -169,7 +180,7 @@ class Replicator():
         except:
             print("cannot get record", sys.exc_info)
         if not rec:
-            print("Empty record on replicate")
+            #print("Empty record on replicate")
             return
 
         #print("rec", rec)
@@ -205,7 +216,7 @@ class Replicator():
     def transmit(self, hostport, dirname, data):
 
         print("Replicating to Host", hostport, "dirname", dirname)
-        print("Data", data)
+        #print("Data", data)
         #return   # test
 
         hp = hostport.decode().split(":")
@@ -217,7 +228,6 @@ class Replicator():
             print( "Cannot connect to:", hp, sys.exc_info()[1])
             return 0
 
-        class Blank(): pass
         conf = Blank()
         hand.start_session(conf)
 
@@ -261,6 +271,7 @@ if __name__ == '__main__':
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
 
+    print("Started replicator")
     repl = Replicator(conf.verbose, conf.pgdebug)
     repl.rep_run()
 

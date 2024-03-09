@@ -1,15 +1,18 @@
 
 all:
-	@echo these tests are obsolete
+	@echo Targets: test tests
+
+tests:
+	cd tests ; pytest
 
 test:
-
-	@echo Diffs should be silent
-	@python3 testdump.py > aa
-	@diff -w testdump.org aa
-	@python3 testwrapper.py > aa
-	@diff testwrapper.org aa
-	#@python3 testpacker.py > aa
-	#@diff testpacker.org aa
-	@rm -f aa
+	./testwrapper.py
+	./testwrapper2.py
+	./testwrapper3.py
+	./testwrapper4.py
+	./testhash.py
+	./testlink.py
+	./testpow.py
+	./testpayld.py
+	./testdump.py
 

@@ -46,7 +46,7 @@ def phelp():
     print( "            -l level        - Log level (default: 0)")
     print( "            -A  host/port   - Add host/port to replicate to")
     print( "            -D  host/port   - Delete host/port to replicate to")
-    print( "            -S              - Show remote replication hosts")
+    print( "            -S              - Show (list) remote replication hosts")
     print( "            -n              - Number of records to put")
     print( "            -v              - Verbose")
     print( "            -q              - Quiet")
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     #print (tout)
 
     if conf.showx:
-        cresp = hand.client(["ihost", "get", "",], conf.sess_key)
+        cresp = hand.client(["ihost", "list", "",], conf.sess_key)
     elif conf.addx:
         cresp = hand.client(["ihost", "add", conf.addx,], conf.sess_key)
     elif conf.delx:

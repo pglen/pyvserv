@@ -96,6 +96,36 @@ if __name__ == '__main__':
     hand.pgdebug = conf.pgdebug
     hand.comm  = conf.comm
 
+    ttt = time.time()
+    pvh = pyvhash.BcData()
+    pvh.addpayload({"Vote": '0', "UID":  str(uuid.uuid1()), })
+    #print(pvh.datax)
+
+    #pvh.hasharr()
+    #pvh.powarr()
+    #if not pvh.checkhash():
+    #    print("Error on hashing payload .. retrying ...")
+    #elif not pvh.checkpow():
+    #    print("Error on POW payload .. retrying ...")
+
+    pvh.num_zeros = 3
+    maxcnt = 20
+    while True:
+        if maxcnt == 0:
+            print("Cannot produce hash")
+            sys.exit()
+        pvh.hasharr()
+        pvh.powarr()
+        if not pvh.checkhash():
+            print("Error on hashing payload .. retrying ...")
+        elif not pvh.checkpow():
+            print("Error on POW payload .. retrying ...")
+        else:
+            break
+        maxcnt -= 1
+    print("Chain cnt", pvh.cnt)
+    print("chain %.3fms" % ((time.time() - ttt) * 1000) )
+
     try:
         respc = hand.connect(ip, conf.port)
     except:
@@ -123,14 +153,20 @@ if __name__ == '__main__':
     resp4 = hand.client(["tout", "30",], conf.sess_key)
     print("Server tout Response:", resp4)
 
+    ttt = time.time()
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
+    print("hello %.3fms" % ((time.time() - ttt) * 1000) )
     print("Server hello resp:", resp4[1])
 
+    ttt = time.time()
     cresp = hand.client(["user", "admin"], conf.sess_key)
+    print("user %.3fms" % ((time.time() - ttt) * 1000) )
     print ("Server user respo:", cresp)
 
+    ttt = time.time()
     cresp = hand.client(["pass", "1234"], conf.sess_key)
+    print("pass %.3fms" % ((time.time() - ttt) * 1000) )
     print ("Server pass resp:", cresp)
 
     cresp = hand.client(["dmode",], conf.sess_key)
@@ -149,20 +185,12 @@ if __name__ == '__main__':
     tout = hand.client(["tout", "200",], conf.sess_key)
     #print (tout)
 
-    pvh = pyvhash.BcData()
-    pvh.addpayload({"Vote": '0', "UID":  str(uuid.uuid1()), })
-    #print(pvh.datax)
-
-    pvh.hasharr();    pvh.powarr()
-    if not pvh.checkpow() or not pvh.checkhash():
-         print("Error on hshing pyloads")
-
     #pvh2 = pyvhash.BcData(pvh)
     #pvh2.addpayload({"Added New": "new stuff"})
     #pvh2.hasharr();     pvh2.powarr()
     #print(pvh2.datax)
     #i2 not pvh2.checkpow() or not pvh2.checkhash():
-    #     print("Error on hshing pyloads2")
+    #     print("Error on hashing pyload2")
 
     if conf.pgdebug > 2:
         print(pvh.datax)
@@ -170,9 +198,11 @@ if __name__ == '__main__':
     if hand.verbose:
         print("Sending Data:", pvh.datax)
 
+    ttt = time.time()
     for aa in range(conf.numrec):
         cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
         print ("Server rput response:", cresp)
+    print("rput %.3fms" % ((time.time() - ttt) * 1000) )
 
     cresp = hand.client(["quit",],conf.sess_key)
     print ("Server quit  response:", cresp)

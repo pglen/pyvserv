@@ -20,6 +20,7 @@ all:
 
 cleandata:
 	@rm -rf ~/pyvserver/*
+	@rm -rf ~/pyvserver_alter/*
 
 cleanpayload:
 	@rm -rf ~/pyvserver/payload/*

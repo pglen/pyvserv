@@ -12,10 +12,12 @@ base = os.path.dirname(os.path.realpath(__file__))
 
 sys.path.append(os.path.join(base, '../'))
 sys.path.append(os.path.join(base, '../../'))
-sys.path.append(os.path.join(base,  '../../../pypacker'))
+#sys.path.append(os.path.join(base,  '../../../pypacker'))
 
 import pyvhash, support, crysupp
 import pyvpacker
+
+from testx import *
 
 # ------------------------------------------------------------------------
 # Test harness
@@ -28,27 +30,26 @@ if __name__ == '__main__':
     thd = pyvhash.BcData()
 
     ret = thd.checkhash()
-    print("1 match hash: [False]", ret)
+    print("1 match hash: [False]", ret, end = " "); diff(False, ret)
+
+    ret = thd.checkpow()
+    print("2 match  pow: [False]", ret, end = " "); diff(False, ret)
 
     thd.hasharr()
     ret = thd.checkhash()
-    print("2 match hash: [True]", ret)
+    print("3 match hash: [True]", ret, end = " "); diff(True, ret)
 
     thd.powarr()
     ret = thd.checkpow()
-    print("4 match  pow: [True]", ret)
-
-    #ret = thd.checkpow()
-    #print("2 match  pow: [False]", ret)
+    print("4 match  pow: [True]", ret, end = " "); diff(True, ret)
 
     thd.hasharr()
     ret = thd.checkhash()
-    print("3 match hash: [True]", ret)
+    print("5 match hash: [True]", ret, end = " "); diff(True, ret)
 
-
-    thd.hasharr()
-    ret = thd.checkhash()
-    print("5 match hash: [True]", ret)
+    thd.powarr()
+    ret = thd.checkpow()
+    print("6 match  pow: [True]", ret, end = " "); diff(True, ret)
 
     #print(thd.datax)
 
@@ -56,21 +57,21 @@ if __name__ == '__main__':
     thd.addpayload({"testkey":"test"})
 
     ret = thd.checkhash()
-    print("6 match hash: [False]", ret)
+    print("7 match hash: [False]", ret, end = " "); diff(False, ret)
 
     ret = thd.checkpow()
-    print("7 match pow: [False]", ret)
+    print("8 match  pow: [False]", ret, end = " "); diff(False, ret)
 
     thd.hasharr()
     ret = thd.checkhash()
-    print("8 match hash: [True]", ret)
+    print("9 match hash: [True]", ret, end = " "); diff(True, ret)
 
     thd.powarr()
     ret = thd.checkpow()
-    print("9 match  pow: [True]", ret)
+    print("0 match  pow: [True]", ret, end = " "); diff(True, ret)
 
     ret = thd.checkhash()
-    print("0 match hash: [True]", ret)
+    print("1 match hash: [True]", ret, end = " "); diff(True, ret)
 
 # EOF
 

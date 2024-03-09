@@ -16,6 +16,9 @@ sys.path.append(os.path.join(base,  '../../../pypacker'))
 
 import pyvhash, support, crysupp
 import pyvpacker
+
+from testx import *
+
 # ------------------------------------------------------------------------
 # Test harness
 
@@ -44,31 +47,21 @@ if __name__ == '__main__':
     #print(thd.datax)
 
     ret = thd.checkhash()
-    print("1 normal match: [True]", ret)
+    print("1 normal match: [True]", ret, end = " "); diff(True, ret)
 
     thd.powarr()
     ret = thd.checkpow()
-    print("2 power  match: [True]", ret)
+    print("2 power  match: [True]", ret, end = " "); diff(True, ret)
 
     thd.linkarr(prevh)
 
     ret = thd.checklink()
-    print("3  match  link: [True]", ret)
+    print("3  match  link: [True]", ret, end = " "); diff(True, ret)
 
     ret = thd.checkpow()
-    print("4 after  power: [True]", ret)
+    print("4 after  power: [True]", ret, end = " "); diff(True, ret)
 
     ret = thd.checkhash()
-    print("5 after  link:  [True]", ret)
+    print("5 after  link:  [True]", ret, end = " "); diff(True, ret)
 
-
-
-
-
-
-
-
-
-
-
-
+# EOF

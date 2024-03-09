@@ -18,8 +18,10 @@ from Crypto import Random
 version = "1.0"
 
 USER_AUTH  = 0;  USER_ADD = 1;   USER_DEL = 2;   USER_CHPASS = 3;
-USER_CHMOD = 4;  PERM_NONE = 0;  PERM_INI = 1;   PERM_ADMIN = 2;
-PERM_DIS = 4;    PERM_NON = 8;
+USER_CHMOD = 4;
+
+PERM_NONE = 0;  PERM_INI = 1;   PERM_ADMIN = 2;   PERM_DIS = 4;
+PERM_NON = 8;
 
 RESET_MODE = 0x80;
 
@@ -437,7 +439,10 @@ class Passwd():
         #print("auth()", userx, upass, flags)
 
         ttt = time.time()
-        self._lock()
+
+        if uadd == USER_CHPASS or  uadd == USER_DEL or  uadd == USER_ADD:
+            self._lock()
+
         #print("   auth 1 %.3f" % ((time.time() - ttt) * 1000) )
 
         userx = support.escape(userx)
@@ -537,7 +542,9 @@ class Passwd():
             else:
                 ret = 0, "Bad auth command issued"
 
-        self._unlock()
+        if uadd == USER_CHPASS or  uadd == USER_DEL or  uadd == USER_ADD:
+            self._unlock()
+
         #print("   auth 3x %.3f" % ((time.time() - ttt) * 1000) )
 
         return ret
@@ -545,7 +552,7 @@ class Passwd():
     def perms(self, userx):
 
         ttt = time.time()
-        self._lock()
+        #self._lock()
         #print("   perms 1 %.3f" % ((time.time() - ttt) * 1000) )
 
         fields = ""; haveusr = False
@@ -555,7 +562,7 @@ class Passwd():
             try:
                 fh = open(globals.passfile, "w+")
             except:
-                self._unlock()
+                #self._unlock()
                 return -1, "Cannot open / create pass file " + globals.passfile
 
         passdb = fh.readlines()
@@ -563,7 +570,7 @@ class Passwd():
 
         if not passdb:
             ret = 7, "User permissions:", 0
-            self._unlock()
+            #self._unlock()
             return ret
 
         for line in passdb:
@@ -576,7 +583,7 @@ class Passwd():
         #print("   perms 3 %.3f" % ((time.time() - ttt) * 1000) )
 
         ret = 7, "User permissions:", fields[1]
-        self._unlock()
+        #self._unlock()
         #print("   perms 4 %.3f" % ((time.time() - ttt) * 1000) )
 
         return ret

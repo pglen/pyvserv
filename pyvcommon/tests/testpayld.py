@@ -14,7 +14,9 @@ sys.path.append(os.path.join(base, '../'))
 sys.path.append(os.path.join(base, '../../'))
 sys.path.append(os.path.join(base,  '../../../pypacker'))
 
-import pyvhash, support, pypacker, crysupp
+import pyvhash, support, pyvpacker, crysupp
+
+from testx import *
 
 # ------------------------------------------------------------------------
 # Test harness
@@ -31,13 +33,13 @@ if __name__ == '__main__':
     #print (thd.datax)
 
     thd.allarr(prevh)
-    print(thd.datax)
+    #print(thd.datax)
 
-    err = thd.checklink()
-    print("match link:", err)
+    ret = thd.checklink()
+    print("match link: [True]", ret, end = " "); diff(True, ret)
 
-    err = thd.checkpow()
-    print("match pow:", err)
+    ret = thd.checkpow()
+    print("match  pow: [True]", ret, end = " "); diff(True, ret)
 
     thd.delpayload("Default")
     thd.delpayload("delx")
@@ -45,7 +47,15 @@ if __name__ == '__main__':
     thd.delpayload(2)
     thd.addpayload({"Default": "Immutable"})
 
-    print(thd.datax)
+    ddd = {'Default': 'Immutable', 'new': 1234}
+    dddd = {}
+    for aa in thd.datax:
+        if "payload" in aa:
+            dddd = thd.datax[aa]
+
+    print("match data: [True]", ret, end = " ");
+    diff(dddd == ddd, True)
+
 
 
 

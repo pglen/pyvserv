@@ -8,7 +8,7 @@
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>pyvhash</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/peterglen/pgpygtk/pyvserv/common/pyvhash.py">/home/peterglen/pgpygtk/pyvserv/common/pyvhash.py</a></font></td></tr></table>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/peterglen/pgpygtk/pyvserv/pyvcommon/pyvhash.py">/home/peterglen/pgpygtk/pyvserv/pyvcommon/pyvhash.py</a></font></td></tr></table>
     <p><tt>This&nbsp;module&nbsp;is&nbsp;responsible&nbsp;for&nbsp;the&nbsp;operation&nbsp;of&nbsp;the&nbsp;blockchain.<br>
 The&nbsp;Proof&nbsp;of&nbsp;Work&nbsp;is&nbsp;in&nbsp;Python,&nbsp;but&nbsp;calling&nbsp;'C'&nbsp;modules.&nbsp;One&nbsp;possible<br>
 improvement&nbsp;is&nbsp;to&nbsp;call&nbsp;out&nbsp;to&nbsp;a&nbsp;specially&nbsp;crafted&nbsp;'C'&nbsp;module.&nbsp;Please<br>
@@ -27,20 +27,21 @@ going&nbsp;to&nbsp;be&nbsp;a&nbsp;doosy&nbsp;task.<br>
 <a href="Crypto.Hash.SHA512.html">Crypto.Hash.SHA512</a><br>
 <a href="Crypto.Hash.SHA256.html">Crypto.Hash.SHA256</a><br>
 <a href="base64.html">base64</a><br>
-<a href="crysupp.html">crysupp</a><br>
-</td><td width="25%" valign=top><a href="datetime.html">datetime</a><br>
+<a href="copy.html">copy</a><br>
+</td><td width="25%" valign=top><a href="crysupp.html">crysupp</a><br>
+<a href="datetime.html">datetime</a><br>
 <a href="getopt.html">getopt</a><br>
 <a href="os.html">os</a><br>
-<a href="pypacker.html">pypacker</a><br>
+<a href="pyvpacker.html">pyvpacker</a><br>
 <a href="random.html">random</a><br>
-<a href="select.html">select</a><br>
-</td><td width="25%" valign=top><a href="signal.html">signal</a><br>
+</td><td width="25%" valign=top><a href="select.html">select</a><br>
+<a href="signal.html">signal</a><br>
 <a href="stat.html">stat</a><br>
 <a href="string.html">string</a><br>
 <a href="struct.html">struct</a><br>
 <a href="support.html">support</a><br>
-<a href="sys.html">sys</a><br>
-</td><td width="25%" valign=top><a href="time.html">time</a><br>
+</td><td width="25%" valign=top><a href="sys.html">sys</a><br>
+<a href="time.html">time</a><br>
 <a href="uuid.html">uuid</a><br>
 <a href="zlib.html">zlib</a><br>
 </td></tr></table></td></tr></table><p>
@@ -71,13 +72,13 @@ going&nbsp;to&nbsp;be&nbsp;a&nbsp;doosy&nbsp;task.<br>
 <font color="#000000" face="helvetica, arial"><a name="BcData">class <strong>BcData</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
     
 <tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
-<td colspan=2><tt><a href="#BcData">BcData</a>(datax=None)<br>
+<td colspan=2><tt><a href="#BcData">BcData</a>(old_data=None,&nbsp;pgdebug=0)<br>
 &nbsp;<br>
 This&nbsp;class&nbsp;manipulates&nbsp;the&nbsp;block&nbsp;chain&nbsp;data.<br>
 Use&nbsp;it&nbsp;to&nbsp;create&nbsp;/&nbsp;add&nbsp;/&nbsp;remove&nbsp;/&nbsp;modify&nbsp;payload.<br>&nbsp;</tt></td></tr>
 <tr><td>&nbsp;</td>
 <td width="100%">Methods defined here:<br>
-<dl><dt><a name="BcData-__init__"><strong>__init__</strong></a>(self, datax=None)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+<dl><dt><a name="BcData-__init__"><strong>__init__</strong></a>(self, old_data=None, pgdebug=0)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
 
 <dl><dt><a name="BcData-addpayload"><strong>addpayload</strong></a>(self, newpay)</dt><dd><tt>Add&nbsp;new&nbsp;entry&nbsp;to&nbsp;payload.&nbsp;Override&nbsp;existing&nbsp;values.</tt></dd></dl>
 
@@ -95,9 +96,9 @@ Use&nbsp;it&nbsp;to&nbsp;create&nbsp;/&nbsp;add&nbsp;/&nbsp;remove&nbsp;/&nbsp;m
 
 <dl><dt><a name="BcData-linkarr"><strong>linkarr</strong></a>(self, prevhash)</dt><dd><tt>Add&nbsp;linked&nbsp;hash&nbsp;to&nbsp;previous&nbsp;records</tt></dd></dl>
 
-<dl><dt><a name="BcData-newdata"><strong>newdata</strong></a>(self)</dt></dl>
+<dl><dt><a name="BcData-newdata"><strong>newdata</strong></a>(self)</dt><dd><tt>Create&nbsp;default&nbsp;(new)&nbsp;data&nbsp;for&nbsp;blockchain</tt></dd></dl>
 
-<dl><dt><a name="BcData-powarr"><strong>powarr</strong></a>(self)</dt><dd><tt>Provide&nbsp;proof&nbsp;of&nbsp;work</tt></dd></dl>
+<dl><dt><a name="BcData-powarr"><strong>powarr</strong></a>(self)</dt><dd><tt>Provide&nbsp;proof&nbsp;of&nbsp;work.&nbsp;Only&nbsp;payload&nbsp;and&nbsp;powerhash</tt></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -179,7 +180,9 @@ Data descriptors inherited from <a href="builtins.html#BaseException">builtins.B
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-shahex"><strong>shahex</strong></a>(val)</dt><dd><tt>Shorthand&nbsp;to&nbsp;exec&nbsp;hash&nbsp;op</tt></dd></dl>
+<td width="100%"><dl><dt><a name="-DefHeader"><strong>DefHeader</strong></a>()</dt></dl>
+ <dl><dt><a name="-DefPayload"><strong>DefPayload</strong></a>()</dt></dl>
+ <dl><dt><a name="-shahex"><strong>shahex</strong></a>(val)</dt><dd><tt>Shorthand&nbsp;to&nbsp;exec&nbsp;hash&nbsp;op</tt></dd></dl>
 </td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#55aa55">
@@ -188,10 +191,12 @@ Data descriptors inherited from <a href="builtins.html#BaseException">builtins.B
     
 <tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><strong>Hash</strong> = '_Hash'<br>
+<strong>Header</strong> = 'header'<br>
 <strong>Link</strong> = '_Link'<br>
+<strong>PayLoad</strong> = 'payload'<br>
 <strong>PowRand</strong> = '_PowRand'<br>
 <strong>PrevHash</strong> = '_PrevHash'<br>
 <strong>Proof</strong> = '_Proof'<br>
-<strong>base</strong> = '/home/peterglen/pgpygtk/pyvserv/common'<br>
+<strong>base</strong> = '/home/peterglen/pgpygtk/pyvserv/pyvcommon'<br>
 <strong>print_function</strong> = _Feature((2, 6, 0, 'alpha', 2), (3, 0, 0, 'alpha', 0), 1048576)</td></tr></table>
 </body></html>

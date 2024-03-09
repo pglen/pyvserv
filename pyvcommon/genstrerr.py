@@ -20,6 +20,7 @@ errx2 = "No such file"
 erry = "Cannot open file"
 errz = "Timeout occured, disconnecting."
 
+print("Generating error numbers from strings")
 print(errhash(errx),    errx, )
 print(errhash(errx2),    errx2, )
 print(errhash(erry),    erry, )

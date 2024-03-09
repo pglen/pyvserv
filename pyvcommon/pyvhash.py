@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time, copy
-import struct, stat, base64, random, zlib, uuid, datetime
+import struct, stat, base64, random, zlib, uuid, datetime, psutil
 
 from Crypto import Random
 from Crypto.Hash import SHA512
@@ -22,11 +22,7 @@ __doc__ = \
 '''
 
 base = os.path.dirname(os.path.realpath(__file__))
-
 sys.path.append(os.path.join(base, '../'))
-
-#sys.path.append(os.path.join(base, '../../'))
-#sys.path.append(os.path.join(base,  '../../../pypacker'))
 
 import support, pyvpacker, crysupp
 
@@ -81,6 +77,9 @@ class BcData():
         self.hash_ignore = [Hash, PrevHash, Link, PowRand, Proof]
         self.pow_ignore = [Hash, PrevHash, Link, Proof]
         self.link_ignore = [Hash, Link, Proof]
+        self.maxtry = 30000
+        self.num_zeros = 3
+        self.cnt = 0
 
         #print("old_data", old_data)
         #print("type", type(old_data))
@@ -116,7 +115,7 @@ class BcData():
         #            (uuu.time - 0x01b21dd213814000)*100/1e9)
         #print(dd)
         # Has to be one payload for minimum
-        self.datax = {"Header" : str(uuu),  PayLoad : { "Default": "None"} }
+        self.datax = {Header : str(uuu),  PayLoad : { "Default": "None"} }
 
     def allarr(self, prevhash):
 
@@ -124,6 +123,8 @@ class BcData():
 
         self.hasharr()
         self.powarr()
+        self.hasharr()
+
         self.linkarr(prevhash)
         return self.datax
 
@@ -152,36 +153,45 @@ class BcData():
 
         ''' Provide proof of work. Only payload and powerhash '''
 
+        # Make sure we are not killing the system
+        while True:
+            cpu = psutil.cpu_percent(1)
+            if cpu > 60:
+                print("CPU", cpu)
+                time.sleep(1)
+            else:
+                break
+
         # Replicate without non participating fields:
         arrx2 = {};
+        arrx2[PowRand] = self.rrr.read(12)
+
         for aa in sorted(self.datax.keys()):
             if aa in self.pow_ignore:
                 pass
             else:
                 #print("hash element", aa, self.datax[aa])
                 arrx2 |= {aa : self.datax[aa]}
-        var = None
-        cnt = 0; hhh = ""
+        #print("Raw arrx2", arrx2)
+        var = None; cnt = 0; hhh = ""
         while True:
-            arrx2[PowRand] =  self.rrr.read(12)
+            if cnt >= self.maxtry:
+                break
+            arrx2[PowRand] = self.rrr.read(12)
             ssss = self.pb.encode_data("", arrx2)
             #print(ssss)
             ssss  = bytes(ssss, "utf-8")
             hhh = shahex(ssss)
+            if hhh[-self.num_zeros:] == '0' * self.num_zeros:
+                break
             cnt += 1
-            if cnt >= 100000:
-                break
-            if hhh[-3:] == '000':
-                break
-            #print(hhh)
-
-        self.datax[PowRand] = arrx2[PowRand]
-        self.datax[Proof] = hhh
-        #print("pow arr2x", arrx2)
-        #print ("Proof", hhh)
-
-        #print (cnt)
-        self.datax |= arrx2
+        #print(cnt, hhh)
+        self.cnt = cnt
+        if hhh[-self.num_zeros:] == '0' * self.num_zeros:
+            #self.datax |= arrx2
+            self.datax[PowRand] = arrx2[PowRand]
+            self.datax[Proof] = hhh
+            return True
 
     def linkarr(self, prevhash):
 
@@ -193,20 +203,17 @@ class BcData():
             return True
 
         arrx2 = {};
+        self.datax[PrevHash] = prevhash
+
         for aa in sorted(self.datax.keys()):
             if aa in self.link_ignore:
                 pass
             else:
                 #print("hash element", aa, self.datax[aa])
                 arrx2 |= {aa : self.datax[aa]}
-        var = None
-        cnt = 0; hhh = ""
-
-        arrx2[PrevHash] = prevhash
-
-        #print("arrx2", arrx2)
+        var = None; cnt = 0; hhh = ""
+        #print("raw arrx2", arrx2)
         ssss = self.pb.encode_data("", arrx2)
-
         #print(type(ssss))
         #print(ssss)
         ssss  = bytes(ssss, "utf-8")
@@ -262,8 +269,8 @@ class BcData():
             else:
                 #print("hash element", aa, self.datax[aa])
                 arrx2 |= {aa : self.datax[aa]}
-        var = None
-        cnt = 0; hhh = ""
+        var = None; cnt = 0; hhh = ""
+        #print("Raw arrx2", arrx2)
         ssss = self.pb.encode_data("", arrx2)
         #print(ssss)
         ssss  = bytes(ssss, "utf-8")
@@ -283,8 +290,7 @@ class BcData():
             else:
                 #print("hash element", aa, self.datax[aa])
                 arrx2 |= {aa : self.datax[aa]}
-
-        #print("arrx2", arrx2)
+        #print("raw arrx2", arrx2)
         ssss = self.pb.encode_data("", arrx2)
         #print(ssss)
         ssss  = bytes(ssss, "utf-8")

@@ -14,6 +14,10 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Change string in files from_str to to_str.')
 
+parser.add_argument("-V", '--version', dest='version',
+                    default=0,  action='count',
+                    help='Show version number.')
+
 parser.add_argument("from_str", help="String to find")
 parser.add_argument("to_str", help="String to change to")
 parser.add_argument("filenames", nargs="+", help="File name or wildcard")
@@ -35,7 +39,13 @@ parser.add_argument("-b", '--backup', dest='backup',
                     help='backup dir (default: backup)')
 
 
+version = "1.0.0"
+
 def mainfunct():
+
+    if sys.argv[1] == "-V":
+        print("Version number: %s" % version)
+        sys.exit(0)
 
     args = parser.parse_args()
     #print(args)

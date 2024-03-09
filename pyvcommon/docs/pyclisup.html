@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module pyclisup</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>pyclisup</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/peterglen/pgpygtk/pyvserv/pyvcommon/pyclisup.py">/home/peterglen/pgpygtk/pyvserv/pyvcommon/pyclisup.py</a></font></td></tr></table>
+    <p><tt>#from&nbsp;__future__&nbsp;import&nbsp;print_function</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="Crypto.Cipher.AES.html">Crypto.Cipher.AES</a><br>
+<a href="Crypto.PublicKey.ECC.html">Crypto.PublicKey.ECC</a><br>
+<a href="Crypto.Cipher.PKCS1_OAEP.html">Crypto.Cipher.PKCS1_OAEP</a><br>
+<a href="Crypto.Cipher.PKCS1_v1_5.html">Crypto.Cipher.PKCS1_v1_5</a><br>
+<a href="Crypto.PublicKey.RSA.html">Crypto.PublicKey.RSA</a><br>
+<a href="Crypto.Random.html">Crypto.Random</a><br>
+<a href="Crypto.Hash.SHA256.html">Crypto.Hash.SHA256</a><br>
+</td><td width="25%" valign=top><a href="base64.html">base64</a><br>
+<a href="comline.html">comline</a><br>
+<a href="crysupp.html">crysupp</a><br>
+<a href="datetime.html">datetime</a><br>
+<a href="getopt.html">getopt</a><br>
+<a href="os.html">os</a><br>
+<a href="pydata.html">pydata</a><br>
+</td><td width="25%" valign=top><a href="pyservsup.html">pyservsup</a><br>
+<a href="pyvpacker.html">pyvpacker</a><br>
+<a href="pywrap.html">pywrap</a><br>
+<a href="random.html">random</a><br>
+<a href="select.html">select</a><br>
+<a href="signal.html">signal</a><br>
+<a href="socket.html">socket</a><br>
+</td><td width="25%" valign=top><a href="stat.html">stat</a><br>
+<a href="string.html">string</a><br>
+<a href="struct.html">struct</a><br>
+<a href="support.html">support</a><br>
+<a href="sys.html">sys</a><br>
+<a href="time.html">time</a><br>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="pyclisup.html#CliSup">CliSup</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="CliSup">class <strong>CliSup</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt><a href="#CliSup">CliSup</a>(sock=None)<br>
+&nbsp;<br>
+<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="CliSup-__init__"><strong>__init__</strong></a>(self, sock=None)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="CliSup-client"><strong>client</strong></a>(self, message, key='', rand=True)</dt><dd><tt>#@support.timeit2</tt></dd></dl>
+
+<dl><dt><a name="CliSup-close"><strong>close</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="CliSup-connect"><strong>connect</strong></a>(self, ip, port)</dt></dl>
+
+<dl><dt><a name="CliSup-getfile"><strong>getfile</strong></a>(self, fname, toname, key='')</dt></dl>
+
+<dl><dt><a name="CliSup-getreply"><strong>getreply</strong></a>(self, key='', rand=True)</dt></dl>
+
+<dl><dt><a name="CliSup-listfiles"><strong>listfiles</strong></a>(self, hand, cresp, key='')</dt></dl>
+
+<dl><dt><a name="CliSup-login"><strong>login</strong></a>(self, conf, userx, passx)</dt></dl>
+
+<dl><dt><a name="CliSup-putfile"><strong>putfile</strong></a>(self, fname, toname, key='')</dt></dl>
+
+<dl><dt><a name="CliSup-recvx"><strong>recvx</strong></a>(self, key)</dt></dl>
+
+<dl><dt><a name="CliSup-sendx"><strong>sendx</strong></a>(self, message)</dt></dl>
+
+<dl><dt><a name="CliSup-set_key"><strong>set_key</strong></a>(self, newkey, oldkey)</dt></dl>
+
+<dl><dt><a name="CliSup-set_xkey"><strong>set_xkey</strong></a>(self, newkey, oldkey)</dt></dl>
+
+<dl><dt><a name="CliSup-start_session"><strong>start_session</strong></a>(self, conf)</dt><dd><tt>#@support.timeit</tt></dd></dl>
+
+<dl><dt><a name="CliSup-wrapx"><strong>wrapx</strong></a>(self, message, key)</dt><dd><tt>#&nbsp;Add&nbsp;random&nbsp;stuff&nbsp;and&nbsp;wrap</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>base</strong> = '/home/peterglen/pgpygtk/pyvserv/pyvcommon'<br>
+<strong>privtest</strong> = '-----BEGIN PRIVATE ECC-----<font color="#c040c0">\n</font>ZMOOwr3Dg0sSw7oTAQAA...kXDsW8OJcO/fMOaT8O+w7c=<font color="#c040c0">\n</font>-----END PRVATE ECC-----<font color="#c040c0">\n</font>'<br>
+<strong>rbuffsize</strong> = 4096</td></tr></table>
+</body></html>
