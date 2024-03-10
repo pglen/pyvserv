@@ -603,7 +603,7 @@ def get_rput_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 0:
         print("rput", strx[2]['header'])
 
-    print("Got:", strx[2])
+    #print("Got:", strx[2])
     pvh = pyvhash.BcData(strx[2])
     #print("pvh", pvh.datax)
     if not pvh.checkhash():
@@ -621,8 +621,7 @@ def get_rput_func(self, strx):
         print("Save_data header:", strx[2]["header"], "Data:",  undec)
     cfname = os.path.join(dname, chainfname + ".pydb")
     #print("cfname", cfname)
-    savecore = twinchain.TwinChain(cfname, 0)
-
+    savecore = twinchain.TwinChain(cfname)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     try:
         ret = savecore.appendwith(strx[2]['header'], undec)
@@ -640,7 +639,7 @@ def get_rput_func(self, strx):
         rrr = {'count1': "00000", 'count2' : "00000",
                         'count3' : "00000",  'header' : strx[2]['header'],
                             'now' : strx[2]['now'],}
-        print("replic", rrr)
+        #print("replic", rrr)
         undec2 = self.pb.encode_data("", rrr)
         frname = os.path.join(dname, repfname + ".pydb")
         #print("Saving at", frname)

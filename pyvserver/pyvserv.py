@@ -516,10 +516,12 @@ def mainfunc():
     pyvfunc.pgdebug = conf.pgdebug
     pyvfunc.pglog = conf.pglog
 
-    #replicator = pyvreplic.Replicator(conf.verbose, conf.pgdebug)
+    slogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvserver.log")
+    rlogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvreplic.log")
 
-    if conf.pglog > 0:
-        pysyslog.openlog("pyvserver")
+    pysyslog.init_loggers(
+            ("system", slogfile), ("replic", rlogfile))
+    #pysyslog.syslog("Started Server")
 
     # Port 0 would mean to select an arbitrary unused port
     HOST, PORT = conf.host, conf.port

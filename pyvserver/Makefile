@@ -25,6 +25,9 @@ cleandata:
 cleanpayload:
 	@rm -rf ~/pyvserver/payload/*
 
+cleanvote:
+	@rm -rf ~/pyvserver/payload/vote/*
+
 clean:
 	@rm -f aa bb cc dd ee
 	@rm -f *.o
