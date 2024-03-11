@@ -4,6 +4,11 @@ python 3.x is supported  (py2 support obsoleted)
 
 # Preliminary
 
+This document is obsolete. Use pip to install.
+
+    pip install pyvserv
+
+
 sudo apt-get update -y
 sudo apt-get upgrade -y
 
@@ -55,7 +60,6 @@ Pycrypto went thru an update and a name change
 
 pip uninstall pycrypto
 pip install pycryptodome
-
 
 May want to use --force-reinstall option if you have problems.
 

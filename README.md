@@ -16,7 +16,7 @@ key needs to be generated before use. (now automatic) The server picks from
 a pool of keys, so communication data is always distinctive. Make sure you
 generate them with the 'pyvgenkeys' utility.
 
- PyvServ has blockchain enpowered back end. The new data is linked to the
+ PyvServ has blockchain empowered back end. The new data is linked to the
 previous record. Utilities to verify the data are also provided.
 (dbaseadm and chainadm)
 
@@ -24,7 +24,7 @@ previous record. Utilities to verify the data are also provided.
 
  PyvServ has replication facilities via a client based 'I have You have'
  mechanism featuring encrypted transport. It is also capable of replication
- on a replicate when received mechanism. The replicted records are marked,
+ on a replicate when received mechanism. The replicated records are marked,
  so replication does not enter looping.
 
  Project is still in motion, but a lot of it is usable.
@@ -109,11 +109,10 @@ sample client examples in the client source tree. (Files named pycli_*)
 
     ============================== 9 passed in 1.35s ===============================
 
-Additional tests can ve found in the test directory.
+Additional tests can be found in the test directory.
 
 ## History:
 
-    1.0.0.  4/12/22		       No py2 support (no release yet)
     1.0.0   Sun 03.Mar.2024    Beta ready
     1.0.0   Mon 11.Mar.2024    PIP installation with utils
 
