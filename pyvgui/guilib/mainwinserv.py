@@ -149,6 +149,9 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
 
+    def main(self):
+        Gtk.main()
+
     def  OnExit(self, arg, srg2 = None):
         self.exit_all()
 

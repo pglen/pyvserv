@@ -34,7 +34,7 @@ from gi.repository import Gtk
 #    ["h",     "help",        None,       None,           phelp],     \
 #    ["i:",    "input=",      "input",      "-",          None],     \
 
-class ConfigLong:
+class ConfigLong_old:
 
     def __init__(self, optarr):
         self.optarr = optarr

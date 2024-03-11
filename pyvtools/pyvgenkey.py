@@ -21,11 +21,11 @@ sys.path.append(os.path.join(base,  'pyvecc'))
 
 from pyvecc.Key import Key
 
-from Crypto.PublicKey import ECC
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
+#from Crypto.PublicKey import ECC
+#from Crypto.PublicKey import RSA
+#from Crypto.Cipher import PKCS1_v1_5
+#from Crypto.PublicKey import RSA
+#from Crypto.Hash import SHA
 from Crypto import Random
 
 base = os.path.dirname(os.path.realpath(__file__))
@@ -35,27 +35,27 @@ from pyvcommon import pyservsup
 
 import argparse
 
-parser = argparse.ArgumentParser(description='Genetrate RSA keypair.')
+parser = argparse.ArgumentParser(description='Genetrate ECC keypair for pyvserv')
 
 parser.add_argument("-v", '--verbose', dest='verbose',
                     default=0,  action='count',
                     help='verbocity on (default: off)')
 
-parser.add_argument("-b:", '--bits', dest='bits',
-                    default=4096,  action='store', type=int,
-                    help='Key to generate (default: 4096)')
-
-parser.add_argument("-r:", '--rsa', dest='use_rsa',
-                    default=False,  action='store_true',
-                    help='Key to generate (default: 4096)')
+#parser.add_argument("-b:", '--bits', dest='bits',
+#                    default=4096,  action='store', type=int,
+#                    help='Key to generate (default: 4096)')
+#
+#parser.add_argument("-r:", '--rsa', dest='use_rsa',
+#                    default=False,  action='store_true',
+#                    help='Key to generate (default: 4096)')
 
 parser.add_argument("-m:", '--homedir', dest='homedir',
                     default="pyvserver",  action='store',
-                    help='pyvserv home directory')
+                    help='pyvserv home directory (default: ~/pyvserver)')
 
 parser.add_argument("-q:", '--quiet', dest='quiet',
                     default=0,  action='store_true',
-                    help='Display less information')
+                    help='Display less information. Default: off')
 
 # Deprecated, pad it
 time.clock = time.process_time
@@ -137,7 +137,7 @@ def genkey(keylen, use_rsa):
 keydir = './keys/'
 privdir = './private/'
 
-def position():
+def position(args):
 
     global_vars = pyservsup.Global_Vars(__file__, args.homedir)
     global_vars._softmkdir(global_vars.myhome)
@@ -155,14 +155,14 @@ def position():
 
 def mainfunct():
 
-    global args
+    #global args
     args = parser.parse_args()
 
     if not is_power_of_two(args.bits):
         print("Bitness must be a power of 2")
         sys.exit(1)
 
-    position()
+    position(args)
 
     #print("Current dir:     ", os.getcwd())
     if not args.quiet:

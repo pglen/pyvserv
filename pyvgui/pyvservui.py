@@ -6,15 +6,35 @@ from __future__ import print_function
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../pyvcommon'))
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
 
-import pydata, pyservsup,  crysupp
-import support, comline, pywrap
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    print("sf", sf)
+    sys.path.append(os.path.join(sf, "pyvcommon"))
+    sys.path.append(os.path.join(sf, "pyvserver"))
+    sys.path.append(os.path.join(sf, "pyvgui"))
+    sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
 
-sys.path.append(os.path.join(base, 'guilib'))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    sys.path.append(os.path.join(base,  '..', "pyvserver"))
+    sys.path.append(os.path.join(base, "..", "pyvgui"))
+    sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
+    from pyvcommon import support
 
-from mainwinserv import  *
+print("Load:", sys.path[-1])
+
+from pyvcommon import support, comline, pywrap
+from pyvcommon import pydata, pyservsup,  crysupp
+
+from guilib import mainwinserv
 
 # ------------------------------------------------------------------------
 # Globals
@@ -52,13 +72,16 @@ optarr = \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
-conf = Config(optarr)
+conf = comline.ConfigLong(optarr)
 
-if __name__ == '__main__':
+def mainfunc():
 
-    global mw
     args = conf.comline(sys.argv[1:])
-    mw = MainWin()
-    Gtk.main()
+    mw = mainwinserv.MainWin()
+    mw.main()
     sys.exit(0)
 
+if __name__ == '__main__':
+    mainfunc()
+
+# EOF

@@ -6,32 +6,53 @@
 import os, sys, getopt, signal, select, socket, time, struct
 import random, string, stat, base64, random, datetime
 
-from Crypto import Random
-from Crypto.Hash import SHA512
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
-from Crypto import Random
-
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../pyvcommon'))
-
-import pydata, pyservsup,  crysupp
-import support, comline, pywrap
-
-sys.path.append(os.path.join(base, 'guilib'))
-
-from mainwin import  *
-from pgutil import  *
-
+import os, getopt, signal, select, string, time
+import tarfile, subprocess, struct, platform
+import socket, threading, tracemalloc, inspect
 
 import pyvpacker
+
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
+
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    print("sf", sf)
+    sys.path.append(os.path.join(sf, "pyvcommon"))
+    sys.path.append(os.path.join(sf, "pyvserver"))
+    sys.path.append(os.path.join(sf, "pyvgui"))
+    sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    sys.path.append(os.path.join(base,  '..', "pyvserver"))
+    sys.path.append(os.path.join(base, "..", "pyvgui"))
+    sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
+    from pyvcommon import support
+
+#for aa in sys.path:
+#    print(aa)
+
+print("Load:", sys.path[-1])
+
+from pyvcommon import support, comline, pywrap
+from pyvcommon import pydata, pyservsup,  crysupp
+
+from pyvserver import pyvstate
+from pyvserver import pyvfunc
+
+from guilib import mainwin
+from guilib import pgutil
 
 # -----------------------------------------------------------------------
 # Globals
 
-version = "0.00"
+version = "1.00"
 
 # ------------------------------------------------------------------------
 
@@ -64,7 +85,17 @@ optarr = \
     ["V",   "version",  None,       None,   pversion],  \
     ["h",   "help",     None,       None,   phelp]      \
 
-conf = ConfigLong(optarr)
+conf = comline.ConfigLong(optarr)
+
+def mainfunc():
+
+    #print("pyvcpanel started ...")
+    args = conf.comline(sys.argv[1:])
+    #print("args", args)
+    mw = mainwin.MainWin()
+    mw.main()
+    sys.exit(0)
+
 
 if __name__ == '__main__':
 
@@ -72,13 +103,7 @@ if __name__ == '__main__':
         print("Needs python 3 or better.")
         sys.exit(1)
 
-    print("Viewdata started ...")
-
-    global mw
-    args = conf.comline(sys.argv[1:])
-    mw = MainWin()
-    Gtk.main()
-    sys.exit(0)
+    mainfunc()
 
 # EOF
 

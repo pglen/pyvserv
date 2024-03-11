@@ -1,7 +1,8 @@
 import setuptools
 
-descx = '''pyvserv is modern multi-process data server.
-'''
+descx = '''
+        pyvserv is modern multi-process data server.
+        '''
 
 classx = [
           'Development Status :: Mature',
@@ -17,8 +18,8 @@ classx = [
           'Topic :: Software Development :: Servers',
         ]
 
-includex = ["*", "pyvclient/", "pyvserver/",
-                    "pyvcommon/", "pyvtools/",  ]
+includex = ["*", "pyvgui/", "pyvgui/guilib/", "pyvclient/", "pyvserver/",
+                    "pyvcommon/", "pyvtools/", ]
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -39,24 +40,33 @@ setuptools.setup(
     ],
     include_package_data=True,
     packages=setuptools.find_packages(include=includex),
-    py_modules = ["pyvpacker", "pydbase", "pyvecc"],
+    #py_modules = ["pyvpacker", "pydbase", "pyvecc"],
+    #py_modules = ["pyvpacker", "pydbase", "pyvecc"],
 
-    scripts = ["pyvserver/pyvserv.py", "pyvclient/pycli_cli.py",
-                "pyvtools/pyvgenkey.py", "pyvtools/pyvgenkeys.py"],
+    scripts = ["pyvserver/pyvserv.py", "pyvclient/pyvcli_cli.py",
+                "pyvtools/pyvgenkey.py", "pyvtools/pyvgenkeys.py",
+                "pyvgui/pyvservui.py", "pyvgui/pyvcpanel.py",
+                "pyvserver/pyvreplic.py",
+                ],
 
     package_dir = {
-                    'pyvcommon':    'pyvcommon',
-                    'pyvserver':    'pyvserver',
-                    'pyvclient':    'pyvclient',
-                    'pyvtools':     'pyvtools',
+                    'pyvgui':           'pyvgui',
+                    'pyvgui/guilib':    'pyvgui/guilib',
+                    'pyvcommon':        'pyvcommon',
+                    'pyvserver':        'pyvserver',
+                    'pyvclient':        'pyvclient',
+                    'pyvtools':         'pyvtools',
                    },
 
     python_requires='>=3',
     install_requires=["pyvpacker", "pydbase", "pycryptodome", "pyvecc"],
     entry_points={
         'console_scripts': [ "pyvserv=pyvserv:mainfunc",
+                             "pyvreplic=pyvreplic:mainfunct",
                              "pyvgenkey=pyvgenkey:mainfunct",
                              "pyvgenkeys=pyvgenkeys:mainfunct",
+                             "pyvservui=pyvservui:mainfunct",
+                             "pyvcpanel=pyvcpanel:mainfunct",
             ],
     },
 )

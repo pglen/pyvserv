@@ -19,33 +19,46 @@ if sys.version_info[0] < 3:
 else:
     import socketserver
 
-# getting the name of the directory
-#current = os.path.dirname(os.path.realpath(__file__))
-## Getting the parent directory name
-#parent = os.path.dirname(current)
-#sys.path.append(parent)
+import pyvpacker
 
 # Create a placeholder
 server = None
 
 progname = os.path.split(sys.argv[0])[1]
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..'))
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
 
-import pyvpacker
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    print("sf", sf)
+    sys.path.append(os.path.join(sf, "pyvcommon"))
+    sys.path.append(os.path.join(sf, "pyvserver"))
+    #sys.path.append(os.path.join(sf, "pyvgui"))
+    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    sys.path.append(os.path.join(base,  '..', "pyvserver"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
+    from pyvcommon import support
+
+#for aa in sys.path:
+#    print(aa)
+
+print("Load:", sys.path[-1])
+
+from pyvcommon import support, pyservsup, pyclisup
+from pyvcommon import pydata, pysyslog, comline
 
 from pyvserver import pyvstate
 from pyvserver import pyvfunc
-
-from pyvcommon import support
-from pyvcommon import pyservsup
-from pyvcommon import pyclisup
-from pyvcommon import pydata
-from pyvcommon import pysyslog
-from pyvcommon import comline
-
-#import pyvreplic
 
 version = "1.0"
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-from __future__ import absolute_import
-from __future__ import print_function
+#from __future__ import absolute_import
+#from __future__ import print_function
 
 import os, sys, getopt, signal, random, time, warnings
 
 from pymenu import  *
 
-sys.path.append('../../pycommon')
+#sys.path.append('../../pycommon')
 
 from pgutil import  *
 from pgui import  *
@@ -154,11 +154,11 @@ class MainWin(Gtk.Window):
         Gtk.main_quit()
 
     def key_press_event(self, win, event):
-        print( "key_press_event", win, event)
+        #print( "key_press_event", win, event)
         pass
 
     def button_press_event(self, win, event):
-        print( "button_press_event", win, event)
+        #print( "button_press_event", win, event)
         pass
 
     def activate_action(self, action):
@@ -188,8 +188,11 @@ class MainWin(Gtk.Window):
         print( "activate_about called")
         pass
 
+    def main(self):
+        Gtk.main()
+
     def load(self):
-        print("Called load")
+        #print("Called load")
         self.status.set_text("Status text for load")
 
     def timer(self):

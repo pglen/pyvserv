@@ -7,8 +7,9 @@ import struct, stat, base64, random, socket, datetime
 
 from pyvecc.Key import Key
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../pyvcommon'))
+#base = os.path.dirname(os.path.realpath(__file__))
+#sys.path.append(os.path.join('..', 'pyvcommon'))
+#sys.path.append(os.path.join('.', 'pyvcommon'))
 
 import pydata, pyservsup, crysupp, support, comline, pywrap
 

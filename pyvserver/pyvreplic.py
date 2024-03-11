@@ -20,22 +20,40 @@ if sys.version_info[0] < 3:
 else:
     import socketserver
 
-from pyvcommon import support
-from pyvcommon import pyservsup
-from pyvcommon import pyclisup
-from pyvcommon import pydata
-from pyvcommon import pysyslog
-from pyvcommon import comline
-from pyvcommon import pyvhash
+import pyvpacker
 
-from pyvcommon import pyservsup, pyclisup
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join("..",  'pydbase'))
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    print("sf", sf)
+    sys.path.append(os.path.join(sf, "pyvcommon"))
+    sys.path.append(os.path.join(sf, "pyvserver"))
+    #sys.path.append(os.path.join(sf, "pyvgui"))
+    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    sys.path.append(os.path.join(base,  '..', "pyvserver"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
+    from pyvcommon import support
+
+#for aa in sys.path:
+#    print(aa)
+
+print("Load:", sys.path[-1])
+
+from pyvcommon import support, pyservsup, pyclisup
+from pyvcommon import pydata, pysyslog, comline, pyvhash
 
 from pydbase import twincore, twinchain
-
-import pyvpacker
 
 replicname = "replic.pydb"
 datafname = "initial.pydb"
@@ -302,13 +320,7 @@ class Replicator():
         ret = True
         return ret
 
-optarr =  comline.optarrlong
-
-optarr.append ( ["N",   "norepl",    "norepl",      0,       None, "No replication (for test)"] )
-optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
-#optarr.append ( ["d:",  "debug=",    "pgdebug",  0,           None, "Debug level (0-10)"] )
-
-if __name__ == '__main__':
+def mainfunct():
 
     conf = comline.ConfigLong(optarr)
     conf.comline(sys.argv[1:])
@@ -327,5 +339,13 @@ if __name__ == '__main__':
     print("Started replicator")
     repl = Replicator(conf.verbose, conf.pgdebug)
     repl.rep_run()
+
+optarr =  comline.optarrlong
+
+optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
+
+if __name__ == '__main__':
+
+    mainfunct()
 
 # EOF

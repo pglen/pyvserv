@@ -8,13 +8,8 @@ import inspect, fcntl, multiprocessing
 
 import pyvpacker
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '../pyvcommon'))
-
 import pyservsup, pyclisup, support
 import crysupp, pysyslog, pywrap
-
-sys.path.append(os.path.join(base,  '../pyvserver'))
 
 from pyvfunc import *
 

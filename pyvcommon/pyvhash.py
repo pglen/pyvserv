@@ -6,8 +6,13 @@ import os, sys, getopt, signal, select, string, time, copy
 import struct, stat, base64, random, zlib, uuid, datetime, psutil
 
 from Crypto import Random
-from Crypto.Hash import SHA512
+#from Crypto.Hash import SHA512
 from Crypto.Hash import SHA256
+
+#base = os.path.dirname(os.path.realpath(__file__))
+#sys.path.append(os.path.join(base, '../'))
+
+import support, pyvpacker, crysupp
 
 __doc__ = \
 '''
@@ -21,10 +26,6 @@ __doc__ = \
 
 '''
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../'))
-
-import support, pyvpacker, crysupp
 
 Hash     = "_Hash"
 Link     = "_Link"
