@@ -16,15 +16,18 @@ from Crypto import Random
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base, '../pyvcommon'))
-sys.path.append('guilib')
-
-from mainwin import  *
-from pgutil import  *
 
 import pydata, pyservsup,  crysupp
 import support, comline, pywrap
 
+sys.path.append(os.path.join(base, 'guilib'))
+
+from mainwin import  *
+from pgutil import  *
+
+
 import pyvpacker
+
 # -----------------------------------------------------------------------
 # Globals
 

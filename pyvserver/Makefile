@@ -11,12 +11,12 @@
 # This way inference rules can be used.
 #CFLAGS=${COPT}
 
-# We build with buildutils
+.PHONY: docs clean
 
 # ------------------------------------------------------------------------
 
 all:
-	@echo Targets: clean cleanpayload cleandata
+	@echo Targets: clean cleanpayload cleandata docs
 
 cleandata:
 	@rm -rf ~/pyvserver/*
@@ -36,5 +36,10 @@ clean:
 	@rm -f *.dll
 	@rm -f *.pyc
 
+test:
+	@echo No tests
+
+docs:
+	@echo No docs
 
 # EOF

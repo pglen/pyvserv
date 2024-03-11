@@ -2,15 +2,15 @@
 
 # These scripts work on the default installation
 
-.PHONY: test clean
+.PHONY: tests clean docs
 
 #@echo Target \'init\' generates an initial key.
 #@echo Target \'cleankeys\' deletes all keys.
 #@echo Target \'freshdata\' deletes all data.
 
 all:
-	@echo Targets: git test clean deb init cleankeys \
-            freshdata md5 genmd5 checkmd5
+	@echo Targets: git tests clean deb init cleankeys \
+            freshdata md5 genmd5 checkmd5 docs
 
 init:
 	@python3 ./tools/genkey.py
@@ -41,6 +41,18 @@ freshdata:
 cleankeys:
 	@rm -rf ~/pyvserver/keys/*
 	@rm -rf ~/pyvserver/private/*
+
+tests:
+	echo No tests
+
+docs:
+	@pdoc  --force --html -o docs pyvserver/pyvserv.py
+	@pdoc  --force --html -o docs pyvserver/pyvfunc.py
+	@pdoc  --force --html -o docs pyvserver/pyvreplic.py
+	@pdoc  --force --html -o docs pyvserver/pyvstate.py
+	@pdoc  --force --html -o docs pyvtools/pyvcpanel.py
+	@pdoc  --force --html -o docs pyvtools/pyvgenkeys.py
+	@pdoc  --force --html -o docs pyvtools/pyvgenkey.py
 
 md5:
 	@cat md5sum.txt

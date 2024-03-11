@@ -6,15 +6,15 @@ from __future__ import print_function
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-from mainwin import  *
-
 base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, '../../'))
+sys.path.append(os.path.join(base, '../pyvcommon'))
 
-#sys.path.append(os.path.join(base, '../../pycommon'))
+import pydata, pyservsup,  crysupp
+import support, comline, pywrap
 
-#sys.path.append('../../pycommon')
-from pycommon.pgutils import  *
+sys.path.append(os.path.join(base, 'guilib'))
+
+from mainwinserv import  *
 
 # ------------------------------------------------------------------------
 # Globals

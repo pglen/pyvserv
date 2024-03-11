@@ -26,11 +26,13 @@ from Crypto.Hash import SHA256
 
 import pyvpacker
 
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base, ".."))
+
 from pyvcommon import support, pyservsup, pyclisup, pysyslog, pyvhash
 from pyvserver import pyvstate
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join("..",  'pydbase'))
+sys.path.append(os.path.join(base, "..",  'pydbase'))
 
 from pydbase import twincore, twinchain
 

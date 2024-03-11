@@ -1,0 +1,1560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>pyvserv API documentation</title>
+<meta name="description" content="Server module." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>pyvserv</code></h1>
+</header>
+<section id="section-intro">
+<p>Server module.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python3
+
+__doc__ = \
+&#39;&#39;&#39;
+Server module.
+&#39;&#39;&#39;
+import sys
+
+if sys.version_info[0] &lt; 3:
+    print(&#34;Python 2 is not supported as of 1/1/2020&#34;)
+    sys.exit(1)
+
+import os, getopt, signal, select, string, time
+import tarfile, subprocess, struct, platform
+import socket, threading, tracemalloc, inspect
+
+if sys.version_info[0] &lt; 3:
+    import SocketServer as socketserver
+else:
+    import socketserver
+
+# getting the name of the directory
+#current = os.path.dirname(os.path.realpath(__file__))
+## Getting the parent directory name
+#parent = os.path.dirname(current)
+#sys.path.append(parent)
+
+# Create a placeholder
+server = None
+
+progname = os.path.split(sys.argv[0])[1]
+
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  &#39;..&#39;))
+
+import pyvpacker
+
+from pyvserver import pyvstate
+from pyvserver import pyvfunc
+
+from pyvcommon import support
+from pyvcommon import pyservsup
+from pyvcommon import pyclisup
+from pyvcommon import pydata
+from pyvcommon import pysyslog
+from pyvcommon import comline
+
+#import pyvreplic
+
+version = &#34;1.0&#34;
+
+mydata = {}
+
+# ------------------------------------------------------------------------
+
+class InvalidArg(Exception):
+
+    def __init__(self, message):
+         self.message = message
+
+# ------------------------------------------------------------------------
+
+connlist = []
+sem = threading.Semaphore()
+
+def throttle(peer):
+
+    global connlist, sem
+    #print(&#34;throttle&#34;, peer)
+
+    # Throttle to 10 sec frequency
+    now = time.time()
+    sem.acquire()
+    sss = 0; slept = False
+    for aa in connlist:
+        if aa[0][0] == peer[0]:
+            if now - aa[1] &lt;  pyservsup.globals.throttle:
+                sss += 1
+    if sss &gt;  pyservsup.globals.instance:
+        for aa in range(len(connlist)-1, -1 ,-1):
+            if connlist[aa][0][0] == peer[0]:
+                if now - connlist[aa][1] &gt; pyservsup.globals.throttle:
+                    del connlist[aa]
+        time.sleep(5.)
+        slept = True
+
+    # Clean throtle data periodically
+    if len(connlist) &gt; pyservsup.globals.maxthdat:
+        for aa in range(len(connlist)-1, -1 ,-1):
+            if connlist[aa][0][0] == peer[0]:
+                if now - connlist[aa][1] &gt; pyservsup.globals.throttle:
+                    del connlist[aa]
+    connlist.append((peer, now))
+    #print(connlist)
+    sem.release()
+    return slept
+
+class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
+
+    def __init__(self, a1, a2, a3):
+        self.a2 = a2
+        self.fname = &#34;&#34;
+        self.user = &#34;&#34;
+        self.cwd = os.getcwd()
+        self.dir = &#34;&#34;
+        self.ekey = &#34;&#34;
+        self.verbose = conf.verbose
+
+        ttt = throttle(a1.getpeername())
+        if self.verbose:
+            if ttt &gt; 0:
+                print (&#34;Throttle sleep&#34;,  a1.getpeername())
+
+        socketserver.BaseRequestHandler.__init__(self, a1, a2, a3)
+
+    def setup(self):
+        global mydata
+
+        #print(&#34;thread&#34;, self)
+        #print(dir(self))
+
+        cur_thread = threading.current_thread()
+        #print(dir(cur_thread))
+
+        self.name  = str(cur_thread._native_id) #name #getName()
+        #self.name  = cur_thread.name #getName()
+        #print( &#34;Logoff &#39;&#34; + usr + &#34;&#39;&#34;, cli)
+        if self.verbose:
+            print( &#34;Connection from &#34;, self.a2, &#34;as&#34;, self.name)
+
+        #if pgdebug &gt; 1:
+        #    put_debug(&#34;Connection from %s&#34; % self.a2)
+
+        self.statehandler = pyvstate.StateHandler(self)
+        self.statehandler.verbose = conf.verbose
+        self.statehandler.pglog = conf.pglog
+        self.statehandler.pgdebug = conf.pgdebug
+        self.statehandler.name    = self.name
+
+        #print(self.request)
+        mydata[self.name] = self
+
+        #print(dir(self))
+        #print(self.name)
+        #if conf.verbose:
+        #    print(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+        self.datahandler            =  pydata.DataHandler(self.request)
+        self.datahandler.pgdebug    = conf.pgdebug
+        self.datahandler.pglog      = conf.pglog
+        self.datahandler.verbose    = conf.verbose
+        self.datahandler.par        = self
+
+        self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+        if conf.pglog &gt; 0:
+            pysyslog.syslog(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+        response =  [&#34;OK&#34;, &#34;pyvserv %s ready&#34; % version]
+        # Connected, acknowledge it
+        self.datahandler.putencode(response, &#34;&#34;)
+
+    def handle_error(request, client_address):
+        print(&#34;pyvserv Error&#34;, request, client_address)
+
+    def handle(self):
+
+        if conf.mem:
+            tracemalloc.start()
+        try:
+            while 1:
+                ret = self.datahandler.handle_one(self)
+                if not ret: break
+                ret2 = self.statehandler.run_state(ret)
+                if ret2:
+                    #response2 = [&#34;err&#34;, &#34;Too many tries, disconnecting.&#34;]
+                    response2 = [&#34;ERR&#34;, &#34;Disconnected.&#34;]
+                    self.datahandler.putencode(response2, self.statehandler.resp.ekey)
+                    #time.sleep(.1)
+                    #self.datahandler.par.request.shutdown(socket.SHUT_RDWR)
+                    break
+        except:
+            #print( sys.exc_info())
+            support.put_exception(&#34;state handler&#34;)
+
+        if self.verbose:
+            print( &#34;Connection closed on&#34;, self.name)
+
+        if conf.mem:
+            #print( &#34;Memory trace&#34;)
+            snapshot = tracemalloc.take_snapshot()
+            top_stats = snapshot.statistics(&#39;lineno&#39;)
+
+            print(&#34;[ Top 10 ]&#34;)
+            for stat in top_stats[:10]:
+                print(stat)
+
+        #if conf.pglog &gt; 0:
+        #    pysyslog.syslog(&#34;Disconn &#34; + &#34; &#34; + str(self.client_address))
+
+    def finish(self):
+
+        global mydata, conf
+
+        cli = str(mydata[self.name].client_address)
+        usr = str(mydata[self.name].user)
+        #print( &#34;Logoff &#39;&#34; + usr + &#34;&#39;&#34;, cli)
+        del mydata[self.name]
+
+        if conf.verbose:
+            print( &#34;Closed socket on&#34;, self.name)
+
+        if conf.pglog &gt; 0:
+            pysyslog.syslog(&#34;Logoff &#39;&#34; + usr + &#34;&#39; &#34; + cli)
+
+        #server.socket.shutdown(socket.SHUT_RDWR)
+        #server.socket.close()
+
+# ------------------------------------------------------------------------
+# Override stock methods
+
+#class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
+
+    #def __init__(self, arg1, arg2):
+    #    self._BaseServer__shutdown_request = True
+
+    def stop(self):
+        self._BaseServer__shutdown_request = True
+        if verbose:
+            print( &#34;Stop called&#34;)
+        #self.shutdown()
+        #self.server_close()
+        pass
+
+
+def usersig(arg1, arg2):
+
+    global mydata, server
+    print(&#34;usersig&#34;, arg1, arg2)
+    if conf.pglog &gt; 0:
+        pysyslog.syslog(&#34;Got user signal %d&#34; % arg1)
+
+    print(&#34;Current clients:&#34;)
+    print( mydata)
+
+def usersig2(arg1, arg2):
+
+    global mydata, server
+    print(&#34;usersig2&#34;, arg1, arg2)
+    if conf.pglog &gt; 0:
+        pysyslog.syslog(&#34;Got user signal2 %d&#34; % arg1)
+
+# Did not behave as expected
+def soft_terminate(arg1, arg2):
+
+    #global mydata, server
+    ##print(&#34;soft_terminate&#34;)
+    #try:
+    #
+    #    for aa in mydata:
+    #        print(aa, mydata[aa])
+    #        mydata[aa].finish()
+    #except:
+    #    pass
+    #
+
+    terminate(0, 0)
+
+    #while True:
+    #    print( &#34;Dumping connection info:&#34;)
+    #    print( mydata)
+    #    if mydata == {}:
+    #        terminate(0, 0);
+    #        break
+    #    time.sleep (1)
+
+# ------------------------------------------------------------------------
+
+def terminate(arg1, arg2):
+
+    global mydata, server
+
+    #print(&#34;terminate&#34;)
+    #if mydata != {}:
+    #    print( &#34;Dumping connection info:&#34;)
+    #    print( mydata)
+
+    try:
+        if server:
+            server.socket.shutdown(socket.SHUT_RDWR)
+            server.socket.close()
+            server.shutdown()
+    except:
+        print(&#34;Exception in shutdown&#34;, sys.exc_info())
+        pass
+
+    if not conf.quiet:
+        print( &#34;Terminated&#34;, progname)
+
+    #if conf.pglog &gt; 0:
+    #    pysyslog.syslog(&#34;Terminated Server&#34;)
+
+    support.unlock_process(pyservsup.globals.lockfname)
+
+    # Attempt to unhook all pending clients
+    sys.exit(2)
+
+# ------------------------------------------------------------------------
+# Execute one server cycle
+
+class serve_one():
+
+    def __init__(self, *argx):
+        self.cnt = 0
+        self.fname = &#34;&#34;
+        self.user = &#34;&#34;
+        self.cwd = os.getcwd()
+        self.dir = &#34;&#34;
+        self.ekey = &#34;&#34;
+        self.argx = argx
+        server_thread = threading.Thread(target=self.run)
+        server_thread.start()
+
+    def run(self, *argx):
+
+        self.client, self.client_address, self.args = self.argx
+        cur_thread = threading.current_thread()
+        self.name = cur_thread.name #getName()
+        #print( &#34;Logoff &#39;&#34; + usr + &#34;&#39;&#34;, cli)
+
+        self.verbose = conf.verbose
+
+        if self.verbose:
+            print(&#34;Started thread&#34;, self.name)
+
+        if self.verbose:
+            print( &#34;Connection from &#34;, self.a2, &#34;as&#34;, self.name)
+
+        #if pgdebug &gt; 1:
+        #    put_debug(&#34;Connection from %s&#34; % self.a2)
+
+        self.statehandler = pyvstate.StateHandler(self)
+        self.statehandler.verbose = conf.verbose
+        self.statehandler.pglog = conf.pglog
+        self.statehandler.pgdebug = conf.pgdebug
+
+        #print(self.request)
+        #mydata[self.name] = self
+
+        #if conf.verbose:
+        #    print(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+        self.datahandler =  pydata.DataHandler(self.client)
+        self.datahandler.pgdebug = conf.pgdebug
+        self.datahandler.pglog = conf.pglog
+        self.datahandler.verbose = conf.verbose
+        self.datahandler.par = self
+
+        self.client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+        if conf.pglog &gt; 0:
+            pysyslog.syslog(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+        response =  [&#34;OK&#34;, &#34;pyvserv %s ready&#34; % version]
+        # Connected, acknowledge it
+        self.datahandler.putencode(response, &#34;&#34;)
+
+        try:
+            while 1:
+                ret = self.datahandler.handle_one(self)
+                if not ret: break
+                ret2 = self.statehandler.run_state(ret)
+                if ret2:
+                    #response2 = [&#34;err&#34;, &#34;Too many tries, disconnecting.&#34;]
+                    response2 = [&#34;ERR&#34;, &#34;Disconnected.&#34;]
+                    self.datahandler.putencode(response2, self.statehandler.resp.ekey)
+                    break
+        except:
+            #print( sys.exc_info())
+            support.put_exception(&#34;state handler&#34;)
+
+        if self.verbose:
+            print( &#34;Connection closed on&#34;, self.name)
+
+        if conf.mem:
+            #print( &#34;Memory trace&#34;)
+            snapshot = tracemalloc.take_snapshot()
+            top_stats = snapshot.statistics(&#39;lineno&#39;)
+
+        if self.verbose:
+            print(&#34;ended thread&#34;, self.name)
+
+
+# This was a test server, left it in
+
+def simple_server(HOST, PORT):
+    with socket.socket() as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        server.bind((HOST, PORT))
+        server.listen()
+        while True:
+            client, addr = server.accept()
+            client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            serve_one(client, addr, args)
+
+# ------------------------------------------------------------------------
+
+optarr =  comline.optarrlong
+optarr.append ( [&#34;e&#34;,   &#34;detach=&#34;,   &#34;detach&#34;,      0,       None, &#34;Detach from terminal&#34;] )
+optarr.append ( [&#34;l:&#34;,  &#34;loglevel&#34;,  &#34;pglog&#34;,       1,       None, &#34;Log level (0 - 10) default = 1&#34;] )
+optarr.append ( [&#34;n:&#34;,  &#34;host&#34;,      &#34;host&#34;,   &#34;127.0.0.1&#34;,  None, &#34;Set server hostname&#34;] )
+optarr.append ( [&#34;r:&#34;,  &#34;dataroot=&#34;, &#34;droot&#34;,  &#34;pyvserver&#34;,  None, &#34;Root for server data&#34;] )
+optarr.append ( [&#34;m&#34;,   &#34;mem&#34;,       &#34;mem&#34;,         0,       None, &#34;Show memory trace.&#34;] )
+optarr.append ( [&#34;D&#34;,   &#34;dmode&#34;,     &#34;dmode&#34;,       0,       None, &#34;Dev mode (no twofa)&#34;] )
+optarr.append ( [&#34;N&#34;,   &#34;norepl&#34;,    &#34;norepl&#34;,      0,       None, &#34;No replication (for test)&#34;] )
+
+#print (optarr)
+comline.setargs(&#34;&#34;)
+comline.setfoot(&#34;Use quotes for argument separations.&#34;)
+
+conf = comline.ConfigLong(optarr)
+#conf.printvars()
+
+# The pip install will call this script:
+
+def mainfunc():
+
+    if sys.version_info[0] &lt; 3:
+        print(&#34;Warning! This script was meant for python 3.x&#34;)
+        time.sleep(.1)
+        sys.exit(0)
+
+    args = conf.comline(sys.argv[1:])
+    #print(args)
+
+    # Print comline args
+    if conf.pgdebug &gt; 7:
+        for aa in vars(conf):
+            if aa != &#34;optarr&#34;:
+                print(aa, &#34;=&#34;, getattr(conf, aa), end = &#34;   &#34;)
+        print()
+
+    if conf.verbose:
+        pass
+        #print(&#34;This script:     &#34;, os.path.realpath(__file__))
+        #print(&#34;Full path argv:  &#34;, os.path.abspath(sys.argv[0]))
+        #print(&#34;Script name:     &#34;, __file__)
+        #print(&#34;Exec argv:       &#34;, sys.argv[0])
+
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+    pyservsup.globals.conf = conf
+    pyservsup.globals.lockfname += &#34;_&#34; + str(conf.port)  # Lock file + port
+    pyservsup.globals._softmkdir(pyservsup.globals.myhome)
+
+    # Change directory to the data dir
+    os.chdir(pyservsup.globals.myhome)
+    #print(&#34;cwd&#34;, os.getcwd())
+
+    pyservsup.globals.config(pyservsup.globals.myhome, conf)
+
+    if conf.verbose:
+        #print(&#34;Script Dir:      &#34;, pyservsup.globals._script_home)
+        print(&#34;Pass Dir:        &#34;, pyservsup.globals.passdir)
+        print(&#34;Key Dir:         &#34;, pyservsup.globals.keydir)
+        print(&#34;Payload Dir:     &#34;, pyservsup.globals.paydir)
+        print(&#34;Lockfile:        &#34;, pyservsup.globals.lockfname)
+        print(&#34;Passfile:        &#34;, pyservsup.globals.passfile)
+        print(&#34;IDfile:          &#34;, pyservsup.globals.idfile)
+        #print(&#34;Keyfile:         &#34;, pyservsup.globals .keyfile)
+    try:
+        keyfroot = pyservsup.pickkey(pyservsup.globals.keydir)
+    except:
+        #print(&#34;No keys generated yet. Please run pyvgenkey.py first.&#34;)
+        exec = os.path.dirname(os.path.split(pyservsup.globals._script_home)[0]) + os.sep
+        exec += &#34;../pyvtools/pyvgenkey.py&#34;
+        print(&#34;Notice: Generating key in&#34;, &#34;&#39;&#34; + pyservsup.globals.keydir + &#34;&#39;&#34;)
+        if conf.pgdebug &gt; 2:
+            print(&#34;Exec:  &#34;, exec)
+
+        try:
+            os.system(&#34;%s -q -m %s &#34; % (exec, pyservsup.globals.myhome))
+            #if conf.verbose:
+                #print(&#34;exc&#34;, sys.exc_info())
+                #support.put_exception(&#34;Generating keys&#34;)
+        except:
+            print(&#34;Could not generate key. Keydir was&#34;, pyservsup.globals.keydir)
+            sys.exit(1)
+
+    iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
+    if not iii:
+        print(&#34;Cannot read / create site ID, exiting.&#34;)
+        sys.exit(1)
+
+    pyservsup.globals.siteid = iii
+
+    #if conf.verbose:
+    #    print(&#34;Current dir:     &#34;, os.getcwd())
+
+    # Set termination handlers, so lock will be deleted
+    signal.signal(signal.SIGTERM, terminate)
+    signal.signal(signal.SIGINT, soft_terminate)
+    try:
+        signal.signal(signal.SIGUSR1, usersig)
+        signal.signal(signal.SIGUSR2, usersig2)
+    except:
+        print(&#34;User signal may not be available.&#34;)
+
+    sys.stdout = support.Unbuffered(sys.stdout)
+    sys.stderr = support.Unbuffered(sys.stderr)
+
+    # Comline processed, go
+    support.lock_process(pyservsup.globals.lockfname)
+
+    pyvfunc.pgdebug = conf.pgdebug
+    pyvfunc.pglog = conf.pglog
+
+    slogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvserver.log&#34;)
+    rlogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvreplic.log&#34;)
+
+    pysyslog.init_loggers(
+            (&#34;system&#34;, slogfile), (&#34;replic&#34;, rlogfile))
+    #pysyslog.syslog(&#34;Started Server&#34;)
+
+    # Port 0 would mean to select an arbitrary unused port
+    HOST, PORT = conf.host, conf.port
+
+    if not conf.quiet:
+        try:
+            import distro
+            strx = distro.name()
+        except:
+            strx = &#34;Win or Unkn.&#34;
+
+        print(&#34;MainSiteID:      &#34;, pyservsup.globals.siteid)
+        print(&#34;Server running: &#34;, &#34;&#39;&#34;+HOST+&#34;&#39;&#34;, &#34;Port:&#34;, PORT)
+        pyver = support.list2str(sys.version_info) #[0:3], &#34;.&#34;)
+        print(&#34;Running python&#34;, platform.python_version(), &#34;on&#34;, platform.system(), strx)
+
+        pyvstate.init_state_table()
+    try:
+        global server
+        server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+        server.allow_reuse_address = True
+        ip, port = server.server_address
+        server.allow_reuse_address = True
+        server.verbose = conf.verbose
+
+        # Start a thread with the server -- that thread will then start one
+        # or more threads for each request
+        server_thread = threading.Thread(target=server.serve_forever)
+
+        # Exit the server thread when the main thread terminates
+        server_thread.verbose = conf.verbose
+        #server_thread.setDaemon(True)
+        server_thread.daemon = True
+        #server_thread.paydir =  pyservsup.globals.paydir
+        server_thread.start()
+
+    except:
+        print( &#34;Cannot start server. &#34;, sys.exc_info()[1])
+        if conf.pglog &gt; 0:
+            pysyslog.syslog(&#34;Cannot start server &#34; + str(sys.exc_info()[1]) )
+
+        #print(&#34;Try again later.&#34;)
+        terminate(None, None)
+        #sys.exit(1)
+
+    #if conf.pglog &gt; 0:
+    #    pysyslog.syslog(&#34;Started Server&#34;)
+
+    if conf.pglog &gt; 0:
+        pysyslog.syslog(&#34;Server started. Devmode %d&#34; % conf.dmode)
+
+    # Block
+    #simple_server(HOST, PORT)
+    server.serve_forever()
+
+if __name__ == &#39;__main__&#39;:
+    mainfunc()
+
+# EOF</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="pyvserv.mainfunc"><code class="name flex">
+<span>def <span class="ident">mainfunc</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mainfunc():
+
+    if sys.version_info[0] &lt; 3:
+        print(&#34;Warning! This script was meant for python 3.x&#34;)
+        time.sleep(.1)
+        sys.exit(0)
+
+    args = conf.comline(sys.argv[1:])
+    #print(args)
+
+    # Print comline args
+    if conf.pgdebug &gt; 7:
+        for aa in vars(conf):
+            if aa != &#34;optarr&#34;:
+                print(aa, &#34;=&#34;, getattr(conf, aa), end = &#34;   &#34;)
+        print()
+
+    if conf.verbose:
+        pass
+        #print(&#34;This script:     &#34;, os.path.realpath(__file__))
+        #print(&#34;Full path argv:  &#34;, os.path.abspath(sys.argv[0]))
+        #print(&#34;Script name:     &#34;, __file__)
+        #print(&#34;Exec argv:       &#34;, sys.argv[0])
+
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+    pyservsup.globals.conf = conf
+    pyservsup.globals.lockfname += &#34;_&#34; + str(conf.port)  # Lock file + port
+    pyservsup.globals._softmkdir(pyservsup.globals.myhome)
+
+    # Change directory to the data dir
+    os.chdir(pyservsup.globals.myhome)
+    #print(&#34;cwd&#34;, os.getcwd())
+
+    pyservsup.globals.config(pyservsup.globals.myhome, conf)
+
+    if conf.verbose:
+        #print(&#34;Script Dir:      &#34;, pyservsup.globals._script_home)
+        print(&#34;Pass Dir:        &#34;, pyservsup.globals.passdir)
+        print(&#34;Key Dir:         &#34;, pyservsup.globals.keydir)
+        print(&#34;Payload Dir:     &#34;, pyservsup.globals.paydir)
+        print(&#34;Lockfile:        &#34;, pyservsup.globals.lockfname)
+        print(&#34;Passfile:        &#34;, pyservsup.globals.passfile)
+        print(&#34;IDfile:          &#34;, pyservsup.globals.idfile)
+        #print(&#34;Keyfile:         &#34;, pyservsup.globals .keyfile)
+    try:
+        keyfroot = pyservsup.pickkey(pyservsup.globals.keydir)
+    except:
+        #print(&#34;No keys generated yet. Please run pyvgenkey.py first.&#34;)
+        exec = os.path.dirname(os.path.split(pyservsup.globals._script_home)[0]) + os.sep
+        exec += &#34;../pyvtools/pyvgenkey.py&#34;
+        print(&#34;Notice: Generating key in&#34;, &#34;&#39;&#34; + pyservsup.globals.keydir + &#34;&#39;&#34;)
+        if conf.pgdebug &gt; 2:
+            print(&#34;Exec:  &#34;, exec)
+
+        try:
+            os.system(&#34;%s -q -m %s &#34; % (exec, pyservsup.globals.myhome))
+            #if conf.verbose:
+                #print(&#34;exc&#34;, sys.exc_info())
+                #support.put_exception(&#34;Generating keys&#34;)
+        except:
+            print(&#34;Could not generate key. Keydir was&#34;, pyservsup.globals.keydir)
+            sys.exit(1)
+
+    iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
+    if not iii:
+        print(&#34;Cannot read / create site ID, exiting.&#34;)
+        sys.exit(1)
+
+    pyservsup.globals.siteid = iii
+
+    #if conf.verbose:
+    #    print(&#34;Current dir:     &#34;, os.getcwd())
+
+    # Set termination handlers, so lock will be deleted
+    signal.signal(signal.SIGTERM, terminate)
+    signal.signal(signal.SIGINT, soft_terminate)
+    try:
+        signal.signal(signal.SIGUSR1, usersig)
+        signal.signal(signal.SIGUSR2, usersig2)
+    except:
+        print(&#34;User signal may not be available.&#34;)
+
+    sys.stdout = support.Unbuffered(sys.stdout)
+    sys.stderr = support.Unbuffered(sys.stderr)
+
+    # Comline processed, go
+    support.lock_process(pyservsup.globals.lockfname)
+
+    pyvfunc.pgdebug = conf.pgdebug
+    pyvfunc.pglog = conf.pglog
+
+    slogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvserver.log&#34;)
+    rlogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvreplic.log&#34;)
+
+    pysyslog.init_loggers(
+            (&#34;system&#34;, slogfile), (&#34;replic&#34;, rlogfile))
+    #pysyslog.syslog(&#34;Started Server&#34;)
+
+    # Port 0 would mean to select an arbitrary unused port
+    HOST, PORT = conf.host, conf.port
+
+    if not conf.quiet:
+        try:
+            import distro
+            strx = distro.name()
+        except:
+            strx = &#34;Win or Unkn.&#34;
+
+        print(&#34;MainSiteID:      &#34;, pyservsup.globals.siteid)
+        print(&#34;Server running: &#34;, &#34;&#39;&#34;+HOST+&#34;&#39;&#34;, &#34;Port:&#34;, PORT)
+        pyver = support.list2str(sys.version_info) #[0:3], &#34;.&#34;)
+        print(&#34;Running python&#34;, platform.python_version(), &#34;on&#34;, platform.system(), strx)
+
+        pyvstate.init_state_table()
+    try:
+        global server
+        server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+        server.allow_reuse_address = True
+        ip, port = server.server_address
+        server.allow_reuse_address = True
+        server.verbose = conf.verbose
+
+        # Start a thread with the server -- that thread will then start one
+        # or more threads for each request
+        server_thread = threading.Thread(target=server.serve_forever)
+
+        # Exit the server thread when the main thread terminates
+        server_thread.verbose = conf.verbose
+        #server_thread.setDaemon(True)
+        server_thread.daemon = True
+        #server_thread.paydir =  pyservsup.globals.paydir
+        server_thread.start()
+
+    except:
+        print( &#34;Cannot start server. &#34;, sys.exc_info()[1])
+        if conf.pglog &gt; 0:
+            pysyslog.syslog(&#34;Cannot start server &#34; + str(sys.exc_info()[1]) )
+
+        #print(&#34;Try again later.&#34;)
+        terminate(None, None)
+        #sys.exit(1)
+
+    #if conf.pglog &gt; 0:
+    #    pysyslog.syslog(&#34;Started Server&#34;)
+
+    if conf.pglog &gt; 0:
+        pysyslog.syslog(&#34;Server started. Devmode %d&#34; % conf.dmode)
+
+    # Block
+    #simple_server(HOST, PORT)
+    server.serve_forever()</code></pre>
+</details>
+</dd>
+<dt id="pyvserv.simple_server"><code class="name flex">
+<span>def <span class="ident">simple_server</span></span>(<span>HOST, PORT)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def simple_server(HOST, PORT):
+    with socket.socket() as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        server.bind((HOST, PORT))
+        server.listen()
+        while True:
+            client, addr = server.accept()
+            client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            serve_one(client, addr, args)</code></pre>
+</details>
+</dd>
+<dt id="pyvserv.soft_terminate"><code class="name flex">
+<span>def <span class="ident">soft_terminate</span></span>(<span>arg1, arg2)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def soft_terminate(arg1, arg2):
+
+    #global mydata, server
+    ##print(&#34;soft_terminate&#34;)
+    #try:
+    #
+    #    for aa in mydata:
+    #        print(aa, mydata[aa])
+    #        mydata[aa].finish()
+    #except:
+    #    pass
+    #
+
+    terminate(0, 0)
+
+    #while True:
+    #    print( &#34;Dumping connection info:&#34;)
+    #    print( mydata)
+    #    if mydata == {}:
+    #        terminate(0, 0);
+    #        break
+    #    time.sleep (1)</code></pre>
+</details>
+</dd>
+<dt id="pyvserv.terminate"><code class="name flex">
+<span>def <span class="ident">terminate</span></span>(<span>arg1, arg2)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def terminate(arg1, arg2):
+
+    global mydata, server
+
+    #print(&#34;terminate&#34;)
+    #if mydata != {}:
+    #    print( &#34;Dumping connection info:&#34;)
+    #    print( mydata)
+
+    try:
+        if server:
+            server.socket.shutdown(socket.SHUT_RDWR)
+            server.socket.close()
+            server.shutdown()
+    except:
+        print(&#34;Exception in shutdown&#34;, sys.exc_info())
+        pass
+
+    if not conf.quiet:
+        print( &#34;Terminated&#34;, progname)
+
+    #if conf.pglog &gt; 0:
+    #    pysyslog.syslog(&#34;Terminated Server&#34;)
+
+    support.unlock_process(pyservsup.globals.lockfname)
+
+    # Attempt to unhook all pending clients
+    sys.exit(2)</code></pre>
+</details>
+</dd>
+<dt id="pyvserv.throttle"><code class="name flex">
+<span>def <span class="ident">throttle</span></span>(<span>peer)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def throttle(peer):
+
+    global connlist, sem
+    #print(&#34;throttle&#34;, peer)
+
+    # Throttle to 10 sec frequency
+    now = time.time()
+    sem.acquire()
+    sss = 0; slept = False
+    for aa in connlist:
+        if aa[0][0] == peer[0]:
+            if now - aa[1] &lt;  pyservsup.globals.throttle:
+                sss += 1
+    if sss &gt;  pyservsup.globals.instance:
+        for aa in range(len(connlist)-1, -1 ,-1):
+            if connlist[aa][0][0] == peer[0]:
+                if now - connlist[aa][1] &gt; pyservsup.globals.throttle:
+                    del connlist[aa]
+        time.sleep(5.)
+        slept = True
+
+    # Clean throtle data periodically
+    if len(connlist) &gt; pyservsup.globals.maxthdat:
+        for aa in range(len(connlist)-1, -1 ,-1):
+            if connlist[aa][0][0] == peer[0]:
+                if now - connlist[aa][1] &gt; pyservsup.globals.throttle:
+                    del connlist[aa]
+    connlist.append((peer, now))
+    #print(connlist)
+    sem.release()
+    return slept</code></pre>
+</details>
+</dd>
+<dt id="pyvserv.usersig"><code class="name flex">
+<span>def <span class="ident">usersig</span></span>(<span>arg1, arg2)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def usersig(arg1, arg2):
+
+    global mydata, server
+    print(&#34;usersig&#34;, arg1, arg2)
+    if conf.pglog &gt; 0:
+        pysyslog.syslog(&#34;Got user signal %d&#34; % arg1)
+
+    print(&#34;Current clients:&#34;)
+    print( mydata)</code></pre>
+</details>
+</dd>
+<dt id="pyvserv.usersig2"><code class="name flex">
+<span>def <span class="ident">usersig2</span></span>(<span>arg1, arg2)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def usersig2(arg1, arg2):
+
+    global mydata, server
+    print(&#34;usersig2&#34;, arg1, arg2)
+    if conf.pglog &gt; 0:
+        pysyslog.syslog(&#34;Got user signal2 %d&#34; % arg1)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="pyvserv.InvalidArg"><code class="flex name class">
+<span>class <span class="ident">InvalidArg</span></span>
+<span>(</span><span>message)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InvalidArg(Exception):
+
+    def __init__(self, message):
+         self.message = message</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="pyvserv.ThreadedTCPRequestHandler"><code class="flex name class">
+<span>class <span class="ident">ThreadedTCPRequestHandler</span></span>
+<span>(</span><span>a1, a2, a3)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for request handler classes.</p>
+<p>This class is instantiated for each request to be handled.
+The
+constructor sets the instance variables request, client_address
+and server, and then calls the handle() method.
+To implement a
+specific service, all you need to do is to derive a class which
+defines a handle() method.</p>
+<p>The handle() method can find the request as self.request, the
+client address as self.client_address, and the server (in case it
+needs access to per-server information) as self.server.
+Since a
+separate instance is created for each request, the handle() method
+can define other arbitrary instance variables.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
+
+    def __init__(self, a1, a2, a3):
+        self.a2 = a2
+        self.fname = &#34;&#34;
+        self.user = &#34;&#34;
+        self.cwd = os.getcwd()
+        self.dir = &#34;&#34;
+        self.ekey = &#34;&#34;
+        self.verbose = conf.verbose
+
+        ttt = throttle(a1.getpeername())
+        if self.verbose:
+            if ttt &gt; 0:
+                print (&#34;Throttle sleep&#34;,  a1.getpeername())
+
+        socketserver.BaseRequestHandler.__init__(self, a1, a2, a3)
+
+    def setup(self):
+        global mydata
+
+        #print(&#34;thread&#34;, self)
+        #print(dir(self))
+
+        cur_thread = threading.current_thread()
+        #print(dir(cur_thread))
+
+        self.name  = str(cur_thread._native_id) #name #getName()
+        #self.name  = cur_thread.name #getName()
+        #print( &#34;Logoff &#39;&#34; + usr + &#34;&#39;&#34;, cli)
+        if self.verbose:
+            print( &#34;Connection from &#34;, self.a2, &#34;as&#34;, self.name)
+
+        #if pgdebug &gt; 1:
+        #    put_debug(&#34;Connection from %s&#34; % self.a2)
+
+        self.statehandler = pyvstate.StateHandler(self)
+        self.statehandler.verbose = conf.verbose
+        self.statehandler.pglog = conf.pglog
+        self.statehandler.pgdebug = conf.pgdebug
+        self.statehandler.name    = self.name
+
+        #print(self.request)
+        mydata[self.name] = self
+
+        #print(dir(self))
+        #print(self.name)
+        #if conf.verbose:
+        #    print(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+        self.datahandler            =  pydata.DataHandler(self.request)
+        self.datahandler.pgdebug    = conf.pgdebug
+        self.datahandler.pglog      = conf.pglog
+        self.datahandler.verbose    = conf.verbose
+        self.datahandler.par        = self
+
+        self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+        if conf.pglog &gt; 0:
+            pysyslog.syslog(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+        response =  [&#34;OK&#34;, &#34;pyvserv %s ready&#34; % version]
+        # Connected, acknowledge it
+        self.datahandler.putencode(response, &#34;&#34;)
+
+    def handle_error(request, client_address):
+        print(&#34;pyvserv Error&#34;, request, client_address)
+
+    def handle(self):
+
+        if conf.mem:
+            tracemalloc.start()
+        try:
+            while 1:
+                ret = self.datahandler.handle_one(self)
+                if not ret: break
+                ret2 = self.statehandler.run_state(ret)
+                if ret2:
+                    #response2 = [&#34;err&#34;, &#34;Too many tries, disconnecting.&#34;]
+                    response2 = [&#34;ERR&#34;, &#34;Disconnected.&#34;]
+                    self.datahandler.putencode(response2, self.statehandler.resp.ekey)
+                    #time.sleep(.1)
+                    #self.datahandler.par.request.shutdown(socket.SHUT_RDWR)
+                    break
+        except:
+            #print( sys.exc_info())
+            support.put_exception(&#34;state handler&#34;)
+
+        if self.verbose:
+            print( &#34;Connection closed on&#34;, self.name)
+
+        if conf.mem:
+            #print( &#34;Memory trace&#34;)
+            snapshot = tracemalloc.take_snapshot()
+            top_stats = snapshot.statistics(&#39;lineno&#39;)
+
+            print(&#34;[ Top 10 ]&#34;)
+            for stat in top_stats[:10]:
+                print(stat)
+
+        #if conf.pglog &gt; 0:
+        #    pysyslog.syslog(&#34;Disconn &#34; + &#34; &#34; + str(self.client_address))
+
+    def finish(self):
+
+        global mydata, conf
+
+        cli = str(mydata[self.name].client_address)
+        usr = str(mydata[self.name].user)
+        #print( &#34;Logoff &#39;&#34; + usr + &#34;&#39;&#34;, cli)
+        del mydata[self.name]
+
+        if conf.verbose:
+            print( &#34;Closed socket on&#34;, self.name)
+
+        if conf.pglog &gt; 0:
+            pysyslog.syslog(&#34;Logoff &#39;&#34; + usr + &#34;&#39; &#34; + cli)
+
+        #server.socket.shutdown(socket.SHUT_RDWR)
+        #server.socket.close()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>socketserver.BaseRequestHandler</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pyvserv.ThreadedTCPRequestHandler.finish"><code class="name flex">
+<span>def <span class="ident">finish</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def finish(self):
+
+    global mydata, conf
+
+    cli = str(mydata[self.name].client_address)
+    usr = str(mydata[self.name].user)
+    #print( &#34;Logoff &#39;&#34; + usr + &#34;&#39;&#34;, cli)
+    del mydata[self.name]
+
+    if conf.verbose:
+        print( &#34;Closed socket on&#34;, self.name)
+
+    if conf.pglog &gt; 0:
+        pysyslog.syslog(&#34;Logoff &#39;&#34; + usr + &#34;&#39; &#34; + cli)
+
+    #server.socket.shutdown(socket.SHUT_RDWR)
+    #server.socket.close()</code></pre>
+</details>
+</dd>
+<dt id="pyvserv.ThreadedTCPRequestHandler.handle"><code class="name flex">
+<span>def <span class="ident">handle</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def handle(self):
+
+    if conf.mem:
+        tracemalloc.start()
+    try:
+        while 1:
+            ret = self.datahandler.handle_one(self)
+            if not ret: break
+            ret2 = self.statehandler.run_state(ret)
+            if ret2:
+                #response2 = [&#34;err&#34;, &#34;Too many tries, disconnecting.&#34;]
+                response2 = [&#34;ERR&#34;, &#34;Disconnected.&#34;]
+                self.datahandler.putencode(response2, self.statehandler.resp.ekey)
+                #time.sleep(.1)
+                #self.datahandler.par.request.shutdown(socket.SHUT_RDWR)
+                break
+    except:
+        #print( sys.exc_info())
+        support.put_exception(&#34;state handler&#34;)
+
+    if self.verbose:
+        print( &#34;Connection closed on&#34;, self.name)
+
+    if conf.mem:
+        #print( &#34;Memory trace&#34;)
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics(&#39;lineno&#39;)
+
+        print(&#34;[ Top 10 ]&#34;)
+        for stat in top_stats[:10]:
+            print(stat)
+
+    #if conf.pglog &gt; 0:
+    #    pysyslog.syslog(&#34;Disconn &#34; + &#34; &#34; + str(self.client_address))</code></pre>
+</details>
+</dd>
+<dt id="pyvserv.ThreadedTCPRequestHandler.handle_error"><code class="name flex">
+<span>def <span class="ident">handle_error</span></span>(<span>request, client_address)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def handle_error(request, client_address):
+    print(&#34;pyvserv Error&#34;, request, client_address)</code></pre>
+</details>
+</dd>
+<dt id="pyvserv.ThreadedTCPRequestHandler.setup"><code class="name flex">
+<span>def <span class="ident">setup</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def setup(self):
+    global mydata
+
+    #print(&#34;thread&#34;, self)
+    #print(dir(self))
+
+    cur_thread = threading.current_thread()
+    #print(dir(cur_thread))
+
+    self.name  = str(cur_thread._native_id) #name #getName()
+    #self.name  = cur_thread.name #getName()
+    #print( &#34;Logoff &#39;&#34; + usr + &#34;&#39;&#34;, cli)
+    if self.verbose:
+        print( &#34;Connection from &#34;, self.a2, &#34;as&#34;, self.name)
+
+    #if pgdebug &gt; 1:
+    #    put_debug(&#34;Connection from %s&#34; % self.a2)
+
+    self.statehandler = pyvstate.StateHandler(self)
+    self.statehandler.verbose = conf.verbose
+    self.statehandler.pglog = conf.pglog
+    self.statehandler.pgdebug = conf.pgdebug
+    self.statehandler.name    = self.name
+
+    #print(self.request)
+    mydata[self.name] = self
+
+    #print(dir(self))
+    #print(self.name)
+    #if conf.verbose:
+    #    print(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+    self.datahandler            =  pydata.DataHandler(self.request)
+    self.datahandler.pgdebug    = conf.pgdebug
+    self.datahandler.pglog      = conf.pglog
+    self.datahandler.verbose    = conf.verbose
+    self.datahandler.par        = self
+
+    self.request.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+    if conf.pglog &gt; 0:
+        pysyslog.syslog(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+    response =  [&#34;OK&#34;, &#34;pyvserv %s ready&#34; % version]
+    # Connected, acknowledge it
+    self.datahandler.putencode(response, &#34;&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pyvserv.ThreadedTCPServer"><code class="flex name class">
+<span>class <span class="ident">ThreadedTCPServer</span></span>
+<span>(</span><span>server_address, RequestHandlerClass, bind_and_activate=True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mix-in class to handle each request in a new process.</p>
+<p>Constructor.
+May be extended, do not override.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
+
+    #def __init__(self, arg1, arg2):
+    #    self._BaseServer__shutdown_request = True
+
+    def stop(self):
+        self._BaseServer__shutdown_request = True
+        if verbose:
+            print( &#34;Stop called&#34;)
+        #self.shutdown()
+        #self.server_close()
+        pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>socketserver.ForkingMixIn</li>
+<li>socketserver.TCPServer</li>
+<li>socketserver.BaseServer</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pyvserv.ThreadedTCPServer.stop"><code class="name flex">
+<span>def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stop(self):
+    self._BaseServer__shutdown_request = True
+    if verbose:
+        print( &#34;Stop called&#34;)
+    #self.shutdown()
+    #self.server_close()
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="pyvserv.serve_one"><code class="flex name class">
+<span>class <span class="ident">serve_one</span></span>
+<span>(</span><span>*argx)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class serve_one():
+
+    def __init__(self, *argx):
+        self.cnt = 0
+        self.fname = &#34;&#34;
+        self.user = &#34;&#34;
+        self.cwd = os.getcwd()
+        self.dir = &#34;&#34;
+        self.ekey = &#34;&#34;
+        self.argx = argx
+        server_thread = threading.Thread(target=self.run)
+        server_thread.start()
+
+    def run(self, *argx):
+
+        self.client, self.client_address, self.args = self.argx
+        cur_thread = threading.current_thread()
+        self.name = cur_thread.name #getName()
+        #print( &#34;Logoff &#39;&#34; + usr + &#34;&#39;&#34;, cli)
+
+        self.verbose = conf.verbose
+
+        if self.verbose:
+            print(&#34;Started thread&#34;, self.name)
+
+        if self.verbose:
+            print( &#34;Connection from &#34;, self.a2, &#34;as&#34;, self.name)
+
+        #if pgdebug &gt; 1:
+        #    put_debug(&#34;Connection from %s&#34; % self.a2)
+
+        self.statehandler = pyvstate.StateHandler(self)
+        self.statehandler.verbose = conf.verbose
+        self.statehandler.pglog = conf.pglog
+        self.statehandler.pgdebug = conf.pgdebug
+
+        #print(self.request)
+        #mydata[self.name] = self
+
+        #if conf.verbose:
+        #    print(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+        self.datahandler =  pydata.DataHandler(self.client)
+        self.datahandler.pgdebug = conf.pgdebug
+        self.datahandler.pglog = conf.pglog
+        self.datahandler.verbose = conf.verbose
+        self.datahandler.par = self
+
+        self.client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+        if conf.pglog &gt; 0:
+            pysyslog.syslog(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+        response =  [&#34;OK&#34;, &#34;pyvserv %s ready&#34; % version]
+        # Connected, acknowledge it
+        self.datahandler.putencode(response, &#34;&#34;)
+
+        try:
+            while 1:
+                ret = self.datahandler.handle_one(self)
+                if not ret: break
+                ret2 = self.statehandler.run_state(ret)
+                if ret2:
+                    #response2 = [&#34;err&#34;, &#34;Too many tries, disconnecting.&#34;]
+                    response2 = [&#34;ERR&#34;, &#34;Disconnected.&#34;]
+                    self.datahandler.putencode(response2, self.statehandler.resp.ekey)
+                    break
+        except:
+            #print( sys.exc_info())
+            support.put_exception(&#34;state handler&#34;)
+
+        if self.verbose:
+            print( &#34;Connection closed on&#34;, self.name)
+
+        if conf.mem:
+            #print( &#34;Memory trace&#34;)
+            snapshot = tracemalloc.take_snapshot()
+            top_stats = snapshot.statistics(&#39;lineno&#39;)
+
+        if self.verbose:
+            print(&#34;ended thread&#34;, self.name)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="pyvserv.serve_one.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>self, *argx)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run(self, *argx):
+
+    self.client, self.client_address, self.args = self.argx
+    cur_thread = threading.current_thread()
+    self.name = cur_thread.name #getName()
+    #print( &#34;Logoff &#39;&#34; + usr + &#34;&#39;&#34;, cli)
+
+    self.verbose = conf.verbose
+
+    if self.verbose:
+        print(&#34;Started thread&#34;, self.name)
+
+    if self.verbose:
+        print( &#34;Connection from &#34;, self.a2, &#34;as&#34;, self.name)
+
+    #if pgdebug &gt; 1:
+    #    put_debug(&#34;Connection from %s&#34; % self.a2)
+
+    self.statehandler = pyvstate.StateHandler(self)
+    self.statehandler.verbose = conf.verbose
+    self.statehandler.pglog = conf.pglog
+    self.statehandler.pgdebug = conf.pgdebug
+
+    #print(self.request)
+    #mydata[self.name] = self
+
+    #if conf.verbose:
+    #    print(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+    self.datahandler =  pydata.DataHandler(self.client)
+    self.datahandler.pgdebug = conf.pgdebug
+    self.datahandler.pglog = conf.pglog
+    self.datahandler.verbose = conf.verbose
+    self.datahandler.par = self
+
+    self.client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+
+    if conf.pglog &gt; 0:
+        pysyslog.syslog(&#34;Connected &#34; + &#34; &#34; + str(self.client_address))
+
+    response =  [&#34;OK&#34;, &#34;pyvserv %s ready&#34; % version]
+    # Connected, acknowledge it
+    self.datahandler.putencode(response, &#34;&#34;)
+
+    try:
+        while 1:
+            ret = self.datahandler.handle_one(self)
+            if not ret: break
+            ret2 = self.statehandler.run_state(ret)
+            if ret2:
+                #response2 = [&#34;err&#34;, &#34;Too many tries, disconnecting.&#34;]
+                response2 = [&#34;ERR&#34;, &#34;Disconnected.&#34;]
+                self.datahandler.putencode(response2, self.statehandler.resp.ekey)
+                break
+    except:
+        #print( sys.exc_info())
+        support.put_exception(&#34;state handler&#34;)
+
+    if self.verbose:
+        print( &#34;Connection closed on&#34;, self.name)
+
+    if conf.mem:
+        #print( &#34;Memory trace&#34;)
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics(&#39;lineno&#39;)
+
+    if self.verbose:
+        print(&#34;ended thread&#34;, self.name)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="pyvserv.mainfunc" href="#pyvserv.mainfunc">mainfunc</a></code></li>
+<li><code><a title="pyvserv.simple_server" href="#pyvserv.simple_server">simple_server</a></code></li>
+<li><code><a title="pyvserv.soft_terminate" href="#pyvserv.soft_terminate">soft_terminate</a></code></li>
+<li><code><a title="pyvserv.terminate" href="#pyvserv.terminate">terminate</a></code></li>
+<li><code><a title="pyvserv.throttle" href="#pyvserv.throttle">throttle</a></code></li>
+<li><code><a title="pyvserv.usersig" href="#pyvserv.usersig">usersig</a></code></li>
+<li><code><a title="pyvserv.usersig2" href="#pyvserv.usersig2">usersig2</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="pyvserv.InvalidArg" href="#pyvserv.InvalidArg">InvalidArg</a></code></h4>
+</li>
+<li>
+<h4><code><a title="pyvserv.ThreadedTCPRequestHandler" href="#pyvserv.ThreadedTCPRequestHandler">ThreadedTCPRequestHandler</a></code></h4>
+<ul class="">
+<li><code><a title="pyvserv.ThreadedTCPRequestHandler.finish" href="#pyvserv.ThreadedTCPRequestHandler.finish">finish</a></code></li>
+<li><code><a title="pyvserv.ThreadedTCPRequestHandler.handle" href="#pyvserv.ThreadedTCPRequestHandler.handle">handle</a></code></li>
+<li><code><a title="pyvserv.ThreadedTCPRequestHandler.handle_error" href="#pyvserv.ThreadedTCPRequestHandler.handle_error">handle_error</a></code></li>
+<li><code><a title="pyvserv.ThreadedTCPRequestHandler.setup" href="#pyvserv.ThreadedTCPRequestHandler.setup">setup</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pyvserv.ThreadedTCPServer" href="#pyvserv.ThreadedTCPServer">ThreadedTCPServer</a></code></h4>
+<ul class="">
+<li><code><a title="pyvserv.ThreadedTCPServer.stop" href="#pyvserv.ThreadedTCPServer.stop">stop</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pyvserv.serve_one" href="#pyvserv.serve_one">serve_one</a></code></h4>
+<ul class="">
+<li><code><a title="pyvserv.serve_one.run" href="#pyvserv.serve_one.run">run</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

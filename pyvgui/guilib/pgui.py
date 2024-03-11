@@ -130,28 +130,4 @@ ui_info = \
     <toolitem action='QuickHelp'/>
     <toolitem action='Help'/>   '''
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# EOF
