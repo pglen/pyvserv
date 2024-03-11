@@ -1,4 +1,4 @@
-INSTALL
+## INSTALL
 
 python 3.x is supported  (py2 support obsoleted)
 

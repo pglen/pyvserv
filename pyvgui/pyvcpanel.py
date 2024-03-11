@@ -87,7 +87,7 @@ optarr = \
 
 conf = comline.ConfigLong(optarr)
 
-def mainfunc():
+def mainfunct():
 
     #print("pyvcpanel started ...")
     args = conf.comline(sys.argv[1:])
@@ -103,7 +103,7 @@ if __name__ == '__main__':
         print("Needs python 3 or better.")
         sys.exit(1)
 
-    mainfunc()
+    mainfunct()
 
 # EOF
 

@@ -74,7 +74,7 @@ optarr = \
 
 conf = comline.ConfigLong(optarr)
 
-def mainfunc():
+def mainfunct():
 
     args = conf.comline(sys.argv[1:])
     mw = mainwinserv.MainWin()
@@ -82,6 +82,6 @@ def mainfunc():
     sys.exit(0)
 
 if __name__ == '__main__':
-    mainfunc()
+    mainfunct()
 
 # EOF

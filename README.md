@@ -8,20 +8,24 @@ the protocol side.
  &nbsp; &nbsp; PyvServ contains protocol level encryption, which can be switched on by
 instructing the server to use an encryption (session) key.
 
- &nbsp; &nbsp; PyvServ contains key exchange protocol, so the new session keys
+ &nbsp; &nbsp; PyvServ contains a key exchange protocol, so the new session keys
 can be transmitted securely. The key exchange is based on ECC.
 
  PyvServ has utilities to generate encryption keys. At least one
-key needs to be generated before use. The server picks from a pool of keys,
-so communication data is always distinctive.
+key needs to be generated before use. (now automatic) The server picks from
+a pool of keys, so communication data is always distinctive. Make sure you
+generate them with the 'pyvgenkeys' utility.
 
- PyvServ has blockchain capable back end. The new data is linked to the
+ PyvServ has blockchain enpowered back end. The new data is linked to the
 previous record. Utilities to verify the data are also provided.
+(dbaseadm and chainadm)
 
  PyvServ has file upload / download capabilities with encrypted transport.
 
- PyvServ has replication facilities via a client based  'I have You have'
- mechanism featuring encrypted transport.
+ PyvServ has replication facilities via a client based 'I have You have'
+ mechanism featuring encrypted transport. It is also capable of replication
+ on a replicate when received mechanism. The replicted records are marked,
+ so replication does not enter looping.
 
  Project is still in motion, but a lot of it is usable.
 
@@ -82,9 +86,12 @@ sample client examples in the client source tree. (Files named pycli_*)
 
 ## Testing:
 
- Pytest test cases all pass. Note that the pytest process starts the pyvserv.py
- at the first test, and terminates it after the last test. Please make sure it does not
- interfere with production. More test coming soon ....
+ All pytest cases pass. Note that the for the pytest client tests one needs to
+ start the 'pyvserv.py' server.
+ The server --port and --dataroot option can ba used to start the server in an alternate
+ universe.  Please make sure it does not interfere with production.
+
+   More test coming soon ....
 
     ============================= test session starts ==============================
     platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.0.0
@@ -102,10 +109,13 @@ sample client examples in the client source tree. (Files named pycli_*)
 
     ============================== 9 passed in 1.35s ===============================
 
+Additional tests can ve found in the test directory.
+
 ## History:
 
     1.0.0.  4/12/22		       No py2 support (no release yet)
     1.0.0   Sun 03.Mar.2024    Beta ready
+    1.0.0   Mon 11.Mar.2024    PIP installation with utils
 
 Written by Peter Glen
 

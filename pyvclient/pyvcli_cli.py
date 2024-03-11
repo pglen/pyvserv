@@ -87,7 +87,7 @@ conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
-def mainfunc():
+def mainfunct():
 
     args = conf.comline(sys.argv[1:])
 
@@ -240,4 +240,4 @@ def mainloop(conf, hand):
             break
 
 if __name__ == '__main__':
-    mainfunc()
+    mainfunct()

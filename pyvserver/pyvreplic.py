@@ -30,7 +30,7 @@ try:
     # Get Parent of module root
     sf = os.path.dirname(support.__file__)
     sf = os.path.dirname(sf)
-    print("sf", sf)
+    #print("sf", sf)
     sys.path.append(os.path.join(sf, "pyvcommon"))
     sys.path.append(os.path.join(sf, "pyvserver"))
     #sys.path.append(os.path.join(sf, "pyvgui"))

@@ -66,18 +66,21 @@ class DataHandler():
 
     def handler_timeout(self):
 
-        #self.tout.cancel()
-        if self.pgdebug > 0:
-            print( "in handler_timeout %s" % self.name )
+        try:
+            #self.tout.cancel()
+            if self.pgdebug > 0:
+                print( "in handler_timeout %s" % self.name )
 
-        if self.verbose:
-            print( "handler_timeout()")
+            if self.verbose:
+                print( "handler_timeout()")
 
-        if self.pglog > 0:
-            pysyslog.syslog("Timeout on " + " " + str(self.par.client_address))
+            if self.pglog > 0:
+                pysyslog.syslog("Timeout on " + " " + str(self.par.client_address))
 
-        #print(dir(self))
-        #print(dir(self.par))
+            #print(dir(self))
+            #print(dir(self.par))
+        except:
+            pass
         self.toutflag = True
 
     def putencode(self, ddd, key = "", rand = True):

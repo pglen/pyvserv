@@ -34,7 +34,7 @@ try:
     # Get Parent of module root
     sf = os.path.dirname(support.__file__)
     sf = os.path.dirname(sf)
-    print("sf", sf)
+    #print("sf", sf)
     sys.path.append(os.path.join(sf, "pyvcommon"))
     sys.path.append(os.path.join(sf, "pyvserver"))
     #sys.path.append(os.path.join(sf, "pyvgui"))
@@ -438,7 +438,7 @@ conf = comline.ConfigLong(optarr)
 
 # The pip install will call this script:
 
-def mainfunc():
+def mainfunct():
 
     if sys.version_info[0] < 3:
         print("Warning! This script was meant for python 3.x")
@@ -591,6 +591,6 @@ def mainfunc():
     server.serve_forever()
 
 if __name__ == '__main__':
-    mainfunc()
+    mainfunct()
 
 # EOF

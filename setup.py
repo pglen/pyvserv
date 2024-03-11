@@ -61,12 +61,13 @@ setuptools.setup(
     python_requires='>=3',
     install_requires=["pyvpacker", "pydbase", "pycryptodome", "pyvecc"],
     entry_points={
-        'console_scripts': [ "pyvserv=pyvserv:mainfunc",
+        'console_scripts': [ "pyvserv=pyvserv:mainfunct",
                              "pyvreplic=pyvreplic:mainfunct",
                              "pyvgenkey=pyvgenkey:mainfunct",
                              "pyvgenkeys=pyvgenkeys:mainfunct",
                              "pyvservui=pyvservui:mainfunct",
                              "pyvcpanel=pyvcpanel:mainfunct",
+                             "pyvcli_cli=pyvcli_cli:mainfunct",
             ],
     },
 )

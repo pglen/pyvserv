@@ -7,6 +7,34 @@ import struct, stat, base64, random
 
 from Crypto import Random
 
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
+
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    #print("sf", sf)
+    sys.path.append(os.path.join(sf, "pyvcommon"))
+    sys.path.append(os.path.join(sf, "pyvserver"))
+    #sys.path.append(os.path.join(sf, "pyvgui"))
+    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    sys.path.append(os.path.join(base,  '..', "pyvserver"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
+    from pyvcommon import support
+
+#for aa in sys.path:
+#    print(aa)
+
+print("Load:", sys.path[-1])
+
 import pyvgenkey
 import argparse
 
@@ -28,9 +56,9 @@ def mainfunct():
 
     args = parser.parse_args()
 
-    if not pyvgenkey.is_power_of_two(args.bits):
-        print("Bitness must be a power of 2")
-        sys.exit(1)
+    #if not pyvgenkey.is_power_of_two(args.bits):
+    #    print("Bitness must be a power of 2")
+    #    sys.exit(1)
 
     pyvgenkey.position(args)
     #print("Current dir:     ", os.getcwd())
@@ -41,7 +69,7 @@ def mainfunct():
             break
         cnt += 1;
         sys.stdout.flush()
-        files = pyvgenkey.genkey(args.bits, args.use_rsa)
+        files = pyvgenkey.genkey()
         print ("\rKey %-4d %s %s " % (cnt, files[0], files[1]), end="");
         # Ease on hogging the system
         sleepy  = 0.2

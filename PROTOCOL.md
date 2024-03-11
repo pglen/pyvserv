@@ -1,6 +1,6 @@
-                                    PROTOCOL
+# PROTOCOL
 
- This is a sketchup for the protocol. A hybrid between a spec and a design
+ This is a sketch for pyvserv the protocol. A hybrid between a spec and a design
 document. The implementation follows loosely the outline of the interaction
 outlined below.
 
@@ -8,7 +8,7 @@ outlined below.
 
     TCP connection estabilished.    Send signon str
 
-initial state:
+Initial state:
 
     query server                    send appropriate answer
     akey requested                  send rendomly selected pub key
@@ -18,7 +18,6 @@ akey state:
     ready to estabilish session
     session key generated,          session key stored
                                     encrypted, transmitted
-
 session state:
 
     estabilish credencials          confirm transaction state
@@ -30,6 +29,5 @@ transaction state:
 
     Transactions start              respond with packer data
     send packer data
-
 
 ... disconnect ...

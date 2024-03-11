@@ -41,9 +41,9 @@ none_in      = 120
 # ------------------------------------------------------------------------
 # Help stings
 
-user_help   = "Usage: user logon_name"
+user_help   = "Usage: user logon_name -- set session user name"
 akey_help   = "Usage: akey -- get asymmetric key"
-pass_help   = "Usage: pass logon_pass"
+pass_help   = "Usage: pass logon_pass -- password"
 chpass_help = "Usage: chpass newpass"
 file_help   = "Usage: file fname -- Specify name for upload"
 fget_help   = "Usage: fget fname -- Download (get) file"
@@ -90,7 +90,7 @@ twofa_help = "Usage: twofa -- two factor authentication"
 dmode_help = "Usage: dmode -- get dmode (Developer Mode) flag"
 ihave_help = "Usage: ihave -- 'i have you have' protocol entry point"
 ihost_help = "Usage: ihost -- add / delete replicator host"
-xxxx_help  = "Usage: no data"
+xxxx_help  = "Usage: no data -- Template for new halp"
 
 # ------------------------------------------------------------------------
 # Table driven server state machine.
