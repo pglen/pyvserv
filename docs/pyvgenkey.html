@@ -55,41 +55,62 @@ sys.path.append(os.path.join(base,  &#39;pyvecc&#39;))
 
 from pyvecc.Key import Key
 
-from Crypto.PublicKey import ECC
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
 from Crypto import Random
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  &#39;..&#39;))
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
+
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    #print(&#34;sf&#34;, sf)
+    sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
+    sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
+    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
+    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  &#39;..&#39;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
+    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;))
+    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
+    from pyvcommon import support
+
+#for aa in sys.path:
+#    print(aa)
+
+print(&#34;Load:&#34;, sys.path[-1])
+
 
 from pyvcommon import pyservsup
 
 import argparse
 
-parser = argparse.ArgumentParser(description=&#39;Genetrate RSA keypair.&#39;)
+parser = argparse.ArgumentParser(description=&#39;Genetrate ECC keypair for pyvserv&#39;)
 
 parser.add_argument(&#34;-v&#34;, &#39;--verbose&#39;, dest=&#39;verbose&#39;,
                     default=0,  action=&#39;count&#39;,
                     help=&#39;verbocity on (default: off)&#39;)
 
-parser.add_argument(&#34;-b:&#34;, &#39;--bits&#39;, dest=&#39;bits&#39;,
-                    default=4096,  action=&#39;store&#39;, type=int,
-                    help=&#39;Key to generate (default: 4096)&#39;)
-
-parser.add_argument(&#34;-r:&#34;, &#39;--rsa&#39;, dest=&#39;use_rsa&#39;,
-                    default=False,  action=&#39;store_true&#39;,
-                    help=&#39;Key to generate (default: 4096)&#39;)
+#parser.add_argument(&#34;-b:&#34;, &#39;--bits&#39;, dest=&#39;bits&#39;,
+#                    default=4096,  action=&#39;store&#39;, type=int,
+#                    help=&#39;Key to generate (default: 4096)&#39;)
+#
+#parser.add_argument(&#34;-r:&#34;, &#39;--rsa&#39;, dest=&#39;use_rsa&#39;,
+#                    default=False,  action=&#39;store_true&#39;,
+#                    help=&#39;Key to generate (default: 4096)&#39;)
 
 parser.add_argument(&#34;-m:&#34;, &#39;--homedir&#39;, dest=&#39;homedir&#39;,
                     default=&#34;pyvserver&#34;,  action=&#39;store&#39;,
-                    help=&#39;pyvserv home directory&#39;)
+                    help=&#39;pyvserv home directory (default: ~/pyvserver)&#39;)
 
 parser.add_argument(&#34;-q:&#34;, &#39;--quiet&#39;, dest=&#39;quiet&#39;,
                     default=0,  action=&#39;store_true&#39;,
-                    help=&#39;Display less information&#39;)
+                    help=&#39;Display less information. Default: off&#39;)
 
 # Deprecated, pad it
 time.clock = time.process_time
@@ -125,33 +146,16 @@ def genkey_thread():
     stopthread = True
     time.sleep(.1)
 
-def genkey(keylen, use_rsa):
+def genkey():
 
     &#39;&#39;&#39; Generate key, give optional feedback &#39;&#39;&#39;
 
     global stopthread, gl_keylen, gl_key
 
     fff  = genfname()
-    gl_keylen = keylen
-
-    #fb_thread = threading.Thread(target=genkey_thread)
-    #fb_thread.daemon = True
-    #fb_thread.start()
-    #print(fff, end = &#34; &#34;)
-    #while True:
-    #    if stopthread:
-    #        break
-    #    print(&#34;.&#34;, end = &#34;&#34;)
-    #    sys.stdout.flush()
-    #    time.sleep(.5)
-    #
-    #if fb_thread.is_alive():
-    #    fb_thread.join(1)
-    #print()    ; sys.stdout.flush()
-    #stopthread = False
+    #gl_keylen = keylen
 
     genkey_thread()
-
     #print (&#34;Generated:&#34;, key, key.size())
 
     # Private key
@@ -171,7 +175,7 @@ def genkey(keylen, use_rsa):
 keydir = &#39;./keys/&#39;
 privdir = &#39;./private/&#39;
 
-def position():
+def position(args):
 
     global_vars = pyservsup.Global_Vars(__file__, args.homedir)
     global_vars._softmkdir(global_vars.myhome)
@@ -189,19 +193,19 @@ def position():
 
 def mainfunct():
 
-    global args
+    #global args
     args = parser.parse_args()
 
-    if not is_power_of_two(args.bits):
-        print(&#34;Bitness must be a power of 2&#34;)
-        sys.exit(1)
+    #if not is_power_of_two(args.bits):
+    #    print(&#34;Bitness must be a power of 2&#34;)
+    #    sys.exit(1)
 
-    position()
+    position(args)
 
     #print(&#34;Current dir:     &#34;, os.getcwd())
     if not args.quiet:
         print (&#34;Started pyvserv keygen, ECC 384&#34;); sys.stdout.flush()
-    fnames = genkey(args.bits, args.use_rsa)
+    fnames = genkey()
     if not args.quiet:
         print(&#34;Generated files:&#34;)
         print(&#34;&#39;&#34; + fnames[0] + &#34;&#39;&#34;,  &#34;&#39;&#34; + fnames[1] + &#34;&#39;&#34;)
@@ -244,7 +248,7 @@ if __name__ == &#39;__main__&#39;:
 </details>
 </dd>
 <dt id="pyvgenkey.genkey"><code class="name flex">
-<span>def <span class="ident">genkey</span></span>(<span>keylen, use_rsa)</span>
+<span>def <span class="ident">genkey</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Generate key, give optional feedback</p></div>
@@ -252,33 +256,16 @@ if __name__ == &#39;__main__&#39;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def genkey(keylen, use_rsa):
+<pre><code class="python">def genkey():
 
     &#39;&#39;&#39; Generate key, give optional feedback &#39;&#39;&#39;
 
     global stopthread, gl_keylen, gl_key
 
     fff  = genfname()
-    gl_keylen = keylen
-
-    #fb_thread = threading.Thread(target=genkey_thread)
-    #fb_thread.daemon = True
-    #fb_thread.start()
-    #print(fff, end = &#34; &#34;)
-    #while True:
-    #    if stopthread:
-    #        break
-    #    print(&#34;.&#34;, end = &#34;&#34;)
-    #    sys.stdout.flush()
-    #    time.sleep(.5)
-    #
-    #if fb_thread.is_alive():
-    #    fb_thread.join(1)
-    #print()    ; sys.stdout.flush()
-    #stopthread = False
+    #gl_keylen = keylen
 
     genkey_thread()
-
     #print (&#34;Generated:&#34;, key, key.size())
 
     # Private key
@@ -339,19 +326,19 @@ if __name__ == &#39;__main__&#39;:
 </summary>
 <pre><code class="python">def mainfunct():
 
-    global args
+    #global args
     args = parser.parse_args()
 
-    if not is_power_of_two(args.bits):
-        print(&#34;Bitness must be a power of 2&#34;)
-        sys.exit(1)
+    #if not is_power_of_two(args.bits):
+    #    print(&#34;Bitness must be a power of 2&#34;)
+    #    sys.exit(1)
 
-    position()
+    position(args)
 
     #print(&#34;Current dir:     &#34;, os.getcwd())
     if not args.quiet:
         print (&#34;Started pyvserv keygen, ECC 384&#34;); sys.stdout.flush()
-    fnames = genkey(args.bits, args.use_rsa)
+    fnames = genkey()
     if not args.quiet:
         print(&#34;Generated files:&#34;)
         print(&#34;&#39;&#34; + fnames[0] + &#34;&#39;&#34;,  &#34;&#39;&#34; + fnames[1] + &#34;&#39;&#34;)
@@ -359,7 +346,7 @@ if __name__ == &#39;__main__&#39;:
 </details>
 </dd>
 <dt id="pyvgenkey.position"><code class="name flex">
-<span>def <span class="ident">position</span></span>(<span>)</span>
+<span>def <span class="ident">position</span></span>(<span>args)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -367,7 +354,7 @@ if __name__ == &#39;__main__&#39;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def position():
+<pre><code class="python">def position(args):
 
     global_vars = pyservsup.Global_Vars(__file__, args.homedir)
     global_vars._softmkdir(global_vars.myhome)

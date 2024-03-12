@@ -5,33 +5,46 @@ from __future__ import print_function
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
 
-from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
-import  random, stat, uuid
+import  random, stat, uuid, atexit
 
+from Crypto.Hash import SHA512
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..'))
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
+
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    print("sf", sf)
+    sys.path.append(os.path.join(sf, "pyvcommon"))
+    sys.path.append(os.path.join(sf, "pyvserver"))
+    #sys.path.append(os.path.join(sf, "pyvgui"))
+    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    sys.path.append(os.path.join(base,  '..', "pyvserver"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
+    from pyvcommon import support
+
+print("Load:", sys.path[-1])
+
 
 from pyvcommon import support, pycrypt, pyservsup, pyclisup, pyvhash
 from pyvcommon import pysyslog, comline
 
 import pyvpacker
-
-'''
-# test encrypt with large keys
-rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
-        "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
-sss = bluepy.encrypt(rrr, conf.sess_key)
-ttt = bluepy.decrypt(sss, conf.sess_key)
-print (rrr)
-print (ttt)
-'''
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -45,7 +58,7 @@ def phelp():
     print( "            -p port   - Port to use (default: 6666)")
     print( "            -l level  - Log level (default: 0)")
     print( "            -c file   - Save comm to file")
-    print( "            -s        - Showkey")
+    print( "            -k keyval - Put this key")
     print( "            -n        - Number of records to put")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
@@ -65,13 +78,19 @@ optarr = \
     ["c:",  "comm",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
-    ["s",   "showkey",  "",     None],      \
-    ["n:",   "numrec",   1,     None],      \
+    ["k:",  "putkey",   "",     None],      \
+    ["n:",  "numrec",   1,     None],      \
     ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
 conf = comline.Config(optarr)
+
+def atexit_func(hand):
+    #print("Atexit")
+    cresp = hand.client(["quit",],conf.sess_key)
+    print ("Server quit  response:", cresp)
+    hand.close();
 
 # ------------------------------------------------------------------------
 
@@ -96,35 +115,44 @@ if __name__ == '__main__':
     hand.pgdebug = conf.pgdebug
     hand.comm  = conf.comm
 
+    atexit.register(atexit_func, hand)
+
     ttt = time.time()
     pvh = pyvhash.BcData()
     pvh.addpayload({"Vote": '0', "UID":  str(uuid.uuid1()), })
     #print(pvh.datax)
 
-    pvh.hasharr()
-    pvh.powarr()
-    #if not pvh.checkhash():
-    #    print("Error on hashing payload .. retrying ...")
-    #elif not pvh.checkpow():
-    #    print("Error on POW payload .. retrying ...")
+    if conf.putkey:
+        pvh.datax['header'] = conf.putkey
 
-    pvh.num_zeros = 3
-    maxcnt = 20
-    while True:
-        if maxcnt == 0:
-            print("Cannot produce hash")
-            sys.exit()
-        pvh.hasharr()
-        pvh.powarr()
-        if not pvh.checkhash():
-            print("Error on hashing payload .. retrying ...")
-        elif not pvh.checkpow():
-            print("Error on POW payload .. retrying ...")
-        else:
-            break
-        maxcnt -= 1
-    print("Chain cnt", pvh.cnt)
-    print("chain %.3fms" % ((time.time() - ttt) * 1000) )
+    pvh.hasharr();    pvh.powarr()
+
+    if not pvh.checkhash():
+        print("Error on hashing payload .. retrying ...")
+    elif not pvh.checkpow():
+        print("Error on POW payload .. retrying ...")
+
+    #pvh.num_zeros = 3
+    #maxcnt = 20
+    #while True:
+    #    if maxcnt == 0:
+    #        print("Cannot produce hash")
+    #        sys.exit()
+    #    pvh.hasharr()
+    #    pvh.powarr()
+    #    if not pvh.checkhash():
+    #        print("Error on hashing payload .. retrying ...")
+    #    elif not pvh.checkpow():
+    #        print("Error on POW payload .. retrying ...")
+    #    else:
+    #        break
+    #    maxcnt -= 1
+    #
+    if conf.verbose:
+        print(pvh.datax)
+
+    #print("Chain cnt", pvh.cnt)
+    #print("chain %.3fms" % ((time.time() - ttt) * 1000) )
 
     try:
         respc = hand.connect(ip, conf.port)
@@ -135,38 +163,42 @@ if __name__ == '__main__':
     resp3 = hand.client(["hello", "world"] , "", False)
     print("Hello Resp:", resp3)
 
-    resp4 = hand.client(["tout", "30",], conf.sess_key)
-    print("Server tout Response:", resp4)
-
     ret = hand.start_session(conf)
 
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
-        hand.client(["quit"])
-        hand.close();
         sys.exit(0)
 
     # Make a note of the session key
-    #print("Sess Key ACCEPTED:",  conf.sess_key[:12], '...' )
-    print(" ----- Post session, all is encrypted ----- ")
+    if conf.verbose:
+        print("Sess Key ACCEPTED:",  conf.sess_key[:12], '...' )
 
-    resp4 = hand.client(["tout", "30",], conf.sess_key)
-    print("Server tout Response:", resp4)
+    #print(" ----- Post session, all is encrypted ----- ")
 
-    ttt = time.time()
+    #resp4 = hand.client(["tout", "30",], conf.sess_key)
+    #if resp4[0] != "OK":
+    #    print("Server tout Response:", resp4)
+    #    sys.exit()
+
+    #ttt = time.time()
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
-    print("hello %.3fms" % ((time.time() - ttt) * 1000) )
-    print("Server hello resp:", resp4[1])
+    #print("hello %.3fms" % ((time.time() - ttt) * 1000) )
+    if resp4[0] != "OK":
+        print("Server hello resp:", resp4[1])
+        sys.exit()
 
     ttt = time.time()
     cresp = hand.client(["user", "admin"], conf.sess_key)
-    print("user %.3fms" % ((time.time() - ttt) * 1000) )
+    #print("user %.3fms" % ((time.time() - ttt) * 1000) )
     print ("Server user respo:", cresp)
 
     ttt = time.time()
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    print("pass %.3fms" % ((time.time() - ttt) * 1000) )
+    #print("pass %.3fms" % ((time.time() - ttt) * 1000) )
+    if cresp[0] != "OK":
+        print("Cannot log on")
+        sys.exit(1)
     print ("Server pass resp:", cresp)
 
     cresp = hand.client(["dmode",], conf.sess_key)
@@ -182,15 +214,8 @@ if __name__ == '__main__':
                 sys.exit(0)
 
     # Interactive, need more time
-    tout = hand.client(["tout", "200",], conf.sess_key)
+    #tout = hand.client(["tout", "200",], conf.sess_key)
     #print (tout)
-
-    #pvh2 = pyvhash.BcData(pvh)
-    #pvh2.addpayload({"Added New": "new stuff"})
-    #pvh2.hasharr();     pvh2.powarr()
-    #print(pvh2.datax)
-    #i2 not pvh2.checkpow() or not pvh2.checkhash():
-    #     print("Error on hashing pyload2")
 
     if conf.pgdebug > 2:
         print(pvh.datax)
@@ -202,11 +227,7 @@ if __name__ == '__main__':
     for aa in range(conf.numrec):
         cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
         print ("Server rput response:", cresp)
-    print("rput %.3fms" % ((time.time() - ttt) * 1000) )
-
-    cresp = hand.client(["quit",],conf.sess_key)
-    print ("Server quit  response:", cresp)
-    hand.close();
+    #print("rput %.3fms" % ((time.time() - ttt) * 1000) )
 
     sys.exit(0)
 

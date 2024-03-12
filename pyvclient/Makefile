@@ -1,9 +1,9 @@
 # Use this to build and test modules
 
-.PHONY: testx, testx2, tests
+.PHONY: testx, testx2, tests, docs
 
 all:
-	@echo Targets: server tests test test2 hello clean  init
+	@echo Targets: server tests test test2 hello clean docs
 
 server:
 	@# Start server
@@ -61,19 +61,35 @@ clean:
 #cleandata:
 #	@rm -rf ~/pyvserver/payload/*
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+docs:
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_rput.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_cd.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_ls.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_uena.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_cli.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_mkdir.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_uini.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_fdel.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_pass.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_ver.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_fget.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_ping.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_file.py
+	#@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_qr.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_fput.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_rget.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_gethelp.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_rlist.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_hello.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_rput.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_id.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_sess.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_acc.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_ihost.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_sess_tout.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_akey.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_login.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_tout.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_bigget.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_lsd.py
+	@-PYTHONPATH=pyvcommon pdoc  --force --html -o docs  pyvcli_uadd.py

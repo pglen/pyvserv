@@ -48,33 +48,46 @@ if sys.version_info[0] &lt; 3:
 else:
     import socketserver
 
-# getting the name of the directory
-#current = os.path.dirname(os.path.realpath(__file__))
-## Getting the parent directory name
-#parent = os.path.dirname(current)
-#sys.path.append(parent)
+import pyvpacker
 
 # Create a placeholder
 server = None
 
 progname = os.path.split(sys.argv[0])[1]
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  &#39;..&#39;))
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
 
-import pyvpacker
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    #print(&#34;sf&#34;, sf)
+    sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
+    sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
+    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
+    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  &#39;..&#39;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
+    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;))
+    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
+    from pyvcommon import support
+
+#for aa in sys.path:
+#    print(aa)
+
+print(&#34;Load:&#34;, sys.path[-1])
+
+from pyvcommon import support, pyservsup, pyclisup
+from pyvcommon import pydata, pysyslog, comline
 
 from pyvserver import pyvstate
 from pyvserver import pyvfunc
-
-from pyvcommon import support
-from pyvcommon import pyservsup
-from pyvcommon import pyclisup
-from pyvcommon import pydata
-from pyvcommon import pysyslog
-from pyvcommon import comline
-
-#import pyvreplic
 
 version = &#34;1.0&#34;
 
@@ -83,6 +96,8 @@ mydata = {}
 # ------------------------------------------------------------------------
 
 class InvalidArg(Exception):
+
+    &#39;&#39;&#39; Exception for bad arguments &#39;&#39;&#39;
 
     def __init__(self, message):
          self.message = message
@@ -93,6 +108,10 @@ connlist = []
 sem = threading.Semaphore()
 
 def throttle(peer):
+
+    &#39;&#39;&#39;  Catch clients that are connecting too fast. This is a crude
+         implementation, will need serious uppdate on large volume production
+    &#39;&#39;&#39;
 
     global connlist, sem
     #print(&#34;throttle&#34;, peer)
@@ -126,6 +145,8 @@ def throttle(peer):
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
+    &#39;&#39;&#39; Request handler. &#39;&#39;&#39;
+
     def __init__(self, a1, a2, a3):
         self.a2 = a2
         self.fname = &#34;&#34;
@@ -143,6 +164,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         socketserver.BaseRequestHandler.__init__(self, a1, a2, a3)
 
     def setup(self):
+
+        &#39;&#39;&#39; Start server &#39;&#39;&#39;
+
         global mydata
 
         #print(&#34;thread&#34;, self)
@@ -190,9 +214,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.datahandler.putencode(response, &#34;&#34;)
 
     def handle_error(request, client_address):
+
+        &#39;&#39;&#39; Placeholder &#39;&#39;&#39;
+
         print(&#34;pyvserv Error&#34;, request, client_address)
 
     def handle(self):
+
+        &#39;&#39;&#39; Request comes in here &#39;&#39;&#39;
 
         if conf.mem:
             tracemalloc.start()
@@ -229,6 +258,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def finish(self):
 
+        &#39;&#39;&#39; Wind down, remove globals &#39;&#39;&#39;
+
         global mydata, conf
 
         cli = str(mydata[self.name].client_address)
@@ -251,6 +282,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 #class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
 
+    &#39;&#39;&#39; Overridden socket server &#39;&#39;&#39;
+
     #def __init__(self, arg1, arg2):
     #    self._BaseServer__shutdown_request = True
 
@@ -264,6 +297,8 @@ class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
 
 
 def usersig(arg1, arg2):
+
+    &#39;&#39;&#39; signal comes in here, list current clients &#39;&#39;&#39;
 
     global mydata, server
     print(&#34;usersig&#34;, arg1, arg2)
@@ -280,8 +315,9 @@ def usersig2(arg1, arg2):
     if conf.pglog &gt; 0:
         pysyslog.syslog(&#34;Got user signal2 %d&#34; % arg1)
 
-# Did not behave as expected
 def soft_terminate(arg1, arg2):
+
+    &#39;&#39;&#39; Terminate app.  Did not behave as expected. &#39;&#39;&#39;
 
     #global mydata, server
     ##print(&#34;soft_terminate&#34;)
@@ -339,6 +375,8 @@ def terminate(arg1, arg2):
 # Execute one server cycle
 
 class serve_one():
+
+    &#39;&#39;&#39; Simplifies server for testing. &#39;&#39;&#39;
 
     def __init__(self, *argx):
         self.cnt = 0
@@ -421,9 +459,14 @@ class serve_one():
             print(&#34;ended thread&#34;, self.name)
 
 
-# This was a test server, left it in
 
 def simple_server(HOST, PORT):
+
+    &#39;&#39;&#39; This was a test server, left it in for future refernence.
+        It was marginally faster than the stock version, also less features,
+         so the stock servers stayed.
+    &#39;&#39;&#39;
+
     with socket.socket() as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -452,9 +495,10 @@ comline.setfoot(&#34;Use quotes for argument separations.&#34;)
 conf = comline.ConfigLong(optarr)
 #conf.printvars()
 
-# The pip install will call this script:
 
-def mainfunc():
+def mainfunct():
+
+    &#39;&#39;&#39; Main entry point. The pip install will call this script. &#39;&#39;&#39;
 
     if sys.version_info[0] &lt; 3:
         print(&#34;Warning! This script was meant for python 3.x&#34;)
@@ -607,7 +651,7 @@ def mainfunc():
     server.serve_forever()
 
 if __name__ == &#39;__main__&#39;:
-    mainfunc()
+    mainfunct()
 
 # EOF</code></pre>
 </details>
@@ -619,16 +663,18 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="pyvserv.mainfunc"><code class="name flex">
-<span>def <span class="ident">mainfunc</span></span>(<span>)</span>
+<dt id="pyvserv.mainfunct"><code class="name flex">
+<span>def <span class="ident">mainfunct</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Main entry point. The pip install will call this script.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def mainfunc():
+<pre><code class="python">def mainfunct():
+
+    &#39;&#39;&#39; Main entry point. The pip install will call this script. &#39;&#39;&#39;
 
     if sys.version_info[0] &lt; 3:
         print(&#34;Warning! This script was meant for python 3.x&#34;)
@@ -785,12 +831,20 @@ if __name__ == &#39;__main__&#39;:
 <span>def <span class="ident">simple_server</span></span>(<span>HOST, PORT)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>This was a test server, left it in for future refernence.
+It was marginally faster than the stock version, also less features,
+so the stock servers stayed.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def simple_server(HOST, PORT):
+
+    &#39;&#39;&#39; This was a test server, left it in for future refernence.
+        It was marginally faster than the stock version, also less features,
+         so the stock servers stayed.
+    &#39;&#39;&#39;
+
     with socket.socket() as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -806,12 +860,15 @@ if __name__ == &#39;__main__&#39;:
 <span>def <span class="ident">soft_terminate</span></span>(<span>arg1, arg2)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Terminate app.
+Did not behave as expected.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def soft_terminate(arg1, arg2):
+
+    &#39;&#39;&#39; Terminate app.  Did not behave as expected. &#39;&#39;&#39;
 
     #global mydata, server
     ##print(&#34;soft_terminate&#34;)
@@ -878,12 +935,17 @@ if __name__ == &#39;__main__&#39;:
 <span>def <span class="ident">throttle</span></span>(<span>peer)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Catch clients that are connecting too fast. This is a crude
+implementation, will need serious uppdate on large volume production</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def throttle(peer):
+
+    &#39;&#39;&#39;  Catch clients that are connecting too fast. This is a crude
+         implementation, will need serious uppdate on large volume production
+    &#39;&#39;&#39;
 
     global connlist, sem
     #print(&#34;throttle&#34;, peer)
@@ -920,12 +982,14 @@ if __name__ == &#39;__main__&#39;:
 <span>def <span class="ident">usersig</span></span>(<span>arg1, arg2)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>signal comes in here, list current clients</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def usersig(arg1, arg2):
+
+    &#39;&#39;&#39; signal comes in here, list current clients &#39;&#39;&#39;
 
     global mydata, server
     print(&#34;usersig&#34;, arg1, arg2)
@@ -963,12 +1027,14 @@ if __name__ == &#39;__main__&#39;:
 <span>(</span><span>message)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<div class="desc"><p>Exception for bad arguments</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvalidArg(Exception):
+
+    &#39;&#39;&#39; Exception for bad arguments &#39;&#39;&#39;
 
     def __init__(self, message):
          self.message = message</code></pre>
@@ -984,25 +1050,14 @@ if __name__ == &#39;__main__&#39;:
 <span>(</span><span>a1, a2, a3)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base class for request handler classes.</p>
-<p>This class is instantiated for each request to be handled.
-The
-constructor sets the instance variables request, client_address
-and server, and then calls the handle() method.
-To implement a
-specific service, all you need to do is to derive a class which
-defines a handle() method.</p>
-<p>The handle() method can find the request as self.request, the
-client address as self.client_address, and the server (in case it
-needs access to per-server information) as self.server.
-Since a
-separate instance is created for each request, the handle() method
-can define other arbitrary instance variables.</p></div>
+<div class="desc"><p>Request handler.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
+
+    &#39;&#39;&#39; Request handler. &#39;&#39;&#39;
 
     def __init__(self, a1, a2, a3):
         self.a2 = a2
@@ -1021,6 +1076,9 @@ can define other arbitrary instance variables.</p></div>
         socketserver.BaseRequestHandler.__init__(self, a1, a2, a3)
 
     def setup(self):
+
+        &#39;&#39;&#39; Start server &#39;&#39;&#39;
+
         global mydata
 
         #print(&#34;thread&#34;, self)
@@ -1068,9 +1126,14 @@ can define other arbitrary instance variables.</p></div>
         self.datahandler.putencode(response, &#34;&#34;)
 
     def handle_error(request, client_address):
+
+        &#39;&#39;&#39; Placeholder &#39;&#39;&#39;
+
         print(&#34;pyvserv Error&#34;, request, client_address)
 
     def handle(self):
+
+        &#39;&#39;&#39; Request comes in here &#39;&#39;&#39;
 
         if conf.mem:
             tracemalloc.start()
@@ -1107,6 +1170,8 @@ can define other arbitrary instance variables.</p></div>
 
     def finish(self):
 
+        &#39;&#39;&#39; Wind down, remove globals &#39;&#39;&#39;
+
         global mydata, conf
 
         cli = str(mydata[self.name].client_address)
@@ -1133,12 +1198,14 @@ can define other arbitrary instance variables.</p></div>
 <span>def <span class="ident">finish</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Wind down, remove globals</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def finish(self):
+
+    &#39;&#39;&#39; Wind down, remove globals &#39;&#39;&#39;
 
     global mydata, conf
 
@@ -1161,12 +1228,14 @@ can define other arbitrary instance variables.</p></div>
 <span>def <span class="ident">handle</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Request comes in here</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def handle(self):
+
+    &#39;&#39;&#39; Request comes in here &#39;&#39;&#39;
 
     if conf.mem:
         tracemalloc.start()
@@ -1206,12 +1275,15 @@ can define other arbitrary instance variables.</p></div>
 <span>def <span class="ident">handle_error</span></span>(<span>request, client_address)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Placeholder</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def handle_error(request, client_address):
+
+    &#39;&#39;&#39; Placeholder &#39;&#39;&#39;
+
     print(&#34;pyvserv Error&#34;, request, client_address)</code></pre>
 </details>
 </dd>
@@ -1219,12 +1291,15 @@ can define other arbitrary instance variables.</p></div>
 <span>def <span class="ident">setup</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Start server</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def setup(self):
+
+    &#39;&#39;&#39; Start server &#39;&#39;&#39;
+
     global mydata
 
     #print(&#34;thread&#34;, self)
@@ -1279,7 +1354,7 @@ can define other arbitrary instance variables.</p></div>
 <span>(</span><span>server_address, RequestHandlerClass, bind_and_activate=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Mix-in class to handle each request in a new process.</p>
+<div class="desc"><p>Overridden socket server </p>
 <p>Constructor.
 May be extended, do not override.</p></div>
 <details class="source">
@@ -1287,6 +1362,8 @@ May be extended, do not override.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
+
+    &#39;&#39;&#39; Overridden socket server &#39;&#39;&#39;
 
     #def __init__(self, arg1, arg2):
     #    self._BaseServer__shutdown_request = True
@@ -1332,12 +1409,14 @@ May be extended, do not override.</p></div>
 <span>(</span><span>*argx)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Simplifies server for testing.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class serve_one():
+
+    &#39;&#39;&#39; Simplifies server for testing. &#39;&#39;&#39;
 
     def __init__(self, *argx):
         self.cnt = 0
@@ -1513,7 +1592,7 @@ May be extended, do not override.</p></div>
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
-<li><code><a title="pyvserv.mainfunc" href="#pyvserv.mainfunc">mainfunc</a></code></li>
+<li><code><a title="pyvserv.mainfunct" href="#pyvserv.mainfunct">mainfunct</a></code></li>
 <li><code><a title="pyvserv.simple_server" href="#pyvserv.simple_server">simple_server</a></code></li>
 <li><code><a title="pyvserv.soft_terminate" href="#pyvserv.soft_terminate">soft_terminate</a></code></li>
 <li><code><a title="pyvserv.terminate" href="#pyvserv.terminate">terminate</a></code></li>

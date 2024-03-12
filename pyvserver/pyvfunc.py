@@ -5,12 +5,6 @@
 
 import pyotp
 
-__doc__ = \
-'''
-    Server functions. The pyvstate calls routines from this module.
-
-'''
-
 import os, sys, getopt, signal, select, string
 import datetime,  time, stat, base64, uuid
 
@@ -33,9 +27,11 @@ from pydbase import twincore, twinchain
 
 __doc__ = \
 '''
+    Server functions. The pyvstate calls routines from this module. The reason
+    this is not made into a class is for speed. (Class was too big, and we are still
+    adding functions for new commands.)
     This module executes the functions corresponding to keywords.
     The keyword is embedded into the function name.
-
 '''
 
 chainfname = "initial"
@@ -46,6 +42,19 @@ ERR = "ERR"
 
 #pgdebug = 0
 
+def check_chain_path(self, strp):
+
+    chainp = pyservsup.globals.myhome + "chain"
+    chainp = os.path.normpath(chainp)
+
+    #print("check:", strp)
+    #print("root:", chainp)
+    dpath = os.path.normpath(strp)
+    #print("dpath", dpath)
+    if dpath[:len(chainp)] != chainp:
+        dpath = None
+    return dpath
+
 def contain_path(self, strp):
 
     '''
@@ -54,6 +63,9 @@ def contain_path(self, strp):
     dname = support.unescape(strp);
 
     #print("dname", dname)
+    #print("self.resp.dir", self.resp.dir)
+    #print("self.resp.cwd", self.resp.cwd)
+
     self.resp.dir = support.dirclean(self.resp.dir)
     self.resp.cwd = support.dirclean(self.resp.cwd)
 
@@ -76,7 +88,7 @@ def contain_path(self, strp):
     #print("dname4", dname4)
     #print("slice", dname4[:len(self.resp.cwd)])
 
-    # Compare root
+    # Compare roots
     if dname4[:len(self.resp.cwd)] != self.resp.cwd:
         return None
 
@@ -466,8 +478,6 @@ def get_rlist_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    #ttt = time.time()
-
     #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
     core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
@@ -578,8 +588,8 @@ def get_rput_func(self, strx):
     #print("strx[1]", strx[1])
     #print('curr', self.resp.dir)
 
-    dname = contain_path(self, strx[1])
-
+    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    dname = check_chain_path(self, tmpname)
     if not dname:
         response = [ERR, "No Access to directory.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -598,9 +608,8 @@ def get_rput_func(self, strx):
     #ttt = time.time()
     #print("rput strx[2]", strx[2])
     if pyservsup.globals.conf.pgdebug > 0:
-        print("rput", strx[2]['header'])
+        print("rput", strx[1], strx[2]['header'])
 
-    #print("Got:", strx[2])
     pvh = pyvhash.BcData(strx[2])
     #print("pvh", pvh.datax)
     if not pvh.checkhash():
@@ -613,13 +622,38 @@ def get_rput_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    undec = self.pb.encode_data("", strx[2])
-    if  self.pgdebug > 5:
-        print("Save_data header:", strx[2]["header"], "Data:",  undec)
     cfname = os.path.join(dname, chainfname + ".pydb")
     #print("cfname", cfname)
     savecore = twinchain.TwinChain(cfname)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
+
+    #print("Got:", strx[2])
+
+    # Do we have it already?:
+
+    #ttt = time.time()
+    #rethas = savecore.get_data_bykey(strx[2]['header'])
+    #print("db get data  %.3f" % ((time.time() - ttt) * 1000) )
+    #if rethas:
+    #    if self.pgdebug > 1:
+    #        print("Duplicate block, rethas", rethas[0][0])
+    #    response = [ERR, "Duplicate block, not saved.", strx[0]]
+    #    self.resp.datahandler.putencode(response, self.resp.ekey)
+    #    return
+
+    #ttt = time.time()
+    retoffs = savecore.get_payoffs_bykey(strx[2]['header'])
+    #print("db get offs  %.3f" % ((time.time() - ttt) * 1000) )
+    if retoffs:
+        if self.pgdebug > 1:
+            print("Duplicate block, retoffs", retoffs)
+        response = [ERR, "Duplicate block, not saved.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    undec = self.pb.encode_data("", strx[2])
+    if  self.pgdebug > 5:
+        print("Save_data header:", strx[2]["header"], "Data:",  undec)
     try:
         ret = savecore.appendwith(strx[2]['header'], undec)
     except:
@@ -630,13 +664,15 @@ def get_rput_func(self, strx):
         return
     del savecore
 
-    # if it is replicated, skip operation
-    if not "Replicated" in strx[2]:
+    # if it no replicated, replicate
+    if not strx[2]["Replicated"]:
         # Prepare data. Do strings so it can be re-written in place
         rrr = {'count1': "00000", 'count2' : "00000",
                         'count3' : "00000",  'header' : strx[2]['header'],
                             'now' : strx[2]['now'],}
-        #print("replic", rrr)
+        if self.pgdebug > 2:
+            print("replic", rrr)
+
         undec2 = self.pb.encode_data("", rrr)
         frname = os.path.join(dname, repfname + ".pydb")
         #print("Saving at", frname)
@@ -826,13 +862,12 @@ def get_id_func(self, strx):
 
 #@support.timeit
 def get_hello_func(self, strx):
-    if pyservsup.globals.conf.pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 3:
         print( "get_hello_func()", strx)
     strres = [OK, "Hello", str(pyservsup.globals.siteid), self.name]
-    if pyservsup.globals.conf.pgdebug > 2:
+    if pyservsup.globals.conf.pgdebug > 4:
         print( "get_hello_func->output", "'" + str(strres) + "'")
     self.resp.datahandler.putencode(strres, self.resp.ekey)
-
 
 def get_stat_func(self, strx):
 
@@ -905,7 +940,7 @@ def get_sess_func(self, strx):
     # Decoded OK?
     ttt = SHA256.new(); ttt.update(message2.encode())
 
-    if pyservsup.globals.conf.pgdebug > 3:
+    if pyservsup.globals.conf.pgdebug > 4:
         print("Hash1:", strx[1])
         print("Hash2:", ttt.hexdigest())
 
@@ -917,7 +952,7 @@ def get_sess_func(self, strx):
     self.resp.datahandler.putencode([OK, "Session estabilished."], self.resp.ekey)
     self.resp.ekey = message2
 
-    if pyservsup.globals.conf.pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 3:
         support.shortdump("session key:", self.resp.ekey.encode() )
 
 # ------------------------------------------------------------------------
@@ -927,7 +962,7 @@ def get_akey_func(self, strx):
 
     ttt = time.time()
 
-    if pyservsup.globals.conf.pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 4:
         print("get_akey_func() called")
 
     ddd = os.path.abspath("keys")
@@ -942,10 +977,10 @@ def get_akey_func(self, strx):
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
-    if pyservsup.globals.conf.pgdebug > 2:
+    if pyservsup.globals.conf.pgdebug > 4:
        print("self.keyfroot", self.keyfroot)
 
-    if pyservsup.globals.conf.pgdebug > 2:
+    if pyservsup.globals.conf.pgdebug > 4:
         print("fname", ddd + os.sep + self.keyfroot + ".pub")
 
     #print("akey 1 %.3f" % ((time.time() - ttt) * 1000) )
@@ -1050,22 +1085,22 @@ def get_pass_func(self, strx):
         stry = "No such user  '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        rrr = [ERR, "No such user", strx[0]]
+        rrr = [ERR, "No such user", self.resp.user]
     elif xret[0] == 1:
-        stry = "Successful logon  '" + self.resp.user + "' " + \
-                str(self.resp.client_address)
+        stry = "Successful logon '" + self.resp.user + "' " + \
+                            str(self.resp.client_address)
         pysyslog.syslog(stry)
 
-        #print("Authenticated", pyservsup.globals.paydir)
-        self.resp.cwd = pyservsup.globals.paydir
-        #try:
-        #    os.chdir(self.resp.cwd)
-        #except:
-        #    print("Cannot change to payload dir.")
-        #    pass
+        if self.pgdebug > 3:
+            print("Authenticated", self.resp.user)
 
-        rrr = [OK, self.resp.user + " Authenticated."]
-
+        self.userdir = pyservsup.globals.paydir + self.resp.user
+        self.userdir = contain_path(self, self.userdir)
+        #print("Contained",  self.userdir)
+        if not os.path.isdir(self.userdir):
+            os.mkdir(self.userdir)
+        self.resp.cwd = self.userdir
+        rrr = [OK,  "Authenticated.", self.resp.user]
         retval = False
     else:
         stry = "Error on logon  '" + self.resp.user + "' " + \

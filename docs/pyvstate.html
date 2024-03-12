@@ -36,13 +36,8 @@ import inspect, fcntl, multiprocessing
 
 import pyvpacker
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  &#39;../pyvcommon&#39;))
-
 import pyservsup, pyclisup, support
 import crysupp, pysyslog, pywrap
-
-sys.path.append(os.path.join(base,  &#39;../pyvserver&#39;))
 
 from pyvfunc import *
 
@@ -74,9 +69,9 @@ none_in      = 120
 # ------------------------------------------------------------------------
 # Help stings
 
-user_help   = &#34;Usage: user logon_name&#34;
+user_help   = &#34;Usage: user logon_name -- set session user name&#34;
 akey_help   = &#34;Usage: akey -- get asymmetric key&#34;
-pass_help   = &#34;Usage: pass logon_pass&#34;
+pass_help   = &#34;Usage: pass logon_pass -- password&#34;
 chpass_help = &#34;Usage: chpass newpass&#34;
 file_help   = &#34;Usage: file fname -- Specify name for upload&#34;
 fget_help   = &#34;Usage: fget fname -- Download (get) file&#34;
@@ -123,7 +118,7 @@ twofa_help = &#34;Usage: twofa -- two factor authentication&#34;
 dmode_help = &#34;Usage: dmode -- get dmode (Developer Mode) flag&#34;
 ihave_help = &#34;Usage: ihave -- &#39;i have you have&#39; protocol entry point&#34;
 ihost_help = &#34;Usage: ihost -- add / delete replicator host&#34;
-xxxx_help  = &#34;Usage: no data&#34;
+xxxx_help  = &#34;Usage: no data -- Template for new halp&#34;
 
 # ------------------------------------------------------------------------
 # Table driven server state machine.
@@ -268,9 +263,9 @@ class StateHandler():
             return False
 
         if self.pgdebug &gt; 6:
-            print( &#34;Incoming data:&#34;)
+            #print( &#34;Incoming data:&#34;)
             for aa in dstr[1]:
-                print(aa[:12])
+                print(&#34;Incoming:&#34;, aa)
 
         comx = dstr[1] #.split()
 
@@ -508,9 +503,9 @@ class StateHandler():
             return False
 
         if self.pgdebug &gt; 6:
-            print( &#34;Incoming data:&#34;)
+            #print( &#34;Incoming data:&#34;)
             for aa in dstr[1]:
-                print(aa[:12])
+                print(&#34;Incoming:&#34;, aa)
 
         comx = dstr[1] #.split()
 

@@ -53,6 +53,10 @@ class   Global_Vars:
         else:
             self.myhome     =  self._dataroot + os.sep
 
+        self.myhome    = os.path.normpath(self.myhome) + os.sep
+
+        print("myhome", self.myhome)
+
         # make sure it exists
         self._softmkdir(self.myhome)
 
@@ -63,13 +67,23 @@ class   Global_Vars:
         self.keydir    =  self.myhome + "keys"  + os.sep
         self.privdir   =  self.myhome + "private"  + os.sep
         self.paydir    =  self.myhome + "payload"  + os.sep
+        self.chaindir  =  self.myhome + "chain" + os.sep
         self.tmpdir    =  self.myhome + "tmp"  + os.sep
         self.logdir    =  self.myhome + "log"  + os.sep
 
+        self.passdir    = os.path.normpath(self.passdir)
+        self.keydir     = os.path.normpath(self.keydir)
+        self.privdir    = os.path.normpath(self.privdir)
+        self.paydir     = os.path.normpath(self.paydir)
+        self.chaindir   = os.path.normpath(self.chaindir)
+        self.tmpdir     = os.path.normpath(self.tmpdir)
+        self.logdir     = os.path.normpath(self.logdir)
+
         self._softmkdir(self.passdir, "Pass dir")
-        self._softmkdir(self.paydir, "Payload dir")
         self._softmkdir(self.keydir, "Key dir")
         self._softmkdir(self.privdir, "Private dir")
+        self._softmkdir(self.paydir, "Payload dir")
+        self._softmkdir(self.chaindir, "Chain dir")
         self._softmkdir(self.tmpdir, "Temporary dir")
         self._softmkdir(self.logdir, "Log dir")
 
@@ -77,7 +91,6 @@ class   Global_Vars:
         self.passfile = self.passdir + self._passfile
         #self.keyfile = self._datadir + self._keyfile
         self.idfile = self.myhome + self._idfile
-
 
         self.siteid     =  None
         self.throttle   =  10       # seconds

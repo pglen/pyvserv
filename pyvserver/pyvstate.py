@@ -235,9 +235,9 @@ class StateHandler():
             return False
 
         if self.pgdebug > 6:
-            print( "Incoming data:")
+            #print( "Incoming data:")
             for aa in dstr[1]:
-                print(aa[:12])
+                print("Incoming:", aa)
 
         comx = dstr[1] #.split()
 

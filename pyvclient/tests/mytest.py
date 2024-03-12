@@ -11,6 +11,31 @@ from pyvecc.Key import Key
 from Crypto.Hash import SHA256
 from Crypto import Random
 
+
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
+
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    #print("sf", sf)
+    sys.path.append(os.path.join(sf, "pyvcommon"))
+    sys.path.append(os.path.join(sf, "pyvserver"))
+    #sys.path.append(os.path.join(sf, "pyvgui"))
+    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    sys.path.append(os.path.join(base,  '..', "pyvserver"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
+    from pyvcommon import support
+
+
 from pyvcommon import support, pycrypt, pyservsup, pyclisup
 from pyvcommon import pysyslog, comline
 
@@ -19,6 +44,8 @@ lockname = "tmp/lockfile"
 exename = "../../pyvserver/pyvserv.py"
 
 def start_server():
+
+    return
 
     ''' Start server if needed. We start the server on the first test
       (they are executed aplhabettically), and end the server on
@@ -41,6 +68,9 @@ def start_server():
         hand.client(["quit"], "")
 
 def stop_server():
+
+    return
+
     # Stop server if needed
     if os.path.isfile(fdirx + lockname):
         print("lockfile", os.path.isfile(fdirx + lockname))

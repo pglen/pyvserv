@@ -46,13 +46,16 @@ tests:
 	echo No tests
 
 docs:
-	@pdoc  --force --html -o docs pyvserver/pyvserv.py
-	@pdoc  --force --html -o docs pyvserver/pyvfunc.py
-	@pdoc  --force --html -o docs pyvserver/pyvreplic.py
-	@pdoc  --force --html -o docs pyvserver/pyvstate.py
-	@pdoc  --force --html -o docs pyvtools/pyvcpanel.py
-	@pdoc  --force --html -o docs pyvtools/pyvgenkeys.py
-	@pdoc  --force --html -o docs pyvtools/pyvgenkey.py
+	@PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvserver/pyvserv.py
+	@PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvserver/pyvfunc.py
+	@PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvserver/pyvreplic.py
+	@PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvserver/pyvstate.py
+	@PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvgui/pyvcpanel.py
+	@PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvgui/guilib/mainwin.py
+	@PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvgui/guilib/pgutil.py
+	@PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvgui/guilib/pgui.py
+	@PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvtools/pyvgenkeys.py
+	@PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvtools/pyvgenkey.py
 
 md5:
 	@cat md5sum.txt

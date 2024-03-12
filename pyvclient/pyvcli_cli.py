@@ -38,7 +38,6 @@ except:
 
 print("Load:", sys.path[-1])
 
-
 base = os.path.dirname(os.path.realpath(__file__))
 #sys.path.append(os.path.join(base,  '../pyvcommon'))
 sys.path.append(os.path.join(base,  '..'))

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>pyvcpanel API documentation</title>
+<title>pyvcli_sess API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pyvcpanel</code></h1>
+<h1 class="title">Module <code>pyvcli_sess</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -28,61 +28,27 @@
 </summary>
 <pre><code class="python">#!/usr/bin/env python3
 
-#from __future__ import absolute_import
 #from __future__ import print_function
 
-import os, sys, getopt, signal, select, socket, time, struct
-import random, string, stat, base64, random, datetime
-
-import os, getopt, signal, select, string, time
-import tarfile, subprocess, struct, platform
-import socket, threading, tracemalloc, inspect
-
-import pyvpacker
-
-# This repairs the path from local run to pip run.
-# Remove pip version for local tests
-try:
-    from pyvcommon import support
-
-    # Get Parent of module root
-    sf = os.path.dirname(support.__file__)
-    sf = os.path.dirname(sf)
-    #print(&#34;sf&#34;, sf)
-    sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
-    sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
-    sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
-    sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
-
-except:
-    base = os.path.dirname(os.path.realpath(__file__))
-    sys.path.append(os.path.join(base,  &#39;..&#39;))
-    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
-    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
-    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;))
-    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
-    from pyvcommon import support
-
-#for aa in sys.path:
-#    print(aa)
-
-print(&#34;Load:&#34;, sys.path[-1])
-
-from pyvcommon import support, comline, pywrap
-from pyvcommon import pydata, pyservsup,  crysupp
-
-from pyvserver import pyvstate
-from pyvserver import pyvfunc
-
-from guilib import mainwin
-from guilib import pgutil
-
-# -----------------------------------------------------------------------
-# Globals
-
-version = &#34;1.00&#34;
+from pyvecc.Key import Key
 
 # ------------------------------------------------------------------------
+# Test client for the pyserv project. Encrypt test.
+
+import  os, sys, getopt, signal, select, socket, time, struct
+import  random, stat, base64
+
+from Crypto.Hash import SHA256
+from Crypto import Random
+
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  &#39;..&#39; + os.sep + &#39;pyvcommon&#39;))
+
+import support, pycrypt, pyservsup, pyclisup
+import pysyslog, comline
+
+# ------------------------------------------------------------------------
+# Functions from command line
 
 def phelp():
 
@@ -90,48 +56,195 @@ def phelp():
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p port   - Port to use (default: 6666)&#34;)
+    print( &#34;            -l level  - Log level (default: 0)&#34;)
+    print( &#34;            -c file   - Save comm to file&#34;)
+    print( &#34;            -s        - Showkey&#34;)
     print( &#34;            -v        - Verbose&#34;)
-    print( &#34;            -V        - Version&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -h        - Help&#34;)
+    #print( &#34; Needs debug level or verbose to have any output.&#34;)
     print()
     sys.exit(0)
 
-# ------------------------------------------------------------------------
 def pversion():
-    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
+    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, support.version)
     sys.exit(0)
 
     # option, var_name, initial_val, function
 optarr = \
-    [&#34;d:&#34;,  &#34;debug=&#34;,   &#34;pgdebug&#34;,  0,      None],      \
-    [&#34;p:&#34;,  &#34;port=&#34;,    &#34;port&#34;,     9999,   None],      \
-    [&#34;v&#34;,   &#34;verbose&#34;,  &#34;verbose&#34;,  0,      None],      \
-    [&#34;q&#34;,   &#34;quiet&#34;,    &#34;quiet&#34;,    0,      None],      \
-    [&#34;t&#34;,   &#34;test&#34;,     &#34;test&#34;,     &#34;x&#34;,    None],      \
-    [&#34;V&#34;,   &#34;version&#34;,  None,       None,   pversion],  \
-    [&#34;h&#34;,   &#34;help&#34;,     None,       None,   phelp]      \
+    [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,      None],      \
+    [&#34;p:&#34;,  &#34;port&#34;,     6666,   None],      \
+    [&#34;c:&#34;,  &#34;comm&#34;,     &#34;&#34;,     None],      \
+    [&#34;v&#34;,   &#34;verbose&#34;,  0,      None],      \
+    [&#34;q&#34;,   &#34;quiet&#34;,    0,      None],      \
+    [&#34;s&#34;,   &#34;showkey&#34;,  &#34;&#34;,     None],      \
+    [&#34;t&#34;,   &#34;test&#34;,     &#34;x&#34;,    None],      \
+    [&#34;V&#34;,   None,       None,   pversion],  \
+    [&#34;h&#34;,   None,       None,   phelp]      \
 
-conf = comline.ConfigLong(optarr)
+conf = comline.Config(optarr)
 
-def mainfunct():
-
-    #print(&#34;pyvcpanel started ...&#34;)
-    args = conf.comline(sys.argv[1:])
-    #print(&#34;args&#34;, args)
-    mw = mainwin.MainWin()
-    mw.main()
-    sys.exit(0)
-
+# ------------------------------------------------------------------------
 
 if __name__ == &#39;__main__&#39;:
 
-    if  sys.version_info[0] &lt; 3:
-        print(&#34;Needs python 3 or better.&#34;)
+    args = conf.comline(sys.argv[1:])
+    #print(vars(conf))
+
+    if conf.comm:
+        print(&#34;Save to filename&#34;, conf.comm)
+
+    pyclisup.verbose = conf.verbose
+    pyclisup.pgdebug = conf.pgdebug
+
+    if len(args) == 0:
+        ip = &#39;127.0.0.1&#39;
+    else:
+        ip = args[0]
+
+    hand = pyclisup.CliSup()
+    hand.verbose = conf.verbose
+    hand.pgdebug = conf.pgdebug
+    hand.comm  = conf.comm
+
+    try:
+        respc = hand.connect(ip, conf.port)
+    except:
+        print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    mainfunct()
+    #print(&#34;IP:&#34;, ip, respc);
+    #print(&#34;Initial:&#34;, respc);
+
+    resp = hand.client([&#34;akey&#34;], conf.sess_key)
+    #print(&#34;akey response&#34;, resp)
+
+    if resp[0] != &#34;OK&#34;:
+        print(&#34;Error on getting key:&#34;, resp[1])
+        hand.client([&#34;quit&#34;])
+        hand.close();
+        sys.exit(0)
+
+    #if conf.pgdebug &gt; 4:
+    #    print (&#34;Server response2:\n&#34; +  &#34;&#39;&#34; + resp[1].decode(&#34;cp437&#34;) +  &#34;&#39;\n&#34;)
+
+    hhh = SHA256.new();
+    #hhh.update(bytes(resp[2], &#34;utf-8&#34;))
+    hhh.update(resp[2].encode())
+
+    if conf.pgdebug &gt; 3:
+        print(&#34;Hash1:  &#39;&#34; + resp[1] + &#34;&#39;&#34;)
+        print(&#34;Hash2:  &#39;&#34; + hhh.hexdigest() + &#34;&#39;&#34;)
+
+    # Remember key
+    if hhh.hexdigest() !=  resp[1]:
+        print(&#34;Tainted key, aborting.&#34;)
+        hand.client([&#34;quit&#34;])
+        hand.close();
+        sys.exit(0)
+
+    hand.pkey = resp[2]
+
+    #if conf.quiet == False:
+    #     print(&#34;Key response:&#34;, resp[0], resp[2][:32], &#34;...&#34;)
+
+    if conf.pgdebug &gt; 4:
+         print(hand.pkey)
+
+    hand.pkey = resp[2]
+    #print(&#34;got FIRST key&#34;, hand.pkey)
+
+    if conf.pgdebug &gt; 2:
+        print (&#34;Server response:&#34;, &#34;&#39;&#34; + hhh.hexdigest() + &#34;&#39;&#34;)
+
+    #if conf.showkey or conf.pgdebug &gt; 5:
+    #    #print(&#34;Key:&#34;)
+
+    try:
+        #hand.pubkey = RSA.importKey(hand.pkey)
+        hand.pubkey = Key.import_pub(hand.pkey)
+        if conf.pgdebug &gt; 4:
+            print (hand.pubkey)
+    except:
+        print(&#34;Cannot import public key.&#34;)
+        support.put_exception(&#34;import key&#34;)
+        hand.client([&#34;quit&#34;])
+        hand.close();
+        sys.exit(0)
+
+    resp0 = hand.client([&#34;hello&#34;,], )
+    print(&#34;Hello Plain:&#34;, resp0)
+
+    # Generate communication key
+    conf.sess_key = base64.b64encode(Random.new().read(128))
+    sss = SHA256.new(); sss.update(conf.sess_key)
+
+    if conf.pgdebug &gt; 2:
+        support.shortdump(&#34;conf.sess_key&#34;, conf.sess_key )
+
+    sess_keyx  = hand.pubkey.encrypt(conf.sess_key)
+
+    ttt = SHA256.new(); ttt.update(sess_keyx.encode())
+
+    if conf.pgdebug &gt; 2:
+        support.shortdump(&#34;sess_keyx&#34;, sess_keyx )
+
+    resp3 = hand.client([&#34;sess&#34;, sss.hexdigest(), ttt.hexdigest(), sess_keyx], &#34;&#34;, False)
+    #print(&#34;Sess Response:&#34;, resp3)
+
+    if resp3[0] != &#34;OK&#34;:
+        print(&#34;Error on setting session:&#34;, resp3)
+        hand.client([&#34;quit&#34;])
+        hand.close();
+        sys.exit(0)
+
+    # Make a note of the session key
+    print(&#34;Session key:&#34;, conf.sess_key[:24] , &#34;...&#34; )
+
+    # Session estabilished, try a simple command
+    resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
+    print(&#34;Encrypted Resp:&#34;, resp4)
+
+    # --------------------------------------------------------------------
+    # Generate communication key, second session and second run
+
+    conf.sess_key2 = base64.b64encode(Random.new().read(128))
+    sss2 = SHA256.new(); sss2.update(conf.sess_key2)
+
+    if conf.pgdebug &gt; 2:
+        support.shortdump(&#34;conf.sess_key2&#34;, conf.sess_key2 )
+
+    sess_keyx2 = hand.pubkey.encrypt(conf.sess_key2)
+    ttt2 = SHA256.new(); ttt2.update(sess_keyx2.encode())
+
+    if conf.pgdebug &gt; 2:
+        support.shortdump(&#34;sess_keyx2&#34;, sess_keyx2 )
+
+    if conf.pgdebug &gt; 3:
+        print(&#34;key  Hexdigest&#34;, sss2.hexdigest()[:16])
+        print(&#34;sess Hexdigest&#34;, ttt2.hexdigest()[:16])
+
+    resp4 = hand.client([&#34;sess&#34;, sss2.hexdigest(), ttt2.hexdigest(), sess_keyx2],
+                                conf.sess_key, False)
+    if resp4[0] != &#34;OK&#34;:
+        print(&#34;Err: &#34;, resp4)
+        cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
+        print (&#34;Server quit response:&#34;, cresp)
+        sys.exit(0)
+
+    conf.sess_key = conf.sess_key2
+    # Make a note of the session key
+    print(&#34;Session key:&#34;, conf.sess_key[:24] , &#34;...&#34; )
+
+    # Session estabilished, try a simple command
+    resp5 = hand.client([&#34;hello&#34;,], conf.sess_key)
+    print(&#34;Hello2 Response:&#34;, resp5)
+
+    hand.client([&#34;quit&#34;,],conf.sess_key)
+    hand.close();
+
+    sys.exit(0)
 
 # EOF</code></pre>
 </details>
@@ -143,26 +256,7 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="pyvcpanel.mainfunct"><code class="name flex">
-<span>def <span class="ident">mainfunct</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def mainfunct():
-
-    #print(&#34;pyvcpanel started ...&#34;)
-    args = conf.comline(sys.argv[1:])
-    #print(&#34;args&#34;, args)
-    mw = mainwin.MainWin()
-    mw.main()
-    sys.exit(0)</code></pre>
-</details>
-</dd>
-<dt id="pyvcpanel.phelp"><code class="name flex">
+<dt id="pyvcli_sess.phelp"><code class="name flex">
 <span>def <span class="ident">phelp</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -177,16 +271,19 @@ if __name__ == &#39;__main__&#39;:
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p port   - Port to use (default: 6666)&#34;)
+    print( &#34;            -l level  - Log level (default: 0)&#34;)
+    print( &#34;            -c file   - Save comm to file&#34;)
+    print( &#34;            -s        - Showkey&#34;)
     print( &#34;            -v        - Verbose&#34;)
-    print( &#34;            -V        - Version&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -h        - Help&#34;)
+    #print( &#34; Needs debug level or verbose to have any output.&#34;)
     print()
     sys.exit(0)</code></pre>
 </details>
 </dd>
-<dt id="pyvcpanel.pversion"><code class="name flex">
+<dt id="pyvcli_sess.pversion"><code class="name flex">
 <span>def <span class="ident">pversion</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -196,7 +293,7 @@ if __name__ == &#39;__main__&#39;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def pversion():
-    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
+    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, support.version)
     sys.exit(0)
 
     # option, var_name, initial_val, function</code></pre>
@@ -215,9 +312,8 @@ if __name__ == &#39;__main__&#39;:
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="pyvcpanel.mainfunct" href="#pyvcpanel.mainfunct">mainfunct</a></code></li>
-<li><code><a title="pyvcpanel.phelp" href="#pyvcpanel.phelp">phelp</a></code></li>
-<li><code><a title="pyvcpanel.pversion" href="#pyvcpanel.pversion">pversion</a></code></li>
+<li><code><a title="pyvcli_sess.phelp" href="#pyvcli_sess.phelp">phelp</a></code></li>
+<li><code><a title="pyvcli_sess.pversion" href="#pyvcli_sess.pversion">pversion</a></code></li>
 </ul>
 </li>
 </ul>

@@ -48,22 +48,40 @@ if sys.version_info[0] &lt; 3:
 else:
     import socketserver
 
-from pyvcommon import support
-from pyvcommon import pyservsup
-from pyvcommon import pyclisup
-from pyvcommon import pydata
-from pyvcommon import pysyslog
-from pyvcommon import comline
-from pyvcommon import pyvhash
+import pyvpacker
 
-from pyvcommon import pyservsup, pyclisup
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(&#34;..&#34;,  &#39;pydbase&#39;))
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    #print(&#34;sf&#34;, sf)
+    sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
+    sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
+    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
+    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  &#39;..&#39;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
+    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;))
+    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
+    from pyvcommon import support
+
+#for aa in sys.path:
+#    print(aa)
+
+print(&#34;Load:&#34;, sys.path[-1])
+
+from pyvcommon import support, pyservsup, pyclisup
+from pyvcommon import pydata, pysyslog, comline, pyvhash
 
 from pydbase import twincore, twinchain
-
-import pyvpacker
 
 replicname = &#34;replic.pydb&#34;
 datafname = &#34;initial.pydb&#34;
@@ -107,13 +125,13 @@ class Replicator():
         &#39;&#39;&#39; Main entry point for replication. &#39;&#39;&#39;
 
         while True:
-            if self.pgdebug &gt; 5:
-                print(&#34;Rep cycle&#34;, time.time())
-            if self.pgdebug &gt; 5:
-                print(&#34;Replicator cycle&#34;, time.time())
-            ddd = os.listdir(pyservsup.globals.paydir)
+
+            #if self.pgdebug &gt; 5:
+            #    print(&#34;Replicator cycle&#34;, time.time())
+
+            ddd = os.listdir(pyservsup.globals.chaindir )
             for aa in ddd:
-                aaa = os.path.join(pyservsup.globals.paydir, aa)
+                aaa = os.path.join(pyservsup.globals.chaindir, aa)
                 if not os.path.isdir(aaa):
                     continue
                 #print(aaa)
@@ -128,7 +146,7 @@ class Replicator():
         &#39;&#39;&#39; Scan chain dir for replication data. &#39;&#39;&#39;
 
         wastrans = False
-        fname = os.path.join(pyservsup.globals.paydir, dirname)
+        fname = os.path.join(pyservsup.globals.chaindir, dirname)
         rfile = os.path.join(fname, replicname)
         #print(&#34;rfile: &#34;, rfile)
         repcore = twinchain.TwinCore(rfile)
@@ -223,7 +241,7 @@ class Replicator():
         if type(recx) == type(b&#34;&#34;):
             recx = recx.decode()
         ret = 0
-        fname = os.path.join(pyservsup.globals.paydir, dirname)
+        fname = os.path.join(pyservsup.globals.chaindir, dirname)
         dfname = os.path.join(fname, datafname)
 
         #print(&#34;dfname: &#34;, dfname)
@@ -241,30 +259,39 @@ class Replicator():
         if not rec:
             #print(&#34;Empty record on replicate&#34;)
             return
-        if self.pgdebug &gt; 5:
+        if self.pgdebug &gt; 8:
             print(&#34;rec&#34;, rec)
         #print(&#34;rex&#34;, rec[0][1][1])
         arr = self.packer.decode_data(rec[0][1][1])
+
         # Decorate &#39;replicated&#39; variable
-        if &#39;replicate&#39; in arr[0]:
+        try:
             arr[0][&#39;Replicated&#39;] += 1
-        else:
-            arr[0][&#39;Replicated&#39;] = 1
+        except:
+            pass
         #print(arr)
 
+        del datacore
+
         pvh = pyvhash.BcData(arr[0])
-        pvh.hasharr(); pvh.powarr()
+        #pvh.hasharr(); pvh.powarr()
         if self.pgdebug &gt; 5:
             print(&#34;pyvhash&#34;, pvh.datax, pvh.checkhash(), pvh.checkpow())
-        del datacore
 
         # Replicate on a per host basis
         hfname = os.path.join(pyservsup.globals.myhome, ihostfname)
         #print(&#34;hfname&#34;, hfname)
         #hostcore = self.softcreate(self.hostdarr, hfname, twincore.TwinCore)
         hostcore = twincore.TwinCore(hfname)
+
+        hostrec = hostcore.getdbsize()
+        if hostrec == 0:
+            print(&#34;No hosts to replicate to.&#34;)
+            del hostcore
+            return
+
         ret = 0
-        for bb in range(hostcore.getdbsize()):
+        for bb in range(hostrec):
             try:
                 hrec = hostcore.get_rec(bb)
             except:
@@ -330,13 +357,7 @@ class Replicator():
         ret = True
         return ret
 
-optarr =  comline.optarrlong
-
-optarr.append ( [&#34;N&#34;,   &#34;norepl&#34;,    &#34;norepl&#34;,      0,       None, &#34;No replication (for test)&#34;] )
-optarr.append ( [&#34;r:&#34;,  &#34;dataroot=&#34;, &#34;droot&#34;,  &#34;pyvserver&#34;,  None, &#34;Root for server data&#34;] )
-#optarr.append ( [&#34;d:&#34;,  &#34;debug=&#34;,    &#34;pgdebug&#34;,  0,           None, &#34;Debug level (0-10)&#34;] )
-
-if __name__ == &#39;__main__&#39;:
+def mainfunct():
 
     conf = comline.ConfigLong(optarr)
     conf.comline(sys.argv[1:])
@@ -348,13 +369,25 @@ if __name__ == &#39;__main__&#39;:
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
 
+    slogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvserver.log&#34;)
     rlogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvreplic.log&#34;)
-    pysyslog.init_loggers((&#34;replic&#34;, rlogfile))
+    pysyslog.init_loggers(
+            (&#34;system&#34;, slogfile), (&#34;replic&#34;, rlogfile))
+
+
     pysyslog.repliclog(&#34;Replicator started&#34;)
 
     print(&#34;Started replicator&#34;)
     repl = Replicator(conf.verbose, conf.pgdebug)
     repl.rep_run()
+
+optarr =  comline.optarrlong
+
+optarr.append ( [&#34;r:&#34;,  &#34;dataroot=&#34;, &#34;droot&#34;,  &#34;pyvserver&#34;,  None, &#34;Root for server data&#34;] )
+
+if __name__ == &#39;__main__&#39;:
+
+    mainfunct()
 
 # EOF</code></pre>
 </details>
@@ -364,6 +397,43 @@ if __name__ == &#39;__main__&#39;:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="pyvreplic.mainfunct"><code class="name flex">
+<span>def <span class="ident">mainfunct</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mainfunct():
+
+    conf = comline.ConfigLong(optarr)
+    conf.comline(sys.argv[1:])
+    # Comline processed, go
+
+    if conf.pgdebug &gt; 5:
+        conf.printvars()
+
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+    pyservsup.globals.conf = conf
+
+    slogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvserver.log&#34;)
+    rlogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvreplic.log&#34;)
+    pysyslog.init_loggers(
+            (&#34;system&#34;, slogfile), (&#34;replic&#34;, rlogfile))
+
+
+    pysyslog.repliclog(&#34;Replicator started&#34;)
+
+    print(&#34;Started replicator&#34;)
+    repl = Replicator(conf.verbose, conf.pgdebug)
+    repl.rep_run()</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -424,13 +494,13 @@ if __name__ == &#39;__main__&#39;:
         &#39;&#39;&#39; Main entry point for replication. &#39;&#39;&#39;
 
         while True:
-            if self.pgdebug &gt; 5:
-                print(&#34;Rep cycle&#34;, time.time())
-            if self.pgdebug &gt; 5:
-                print(&#34;Replicator cycle&#34;, time.time())
-            ddd = os.listdir(pyservsup.globals.paydir)
+
+            #if self.pgdebug &gt; 5:
+            #    print(&#34;Replicator cycle&#34;, time.time())
+
+            ddd = os.listdir(pyservsup.globals.chaindir )
             for aa in ddd:
-                aaa = os.path.join(pyservsup.globals.paydir, aa)
+                aaa = os.path.join(pyservsup.globals.chaindir, aa)
                 if not os.path.isdir(aaa):
                     continue
                 #print(aaa)
@@ -445,7 +515,7 @@ if __name__ == &#39;__main__&#39;:
         &#39;&#39;&#39; Scan chain dir for replication data. &#39;&#39;&#39;
 
         wastrans = False
-        fname = os.path.join(pyservsup.globals.paydir, dirname)
+        fname = os.path.join(pyservsup.globals.chaindir, dirname)
         rfile = os.path.join(fname, replicname)
         #print(&#34;rfile: &#34;, rfile)
         repcore = twinchain.TwinCore(rfile)
@@ -540,7 +610,7 @@ if __name__ == &#39;__main__&#39;:
         if type(recx) == type(b&#34;&#34;):
             recx = recx.decode()
         ret = 0
-        fname = os.path.join(pyservsup.globals.paydir, dirname)
+        fname = os.path.join(pyservsup.globals.chaindir, dirname)
         dfname = os.path.join(fname, datafname)
 
         #print(&#34;dfname: &#34;, dfname)
@@ -558,30 +628,39 @@ if __name__ == &#39;__main__&#39;:
         if not rec:
             #print(&#34;Empty record on replicate&#34;)
             return
-        if self.pgdebug &gt; 5:
+        if self.pgdebug &gt; 8:
             print(&#34;rec&#34;, rec)
         #print(&#34;rex&#34;, rec[0][1][1])
         arr = self.packer.decode_data(rec[0][1][1])
+
         # Decorate &#39;replicated&#39; variable
-        if &#39;replicate&#39; in arr[0]:
+        try:
             arr[0][&#39;Replicated&#39;] += 1
-        else:
-            arr[0][&#39;Replicated&#39;] = 1
+        except:
+            pass
         #print(arr)
 
+        del datacore
+
         pvh = pyvhash.BcData(arr[0])
-        pvh.hasharr(); pvh.powarr()
+        #pvh.hasharr(); pvh.powarr()
         if self.pgdebug &gt; 5:
             print(&#34;pyvhash&#34;, pvh.datax, pvh.checkhash(), pvh.checkpow())
-        del datacore
 
         # Replicate on a per host basis
         hfname = os.path.join(pyservsup.globals.myhome, ihostfname)
         #print(&#34;hfname&#34;, hfname)
         #hostcore = self.softcreate(self.hostdarr, hfname, twincore.TwinCore)
         hostcore = twincore.TwinCore(hfname)
+
+        hostrec = hostcore.getdbsize()
+        if hostrec == 0:
+            print(&#34;No hosts to replicate to.&#34;)
+            del hostcore
+            return
+
         ret = 0
-        for bb in range(hostcore.getdbsize()):
+        for bb in range(hostrec):
             try:
                 hrec = hostcore.get_rec(bb)
             except:
@@ -663,13 +742,13 @@ if __name__ == &#39;__main__&#39;:
     &#39;&#39;&#39; Main entry point for replication. &#39;&#39;&#39;
 
     while True:
-        if self.pgdebug &gt; 5:
-            print(&#34;Rep cycle&#34;, time.time())
-        if self.pgdebug &gt; 5:
-            print(&#34;Replicator cycle&#34;, time.time())
-        ddd = os.listdir(pyservsup.globals.paydir)
+
+        #if self.pgdebug &gt; 5:
+        #    print(&#34;Replicator cycle&#34;, time.time())
+
+        ddd = os.listdir(pyservsup.globals.chaindir )
         for aa in ddd:
-            aaa = os.path.join(pyservsup.globals.paydir, aa)
+            aaa = os.path.join(pyservsup.globals.chaindir, aa)
             if not os.path.isdir(aaa):
                 continue
             #print(aaa)
@@ -698,7 +777,7 @@ if __name__ == &#39;__main__&#39;:
     if type(recx) == type(b&#34;&#34;):
         recx = recx.decode()
     ret = 0
-    fname = os.path.join(pyservsup.globals.paydir, dirname)
+    fname = os.path.join(pyservsup.globals.chaindir, dirname)
     dfname = os.path.join(fname, datafname)
 
     #print(&#34;dfname: &#34;, dfname)
@@ -716,30 +795,39 @@ if __name__ == &#39;__main__&#39;:
     if not rec:
         #print(&#34;Empty record on replicate&#34;)
         return
-    if self.pgdebug &gt; 5:
+    if self.pgdebug &gt; 8:
         print(&#34;rec&#34;, rec)
     #print(&#34;rex&#34;, rec[0][1][1])
     arr = self.packer.decode_data(rec[0][1][1])
+
     # Decorate &#39;replicated&#39; variable
-    if &#39;replicate&#39; in arr[0]:
+    try:
         arr[0][&#39;Replicated&#39;] += 1
-    else:
-        arr[0][&#39;Replicated&#39;] = 1
+    except:
+        pass
     #print(arr)
 
+    del datacore
+
     pvh = pyvhash.BcData(arr[0])
-    pvh.hasharr(); pvh.powarr()
+    #pvh.hasharr(); pvh.powarr()
     if self.pgdebug &gt; 5:
         print(&#34;pyvhash&#34;, pvh.datax, pvh.checkhash(), pvh.checkpow())
-    del datacore
 
     # Replicate on a per host basis
     hfname = os.path.join(pyservsup.globals.myhome, ihostfname)
     #print(&#34;hfname&#34;, hfname)
     #hostcore = self.softcreate(self.hostdarr, hfname, twincore.TwinCore)
     hostcore = twincore.TwinCore(hfname)
+
+    hostrec = hostcore.getdbsize()
+    if hostrec == 0:
+        print(&#34;No hosts to replicate to.&#34;)
+        del hostcore
+        return
+
     ret = 0
-    for bb in range(hostcore.getdbsize()):
+    for bb in range(hostrec):
         try:
             hrec = hostcore.get_rec(bb)
         except:
@@ -769,7 +857,7 @@ if __name__ == &#39;__main__&#39;:
     &#39;&#39;&#39; Scan chain dir for replication data. &#39;&#39;&#39;
 
     wastrans = False
-    fname = os.path.join(pyservsup.globals.paydir, dirname)
+    fname = os.path.join(pyservsup.globals.chaindir, dirname)
     rfile = os.path.join(fname, replicname)
     #print(&#34;rfile: &#34;, rfile)
     repcore = twinchain.TwinCore(rfile)
@@ -928,6 +1016,11 @@ if __name__ == &#39;__main__&#39;:
 <ul></ul>
 </div>
 <ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="pyvreplic.mainfunct" href="#pyvreplic.mainfunct">mainfunct</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>

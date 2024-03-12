@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>pyvfunc API documentation</title>
-<meta name="description" content="This module executes the functions corresponding to keywords.
-The keyword is embedded into the function name." />
+<meta name="description" content="Server functions. The pyvstate calls routines from this module. The reason
+this is not made into a class is for speed. (Class was too big, and we are …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -23,7 +23,10 @@ The keyword is embedded into the function name." />
 <h1 class="title">Module <code>pyvfunc</code></h1>
 </header>
 <section id="section-intro">
-<p>This module executes the functions corresponding to keywords.
+<p>Server functions. The pyvstate calls routines from this module. The reason
+this is not made into a class is for speed. (Class was too big, and we are still
+adding functions for new commands.)
+This module executes the functions corresponding to keywords.
 The keyword is embedded into the function name.</p>
 <details class="source">
 <summary>
@@ -35,12 +38,6 @@ The keyword is embedded into the function name.</p>
 #from __future__ import absolute_import
 
 import pyotp
-
-__doc__ = \
-&#39;&#39;&#39;
-    Server functions. The pyvstate calls routines from this module.
-
-&#39;&#39;&#39;
 
 import os, sys, getopt, signal, select, string
 import datetime,  time, stat, base64, uuid
@@ -57,21 +54,18 @@ from Crypto.Hash import SHA256
 
 import pyvpacker
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base, &#34;..&#34;))
-
 from pyvcommon import support, pyservsup, pyclisup, pysyslog, pyvhash
 from pyvserver import pyvstate
-
-sys.path.append(os.path.join(base, &#34;..&#34;,  &#39;pydbase&#39;))
 
 from pydbase import twincore, twinchain
 
 __doc__ = \
 &#39;&#39;&#39;
+    Server functions. The pyvstate calls routines from this module. The reason
+    this is not made into a class is for speed. (Class was too big, and we are still
+    adding functions for new commands.)
     This module executes the functions corresponding to keywords.
     The keyword is embedded into the function name.
-
 &#39;&#39;&#39;
 
 chainfname = &#34;initial&#34;
@@ -82,6 +76,19 @@ ERR = &#34;ERR&#34;
 
 #pgdebug = 0
 
+def check_chain_path(self, strp):
+
+    chainp = pyservsup.globals.myhome + &#34;chain&#34;
+    chainp = os.path.normpath(chainp)
+
+    #print(&#34;check:&#34;, strp)
+    #print(&#34;root:&#34;, chainp)
+    dpath = os.path.normpath(strp)
+    #print(&#34;dpath&#34;, dpath)
+    if dpath[:len(chainp)] != chainp:
+        dpath = None
+    return dpath
+
 def contain_path(self, strp):
 
     &#39;&#39;&#39;
@@ -90,6 +97,9 @@ def contain_path(self, strp):
     dname = support.unescape(strp);
 
     #print(&#34;dname&#34;, dname)
+    #print(&#34;self.resp.dir&#34;, self.resp.dir)
+    #print(&#34;self.resp.cwd&#34;, self.resp.cwd)
+
     self.resp.dir = support.dirclean(self.resp.dir)
     self.resp.cwd = support.dirclean(self.resp.cwd)
 
@@ -502,8 +512,6 @@ def get_rlist_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    #ttt = time.time()
-
     #print(&#34;db op1 %.3f&#34; % ((time.time() - ttt) * 1000) )
     core = twinchain.TwinChain(os.path.join(dname, chainfname + &#34;.pydb&#34;), 0)
     #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
@@ -614,8 +622,8 @@ def get_rput_func(self, strx):
     #print(&#34;strx[1]&#34;, strx[1])
     #print(&#39;curr&#39;, self.resp.dir)
 
-    dname = contain_path(self, strx[1])
-
+    tmpname = pyservsup.globals.myhome + &#34;chain&#34; + os.sep + strx[1]
+    dname = check_chain_path(self, tmpname)
     if not dname:
         response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -634,9 +642,8 @@ def get_rput_func(self, strx):
     #ttt = time.time()
     #print(&#34;rput strx[2]&#34;, strx[2])
     if pyservsup.globals.conf.pgdebug &gt; 0:
-        print(&#34;rput&#34;, strx[2][&#39;header&#39;])
+        print(&#34;rput&#34;, strx[1], strx[2][&#39;header&#39;])
 
-    #print(&#34;Got:&#34;, strx[2])
     pvh = pyvhash.BcData(strx[2])
     #print(&#34;pvh&#34;, pvh.datax)
     if not pvh.checkhash():
@@ -649,13 +656,38 @@ def get_rput_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    undec = self.pb.encode_data(&#34;&#34;, strx[2])
-    if  self.pgdebug &gt; 5:
-        print(&#34;Save_data header:&#34;, strx[2][&#34;header&#34;], &#34;Data:&#34;,  undec)
     cfname = os.path.join(dname, chainfname + &#34;.pydb&#34;)
     #print(&#34;cfname&#34;, cfname)
     savecore = twinchain.TwinChain(cfname)
     #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
+
+    #print(&#34;Got:&#34;, strx[2])
+
+    # Do we have it already?:
+
+    #ttt = time.time()
+    #rethas = savecore.get_data_bykey(strx[2][&#39;header&#39;])
+    #print(&#34;db get data  %.3f&#34; % ((time.time() - ttt) * 1000) )
+    #if rethas:
+    #    if self.pgdebug &gt; 1:
+    #        print(&#34;Duplicate block, rethas&#34;, rethas[0][0])
+    #    response = [ERR, &#34;Duplicate block, not saved.&#34;, strx[0]]
+    #    self.resp.datahandler.putencode(response, self.resp.ekey)
+    #    return
+
+    #ttt = time.time()
+    retoffs = savecore.get_payoffs_bykey(strx[2][&#39;header&#39;])
+    #print(&#34;db get offs  %.3f&#34; % ((time.time() - ttt) * 1000) )
+    if retoffs:
+        if self.pgdebug &gt; 1:
+            print(&#34;Duplicate block, retoffs&#34;, retoffs)
+        response = [ERR, &#34;Duplicate block, not saved.&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    undec = self.pb.encode_data(&#34;&#34;, strx[2])
+    if  self.pgdebug &gt; 5:
+        print(&#34;Save_data header:&#34;, strx[2][&#34;header&#34;], &#34;Data:&#34;,  undec)
     try:
         ret = savecore.appendwith(strx[2][&#39;header&#39;], undec)
     except:
@@ -666,13 +698,15 @@ def get_rput_func(self, strx):
         return
     del savecore
 
-    # if it is replicated, skip operation
-    if not &#34;Replicated&#34; in strx[2]:
+    # if it no replicated, replicate
+    if not strx[2][&#34;Replicated&#34;]:
         # Prepare data. Do strings so it can be re-written in place
         rrr = {&#39;count1&#39;: &#34;00000&#34;, &#39;count2&#39; : &#34;00000&#34;,
                         &#39;count3&#39; : &#34;00000&#34;,  &#39;header&#39; : strx[2][&#39;header&#39;],
                             &#39;now&#39; : strx[2][&#39;now&#39;],}
-        #print(&#34;replic&#34;, rrr)
+        if self.pgdebug &gt; 2:
+            print(&#34;replic&#34;, rrr)
+
         undec2 = self.pb.encode_data(&#34;&#34;, rrr)
         frname = os.path.join(dname, repfname + &#34;.pydb&#34;)
         #print(&#34;Saving at&#34;, frname)
@@ -862,13 +896,12 @@ def get_id_func(self, strx):
 
 #@support.timeit
 def get_hello_func(self, strx):
-    if pyservsup.globals.conf.pgdebug &gt; 1:
+    if pyservsup.globals.conf.pgdebug &gt; 3:
         print( &#34;get_hello_func()&#34;, strx)
     strres = [OK, &#34;Hello&#34;, str(pyservsup.globals.siteid), self.name]
-    if pyservsup.globals.conf.pgdebug &gt; 2:
+    if pyservsup.globals.conf.pgdebug &gt; 4:
         print( &#34;get_hello_func-&gt;output&#34;, &#34;&#39;&#34; + str(strres) + &#34;&#39;&#34;)
     self.resp.datahandler.putencode(strres, self.resp.ekey)
-
 
 def get_stat_func(self, strx):
 
@@ -941,7 +974,7 @@ def get_sess_func(self, strx):
     # Decoded OK?
     ttt = SHA256.new(); ttt.update(message2.encode())
 
-    if pyservsup.globals.conf.pgdebug &gt; 3:
+    if pyservsup.globals.conf.pgdebug &gt; 4:
         print(&#34;Hash1:&#34;, strx[1])
         print(&#34;Hash2:&#34;, ttt.hexdigest())
 
@@ -953,7 +986,7 @@ def get_sess_func(self, strx):
     self.resp.datahandler.putencode([OK, &#34;Session estabilished.&#34;], self.resp.ekey)
     self.resp.ekey = message2
 
-    if pyservsup.globals.conf.pgdebug &gt; 1:
+    if pyservsup.globals.conf.pgdebug &gt; 3:
         support.shortdump(&#34;session key:&#34;, self.resp.ekey.encode() )
 
 # ------------------------------------------------------------------------
@@ -963,7 +996,7 @@ def get_akey_func(self, strx):
 
     ttt = time.time()
 
-    if pyservsup.globals.conf.pgdebug &gt; 1:
+    if pyservsup.globals.conf.pgdebug &gt; 4:
         print(&#34;get_akey_func() called&#34;)
 
     ddd = os.path.abspath(&#34;keys&#34;)
@@ -978,10 +1011,10 @@ def get_akey_func(self, strx):
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
-    if pyservsup.globals.conf.pgdebug &gt; 2:
+    if pyservsup.globals.conf.pgdebug &gt; 4:
        print(&#34;self.keyfroot&#34;, self.keyfroot)
 
-    if pyservsup.globals.conf.pgdebug &gt; 2:
+    if pyservsup.globals.conf.pgdebug &gt; 4:
         print(&#34;fname&#34;, ddd + os.sep + self.keyfroot + &#34;.pub&#34;)
 
     #print(&#34;akey 1 %.3f&#34; % ((time.time() - ttt) * 1000) )
@@ -1086,14 +1119,23 @@ def get_pass_func(self, strx):
         stry = &#34;No such user  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        rrr = [ERR, &#34;No such user&#34;, strx[0]]
+        rrr = [ERR, &#34;No such user&#34;, self.resp.user]
     elif xret[0] == 1:
         stry = &#34;Successful logon  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
 
-        #print(&#34;Authenticated&#34;, pyservsup.globals.paydir)
-        self.resp.cwd = pyservsup.globals.paydir
+        if self.pgdebug &gt; 3:
+            print(&#34;Authenticated&#34;, self.resp.user)
+
+        self.userdir = pyservsup.globals.paydir + self.resp.user
+        self.userdir = contain_path(self, self.userdir)
+        #print(&#34;Contained&#34;,  self.userdir)
+        if not os.path.isdir(self.userdir):
+            os.mkdir(self.userdir)
+
+        self.resp.cwd = self.userdir
+
         #try:
         #    os.chdir(self.resp.cwd)
         #except:
@@ -1509,6 +1551,29 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="pyvfunc.check_chain_path"><code class="name flex">
+<span>def <span class="ident">check_chain_path</span></span>(<span>self, strp)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_chain_path(self, strp):
+
+    chainp = pyservsup.globals.myhome + &#34;chain&#34;
+    chainp = os.path.normpath(chainp)
+
+    #print(&#34;check:&#34;, strp)
+    #print(&#34;root:&#34;, chainp)
+    dpath = os.path.normpath(strp)
+    #print(&#34;dpath&#34;, dpath)
+    if dpath[:len(chainp)] != chainp:
+        dpath = None
+    return dpath</code></pre>
+</details>
+</dd>
 <dt id="pyvfunc.contain_path"><code class="name flex">
 <span>def <span class="ident">contain_path</span></span>(<span>self, strp)</span>
 </code></dt>
@@ -1526,6 +1591,9 @@ if __name__ == &#39;__main__&#39;:
     dname = support.unescape(strp);
 
     #print(&#34;dname&#34;, dname)
+    #print(&#34;self.resp.dir&#34;, self.resp.dir)
+    #print(&#34;self.resp.cwd&#34;, self.resp.cwd)
+
     self.resp.dir = support.dirclean(self.resp.dir)
     self.resp.cwd = support.dirclean(self.resp.cwd)
 
@@ -1606,7 +1674,7 @@ if __name__ == &#39;__main__&#39;:
 
     ttt = time.time()
 
-    if pyservsup.globals.conf.pgdebug &gt; 1:
+    if pyservsup.globals.conf.pgdebug &gt; 4:
         print(&#34;get_akey_func() called&#34;)
 
     ddd = os.path.abspath(&#34;keys&#34;)
@@ -1621,10 +1689,10 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
-    if pyservsup.globals.conf.pgdebug &gt; 2:
+    if pyservsup.globals.conf.pgdebug &gt; 4:
        print(&#34;self.keyfroot&#34;, self.keyfroot)
 
-    if pyservsup.globals.conf.pgdebug &gt; 2:
+    if pyservsup.globals.conf.pgdebug &gt; 4:
         print(&#34;fname&#34;, ddd + os.sep + self.keyfroot + &#34;.pub&#34;)
 
     #print(&#34;akey 1 %.3f&#34; % ((time.time() - ttt) * 1000) )
@@ -2105,10 +2173,10 @@ if __name__ == &#39;__main__&#39;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_hello_func(self, strx):
-    if pyservsup.globals.conf.pgdebug &gt; 1:
+    if pyservsup.globals.conf.pgdebug &gt; 3:
         print( &#34;get_hello_func()&#34;, strx)
     strres = [OK, &#34;Hello&#34;, str(pyservsup.globals.siteid), self.name]
-    if pyservsup.globals.conf.pgdebug &gt; 2:
+    if pyservsup.globals.conf.pgdebug &gt; 4:
         print( &#34;get_hello_func-&gt;output&#34;, &#34;&#39;&#34; + str(strres) + &#34;&#39;&#34;)
     self.resp.datahandler.putencode(strres, self.resp.ekey)</code></pre>
 </details>
@@ -2490,14 +2558,23 @@ if __name__ == &#39;__main__&#39;:
         stry = &#34;No such user  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        rrr = [ERR, &#34;No such user&#34;, strx[0]]
+        rrr = [ERR, &#34;No such user&#34;, self.resp.user]
     elif xret[0] == 1:
         stry = &#34;Successful logon  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
 
-        #print(&#34;Authenticated&#34;, pyservsup.globals.paydir)
-        self.resp.cwd = pyservsup.globals.paydir
+        if self.pgdebug &gt; 3:
+            print(&#34;Authenticated&#34;, self.resp.user)
+
+        self.userdir = pyservsup.globals.paydir + self.resp.user
+        self.userdir = contain_path(self, self.userdir)
+        #print(&#34;Contained&#34;,  self.userdir)
+        if not os.path.isdir(self.userdir):
+            os.mkdir(self.userdir)
+
+        self.resp.cwd = self.userdir
+
         #try:
         #    os.chdir(self.resp.cwd)
         #except:
@@ -2678,8 +2755,6 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    #ttt = time.time()
-
     #print(&#34;db op1 %.3f&#34; % ((time.time() - ttt) * 1000) )
     core = twinchain.TwinChain(os.path.join(dname, chainfname + &#34;.pydb&#34;), 0)
     #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
@@ -2728,8 +2803,8 @@ if __name__ == &#39;__main__&#39;:
     #print(&#34;strx[1]&#34;, strx[1])
     #print(&#39;curr&#39;, self.resp.dir)
 
-    dname = contain_path(self, strx[1])
-
+    tmpname = pyservsup.globals.myhome + &#34;chain&#34; + os.sep + strx[1]
+    dname = check_chain_path(self, tmpname)
     if not dname:
         response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -2748,9 +2823,8 @@ if __name__ == &#39;__main__&#39;:
     #ttt = time.time()
     #print(&#34;rput strx[2]&#34;, strx[2])
     if pyservsup.globals.conf.pgdebug &gt; 0:
-        print(&#34;rput&#34;, strx[2][&#39;header&#39;])
+        print(&#34;rput&#34;, strx[1], strx[2][&#39;header&#39;])
 
-    #print(&#34;Got:&#34;, strx[2])
     pvh = pyvhash.BcData(strx[2])
     #print(&#34;pvh&#34;, pvh.datax)
     if not pvh.checkhash():
@@ -2763,13 +2837,38 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    undec = self.pb.encode_data(&#34;&#34;, strx[2])
-    if  self.pgdebug &gt; 5:
-        print(&#34;Save_data header:&#34;, strx[2][&#34;header&#34;], &#34;Data:&#34;,  undec)
     cfname = os.path.join(dname, chainfname + &#34;.pydb&#34;)
     #print(&#34;cfname&#34;, cfname)
     savecore = twinchain.TwinChain(cfname)
     #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
+
+    #print(&#34;Got:&#34;, strx[2])
+
+    # Do we have it already?:
+
+    #ttt = time.time()
+    #rethas = savecore.get_data_bykey(strx[2][&#39;header&#39;])
+    #print(&#34;db get data  %.3f&#34; % ((time.time() - ttt) * 1000) )
+    #if rethas:
+    #    if self.pgdebug &gt; 1:
+    #        print(&#34;Duplicate block, rethas&#34;, rethas[0][0])
+    #    response = [ERR, &#34;Duplicate block, not saved.&#34;, strx[0]]
+    #    self.resp.datahandler.putencode(response, self.resp.ekey)
+    #    return
+
+    #ttt = time.time()
+    retoffs = savecore.get_payoffs_bykey(strx[2][&#39;header&#39;])
+    #print(&#34;db get offs  %.3f&#34; % ((time.time() - ttt) * 1000) )
+    if retoffs:
+        if self.pgdebug &gt; 1:
+            print(&#34;Duplicate block, retoffs&#34;, retoffs)
+        response = [ERR, &#34;Duplicate block, not saved.&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    undec = self.pb.encode_data(&#34;&#34;, strx[2])
+    if  self.pgdebug &gt; 5:
+        print(&#34;Save_data header:&#34;, strx[2][&#34;header&#34;], &#34;Data:&#34;,  undec)
     try:
         ret = savecore.appendwith(strx[2][&#39;header&#39;], undec)
     except:
@@ -2780,13 +2879,15 @@ if __name__ == &#39;__main__&#39;:
         return
     del savecore
 
-    # if it is replicated, skip operation
-    if not &#34;Replicated&#34; in strx[2]:
+    # if it no replicated, replicate
+    if not strx[2][&#34;Replicated&#34;]:
         # Prepare data. Do strings so it can be re-written in place
         rrr = {&#39;count1&#39;: &#34;00000&#34;, &#39;count2&#39; : &#34;00000&#34;,
                         &#39;count3&#39; : &#34;00000&#34;,  &#39;header&#39; : strx[2][&#39;header&#39;],
                             &#39;now&#39; : strx[2][&#39;now&#39;],}
-        #print(&#34;replic&#34;, rrr)
+        if self.pgdebug &gt; 2:
+            print(&#34;replic&#34;, rrr)
+
         undec2 = self.pb.encode_data(&#34;&#34;, rrr)
         frname = os.path.join(dname, repfname + &#34;.pydb&#34;)
         #print(&#34;Saving at&#34;, frname)
@@ -2856,7 +2957,7 @@ if __name__ == &#39;__main__&#39;:
     # Decoded OK?
     ttt = SHA256.new(); ttt.update(message2.encode())
 
-    if pyservsup.globals.conf.pgdebug &gt; 3:
+    if pyservsup.globals.conf.pgdebug &gt; 4:
         print(&#34;Hash1:&#34;, strx[1])
         print(&#34;Hash2:&#34;, ttt.hexdigest())
 
@@ -2868,7 +2969,7 @@ if __name__ == &#39;__main__&#39;:
     self.resp.datahandler.putencode([OK, &#34;Session estabilished.&#34;], self.resp.ekey)
     self.resp.ekey = message2
 
-    if pyservsup.globals.conf.pgdebug &gt; 1:
+    if pyservsup.globals.conf.pgdebug &gt; 3:
         support.shortdump(&#34;session key:&#34;, self.resp.ekey.encode() )</code></pre>
 </details>
 </dd>
@@ -3320,6 +3421,7 @@ if __name__ == &#39;__main__&#39;:
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
+<li><code><a title="pyvfunc.check_chain_path" href="#pyvfunc.check_chain_path">check_chain_path</a></code></li>
 <li><code><a title="pyvfunc.contain_path" href="#pyvfunc.contain_path">contain_path</a></code></li>
 <li><code><a title="pyvfunc.get_aadd_func" href="#pyvfunc.get_aadd_func">get_aadd_func</a></code></li>
 <li><code><a title="pyvfunc.get_akey_func" href="#pyvfunc.get_akey_func">get_akey_func</a></code></li>

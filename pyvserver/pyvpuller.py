@@ -63,7 +63,7 @@ MAX_DBSIZE = 20                 # Size of DB when vacuum
 
 class Blank(): pass
 
-class Replicator():
+class Puller():
 
     def __init__(self, verbose = 0, pgdebug = 0):
         self.verbose = verbose
@@ -329,6 +329,9 @@ class Replicator():
         ret = True
         return ret
 
+optarr =  comline.optarrlong
+optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
+
 def mainfunct():
 
     conf = comline.ConfigLong(optarr)
@@ -347,15 +350,11 @@ def mainfunct():
             ("system", slogfile), ("replic", rlogfile))
 
 
-    pysyslog.repliclog("Replicator started")
+    pysyslog.repliclog("Puller started")
 
-    print("Started replicator")
+    print("Started puller")
     repl = Replicator(conf.verbose, conf.pgdebug)
-    repl.rep_run()
-
-optarr =  comline.optarrlong
-
-optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
+    repl.pull_run()
 
 if __name__ == '__main__':
 

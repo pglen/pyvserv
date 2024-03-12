@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>pgutil API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>pgutil</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python
+
+import os, sys, glob, getopt, time, string, signal, stat, shutil
+import traceback
+
+#import warnings; warnings.simplefilter(&#34;ignore&#34;);
+#import Gtk; warnings.simplefilter(&#34;default&#34;)
+
+from pymenu import  *
+
+import gi
+gi.require_version(&#34;Gtk&#34;, &#34;3.0&#34;)
+from gi.repository import Gtk
+
+# ------------------------------------------------------------------------
+# Handle command line. Interpret optarray and decorate the class;
+# Uses UNIX getopt for compatibility;
+#
+# Option parameters:
+#
+# option, long_option,  var_name,   initial_value, function
+#
+# Option with parameters:   add trailing colon (:)
+# Long opt with parameters: add training equal sign (=)
+#
+# Example:
+#
+#optarr = \
+#    [&#34;d:&#34;,    &#34;debug=&#34;,      &#34;pgdebug&#34;,  0,              None],      \
+#    [&#34;p:&#34;,    &#34;port&#34;,        &#34;port&#34;,     9999,           None],      \
+#    [&#34;v&#34;,     &#34;verbose&#34;,     &#34;verbose&#34;,  0,              None],      \
+#    [&#34;t&#34;,     &#34;test&#34;,        &#34;test&#34;,     &#34;x&#34;,            None],      \
+#    [&#34;V&#34;,     &#34;version&#34;,     None,       None,           pversion],  \
+#    [&#34;h&#34;,     &#34;help&#34;,        None,       None,           phelp],     \
+#    [&#34;i:&#34;,    &#34;input=&#34;,      &#34;input&#34;,      &#34;-&#34;,          None],     \
+
+class ConfigLong_old:
+
+    def __init__(self, optarr):
+        self.optarr = optarr
+        self.err = None
+
+        # Create defaults:
+        for bb in range(len(self.optarr)):
+            if self.optarr[bb][2]:
+                #print(&#34;init&#34;, optarr[bb][2], optarr[bb][3])
+                # Coerse type
+                if type(self.optarr[bb][2]) == type(0):
+                    self.__dict__[self.optarr[bb][2]] = int(self.optarr[bb][3])
+                else:
+                    self.__dict__[self.optarr[bb][2]] = str(self.optarr[bb][3])
+
+    def printvars(self):
+        for aa in dir(self):
+            try:
+                if aa[:2] != &#34;__&#34; and aa != &#34;optarr&#34; and  aa != &#34;comline&#34; and \
+                                    aa != &#34;printvars&#34; :
+                    ff = getattr(self, aa)
+                    if type(ff) == type(self.printvars):
+                        ff = &#34;function&#34;
+                    print(aa, ff)
+            except:
+                pass
+
+    def comline(self, argv):
+        optletters = &#34;&#34;;  longopt = []
+        for aa in self.optarr:
+            if aa[0] in optletters:
+                print (&#34;Warning: duplicate option&#34;, &#34;&#39;&#34; + aa[0] + &#34;&#39;&#34;)
+            #if len(aa[0]) &gt; 1 and aa[0][1] != &#39;:&#39;:
+            optletters += aa[0]
+            longopt.append(aa[1])
+
+        #print(&#34;optleters&#34;, optletters, &#34;longopt&#34;, longopt)
+
+        try:
+            opts, args = getopt.getopt(argv, optletters, longopt)
+        #except getopt.GetoptError, err:
+        except getopt.GetoptError as err:
+            self.err =  str(&#34;Invalid option(s) on command line: %s&#34; % err)
+            return None
+
+        #print (&#34;opts&#34;, opts, &#34;args&#34;, args)
+        for aa in opts:
+            for bb in range(len(self.optarr)):
+                ddd = None
+                if aa[0][1] == &#34;-&#34;:
+                    ddd = &#34;--&#34; + self.optarr[bb][0]
+                    eee = &#34;--&#34; + self.optarr[bb][1]
+                elif aa[0][0] == &#34;-&#34;:
+                    ddd = &#34;-&#34; + self.optarr[bb][0]
+                    eee = &#34;-&#34; + self.optarr[bb][1]
+                else:
+                    ddd = self.optarr[bb]
+                if ddd[-1:] == &#34;=&#34;:
+                    ddd = ddd[:-1]
+                    eee = eee[:-1]
+                if ddd[-1:] == &#34;:&#34;:
+                    ddd = ddd[:-1]
+                    eee = eee[:-1]
+
+                #print (&#34;aa&#34;,  aa, &#34;one opt&#34;, self.optarr[bb][:-1], ddd, eee)
+                if aa[0] == ddd or aa[0] == eee:
+                    #print (&#34;match&#34;, aa, ddd)
+                    if len(self.optarr[bb][0]) &gt; 1:
+                        #print (&#34;arg&#34;, self.optarr[bb][2], self.optarr[bb][3], aa)
+                        if self.optarr[bb][3] != None:
+                            if type(self.optarr[bb][3]) == type(0):
+                                if aa[1][:2] == &#34;0x&#34; or aa[1][:2] == &#34;0X&#34;:
+                                    self.__dict__[self.optarr[bb][2]] = int(aa[1][2:], 16)
+                                else:
+                                    self.__dict__[self.optarr[bb][2]] = int(aa[1])
+                                    pass
+
+                            elif type(self.optarr[bb][2]) == type(&#34;&#34;):
+                                self.__dict__[self.optarr[bb][2]] = str(aa[1])
+                    else:
+                        #print (&#34;set&#34;, self.optarr[bb][1], self.optarr[bb][2])
+                        if self.optarr[bb][3] != None:
+                            self.__dict__[self.optarr[bb][1]] = 1
+                        #print (&#34;call&#34;, self.optarr[bb][3])
+                        if self.optarr[bb][4] != None:
+                            self.optarr[bb][4]()
+        return args
+
+# ------------------------------------------------------------------------
+# Print an exception as the system would print it
+
+def print_exception(xstr):
+    cumm = xstr + &#34; &#34;
+    a,b,c = sys.exc_info()
+    if a != None:
+        cumm += str(a) + &#34; &#34; + str(b) + &#34;\n&#34;
+        try:
+            #cumm += str(traceback.format_tb(c, 10))
+            ttt = traceback.extract_tb(c)
+            for aa in ttt:
+                cumm += &#34;File: &#34; + os.path.basename(aa[0]) + \
+                        &#34; Line: &#34; + str(aa[1]) + &#34;\n&#34; +  \
+                    &#34;   Context: &#34; + aa[2] + &#34; -&gt; &#34; + aa[3] + &#34;\n&#34;
+        except:
+            print (&#34;Could not print trace stack. &#34;, sys.exc_info())
+    print (cumm)
+
+# ------------------------------------------------------------------------
+# Never mind
+
+def cmp(aa, bb):
+    aaa = os.path.basename(aa);  bbb = os.path.basename(bb)
+    pat = re.compile(&#34;[0-9]+&#34;)
+    ss1 = pat.search(aaa)
+    ss2 = pat.search(bbb)
+
+    if(ss1 and ss2):
+        aaaa = float(aaa[ss1.start(): ss1.end()])
+        bbbb = float(bbb[ss2.start(): ss2.end()])
+        #print (aaa, bbb, aaaa, bbbb)
+        if aaaa == bbbb:
+            return 0
+        elif aaaa &lt; bbbb:
+            return -1
+        elif aaaa &gt; bbbb:
+            return 1
+        else:
+            #print (&#34;crap&#34;)
+            pass
+    else:
+        if aaa == bbb:
+            return 0
+        elif aaa &lt; bbb:
+            return -1
+        elif aaa &gt; bbb:
+            return 1
+        else:
+            #print (&#34;crap&#34;)
+            pass
+
+# ------------------------------------------------------------------------
+# Show a regular message:
+&#39;&#39;&#39;
+def xmessage(strx, title = None, icon = Gtk.MESSAGE_INFO):
+
+    dialog = Gtk.MessageDialog(None, Gtk.DIALOG_DESTROY_WITH_PARENT,
+        icon, Gtk.BUTTONS_CLOSE, strx)
+
+    if title:
+        dialog.set_title(title)
+    else:
+        dialog.set_title(&#34;ePub Reader&#34;)
+
+    # Close dialog on user response
+    dialog.connect(&#34;response&#34;, lambda d, r: d.destroy())
+    dialog.show()
+&#39;&#39;&#39;
+
+# -----------------------------------------------------------------------
+# Sleep just a little, but allow the system to breed
+
+&#39;&#39;&#39;def  usleep(msec):
+
+    got_clock = time.clock() + float(msec) / 1000
+    #print (got_clock)
+    while True:
+        if time.clock() &gt; got_clock:
+            break
+        Gtk.main_iteration_do(False)
+&#39;&#39;&#39;
+
+# -----------------------------------------------------------------------
+# Sleep just a little, but allow the system to breed
+
+def  usleep(msec):
+
+    if sys.version_info[0] &lt; 3 or \
+        (sys.version_info[0] == 3 and sys.version_info[1] &lt; 3):
+        timefunc = time.clock
+    else:
+        timefunc = time.process_time
+
+    got_clock = timefunc() + float(msec) / 1000
+    #print( got_clock)
+    while True:
+        if timefunc() &gt; got_clock:
+            break
+        #print (&#34;Sleeping&#34;)
+        Gtk.main_iteration_do(False)
+
+# -----------------------------------------------------------------------
+# Call func with all processes, func called with stat as its argument
+# Function may return True to stop iteration
+
+def withps(func, opt = None):
+
+    ret = False
+    dl = os.listdir(&#34;/proc&#34;)
+    for aa in dl:
+        fname = &#34;/proc/&#34; + aa + &#34;/stat&#34;
+        if os.path.isfile(fname):
+            ff = open(fname, &#34;r&#34;).read().split()
+            ret = func(ff, opt)
+        if ret:
+            break
+    return ret
+
+# ------------------------------------------------------------------------
+# Find
+
+def find(self):
+
+    head = &#34;Find in text&#34;
+
+    dialog = Gtk.Dialog(head,
+                   None,
+                   Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT,
+                   (Gtk.STOCK_CANCEL, Gtk.RESPONSE_REJECT,
+                    Gtk.STOCK_OK, Gtk.RESPONSE_ACCEPT))
+    dialog.set_default_response(Gtk.RESPONSE_ACCEPT)
+
+    try:
+        dialog.set_icon_from_file(&#34;epub.png&#34;)
+    except:
+        print (&#34;Cannot load find dialog icon&#34;, sys.exc_info())
+
+    self.dialog = dialog
+
+    # Spacers
+    label1 = Gtk.Label(&#34;   &#34;);  label2 = Gtk.Label(&#34;   &#34;)
+    label3 = Gtk.Label(&#34;   &#34;);  label4 = Gtk.Label(&#34;   &#34;)
+    label5 = Gtk.Label(&#34;   &#34;);  label6 = Gtk.Label(&#34;   &#34;)
+    label7 = Gtk.Label(&#34;   &#34;);  label8 = Gtk.Label(&#34;   &#34;)
+
+    warnings.simplefilter(&#34;ignore&#34;)
+    entry = Gtk.Entry();
+    warnings.simplefilter(&#34;default&#34;)
+    entry.set_text(self.oldfind)
+
+    entry.set_activates_default(True)
+
+    dialog.vbox.pack_start(label4)
+
+    hbox2 = Gtk.HBox()
+    hbox2.pack_start(label6, False)
+    hbox2.pack_start(entry)
+    hbox2.pack_start(label7, False)
+
+    dialog.vbox.pack_start(hbox2)
+
+    dialog.checkbox = Gtk.CheckButton(&#34;Search _Backwards&#34;)
+    dialog.checkbox2 = Gtk.CheckButton(&#34;Case In_sensitive&#34;)
+    dialog.vbox.pack_start(label5)
+
+    hbox = Gtk.HBox()
+    #hbox.pack_start(label1);  hbox.pack_start(dialog.checkbox)
+    #hbox.pack_start(label2);  hbox.pack_start(dialog.checkbox2)
+    hbox.pack_start(label3);
+    dialog.vbox.pack_start(hbox)
+    dialog.vbox.pack_start(label8)
+
+    label32 = Gtk.Label(&#34;   &#34;);  label33 = Gtk.Label(&#34;   &#34;)
+    label34 = Gtk.Label(&#34;   &#34;);  label35 = Gtk.Label(&#34;   &#34;)
+
+    hbox4 = Gtk.HBox()
+
+    hbox4.pack_start(label32);
+    dialog.vbox.pack_start(hbox4)
+
+    dialog.show_all()
+    response = dialog.run()
+    self.srctxt = entry.get_text()
+
+    dialog.destroy()
+
+    if response != Gtk.RESPONSE_ACCEPT:
+        return None
+
+    return self.srctxt, dialog.checkbox.get_active(), \
+                dialog.checkbox2.get_active()
+
+# ------------------------------------------------------------------------
+# Count lead spaces
+
+def leadspace(strx):
+    cnt = 0;
+    for aa in range(len(strx)):
+        bb = strx[aa]
+        if bb == &#34; &#34;:
+            cnt += 1
+        elif bb == &#34;\t&#34;:
+            cnt += 1
+        elif bb == &#34;\r&#34;:
+            cnt += 1
+        elif bb == &#34;\n&#34;:
+            cnt += 1
+        else:
+            break
+    return cnt</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="pgutil.cmp"><code class="name flex">
+<span>def <span class="ident">cmp</span></span>(<span>aa, bb)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cmp(aa, bb):
+    aaa = os.path.basename(aa);  bbb = os.path.basename(bb)
+    pat = re.compile(&#34;[0-9]+&#34;)
+    ss1 = pat.search(aaa)
+    ss2 = pat.search(bbb)
+
+    if(ss1 and ss2):
+        aaaa = float(aaa[ss1.start(): ss1.end()])
+        bbbb = float(bbb[ss2.start(): ss2.end()])
+        #print (aaa, bbb, aaaa, bbbb)
+        if aaaa == bbbb:
+            return 0
+        elif aaaa &lt; bbbb:
+            return -1
+        elif aaaa &gt; bbbb:
+            return 1
+        else:
+            #print (&#34;crap&#34;)
+            pass
+    else:
+        if aaa == bbb:
+            return 0
+        elif aaa &lt; bbb:
+            return -1
+        elif aaa &gt; bbb:
+            return 1
+        else:
+            #print (&#34;crap&#34;)
+            pass</code></pre>
+</details>
+</dd>
+<dt id="pgutil.find"><code class="name flex">
+<span>def <span class="ident">find</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find(self):
+
+    head = &#34;Find in text&#34;
+
+    dialog = Gtk.Dialog(head,
+                   None,
+                   Gtk.DIALOG_MODAL | Gtk.DIALOG_DESTROY_WITH_PARENT,
+                   (Gtk.STOCK_CANCEL, Gtk.RESPONSE_REJECT,
+                    Gtk.STOCK_OK, Gtk.RESPONSE_ACCEPT))
+    dialog.set_default_response(Gtk.RESPONSE_ACCEPT)
+
+    try:
+        dialog.set_icon_from_file(&#34;epub.png&#34;)
+    except:
+        print (&#34;Cannot load find dialog icon&#34;, sys.exc_info())
+
+    self.dialog = dialog
+
+    # Spacers
+    label1 = Gtk.Label(&#34;   &#34;);  label2 = Gtk.Label(&#34;   &#34;)
+    label3 = Gtk.Label(&#34;   &#34;);  label4 = Gtk.Label(&#34;   &#34;)
+    label5 = Gtk.Label(&#34;   &#34;);  label6 = Gtk.Label(&#34;   &#34;)
+    label7 = Gtk.Label(&#34;   &#34;);  label8 = Gtk.Label(&#34;   &#34;)
+
+    warnings.simplefilter(&#34;ignore&#34;)
+    entry = Gtk.Entry();
+    warnings.simplefilter(&#34;default&#34;)
+    entry.set_text(self.oldfind)
+
+    entry.set_activates_default(True)
+
+    dialog.vbox.pack_start(label4)
+
+    hbox2 = Gtk.HBox()
+    hbox2.pack_start(label6, False)
+    hbox2.pack_start(entry)
+    hbox2.pack_start(label7, False)
+
+    dialog.vbox.pack_start(hbox2)
+
+    dialog.checkbox = Gtk.CheckButton(&#34;Search _Backwards&#34;)
+    dialog.checkbox2 = Gtk.CheckButton(&#34;Case In_sensitive&#34;)
+    dialog.vbox.pack_start(label5)
+
+    hbox = Gtk.HBox()
+    #hbox.pack_start(label1);  hbox.pack_start(dialog.checkbox)
+    #hbox.pack_start(label2);  hbox.pack_start(dialog.checkbox2)
+    hbox.pack_start(label3);
+    dialog.vbox.pack_start(hbox)
+    dialog.vbox.pack_start(label8)
+
+    label32 = Gtk.Label(&#34;   &#34;);  label33 = Gtk.Label(&#34;   &#34;)
+    label34 = Gtk.Label(&#34;   &#34;);  label35 = Gtk.Label(&#34;   &#34;)
+
+    hbox4 = Gtk.HBox()
+
+    hbox4.pack_start(label32);
+    dialog.vbox.pack_start(hbox4)
+
+    dialog.show_all()
+    response = dialog.run()
+    self.srctxt = entry.get_text()
+
+    dialog.destroy()
+
+    if response != Gtk.RESPONSE_ACCEPT:
+        return None
+
+    return self.srctxt, dialog.checkbox.get_active(), \
+                dialog.checkbox2.get_active()</code></pre>
+</details>
+</dd>
+<dt id="pgutil.leadspace"><code class="name flex">
+<span>def <span class="ident">leadspace</span></span>(<span>strx)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def leadspace(strx):
+    cnt = 0;
+    for aa in range(len(strx)):
+        bb = strx[aa]
+        if bb == &#34; &#34;:
+            cnt += 1
+        elif bb == &#34;\t&#34;:
+            cnt += 1
+        elif bb == &#34;\r&#34;:
+            cnt += 1
+        elif bb == &#34;\n&#34;:
+            cnt += 1
+        else:
+            break
+    return cnt</code></pre>
+</details>
+</dd>
+<dt id="pgutil.print_exception"><code class="name flex">
+<span>def <span class="ident">print_exception</span></span>(<span>xstr)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print_exception(xstr):
+    cumm = xstr + &#34; &#34;
+    a,b,c = sys.exc_info()
+    if a != None:
+        cumm += str(a) + &#34; &#34; + str(b) + &#34;\n&#34;
+        try:
+            #cumm += str(traceback.format_tb(c, 10))
+            ttt = traceback.extract_tb(c)
+            for aa in ttt:
+                cumm += &#34;File: &#34; + os.path.basename(aa[0]) + \
+                        &#34; Line: &#34; + str(aa[1]) + &#34;\n&#34; +  \
+                    &#34;   Context: &#34; + aa[2] + &#34; -&gt; &#34; + aa[3] + &#34;\n&#34;
+        except:
+            print (&#34;Could not print trace stack. &#34;, sys.exc_info())
+    print (cumm)</code></pre>
+</details>
+</dd>
+<dt id="pgutil.usleep"><code class="name flex">
+<span>def <span class="ident">usleep</span></span>(<span>msec)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def  usleep(msec):
+
+    if sys.version_info[0] &lt; 3 or \
+        (sys.version_info[0] == 3 and sys.version_info[1] &lt; 3):
+        timefunc = time.clock
+    else:
+        timefunc = time.process_time
+
+    got_clock = timefunc() + float(msec) / 1000
+    #print( got_clock)
+    while True:
+        if timefunc() &gt; got_clock:
+            break
+        #print (&#34;Sleeping&#34;)
+        Gtk.main_iteration_do(False)</code></pre>
+</details>
+</dd>
+<dt id="pgutil.withps"><code class="name flex">
+<span>def <span class="ident">withps</span></span>(<span>func, opt=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def withps(func, opt = None):
+
+    ret = False
+    dl = os.listdir(&#34;/proc&#34;)
+    for aa in dl:
+        fname = &#34;/proc/&#34; + aa + &#34;/stat&#34;
+        if os.path.isfile(fname):
+            ff = open(fname, &#34;r&#34;).read().split()
+            ret = func(ff, opt)
+        if ret:
+            break
+    return ret</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="pgutil.ConfigLong_old"><code class="flex name class">
+<span>class <span class="ident">ConfigLong_old</span></span>
+<span>(</span><span>optarr)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ConfigLong_old:
+
+    def __init__(self, optarr):
+        self.optarr = optarr
+        self.err = None
+
+        # Create defaults:
+        for bb in range(len(self.optarr)):
+            if self.optarr[bb][2]:
+                #print(&#34;init&#34;, optarr[bb][2], optarr[bb][3])
+                # Coerse type
+                if type(self.optarr[bb][2]) == type(0):
+                    self.__dict__[self.optarr[bb][2]] = int(self.optarr[bb][3])
+                else:
+                    self.__dict__[self.optarr[bb][2]] = str(self.optarr[bb][3])
+
+    def printvars(self):
+        for aa in dir(self):
+            try:
+                if aa[:2] != &#34;__&#34; and aa != &#34;optarr&#34; and  aa != &#34;comline&#34; and \
+                                    aa != &#34;printvars&#34; :
+                    ff = getattr(self, aa)
+                    if type(ff) == type(self.printvars):
+                        ff = &#34;function&#34;
+                    print(aa, ff)
+            except:
+                pass
+
+    def comline(self, argv):
+        optletters = &#34;&#34;;  longopt = []
+        for aa in self.optarr:
+            if aa[0] in optletters:
+                print (&#34;Warning: duplicate option&#34;, &#34;&#39;&#34; + aa[0] + &#34;&#39;&#34;)
+            #if len(aa[0]) &gt; 1 and aa[0][1] != &#39;:&#39;:
+            optletters += aa[0]
+            longopt.append(aa[1])
+
+        #print(&#34;optleters&#34;, optletters, &#34;longopt&#34;, longopt)
+
+        try:
+            opts, args = getopt.getopt(argv, optletters, longopt)
+        #except getopt.GetoptError, err:
+        except getopt.GetoptError as err:
+            self.err =  str(&#34;Invalid option(s) on command line: %s&#34; % err)
+            return None
+
+        #print (&#34;opts&#34;, opts, &#34;args&#34;, args)
+        for aa in opts:
+            for bb in range(len(self.optarr)):
+                ddd = None
+                if aa[0][1] == &#34;-&#34;:
+                    ddd = &#34;--&#34; + self.optarr[bb][0]
+                    eee = &#34;--&#34; + self.optarr[bb][1]
+                elif aa[0][0] == &#34;-&#34;:
+                    ddd = &#34;-&#34; + self.optarr[bb][0]
+                    eee = &#34;-&#34; + self.optarr[bb][1]
+                else:
+                    ddd = self.optarr[bb]
+                if ddd[-1:] == &#34;=&#34;:
+                    ddd = ddd[:-1]
+                    eee = eee[:-1]
+                if ddd[-1:] == &#34;:&#34;:
+                    ddd = ddd[:-1]
+                    eee = eee[:-1]
+
+                #print (&#34;aa&#34;,  aa, &#34;one opt&#34;, self.optarr[bb][:-1], ddd, eee)
+                if aa[0] == ddd or aa[0] == eee:
+                    #print (&#34;match&#34;, aa, ddd)
+                    if len(self.optarr[bb][0]) &gt; 1:
+                        #print (&#34;arg&#34;, self.optarr[bb][2], self.optarr[bb][3], aa)
+                        if self.optarr[bb][3] != None:
+                            if type(self.optarr[bb][3]) == type(0):
+                                if aa[1][:2] == &#34;0x&#34; or aa[1][:2] == &#34;0X&#34;:
+                                    self.__dict__[self.optarr[bb][2]] = int(aa[1][2:], 16)
+                                else:
+                                    self.__dict__[self.optarr[bb][2]] = int(aa[1])
+                                    pass
+
+                            elif type(self.optarr[bb][2]) == type(&#34;&#34;):
+                                self.__dict__[self.optarr[bb][2]] = str(aa[1])
+                    else:
+                        #print (&#34;set&#34;, self.optarr[bb][1], self.optarr[bb][2])
+                        if self.optarr[bb][3] != None:
+                            self.__dict__[self.optarr[bb][1]] = 1
+                        #print (&#34;call&#34;, self.optarr[bb][3])
+                        if self.optarr[bb][4] != None:
+                            self.optarr[bb][4]()
+        return args</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="pgutil.ConfigLong_old.comline"><code class="name flex">
+<span>def <span class="ident">comline</span></span>(<span>self, argv)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def comline(self, argv):
+    optletters = &#34;&#34;;  longopt = []
+    for aa in self.optarr:
+        if aa[0] in optletters:
+            print (&#34;Warning: duplicate option&#34;, &#34;&#39;&#34; + aa[0] + &#34;&#39;&#34;)
+        #if len(aa[0]) &gt; 1 and aa[0][1] != &#39;:&#39;:
+        optletters += aa[0]
+        longopt.append(aa[1])
+
+    #print(&#34;optleters&#34;, optletters, &#34;longopt&#34;, longopt)
+
+    try:
+        opts, args = getopt.getopt(argv, optletters, longopt)
+    #except getopt.GetoptError, err:
+    except getopt.GetoptError as err:
+        self.err =  str(&#34;Invalid option(s) on command line: %s&#34; % err)
+        return None
+
+    #print (&#34;opts&#34;, opts, &#34;args&#34;, args)
+    for aa in opts:
+        for bb in range(len(self.optarr)):
+            ddd = None
+            if aa[0][1] == &#34;-&#34;:
+                ddd = &#34;--&#34; + self.optarr[bb][0]
+                eee = &#34;--&#34; + self.optarr[bb][1]
+            elif aa[0][0] == &#34;-&#34;:
+                ddd = &#34;-&#34; + self.optarr[bb][0]
+                eee = &#34;-&#34; + self.optarr[bb][1]
+            else:
+                ddd = self.optarr[bb]
+            if ddd[-1:] == &#34;=&#34;:
+                ddd = ddd[:-1]
+                eee = eee[:-1]
+            if ddd[-1:] == &#34;:&#34;:
+                ddd = ddd[:-1]
+                eee = eee[:-1]
+
+            #print (&#34;aa&#34;,  aa, &#34;one opt&#34;, self.optarr[bb][:-1], ddd, eee)
+            if aa[0] == ddd or aa[0] == eee:
+                #print (&#34;match&#34;, aa, ddd)
+                if len(self.optarr[bb][0]) &gt; 1:
+                    #print (&#34;arg&#34;, self.optarr[bb][2], self.optarr[bb][3], aa)
+                    if self.optarr[bb][3] != None:
+                        if type(self.optarr[bb][3]) == type(0):
+                            if aa[1][:2] == &#34;0x&#34; or aa[1][:2] == &#34;0X&#34;:
+                                self.__dict__[self.optarr[bb][2]] = int(aa[1][2:], 16)
+                            else:
+                                self.__dict__[self.optarr[bb][2]] = int(aa[1])
+                                pass
+
+                        elif type(self.optarr[bb][2]) == type(&#34;&#34;):
+                            self.__dict__[self.optarr[bb][2]] = str(aa[1])
+                else:
+                    #print (&#34;set&#34;, self.optarr[bb][1], self.optarr[bb][2])
+                    if self.optarr[bb][3] != None:
+                        self.__dict__[self.optarr[bb][1]] = 1
+                    #print (&#34;call&#34;, self.optarr[bb][3])
+                    if self.optarr[bb][4] != None:
+                        self.optarr[bb][4]()
+    return args</code></pre>
+</details>
+</dd>
+<dt id="pgutil.ConfigLong_old.printvars"><code class="name flex">
+<span>def <span class="ident">printvars</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def printvars(self):
+    for aa in dir(self):
+        try:
+            if aa[:2] != &#34;__&#34; and aa != &#34;optarr&#34; and  aa != &#34;comline&#34; and \
+                                aa != &#34;printvars&#34; :
+                ff = getattr(self, aa)
+                if type(ff) == type(self.printvars):
+                    ff = &#34;function&#34;
+                print(aa, ff)
+        except:
+            pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="pgutil.cmp" href="#pgutil.cmp">cmp</a></code></li>
+<li><code><a title="pgutil.find" href="#pgutil.find">find</a></code></li>
+<li><code><a title="pgutil.leadspace" href="#pgutil.leadspace">leadspace</a></code></li>
+<li><code><a title="pgutil.print_exception" href="#pgutil.print_exception">print_exception</a></code></li>
+<li><code><a title="pgutil.usleep" href="#pgutil.usleep">usleep</a></code></li>
+<li><code><a title="pgutil.withps" href="#pgutil.withps">withps</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="pgutil.ConfigLong_old" href="#pgutil.ConfigLong_old">ConfigLong_old</a></code></h4>
+<ul class="">
+<li><code><a title="pgutil.ConfigLong_old.comline" href="#pgutil.ConfigLong_old.comline">comline</a></code></li>
+<li><code><a title="pgutil.ConfigLong_old.printvars" href="#pgutil.ConfigLong_old.printvars">printvars</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

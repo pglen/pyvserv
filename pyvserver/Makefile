@@ -18,15 +18,17 @@
 all:
 	@echo Targets: clean cleanpayload cleandata docs
 
-cleandata:
-	@rm -rf ~/pyvserver/*
-	@rm -rf ~/pyvserver_alter/*
+cleanalt:
+	@rm -rf ~/pyvserver_alter/
+
+cleanall:
+	@rm -rf ~/pyvserver/
 
 cleanpayload:
 	@rm -rf ~/pyvserver/payload/*
 
-cleanvote:
-	@rm -rf ~/pyvserver/payload/vote/*
+cleanchain:
+	@rm -rf ~/pyvserver/chain/*
 
 clean:
 	@rm -f aa bb cc dd ee
@@ -40,6 +42,6 @@ test:
 	@echo No tests
 
 docs:
-	@echo No docs
+	@echo No docs (in parent dir)
 
 # EOF

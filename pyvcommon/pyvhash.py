@@ -26,12 +26,12 @@ __doc__ = \
 
 '''
 
-
 Hash     = "_Hash"
 Link     = "_Link"
 PrevHash = "_PrevHash"
 PowRand  = "_PowRand"
 Proof    = "_Proof"
+Repli    = "Replicated"
 PayLoad  = "payload"
 Header   = "header"
 Now      = "now"
@@ -46,6 +46,9 @@ def DefNow():
     dt = datetime.datetime.utcnow()
     fdt = dt.strftime('%a, %d %b %Y %H:%M:%S`')
     return {'now' : fdt}
+
+def DefRep():
+    return {Repli : 0}
 
 class NoProof(Exception):
 
@@ -81,9 +84,10 @@ class BcData():
         self.pb  = pyvpacker.packbin()
         self.rrr = Random.new()
         self.pgdebug = pgdebug
-        self.hash_ignore = [Hash, PrevHash, Link, PowRand, Proof]
-        self.pow_ignore = [Hash, PrevHash, Link, Proof]
-        self.link_ignore = [Hash, Link, Proof]
+        self.hash_ignore = [Hash, PrevHash, Link, PowRand, Proof, Repli]
+        self.pow_ignore = [Hash, PrevHash, Link, Proof, Repli]
+        self.link_ignore = [Hash, Link, Proof, Repli]
+
         self.maxtry = 30000
         self.num_zeros = 3
         self.cnt = 0
@@ -111,6 +115,8 @@ class BcData():
             self.datax |= DefHeader()
         if not Now in self.datax:
             self.datax |= DefNow()
+        if not Repli in self.datax:
+            self.datax |= DefRep()
 
         if self.pgdebug:
             print(self.datax)

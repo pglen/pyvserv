@@ -68,6 +68,8 @@ mydata = {}
 
 class InvalidArg(Exception):
 
+    ''' Exception for bad arguments '''
+
     def __init__(self, message):
          self.message = message
 
@@ -77,6 +79,10 @@ connlist = []
 sem = threading.Semaphore()
 
 def throttle(peer):
+
+    '''  Catch clients that are connecting too fast. This is a crude
+         implementation, will need serious uppdate on large volume production
+    '''
 
     global connlist, sem
     #print("throttle", peer)
@@ -110,6 +116,8 @@ def throttle(peer):
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
+    ''' Request handler. '''
+
     def __init__(self, a1, a2, a3):
         self.a2 = a2
         self.fname = ""
@@ -127,6 +135,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         socketserver.BaseRequestHandler.__init__(self, a1, a2, a3)
 
     def setup(self):
+
+        ''' Start server '''
+
         global mydata
 
         #print("thread", self)
@@ -174,9 +185,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.datahandler.putencode(response, "")
 
     def handle_error(request, client_address):
+
+        ''' Placeholder '''
+
         print("pyvserv Error", request, client_address)
 
     def handle(self):
+
+        ''' Request comes in here '''
 
         if conf.mem:
             tracemalloc.start()
@@ -213,6 +229,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     def finish(self):
 
+        ''' Wind down, remove globals '''
+
         global mydata, conf
 
         cli = str(mydata[self.name].client_address)
@@ -235,6 +253,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 #class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
 
+    ''' Overridden socket server '''
+
     #def __init__(self, arg1, arg2):
     #    self._BaseServer__shutdown_request = True
 
@@ -248,6 +268,8 @@ class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
 
 
 def usersig(arg1, arg2):
+
+    ''' signal comes in here, list current clients '''
 
     global mydata, server
     print("usersig", arg1, arg2)
@@ -264,8 +286,9 @@ def usersig2(arg1, arg2):
     if conf.pglog > 0:
         pysyslog.syslog("Got user signal2 %d" % arg1)
 
-# Did not behave as expected
 def soft_terminate(arg1, arg2):
+
+    ''' Terminate app.  Did not behave as expected. '''
 
     #global mydata, server
     ##print("soft_terminate")
@@ -323,6 +346,8 @@ def terminate(arg1, arg2):
 # Execute one server cycle
 
 class serve_one():
+
+    ''' Simplifies server for testing. '''
 
     def __init__(self, *argx):
         self.cnt = 0
@@ -405,9 +430,14 @@ class serve_one():
             print("ended thread", self.name)
 
 
-# This was a test server, left it in
 
 def simple_server(HOST, PORT):
+
+    ''' This was a test server, left it in for future refernence.
+        It was marginally faster than the stock version, also less features,
+         so the stock servers stayed.
+    '''
+
     with socket.socket() as server:
         server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -436,9 +466,10 @@ comline.setfoot("Use quotes for argument separations.")
 conf = comline.ConfigLong(optarr)
 #conf.printvars()
 
-# The pip install will call this script:
 
 def mainfunct():
+
+    ''' Main entry point. The pip install will call this script. '''
 
     if sys.version_info[0] < 3:
         print("Warning! This script was meant for python 3.x")
