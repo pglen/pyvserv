@@ -89,6 +89,7 @@ rlist_help = "Usage: rlist kind beg_date end_date -- get records from blockcain.
 rcount_help= "Usage: rcount kind beg_date end_date -- get record count from blockcain."
 rsize_help = "Usage: rsize kind -- get total record count from blockcain."
 rget_help  = "Usage: rget kind header -- get record from blockcain."
+rhave_help = "Usage: rhave kind header -- is record in blockcain."
 
 qr_help    = "Usage: qr -- get qrcode image for 2fa"
 twofa_help = "Usage: twofa -- two factor authentication"
@@ -162,6 +163,7 @@ def init_state_table():
     ("rcount",   all_in,  none_in,    auth_pass, get_rcount_func, rcount_help),
     ("rsize",    all_in,  none_in,    auth_pass, get_rsize_func,  rsize_help),
     ("rget",     all_in,  none_in,    auth_pass, get_rget_func,   rget_help),
+    ("rhave",    all_in,  none_in,    auth_pass, get_rhave_func,   rhave_help),
     ]
 # ------------------------------------------------------------------------
 

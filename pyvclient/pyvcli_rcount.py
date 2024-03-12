@@ -16,6 +16,9 @@ from pyvcli_utils import *
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
 
+hand = None
+hand2 = None
+
 # ------------------------------------------------------------------------
 # Globals
 
@@ -45,6 +48,7 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,       None],      \
+    ["P:",  "port_to",  5555,       None],      \
     ["f:",  "fname",    "test.txt", None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
@@ -54,8 +58,13 @@ optarr = \
     ["h",   None,       None,       phelp]      \
 
 conf = comline.Config(optarr)
+conf2 = comline.Config(optarr)
 
-def scanfordays(hand):
+def scanfordays(handx, handx2):
+
+    global hand, hand2
+    hand    = handx
+    hand2   = handx2
 
     # Set beginning date range
     dd = datetime.datetime.now()
@@ -77,7 +86,11 @@ def scanfordays(hand):
         if cresp[1] > 0:
             print("from:", dd_beg, "to:", dd_end);
             print ("Server rcount response:", cresp)
-            scanhours(maxdays - dayx)
+
+            if cresp[1] >= 100:
+                scanhours(maxdays - dayx)
+            else:
+                print("getting day:", dd_bed, "-", dd_end)
 
         #if cresp[1] > 100:
         #    #print("record with more", cresp[1])
@@ -107,10 +120,14 @@ def scanhours(dayx):
         if cresp[1] > 0:
             print(" from:", dd_beg, "to:", dd_end);
             print(" Server hour rcount response:", cresp)
-            scanminutes(dayx, hourx)
+            if cresp[1] >= 100:
+                scanminutes(dayx, hourx)
+            else:
+                print(" getting hour:", dd_beg, " - ", dd_end)
+                cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
+                                    dd_end.timestamp()], conf.sess_key)
 
         hourx += 1
-
         if hourx > maxhours:
             break
 
@@ -134,8 +151,26 @@ def scanminutes(dayx, hourx):
             print("    from:", dd_beg, "to:", dd_end);
             print("    Server min  rcount response:", cresp)
 
-        minx += 1
+            if cresp[1] >= 100:
+                print("    ----------- big rec count")
+            else:
+                #print("    getting minutes:", dd_beg, "-", dd_end)
+                cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
+                                    dd_end.timestamp()], conf.sess_key)
+                if cresp[0] == "OK":
+                    for aa in cresp[1]:
+                        #print("head", aa)
+                        crespg = hand2.client(["rhave", "vote", aa], conf2.sess_key)
+                        #print("rhave", crespg)
+                        if crespg[0] != "OK":
+                            crespr = hand.client(["rget", "vote", aa], conf.sess_key)
+                            print("Rec", crespr[1])
+                            cresp3 = hand2.client(["rput", "vote", aa], conf2.sess_key)
+                            print(cresp3)
 
+                #print(cresp)
+
+        minx += 1
         if minx > maxmins:
             break
 
@@ -144,6 +179,7 @@ def scanminutes(dayx, hourx):
 if __name__ == '__main__':
 
     args = conf.comline(sys.argv[1:])
+
 
     #print(dir(conf))
 
@@ -155,14 +191,14 @@ if __name__ == '__main__':
 
     if len(args) == 0:
         ip = '127.0.0.1'
+        ip2 = '127.0.0.1'
     else:
         ip = args[0]
+        ip2 = args[0]
 
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
-
-    #hand.comm  = conf.comm
 
     try:
         respc = hand.connect(ip, conf.port)
@@ -171,6 +207,18 @@ if __name__ == '__main__':
         sys.exit(1)
 
     atexit.register(atexit_func, hand, conf)
+
+    hand2 = pyclisup.CliSup()
+    hand2.verbose = conf.verbose
+    hand2.pgdebug = conf.pgdebug
+
+    try:
+        respc = hand2.connect(ip, conf.port_to)
+    except:
+        print( "Cannot connect to second server:", ip2 + ":" + str(conf.port_to), sys.exc_info()[1])
+        sys.exit(1)
+
+    atexit.register(atexit_func, hand2, conf2)
 
     #resp3 = hand.client(["id",] , "", False)
     #print("ID Response:", resp3[1])
@@ -181,6 +229,13 @@ if __name__ == '__main__':
         print("Error on setting session:", resp3[1])
         hand.client(["quit"])
         hand.close();
+        sys.exit(0)
+
+    ret2 = hand2.start_session(conf2)
+    if ret2[0] != "OK":
+        print("Error on setting session:", resp3[1])
+        hand2.client(["quit"])
+        hand2.close();
         sys.exit(0)
 
     # Make a note of the session key
@@ -198,6 +253,12 @@ if __name__ == '__main__':
     cresp = hand.client(["rsize", "vote",], conf.sess_key)
     print ("Server rsize response:", cresp)
 
-    scanfordays(hand)
+    cresp = hand2.login(conf2, "admin", "1234")
+    print ("Server login response:", cresp)
+
+    cresp = hand2.client(["rsize", "vote",], conf2.sess_key)
+    print ("Server rsize response:", cresp)
+
+    scanfordays(hand, hand2)
 
 # EOF

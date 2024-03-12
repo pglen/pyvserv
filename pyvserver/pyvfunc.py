@@ -42,6 +42,11 @@ ERR = "ERR"
 
 #pgdebug = 0
 
+def _print_handles(self):
+        ''' Debug helper '''
+        open_file_handles = os.listdir('/proc/self/fd')
+        print('open file handles: ' + ', '.join(map(str, open_file_handles)))
+
 def check_chain_path(self, strp):
 
     chainp = pyservsup.globals.myhome + "chain"
@@ -595,6 +600,51 @@ def get_rlist_func(self, strx):
     response = [OK,  arr]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
+def get_rhave_func(self, strx):
+
+    if len(strx) < 2:
+        response = [ERR, "Must specify blockchain kind", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 3:
+        response = [ERR, "Must specify data header", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print("dname", dname)
+    if not os.path.isdir(dname):
+        response = [ERR, "Blockchain 'kind' directory does not exist.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if pyservsup.globals.conf.pgdebug > 2:
+        print("rget", strx[1], strx[2])
+
+    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
+    #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
+    ddd = []
+    try:
+        ddd = core.get_payoffs_bykey(strx[2])
+    except:
+        pass
+    if len(ddd) == 0:
+        response = [ERR, "Data not found", strx[2],]
+    else:
+        response = [OK, "Data found", strx[2],]
+
+    #_print_handles(self)
+
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
 def get_rget_func(self, strx):
 
     if len(strx) < 2:
@@ -633,7 +683,7 @@ def get_rget_func(self, strx):
     except:
         pass
     if len(ddd) == 0:
-        response = [OK, "Data not found", strx[2],]
+        response = [ERR, "Data not found", strx[2],]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     try:
@@ -642,7 +692,7 @@ def get_rget_func(self, strx):
         print(sys.exc_info())
 
     if not rechead:
-        response = [OK, "Cannot get data", strx[2],]
+        response = [ERR, "Cannot get data", strx[2],]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -662,7 +712,7 @@ def get_rget_func(self, strx):
             print("rec data", data)
 
     if not data:
-        response = [OK, "Record not found", strx[2],]
+        response = [ERR, "Record not found", strx[2],]
     else:
         response = [OK, data, strx[2],]
 
