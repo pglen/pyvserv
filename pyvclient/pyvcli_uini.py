@@ -1,17 +1,44 @@
 #!/usr/bin/env python
 
 # ------------------------------------------------------------------------
-# Test client for the pyserv project. User add.
+import sys
+if  sys.version_info[0] < 3:
+    print(("Needs python 3 or better."))
+    sys.exit(1)
 
+__doc__ =\
+'''
+    Test client for the pyserv project. Default user initializer.
+    This command can only be used from the local network, loopback
+    interface. The command is used to create the initial user,
+    and will not run if the is a user present already.
+
+'''
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '../pyvcommon'))
-sys.path.append(os.path.join(base,  '..'))
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    print("sf", sf)
+    sys.path.append(os.path.join(sf, "pyvcommon"))
+    sys.path.append(os.path.join(sf, "pyvserver"))
+    #sys.path.append(os.path.join(sf, "pyvgui"))
+    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    sys.path.append(os.path.join(base,  '..', "pyvserver"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui"))
+    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
+    from pyvcommon import support
 
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
@@ -55,9 +82,9 @@ conf.sess_key = ""
 
 if __name__ == '__main__':
 
-    '''if  sys.version_info[0] < 3:
-        print(("Needs python 3 or better."))
-        sys.exit(1)'''
+    ''' Initialize test user 'admin' with password '1234'
+    Naturally, this is for testing. '''
+
 
     args = conf.comline(sys.argv[1:])
 

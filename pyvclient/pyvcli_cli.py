@@ -1,11 +1,60 @@
 #!/usr/bin/env python
 
-import sys, os
-import readline
+import sys, os, readline, atexit
 
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)
+
+__doc__ = \
+''' Test unit for pyvserv. Command line interpreter. This interface is similar
+    to the FTP client interface. Some functions are sent through directly,
+    and some functions are interpreted via client helpers.
+    All encryption functionality is exercised as the real client would.
+    The command that starts with the exclamation point is executed
+    in the local shell.
+
+## The following commands (and more) may be issued.
+
+        user logon_name                 -- Name of user to log in with
+        akey                            -- Get asymmetric key
+        pass logon_pass                 -- Password
+        chpass newpass                  -- Change pass (not tested)
+        file fname                      -- Specify name for upload
+        fget fname                      -- Download (get) file
+        fput fname                      -- Upload (put) file
+        del  fname                      -- Delete file
+        uadd user_name user_pass        -- Create new user
+        kadd key_name key_val           -- Add new encryption key
+        uini user_name user_pass        -- Create initial user. Must be from local net.
+        kini key_name key_pass          -- Create initial key.  Must be from local net.
+        uena user_name  flag            -- Enable / disable user
+        aadd user_name user_pass        -- Create admin user
+        udel user_name                  -- Delete user
+        data datalen                    -- Specify length of file to follow
+        ver                             -- Get protocol version. alias: vers
+        id                              -- Get site id string
+        hello                           -- Say Hello - test connectivity.
+        quit                            -- Terminate connection. alias: exit
+        help [command]                  -- Offer help on command
+        ls [dir]                        -- List files in dir
+        lsd [dir]                       -- List dirs in dir
+        cd dir                          -- Change to dir. Capped to server root
+        pwd                             -- Show current dir
+        stat fname                      -- Get file stat. See at the end of this table.
+        tout new_val                    -- Set / Reset timeout in seconds
+        ekey encryption_key             -- Set encryption key
+        sess session data               -- Start session
+        buff buff_size                  -- Limited to 64k
+        rput header, field1, field2...  -- Put record in blockcain. See example code.
+        rget header                     -- Get record from blockcain.
+        qr                              -- Get qrcode image for 2fa
+        twofa                           -- Two factor authentication
+        dmode                           -- Get dmode (Developer Mode) flag
+        ihave                           -- The 'i have you have' protocol entry point
+        ihost                           -- Add / delete replicator host
+
+'''
 
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Download file.
@@ -13,34 +62,7 @@ if sys.version_info[0] < 3:
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-# This repairs the path from local run to pip run.
-# Remove pip version for local tests
-try:
-    from pyvcommon import support
-
-    # Get Parent of module root
-    sf = os.path.dirname(support.__file__)
-    sf = os.path.dirname(sf)
-    print("sf", sf)
-    sys.path.append(os.path.join(sf, "pyvcommon"))
-    sys.path.append(os.path.join(sf, "pyvserver"))
-    #sys.path.append(os.path.join(sf, "pyvgui"))
-    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
-
-except:
-    base = os.path.dirname(os.path.realpath(__file__))
-    sys.path.append(os.path.join(base,  '..'))
-    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
-    sys.path.append(os.path.join(base,  '..', "pyvserver"))
-    #sys.path.append(os.path.join(base, "..", "pyvgui"))
-    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
-    from pyvcommon import support
-
-print("Load:", sys.path[-1])
-
-base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join(base,  '../pyvcommon'))
-sys.path.append(os.path.join(base,  '..'))
+from pyvcli_utils import *
 
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
@@ -53,6 +75,8 @@ version = 1.0
 # ------------------------------------------------------------------------
 
 def phelp():
+
+    ''' Provide local help '''
 
     print()
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
@@ -67,6 +91,9 @@ def phelp():
     sys.exit(0)
 
 def pversion():
+
+    ''' Print version string '''
+
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
@@ -74,11 +101,8 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
     ["p:",  "port",     6666,   None],      \
-    ["f:",  "file",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
-    ["n",   "plain",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -88,12 +112,11 @@ conf = comline.Config(optarr)
 
 def mainfunct():
 
+    ''' Command line interpreter '''
+
     args = conf.comline(sys.argv[1:])
 
     #print(vars(conf))
-
-    #if conf.comm:
-    #    print("Save to filename", conf.comm)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -107,13 +130,13 @@ def mainfunct():
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #hand.comm  = conf.comm
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
+
+    atexit.register(atexit_func, hand, conf)
 
     #resp3 = hand.client(["id",] , "", False)
     #print("ID Response:", resp3[1])
@@ -123,8 +146,6 @@ def mainfunct():
     resp3 = hand.start_session(conf)
     if resp3[0] != "OK":
         print("Error on setting session:", resp3[1])
-        hand.client(["quit"])
-        hand.close();
         sys.exit(0)
 
     # Make a note of the session key
@@ -147,8 +168,6 @@ def mainfunct():
     resp3 = hand.start_session(conf)
     if resp3[0] != "OK":
         print("Error on setting session:", resp3[1])
-        hand.client(["quit"])
-        hand.close();
         sys.exit(0)
 
     if conf.sess_key:
@@ -164,25 +183,14 @@ def mainfunct():
 
     mainloop(conf, hand)
 
-    #ret2 = hand.getfile("zeros", "zeros_local", conf.sess_key)
-    #print ("Server  fget response:", ret2)
-    #bfile ="bigfile"
-    #print("Started bigfile ...", bfile)
-    #ttt = time.time()
-    #ret = hand.getfile(bfile, bfile + "_local", conf.sess_key)
-    #filesize = support.fsize(bfile+ "_local")/1024
-    #print("filesize", filesize)
-    #rate = filesize / (time.time() - ttt)
-    #print ("Server fget response:", ret, "time %.2f kbytes/sec" % rate)
-
-    cresp = hand.client(["quit", ], conf.sess_key)
-    print ("Server quit response:", cresp)
-    hand.sock.shutdown(socket.SHUT_RDWR)
     sys.exit(0)
 
 
 def mainloop(conf, hand):
 
+    ''' Loop through commands and provide interpretation / execution on
+    a line by line basis.
+    '''
     cresp = ""
     while(True):
         try:

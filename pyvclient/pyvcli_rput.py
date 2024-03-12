@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
 
@@ -15,31 +13,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA
 from Crypto import Random
 
-# This repairs the path from local run to pip run.
-# Remove pip version for local tests
-try:
-    from pyvcommon import support
-
-    # Get Parent of module root
-    sf = os.path.dirname(support.__file__)
-    sf = os.path.dirname(sf)
-    print("sf", sf)
-    sys.path.append(os.path.join(sf, "pyvcommon"))
-    sys.path.append(os.path.join(sf, "pyvserver"))
-    #sys.path.append(os.path.join(sf, "pyvgui"))
-    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
-
-except:
-    base = os.path.dirname(os.path.realpath(__file__))
-    sys.path.append(os.path.join(base,  '..'))
-    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
-    sys.path.append(os.path.join(base,  '..', "pyvserver"))
-    #sys.path.append(os.path.join(base, "..", "pyvgui"))
-    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
-    from pyvcommon import support
-
-print("Load:", sys.path[-1])
-
+from pyvcli_utils import *
 
 from pyvcommon import support, pycrypt, pyservsup, pyclisup, pyvhash
 from pyvcommon import pysyslog, comline
@@ -86,15 +60,9 @@ optarr = \
 
 conf = comline.Config(optarr)
 
-def atexit_func(hand):
-    #print("Atexit")
-    cresp = hand.client(["quit",],conf.sess_key)
-    print ("Server quit  response:", cresp)
-    hand.close();
-
 # ------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def mainfunct():
 
     args = conf.comline(sys.argv[1:])
     #print(vars(conf))
@@ -115,7 +83,7 @@ if __name__ == '__main__':
     hand.pgdebug = conf.pgdebug
     hand.comm  = conf.comm
 
-    atexit.register(atexit_func, hand)
+    atexit.register(atexit_func, hand, conf)
 
     ttt = time.time()
     pvh = pyvhash.BcData()
@@ -230,6 +198,9 @@ if __name__ == '__main__':
     #print("rput %.3fms" % ((time.time() - ttt) * 1000) )
 
     sys.exit(0)
+
+if __name__ == '__main__':
+    mainfunct()
 
 # EOF
 

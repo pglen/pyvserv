@@ -444,6 +444,93 @@ def get_pwd_func(self, strx):
     response = [OK,  dname2]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
+def get_rsize_func(self, strx):
+
+    if len(strx) < 2:
+        response = [ERR, "Must specify blockchain kind", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, "Directory does not exist", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
+    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
+    #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
+
+    dbsize = core.getdbsize()
+
+    response = [OK,  dbsize, "records"]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+
+def get_rcount_func(self, strx):
+
+    if len(strx) < 2:
+        response = [ERR, "Must specify blockchain kind", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 3:
+        response = [ERR, "Must specify starting point", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 4:
+        response = [ERR, "Must specify ending point", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if pyservsup.globals.conf.pgdebug > 3:
+        print("list: start", strx[2], "end", strx[3])
+
+    if pyservsup.globals.conf.pgdebug > 2:
+        print("rlist begin:", datetime.datetime.fromtimestamp(strx[2]),
+                            "end:", datetime.datetime.fromtimestamp(strx[3]) )
+
+    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, "Directory does not exist", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
+    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
+    #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
+
+    arr = []
+    rcnt = 0
+    dbsize = core.getdbsize()
+    for aa in range(1, dbsize):
+        rec = core.get_header(aa)
+        ddd = pyservsup.uuid2timestamp(uuid.UUID(rec))
+        #ttt = pyservsup.uuid2date(uuid.UUID(rec))
+        #print(ddd, ttt)
+
+        if ddd > strx[2] and ddd < strx[3]:
+            rcnt += 1
+
+    if self.pgdebug > 2:
+        print("rcnt", "total: %d records" % dbsize, "got: %d records" % rcnt)
+
+    response = [OK,  rcnt, "records"]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
 def get_rlist_func(self, strx):
 
     if len(strx) < 2:
@@ -468,7 +555,9 @@ def get_rlist_func(self, strx):
         print("rlist begin:", datetime.datetime.fromtimestamp(strx[2]),
                             "end:", datetime.datetime.fromtimestamp(strx[3]) )
 
-    dname = contain_path(self, strx[1])
+    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    dname = check_chain_path(self, tmpname)
+
     if not dname:
         response = [ERR, "No Access to directory.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -518,7 +607,8 @@ def get_rget_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    dname = contain_path(self, strx[1])
+    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    dname = check_chain_path(self, tmpname)
 
     if not dname:
         response = [ERR, "No Access to directory.", strx[1]]
