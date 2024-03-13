@@ -5,12 +5,7 @@
 
 import os, sys, getopt, signal, random, time, warnings
 
-from pymenu import  *
-
-#sys.path.append('../../pycommon')
-
-from pgutil import  *
-from pgui import  *
+sys.path.append("pyvguicom")
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -20,6 +15,15 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
+from pyvguicom import pgbox
+from pyvguicom import pgsimp
+from pyvguicom import sutil
+
+from pymenu import  *
+from pgutil import  *
+from pgui import  *
+
+from pyvcommon import pydata, pyservsup,  crysupp
 # ------------------------------------------------------------------------
 
 class MainWin(Gtk.Window):
@@ -27,13 +31,12 @@ class MainWin(Gtk.Window):
     def __init__(self):
 
         self.cnt = 0
+        self.in_timer = False
+
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
-
-        #self = Gtk.Window(Gtk.WindowType.TOPLEVEL)
-
         #Gtk.register_stock_icons()
 
-        self.set_title("Template")
+        self.set_title("PyVserv Control Panel")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
         #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
@@ -59,18 +62,6 @@ class MainWin(Gtk.Window):
             self.set_default_size(5*www/8, 7*hhh/8)
         else:
             self.set_default_size(7*www/8, 7*hhh/8)
-
-
-        '''self.set_flags(Gtk.CAN_FOCUS | Gtk.SENSITIVE)
-
-        self.set_events(  Gdk.POINTER_MOTION_MASK |
-                            Gdk.POINTER_MOTION_HINT_MASK |
-                            Gdk.BUTTON_PRESS_MASK |
-                            Gdk.BUTTON_RELEASE_MASK |
-                            Gdk.KEY_PRESS_MASK |
-                            Gdk.KEY_RELEASE_MASK |
-                            Gdk.FOCUS_CHANGE_MASK )
-        '''
         self.connect("destroy", self.OnExit)
         self.connect("key-press-event", self.key_press_event)
         self.connect("button-press-event", self.button_press_event)
@@ -102,53 +93,139 @@ class MainWin(Gtk.Window):
         self.tbar = merge.get_widget("/ToolBar");
         #self.tbar.show()
 
-        bbox = Gtk.VBox()
-        bbox.pack_start(self.mbar, 0, 0, 0)
-        bbox.pack_start(self.tbar, 0, 0, 0)
-        vbox.pack_start(bbox, 0, 0, 0)
+        #bbox = Gtk.VBox()
+        #bbox.pack_start(self.mbar, 0, 0, 0)
+        #bbox.pack_start(self.tbar, 0, 0, 0)
+        #vbox.pack_start(bbox, 0, 0, 0)
 
-        hbox2 = Gtk.HBox()
-        lab3 = Gtk.Label(" 1 ");  hbox2.pack_start(lab3, 0, 0, 0)
-        lab4 = Gtk.Label("Top");  hbox2.pack_start(lab4, 1, 1, 0)
-        lab5 = Gtk.Label(" 2 ");  hbox2.pack_start(lab5, 0, 0, 0)
-        vbox.pack_start(hbox2, False, 0, 0)
+        #hbox2 = Gtk.HBox()
+        #lab3 = Gtk.Label(" 1 ");  hbox2.pack_start(lab3, 0, 0, 0)
+        #lab4 = Gtk.Label("Top");  hbox2.pack_start(lab4, 1, 1, 0)
+        #lab5 = Gtk.Label(" 2 ");  hbox2.pack_start(lab5, 0, 0, 0)
+        #vbox.pack_start(hbox2, False, 0, 0)
+
+        vbox3 = Gtk.VBox()
 
         hbox3 = Gtk.HBox()
-        #self.edit = SimpleEdit();
-        self.edit = Gtk.Label(" Main ")
-        hbox3.pack_start(self.edit, True, True, 6)
+        hbox4 = Gtk.HBox()
+
+        self.edit1s, self.edit1 = self.wrap(pgsimp.SimpleTree(["Date", "Time", "Level", "Entry"], xalign=0))
+        self.edit2s, self.edit2 = self.wrap(pgsimp.SimpleTree([" Main2 "]))
+        self.edit3s, self.edit3 = self.wrap(pgsimp.SimpleTree([" Main3 "]))
+        self.edit4s, self.edit4 = self.wrap(pgsimp.SimpleTree([" Main4 "]))
+
+        hbox3.pack_start(self.edit1s, True, True, 6)
+        hbox3.pack_start(self.edit2s, True, True, 6)
+
+        hbox4.pack_start(self.edit3s, True, True, 6)
+        hbox4.pack_start(self.edit4s, True, True, 6)
 
         vbox.pack_start(hbox3, True, True, 2)
+        vbox.pack_start(hbox4, True, True, 2)
+
+
+        hbox4p = Gtk.HBox()
+        lab1 = Gtk.Label("   ");  hbox4p.pack_start(lab1, 0, 0, 0)
+
+        # buttom row-1
+        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Server  ")
+        #butt1.connect("clicked", self.show_new, window)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Placeholder  ")
+        #butt1.connect("clicked", self.show_new, window)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Placeholder  ")
+        #butt1.connect("clicked", self.show_new, window)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Placeholder  ")
+        #butt1.connect("clicked", self.show_new, window)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Placeholder  ")
+        #butt1.connect("clicked", self.show_new, window)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Placeholder  ")
+        #butt1.connect("clicked", self.show_new, window)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Placeholder  ")
+        #butt1.connect("clicked", self.show_new, window)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        lab1 = Gtk.Label("   ");  hbox4p.pack_start(lab1, 0, 0, 0)
 
         hbox4 = Gtk.HBox()
-        lab1 = Gtk.Label(" 3 ");  hbox4.pack_start(lab1, 0, 0, 0)
-
+        lab1 = Gtk.Label("   ");  hbox4.pack_start(lab1, 0, 0, 0)
         # buttom row
         lab2a = Gtk.Label(" buttom ");  hbox4.pack_start(lab2a, 1, 1, 0)
         lab2a.set_xalign(0)
         self.status = lab2a
 
-        butt1 = Gtk.Button.new_with_mnemonic("    _New    ")
+        butt1 = Gtk.Button.new_with_mnemonic("    _Start  Server  ")
         #butt1.connect("clicked", self.show_new, window)
         hbox4.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Stop Server   ")
+        #butt1.connect("clicked", self.show_new, window)
+        hbox4.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Start Monitoring Log   ")
+        butt1.connect("clicked", self.mon_log)
+        hbox4.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Stop Monitoring Log   ")
+        butt1.connect("clicked", self.mon_log_off)
+        hbox4.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Last Hour    ")
+        #butt1.connect("clicked", self.show_new, window)
+        hbox4.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Last Day    ")
+        #butt1.connect("clicked", self.show_new, window)
+        hbox4.pack_start(butt1, False, 0, 2)
+
+        #butt1 = Gtk.Button.new_with_mnemonic("    _New    ")
+        ##butt1.connect("clicked", self.show_new, window)
+        #hbox4.pack_start(butt1, False, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic("    E_xit    ")
         butt2.connect("clicked", self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
 
-        lab2b = Gtk.Label(" 5 ");  hbox4.pack_start(lab2b, 0, 0, 0)
+        lab2b = Gtk.Label("    ");  hbox4.pack_start(lab2b, 0, 0, 0)
 
-        vbox.pack_start(hbox4, False, 0, 6)
+        vbox.pack_start(hbox4p, False, 0, 2)
+        vbox.pack_start(hbox4, False, 0, 2)
 
         self.add(vbox)
         self.show_all()
 
+        self.log_ena = False
+        self.log_fp = None
+
         GLib.timeout_add(200, self.load)
         GLib.timeout_add(1000, self.timer)
 
+    def mon_log(self, arg1):
+        self.log_ena = True
+
+    def mon_log_off(self, arg1):
+        self.log_ena = False
 
     def  OnExit(self, arg, srg2 = None):
         self.exit_all()
+
+    def wrap(self, cont):
+        sc = Gtk.ScrolledWindow()
+        sc.set_hexpand(True)
+        sc.set_vexpand(True)
+        sc.add(cont)
+        return sc, cont
 
     def exit_all(self):
         Gtk.main_quit()
@@ -196,9 +273,47 @@ class MainWin(Gtk.Window):
         self.status.set_text("Status text for load")
 
     def timer(self):
+
         #print("Called timer")
+
+        if self.in_timer:
+            return True
+
+        in_timer = True
+        if self.log_ena:
+            if not self.log_fp:
+                logfname = os.path.join(pyservsup.globals.logdir, "pyvserver.log")
+                self.log_fp = open(logfname, "rt")
+                self.log_fp.seek(0, os.SEEK_END)
+                sss = max(0, self.log_fp.tell() - 1000)
+                self.log_fp.seek(sss, os.SEEK_SET)
+                if sss:
+                    while True:
+                        rrr =  self.log_fp.read(1)
+                        if not rrr:
+                            break
+                        if rrr == '\n':
+                            break
+            got = False
+            while True:
+                aa = self.log_fp.readline()
+                if not aa:
+                    break
+                aa = aa.strip()
+                #print(aa)
+                bb = aa.split()
+                self.edit1.append([bb[0], bb[1], bb[2], " ".join(bb[3:]) ])
+                sutil.usleep(10)
+                got = True
+
+            if got:
+                self.edit1.sel_last()
+
         self.status.set_text("Status timer %d" % self.cnt)
         self.cnt += 1
+
+        self.in_timer = False
+
         return True
 
 # Start of program:

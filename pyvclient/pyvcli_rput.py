@@ -87,7 +87,8 @@ def mainfunct():
 
     ttt = time.time()
     pvh = pyvhash.BcData()
-    pvh.addpayload({"Vote": '0', "UID":  str(uuid.uuid1()), })
+    pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
+    pvh.addpayload({"SubVote": random.randint(0, 10), "GUID":  str(uuid.uuid1()), })
     #print(pvh.datax)
 
     if conf.putkey:
@@ -100,22 +101,6 @@ def mainfunct():
     elif not pvh.checkpow():
         print("Error on POW payload .. retrying ...")
 
-    #pvh.num_zeros = 3
-    #maxcnt = 20
-    #while True:
-    #    if maxcnt == 0:
-    #        print("Cannot produce hash")
-    #        sys.exit()
-    #    pvh.hasharr()
-    #    pvh.powarr()
-    #    if not pvh.checkhash():
-    #        print("Error on hashing payload .. retrying ...")
-    #    elif not pvh.checkpow():
-    #        print("Error on POW payload .. retrying ...")
-    #    else:
-    #        break
-    #    maxcnt -= 1
-    #
     if conf.verbose:
         print(pvh.datax)
 
@@ -156,12 +141,12 @@ def mainfunct():
         print("Server hello resp:", resp4[1])
         sys.exit()
 
-    ttt = time.time()
+    #ttt = time.time()
     cresp = hand.client(["user", "admin"], conf.sess_key)
     #print("user %.3fms" % ((time.time() - ttt) * 1000) )
     print ("Server user respo:", cresp)
 
-    ttt = time.time()
+    #ttt = time.time()
     cresp = hand.client(["pass", "1234"], conf.sess_key)
     #print("pass %.3fms" % ((time.time() - ttt) * 1000) )
     if cresp[0] != "OK":
@@ -191,7 +176,7 @@ def mainfunct():
     if hand.verbose:
         print("Sending Data:", pvh.datax)
 
-    ttt = time.time()
+    #ttt = time.time()
     for aa in range(conf.numrec):
         cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
         print ("Server rput response:", cresp)

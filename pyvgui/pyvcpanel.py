@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
-#from __future__ import absolute_import
-#from __future__ import print_function
+import os, sys
 
-import os, sys, getopt, signal, select, socket, time, struct
+if  sys.version_info[0] < 3:
+        print("Needs python 3 or better.")
+        sys.exit(1)
+
+import getopt, signal, select, socket, time, struct
 import random, string, stat, base64, random, datetime
-
-import os, getopt, signal, select, string, time
-import tarfile, subprocess, struct, platform
-import socket, threading, tracemalloc, inspect
 
 import pyvpacker
 
@@ -31,21 +30,27 @@ except:
     sys.path.append(os.path.join(base,  '..'))
     sys.path.append(os.path.join(base,  '..', "pyvcommon"))
     sys.path.append(os.path.join(base,  '..', "pyvserver"))
-    sys.path.append(os.path.join(base, "..", "pyvgui"))
-    sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
+    sys.path.append(os.path.join(base,  "..", "pyvgui"))
+    sys.path.append(os.path.join(base,  "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
-#for aa in sys.path:
-#    print(aa)
+try:
+    from pyvguicom import sutil
+    # Get Parent of module root
+    sf = os.path.dirname(sutil.__file__)
+    sf = os.path.dirname(sf)
+    sys.path.append(os.path.join(sf, "pyvguicom"))
+except:
+    print(sys_exc_info())
+    sys.path.append(os.path.join(base,  "..", "pyvguicom"))
+    from pyvguicom import sutil
 
-print("Load:", sys.path[-1])
+#print("Load:", sys.path[-1])
 
 from pyvcommon import support, comline, pywrap
 from pyvcommon import pydata, pyservsup,  crysupp
-
 from pyvserver import pyvstate
 from pyvserver import pyvfunc
-
 from guilib import mainwin
 from guilib import pgutil
 
@@ -81,38 +86,26 @@ optarr = \
     ["p:",  "port=",    "port",     9999,   None],      \
     ["v",   "verbose",  "verbose",  0,      None],      \
     ["q",   "quiet",    "quiet",    0,      None],      \
-    ["t",   "test",     "test",     "x",    None],      \
+    ["r:",  "dataroot=", "droot",   "pyvserver",     None],      \
     ["V",   "version",  None,       None,   pversion],  \
     ["h",   "help",     None,       None,   phelp]      \
 
 conf = comline.ConfigLong(optarr)
 
 def mainfunct():
-
     #print("pyvcpanel started ...")
     args = conf.comline(sys.argv[1:])
     #print("args", args)
+
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+    pyservsup.globals.conf = conf
+
     mw = mainwin.MainWin()
     mw.main()
     sys.exit(0)
 
-
 if __name__ == '__main__':
-
-    if  sys.version_info[0] < 3:
-        print("Needs python 3 or better.")
-        sys.exit(1)
 
     mainfunct()
 
 # EOF
-
-
-
-
-
-
-
-
-
-

@@ -64,7 +64,10 @@ structure on the local drive.
 
     open terminal window
     navigate to the server's pyvserver subdir
-    type ./pyvserv.py
+    type ./pyvserv.py  -D
+
+    The -D option stands for development mode. The server will not ask for
+    2FA authentication.
 
     open another terminal window
     navigate to the pyvclient subdir
@@ -77,9 +80,13 @@ The following (and more) should be printed on command line:
     resp ['OK', 'Hello', '6ccdaaf1-a22d-4140-9608-8fb93a8845af', '11812']
     Server quit response: ['OK', 'Bye', '11812']
 
-Quick rundown of the above test: 1.) Server responds to connection
-2.) Delivers OK status, hello message, server serial number, unique id
+Quick rundown of the above test:
+
+1.) Server responds to connection
+2.) Delivers OK status, hello message, server serial number, and a unique id
 3.) Server signs off. This interaction is typical of all the commands.
+
+ The unique ID the thread ID and it is not cryptographically secure;
 
  The best way to learn about the operation of the server is to look at the
 sample client examples in the client source tree. (Files named pycli_*)
@@ -115,8 +122,9 @@ Additional tests can be found in the test directory.
 
     1.0.0   Sun 03.Mar.2024    Beta ready
     1.0.0   Mon 11.Mar.2024    PIP installation with utils
+    1.0.0   Wed 13.Mar.2024    rget rput and family (rget=BC record get)
 
-Written by Peter Glen
+Written by Peter Glen, 2022, 2023
 
 // EOF
 

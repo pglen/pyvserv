@@ -112,17 +112,19 @@ if __name__ == '__main__':
     cresp = hand.login(conf, "admin", "1234")
     #print ("Server login response:", cresp)
 
-    #datetime(year, month, day[, hour[, minute[, second[,
-    # Beginning of today
-
-    #2024-03-13 02:52:52.660962
-
     if conf.start:
         dd = datetime.datetime.now()
         #print(dd)
-        dd = dd.strptime(conf.start, "%Y-%m-%d %H:%M")
-        print(dd)
+        try:
+            dd = dd.strptime(conf.start, "%Y-%m-%d %H:%M")
+        except:
+            try:
+                dd = dd.strptime(conf.start, "%Y-%m-%d")
+            except:
+                raise
+        print("date from comline:", dd)
     else:
+        # Beginning of today
         dd = datetime.datetime.now()
         dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -165,7 +167,7 @@ if __name__ == '__main__':
             for aa in cresp2[1]:
                 #print("aa", aa)
                 dec = hand.pb.decode_data(aa[1])
-                print("dec:", dec[0]['header'], dec[0]['payload'])
+                print("dec:", dec[0]['header'], dec[0]['now'], dec[0]['payload'])
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)
