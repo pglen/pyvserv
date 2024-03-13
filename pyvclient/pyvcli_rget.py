@@ -34,6 +34,8 @@ def phelp():
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -r        - Record ID to get")
+    print( "            -s        - Start time. Format: 'Y-m-d H:M'")
+    print( "            -i        - Interval in minutes. (Default: 1 day)")
     print( "            -h        - Help")
     print()
     sys.exit(0)
@@ -50,7 +52,9 @@ optarr = \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
     ["n",   "plain",    0,          None],      \
-    ["r",   "rget",      "",        None],      \
+    ["r:",  "rget",     "",         None],      \
+    ["s:",  "start",     "",        None],      \
+    ["i:",  "inter",    0,          None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
 
@@ -79,8 +83,6 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #hand.comm  = conf.comm
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
@@ -101,47 +103,69 @@ if __name__ == '__main__':
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  resp3[1])
 
-    if conf.sess_key:
-        print("Post session, session key:", conf.sess_key[:12], "...")
+    #if conf.sess_key:
+    #    print("Post session, session key:", conf.sess_key[:12], "...")
 
     resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    print("Hello Response:", resp3)
+    #print("Hello Response:", resp3)
 
     cresp = hand.login(conf, "admin", "1234")
-    print ("Server login response:", cresp)
+    #print ("Server login response:", cresp)
 
     #datetime(year, month, day[, hour[, minute[, second[,
     # Beginning of today
-    dd = datetime.datetime.now()
-    #dd2 = dd.replace(dd.year, dd.month, dd.day,  0, 0, 0, 0)
-    dd2 = dd + datetime.timedelta(0)
-    dd3 = dd2 - datetime.timedelta(1)
-    #print("from:", dd3, "to:", dd2);
-    ts2 =  dd2.timestamp();    ts3 = dd3.timestamp()
-    #print(ts3, ts2)
 
-    if conf.rget:
-        cresp = hand.client(["rget", "vote", aa], conf.sess_key)
-        print(cresp)
+    #2024-03-13 02:52:52.660962
+
+    if conf.start:
+        dd = datetime.datetime.now()
+        #print(dd)
+        dd = dd.strptime(conf.start, "%Y-%m-%d %H:%M")
+        print(dd)
     else:
-        cresp = hand.client(["rlist", "vote", ts3, ts2], conf.sess_key)
+        dd = datetime.datetime.now()
+        dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    dd_beg = dd + datetime.timedelta(0)
+
+    if conf.inter:
+        dd_end = dd_beg + datetime.timedelta(0, conf.inter * 60)
+    else:
+        dd_end = dd_beg + datetime.timedelta(1)
+
+    print("from:", dd_beg, "to:", dd_end);
+    if conf.rget:
+        rgetarr = conf.rget.split()
+        #print("rgetarr:", rgetarr)
+        cresp = hand.client(["rget", "vote", rgetarr], conf.sess_key)
+        if cresp[0] == "OK":
+            #print("rget resp:", cresp)
+            for aa in cresp[1]:
+                #print("aa", aa)
+                dec = hand.pb.decode_data(aa[1])[0]
+                #print("dec", dec)
+                print(dec['header'], dec['payload'])
+    else:
+        cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
+                         dd_end.timestamp()], conf.sess_key)
         #print ("Server  rlist response:", cresp)
         if cresp[0] != "OK":
-            print("Cannot get rList", cresp)
+            print("Cannot get rlist", cresp)
             cresp = hand.client(["quit", ], conf.sess_key)
             sys.exit(0)
-
+        print("rlist got", cresp[1], "records")
         for aa in cresp[1]:
             if conf.verbose:
-                print("rget", aa)
-            cresp = hand.client(["rget", "vote", aa], conf.sess_key)
-            if cresp[0] != "OK":
+                print("rget", aa[1]['header'], aa)
+            cresp2 = hand.client(["rget", "vote", [aa]], conf.sess_key)
+            if cresp2[0] != "OK":
                 print("Cannot get record", cresp)
                 #break
-            #print(cresp[1])
-            dec = hand.pb.decode_data(cresp[1][1])
-            print(dec)
-
+            #print("cresp2:", cresp2)
+            for aa in cresp2[1]:
+                #print("aa", aa)
+                dec = hand.pb.decode_data(aa[1])
+                print("dec:", dec[0]['header'], dec[0]['payload'])
 
     cresp = hand.client(["quit", ], conf.sess_key)
     print ("Server quit response:", cresp)

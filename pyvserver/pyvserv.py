@@ -520,6 +520,7 @@ def mainfunct():
         exec = os.path.dirname(os.path.split(pyservsup.globals._script_home)[0]) + os.sep
         exec += "../pyvtools/pyvgenkey.py"
         print("Notice: Generating key in", "'" + pyservsup.globals.keydir + "'")
+        print("For added security please generate more keys with 'pyvgenkeys'");
         if conf.pgdebug > 2:
             print("Exec:  ", exec)
 

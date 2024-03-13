@@ -158,16 +158,25 @@ def scanminutes(dayx, hourx):
                 cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
                                     dd_end.timestamp()], conf.sess_key)
                 if cresp[0] == "OK":
-                    for aa in cresp[1]:
-                        #print("head", aa)
-                        crespg = hand2.client(["rhave", "vote", aa], conf2.sess_key)
-                        #print("rhave", crespg)
-                        if crespg[0] != "OK":
-                            crespr = hand.client(["rget", "vote", aa], conf.sess_key)
-                            print("Rec", crespr[1])
-                            cresp3 = hand2.client(["rput", "vote", aa], conf2.sess_key)
-                            print(cresp3)
+                    crespr = hand.client(["rget", "vote", cresp[1]], conf.sess_key)
+                    #print("rget", crespr)
+                    for aa in crespr[1]:
+                        #print("aa", aa)
+                        dec = hand.pb.decode_data(aa[1])[0]
+                        #print("dec", dec)
+                        print(dec['header'], dec['payload'])
 
+                    #for aa in cresp[1]:
+                    #    #print("head", aa)
+                    #    #crespg = hand2.client(["rhave", "vote", aa], conf2.sess_key)
+                    #    #print("rhave", crespg)
+                    #    if 1: #crespg[0] != "OK":
+                    #        crespr = hand.client(["rget", "vote", aa], conf.sess_key)
+                    #        #print("Rec", crespr[1])
+                    #        cresp3 = hand2.client(
+                    #                ["rput", "vote", crespr[1][0], ], conf2.sess_key)
+                    #        if cresp3[0] == 'OK':
+                    #            print("rput", cresp3)
                 #print(cresp)
 
         minx += 1

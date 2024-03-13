@@ -9,7 +9,7 @@ if sys.version_info[0] < 3:
 # Test client for the pyserv project. Download file.
 
 import os, sys, getopt, signal, select, socket, time, struct
-import random, stat, datetime
+import random, stat, datetime, uuid, atexit
 
 from pyvcli_utils import *
 
@@ -32,6 +32,8 @@ def phelp():
     print( "            -p        - Port to use (default: 9999)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
+    print( "            -s        - Start time. Format: 'Y-m-d H:M'")
+    print( "            -i        - Interval in minutes. (Default: 1 day)")
     print( "            -n        - No encryption (plain)")
     print( "            -h        - Help")
     print()
@@ -45,11 +47,12 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,       None],      \
-    ["f:",  "fname",    "test.txt", None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
     ["n",   "plain",    0,          None],      \
     ["t",   "test",     "x",        None],      \
+    ["i:",  "inter",    0,          None],      \
+    ["s:",  "start",    "",         None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
 
@@ -78,13 +81,13 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #hand.comm  = conf.comm
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
+
+    atexit.register(atexit_func, hand, conf)
 
     #resp3 = hand.client(["id",] , "", False)
     #print("ID Response:", resp3[1])
@@ -110,15 +113,34 @@ if __name__ == '__main__':
     print ("Server login response:", cresp)
 
     # Set date range
-    dd = datetime.datetime.now()
-    dd2 = dd + datetime.timedelta(0)
-    dd3 = dd2 - datetime.timedelta(5)
-    print("from:", dd3, "to:", dd2);
-    cresp = hand.client(["rlist", "vote", dd3.timestamp(),
-                                    dd2.timestamp()], conf.sess_key)
-    print ("Server  rlist response:", cresp)
+    if conf.start:
+        dd = datetime.datetime.now()
+        dd = dd.strptime(conf.start, "%Y-%m-%d %H:%M")
+    else:
+        dd = datetime.datetime.now()
+        dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    cresp = hand.client(["quit", ], conf.sess_key)
-    print ("Server quit response:", cresp)
+    #print(dd)
+    dd_beg = dd + datetime.timedelta(0)
+    if conf.inter:
+        dd_end = dd_beg + datetime.timedelta(0, conf.inter * 60)
+    else:
+        dd_end = dd_beg + datetime.timedelta(1)
+
+    print("from:", dd_beg, "to:", dd_end);
+    cresp = hand.client(["rcount", "vote", dd_beg.timestamp(),
+                                    dd_end.timestamp()], conf.sess_key)
+    print ("Server  rcount response:", cresp)
+
+    if cresp[1] < 100:
+        cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
+                                    dd_end.timestamp()], conf.sess_key)
+        #print ("Server  rlist response:", cresp)
+        if cresp[0] == "OK":
+            for aa in cresp[1]:
+                #print("aa", aa)
+                if aa:
+                    ttt = pyservsup.uuid2date(uuid.UUID(aa))
+                    print(aa, ":", ttt)
 
 # EOF

@@ -676,46 +676,53 @@ def get_rget_func(self, strx):
 
     core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
-
-    data = []; ddd = []
-    try:
-        ddd = core.get_payoffs_bykey(strx[2])
-    except:
-        pass
-    if len(ddd) == 0:
-        response = [ERR, "Data not found", strx[2],]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
-    try:
-        rechead = core.get_header(ddd[0])
-    except:
-        print(sys.exc_info())
-
-    if not rechead:
-        response = [ERR, "Cannot get data", strx[2],]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
-
-    if self.pgdebug > 2:
-        print("got rechead", rechead)
-
-    if not core.checkdata(ddd[0]):
-        data = [ERR, "Invalid Record, bad checksum", rec]
-    elif not core.linkintegrity(ddd[0]):
-        data = [ERR, "Invalid Record, link damaged", rec]
-    else:
+    datax = []
+    for aa in strx[2]:
+        data = []; ddd = []
         try:
-            data = core.get_payload(ddd[0])
+            ddd = core.get_payoffs_bykey(aa)
         except:
-            data = "error on get data", str(sys.exc_info())
-        if self.pgdebug > 4:
-            print("rec data", data)
+            pass
+        if len(ddd) == 0:
+            response = [ERR, "Data not found", aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        try:
+            rechead = core.get_header(ddd[0])
+        except:
+            print(sys.exc_info())
 
-    if not data:
-        response = [ERR, "Record not found", strx[2],]
-    else:
-        response = [OK, data, strx[2],]
+        if not rechead:
+            response = [ERR, "Cannot get data", aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
 
+        if self.pgdebug > 2:
+            print("got rechead", rechead)
+
+        if not core.checkdata(ddd[0]):
+            data = [ERR, "Invalid Record, bad checksum", aa]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+        if not core.linkintegrity(ddd[0]):
+            data = [ERR, "Invalid Record, link damaged", aa]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        else:
+            try:
+                data = core.get_payload(ddd[0])
+            except:
+                data = "error on get data", str(sys.exc_info())
+            if self.pgdebug > 4:
+                print("rec data", data)
+        if not data:
+            response = [ERR, "Record not found", aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        datax.append(data)
+
+    response = [OK, datax, datax, len(datax), "records"]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rput_func(self, strx):
@@ -770,7 +777,6 @@ def get_rput_func(self, strx):
     #print("Got:", strx[2])
 
     # Do we have it already?:
-
     #ttt = time.time()
     #rethas = savecore.get_data_bykey(strx[2]['header'])
     #print("db get data  %.3f" % ((time.time() - ttt) * 1000) )
@@ -785,9 +791,9 @@ def get_rput_func(self, strx):
     retoffs = savecore.get_payoffs_bykey(strx[2]['header'])
     #print("db get offs  %.3f" % ((time.time() - ttt) * 1000) )
     if retoffs:
-        if self.pgdebug > 1:
+        if self.pgdebug > 2:
             print("Duplicate block, retoffs", retoffs)
-        response = [ERR, "Duplicate block, not saved.", strx[0]]
+        response = [ERR, "Duplicate block, not saved.", strx[2]['header']]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
