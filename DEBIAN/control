@@ -9,7 +9,7 @@ Version: 1.0
 Depends: python, passlib, pycrypto, bcrypt
 Provides: pyvserv
 Conflicts:
-Description: Public Voting System.
+Description: Public Voting System Blockchain server.
     The system maintains an encrypted chain of vote events. Every entry has
     the Voter ID, an Electronic ID, the vote action (register / cast /
     uncast / withdraw)

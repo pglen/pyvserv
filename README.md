@@ -1,9 +1,44 @@
 #  PyvServer
 ## 	Python fully encrypted TCP/IP server
 
- &nbsp; &nbsp; PyvServ is a fully fledged encrypting TCP/IP server written in Python. The
-encryption algorithm is AES. The server can be fully administered from
-the protocol side.
+ &nbsp; &nbsp; PyvServ is an encrypting TCP/IP server written in Python. The
+encryption algorithm is AES. (Advanced Encryption Standard) The server can be
+fully administered from the protocol side. The key exchange uses ECC. (Elliptic curve)
+
+## How to use, what it is for:
+
+    Public Voting System Blockchain server.
+    Charity administration, trust maintenance. (Zakat)
+    Internal currency / resource maintenance.
+
+#### Public Voting System Blockchain server.
+
+  The system maintains an encrypted chain of vote events. Every entry has
+the Voter ID, an Electronic ID, and the vote action (register / cast /
+un-cast / withdraw)
+
+  The voter ID is a number allocated by authorities, the Electronic ID is a
+number allocated on initial login / registration by the system.
+The Voter Block Chain and Electronic ID and vote is visible by the public,
+so every voter can verify his / her participation. The voter ID
+is visible by the electorate only.
+
+  The blockchain may be replicated to independent hosts, so falsifying it
+would require breaching multiple services.
+
+ The blockchain visibility allows that every voter can verify their participation.
+This also allows all parties to verify the chain, and create independent counts.
+
+ The chain can  be verified for legitimate and singular registration. This system
+crates accountability from both the voter sides and the electorate (authority's) side.
+
+#### Charity administration, trust maintenance. (Zakat)
+
+ The blockchain will allow the donation's public visibility and usage.
+
+#### Internal resource / currency maintenance
+
+ The blockchain will allow monitoring internal resource allocation / usage.
 
  &nbsp; &nbsp; PyvServ contains protocol level encryption, which can be switched on by
 instructing the server to use an encryption (session) key.
@@ -40,7 +75,7 @@ previous record. Utilities to verify the data are also provided.
  Most linux system have all the dependencies by default. Some dependencies
  are added automatically on installation.
 
-     pydbase, pyvpacker, pyvecc
+     pydbase, pyvpacker, pyvecc, pyvguicom
 
  The firewall needs to be opened for incoming connections on port xxxx
 
@@ -145,5 +180,3 @@ originally formatted, without the blockchain and hash details.
 Written by Peter Glen, 2022, 2023
 
 // EOF
-
-
