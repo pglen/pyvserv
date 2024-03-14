@@ -34,14 +34,11 @@ class   Global_Vars:
 
     def __init__(self, scriptname, dataroot):
 
-        self.verbose = 0
-
-        self._script_home = scriptname    # where the original script lives
-
         # Underscore names are definitions - others are calculated
 
-        #self._dataroot  =  "pyvserver"
-        #self._dataroot  =  os.path.expanduser(dataroot)
+        self.verbose = 0
+        self._script_home = scriptname    # where the original script lives
+
         self._dataroot  =   dataroot
         self._passfile  =  "passwd.secret"
         self._keyfile   =  "keys.secret"
@@ -55,7 +52,8 @@ class   Global_Vars:
 
         self.myhome    = os.path.normpath(self.myhome) + os.sep
 
-        print("myhome", self.myhome)
+        if self.verbose:
+            print("myhome", self.myhome)
 
         # make sure it exists
         self._softmkdir(self.myhome)

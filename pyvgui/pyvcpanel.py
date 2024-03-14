@@ -52,7 +52,6 @@ from pyvcommon import pydata, pyservsup,  crysupp
 from pyvserver import pyvstate
 from pyvserver import pyvfunc
 from guilib import mainwin
-from guilib import pgutil
 
 # -----------------------------------------------------------------------
 # Globals

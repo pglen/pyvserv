@@ -18,9 +18,9 @@ from gi.repository import Pango
 from pyvguicom import pgbox
 from pyvguicom import pgsimp
 from pyvguicom import sutil
+from pyvguicom import pggui
 
 from pymenu import  *
-from pgutil import  *
 from pgui import  *
 
 from pyvcommon import pydata, pyservsup,  crysupp
@@ -31,16 +31,23 @@ class MainWin(Gtk.Window):
     def __init__(self):
 
         self.cnt = 0
+        self.led1_cnt = 0
         self.in_timer = False
+        self.datamon_ena = False
+        self.status_cnt = 0
 
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
-        #Gtk.register_stock_icons()
 
         self.set_title("PyVserv Control Panel")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
-        #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
-        #window.set_icon(ic.get_pixbuf())
+        try:
+            pixbuf = Gtk.IconTheme.get_default().load_icon("weather-storm", 32, 0)
+            self.set_icon(pixbuf)
+        except:
+            ic = Gtk.Image(); ic.set_from_file(icon)
+            self.set_icon(ic.get_pixbuf())
+            #icon = os.path.join(os.path.dirname(__file__), "icon.png")
 
         www = Gdk.Screen.width(); hhh = Gdk.Screen.height();
 
@@ -104,8 +111,30 @@ class MainWin(Gtk.Window):
         #lab5 = Gtk.Label(" 2 ");  hbox2.pack_start(lab5, 0, 0, 0)
         #vbox.pack_start(hbox2, False, 0, 0)
 
-        vbox3 = Gtk.VBox()
+        hbox4t = Gtk.HBox()
+        lab1 = Gtk.Label(" 1  ");  hbox4t.pack_start(lab1, 1, 1, 0)
 
+        self.led1 = pggui.Led("#888888")
+        hbox4t.pack_start(self.led1, 0, 0, 0)
+        lab1 = Gtk.Label(" Server Activity ");  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        lab1 = Gtk.Label("      ");  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        self.led2 = pggui.Led("#00ff00")
+        hbox4t.pack_start(self.led2, 0, 0, 0)
+        lab1 = Gtk.Label(" Misc Status ");  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        lab1 = Gtk.Label("      ");  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        self.led3 = pggui.Led("#0000ff")
+        hbox4t.pack_start(self.led3, 0, 0, 0)
+        lab1 = Gtk.Label(" Just Status ");  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        lab1 = Gtk.Label(" 2  ");  hbox4t.pack_end(lab1, 1, 1, 0)
+
+        vbox.pack_start(hbox4t, False, 0, 4)
+
+        vbox3 = Gtk.VBox()
         hbox3 = Gtk.HBox()
         hbox4 = Gtk.HBox()
 
@@ -122,7 +151,6 @@ class MainWin(Gtk.Window):
 
         vbox.pack_start(hbox3, True, True, 2)
         vbox.pack_start(hbox4, True, True, 2)
-
 
         hbox4p = Gtk.HBox()
         lab1 = Gtk.Label("   ");  hbox4p.pack_start(lab1, 0, 0, 0)
@@ -163,14 +191,15 @@ class MainWin(Gtk.Window):
         # buttom row
         lab2a = Gtk.Label(" buttom ");  hbox4.pack_start(lab2a, 1, 1, 0)
         lab2a.set_xalign(0)
+        lab2a.set_size_request(300, -1)
         self.status = lab2a
 
-        butt1 = Gtk.Button.new_with_mnemonic("    _Start  Server  ")
-        #butt1.connect("clicked", self.show_new, window)
+        butt1 = Gtk.Button.new_with_mnemonic("    _Start Data Monitor  ")
+        butt1.connect("clicked", self.datamon_on)
         hbox4.pack_start(butt1, False, 0, 2)
 
-        butt1 = Gtk.Button.new_with_mnemonic("    _Stop Server   ")
-        #butt1.connect("clicked", self.show_new, window)
+        butt1 = Gtk.Button.new_with_mnemonic("    _Stop Data Monitor   ")
+        butt1.connect("clicked", self.datamon_off)
         hbox4.pack_start(butt1, False, 0, 2)
 
         butt1 = Gtk.Button.new_with_mnemonic("    _Start Monitoring Log   ")
@@ -181,13 +210,13 @@ class MainWin(Gtk.Window):
         butt1.connect("clicked", self.mon_log_off)
         hbox4.pack_start(butt1, False, 0, 2)
 
-        butt1 = Gtk.Button.new_with_mnemonic("    _Last Hour    ")
-        #butt1.connect("clicked", self.show_new, window)
-        hbox4.pack_start(butt1, False, 0, 2)
-
-        butt1 = Gtk.Button.new_with_mnemonic("    _Last Day    ")
-        #butt1.connect("clicked", self.show_new, window)
-        hbox4.pack_start(butt1, False, 0, 2)
+        #butt1 = Gtk.Button.new_with_mnemonic("    _Last Hour    ")
+        ##butt1.connect("clicked", self.show_new, window)
+        #hbox4.pack_start(butt1, False, 0, 2)
+        #
+        #butt1 = Gtk.Button.new_with_mnemonic("    _Last Day    ")
+        ##butt1.connect("clicked", self.show_new, window)
+        #hbox4.pack_start(butt1, False, 0, 2)
 
         #butt1 = Gtk.Button.new_with_mnemonic("    _New    ")
         ##butt1.connect("clicked", self.show_new, window)
@@ -211,11 +240,26 @@ class MainWin(Gtk.Window):
         GLib.timeout_add(200, self.load)
         GLib.timeout_add(1000, self.timer)
 
+    def datamon_on(self, aarg1):
+        self.datamon_ena = True
+        self.status.set_text("Enabled DATA monitoring")
+        self.status_cnt = 4
+
+
+    def datamon_off(self, aarg1):
+        self.datamon_ena = False
+        self.status.set_text("Disabled DATA monitoring")
+        self.status_cnt = 4
+
     def mon_log(self, arg1):
         self.log_ena = True
+        self.status.set_text("Enabled LOG monitoring")
+        self.status_cnt = 4
 
     def mon_log_off(self, arg1):
         self.log_ena = False
+        self.status.set_text("Disabled LOG monitoring")
+        self.status_cnt = 4
 
     def  OnExit(self, arg, srg2 = None):
         self.exit_all()
@@ -271,6 +315,7 @@ class MainWin(Gtk.Window):
     def load(self):
         #print("Called load")
         self.status.set_text("Status text for load")
+        self.status_cnt = 4
 
     def timer(self):
 
@@ -308,13 +353,22 @@ class MainWin(Gtk.Window):
 
             if got:
                 self.edit1.sel_last()
+                self.led1.set_color("00ff00")
+                GLib.timeout_add(300, self.led_off, self.led1, "#888888")
 
-        self.status.set_text("Status timer %d" % self.cnt)
+        #self.status.set_text("Status timer %d" % self.cnt)
         self.cnt += 1
+        if self.status_cnt:
+            self.status_cnt -= 1
+            if not self.status_cnt:
+                self.status.set_text("Idle")
 
         self.in_timer = False
-
         return True
+
+    def led_off(self, ledx, color):
+        ledx.set_color(color)
+
 
 # Start of program:
 
