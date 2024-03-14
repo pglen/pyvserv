@@ -72,7 +72,7 @@ previous record. Utilities to verify the data are also provided.
 
  Dependencies:
 
- Most linux system have all the dependencies by default. Some dependencies
+ Most linux systems already have all the dependencies by default. Some dependencies
  are added automatically on installation.
 
      pydbase, pyvpacker, pyvecc, pyvguicom
@@ -84,20 +84,26 @@ For example (assuming port 6666):
     sudo iptables -A INPUT -p tcp --dport 6666
     sudo iptables -A INPUT -p tcp --sport 6666
 
+ Please note that this is not a recommendation, it is a port we used during development.
+
+#### Platform:
+
+    This project was developed on Ubuntu 22.x. Most linux distributions should work.
+
 #### Working parts:
 
-    Server.     subdir: pyvserver       -- Server has 90% of the commands done
-    Client.     subdir: pyvclient       -- 90% the commands
+    Server.     subdir: pyvserver       -- Server has most of the commands done
+    Client.     subdir: pyvclient       -- Exercise server commands / demo code
     Tool Suite. subdir: pyvtools        -- Key generation etc ...
-    Test Suite. subdir: pyvclient/tests -- Test pass
+    Test Suite. subdir: pyvclient/tests -- official pytest tests
+    GUI base    subdir: pyvgui          -- Monitoring / administering the server
     Studies.    subdir: study           -- testing/learning subsystems (ignore it)
 
 #### Quick start:
 
  One can mimic global connectivity on a single machine. This would allow the study
-of the client / server interaction before live deployment. This
-chapter assumes installation from github, replicating directory
-structure on the local drive.
+of the client / server interaction before live deployment. This chapter assumes
+installation from github, replicating directory structure on the local drive.
 
     open terminal window
     navigate to the server's pyvserver subdir
@@ -108,11 +114,11 @@ structure on the local drive.
 
     open another terminal window
     navigate to the pyvclient subdir
-    type ./pycli_hello.py
+    type ./pyvcli_hello.py
 
-The following (and more) should be printed on command line:
+The following (and more) should be printed on the command line:
 
-    ./pycli_hello.py
+    ./pyvcli_hello.py
     Server initial: ['OK', 'pyvserv 1.0 ready']
     resp ['OK', 'Hello', '6ccdaaf1-a22d-4140-9608-8fb93a8845af', '11812']
     Server quit response: ['OK', 'Bye', '11812']
@@ -126,7 +132,7 @@ Quick rundown of the above test:
  The unique ID the thread ID and it is not cryptographically secure;
 
  The best way to learn about the operation of the server is to look at the
-sample client examples in the client source tree. (Files named pycli_*)
+sample client examples in the client source tree. (Files named pyvcli_*)
 
 ## Testing:
 
@@ -155,9 +161,9 @@ sample client examples in the client source tree. (Files named pycli_*)
 
 Additional tests can be found in the test directory.
 
-## Screenshots:
+## Screen shots:
 
-Screenshot of the Monitoring tool:
+Screen shot of the Monitoring tool:
 
 ![Screen Shot](montool.png)
 
@@ -170,12 +176,14 @@ originally formatted, without the blockchain and hash details.
 
   All views monitor the live files, without interfering with any of the operations.
 
-
 ## History:
+
+ Recent history kept, for the full list of changes consult the github site.
 
     1.0.0   Sun 03.Mar.2024    Beta ready
     1.0.0   Mon 11.Mar.2024    PIP installation with utils
     1.0.0   Wed 13.Mar.2024    rget rput and family (rget=BC record get)
+    1.0.0   Thu 14.Mar.2024    Started GUI tools
 
 Written by Peter Glen, 2022, 2023
 
