@@ -24,8 +24,10 @@ previous record. Utilities to verify the data are also provided.
 
  PyvServ has replication facilities via a client based 'I have You have'
  mechanism featuring encrypted transport. It is also capable of replication
- on a replicate when received mechanism. The replicated records are marked,
- so replication does not enter looping.
+ on a 'replicate when received' mechanism. The replicated records are marked
+ with a replication count, so replication does not enter looping. By default,
+ the replicated records are not replicated any further, assuming a flat
+ structure of replication.
 
  Project is still in motion, but a lot of it is usable.
 
@@ -124,14 +126,14 @@ Screenshot of the Monitoring tool:
 
 ![Screen Shot](montool.png)
 
- This screenshot depicts the monitoring (control panel) application 'pyvcpanel'.
-The top left area contains a live view of the pycserver syslog. The top right
+ This screen shot depicts the monitoring (control panel) application 'pyvcpanel'.
+The top left area contains a live view of the pyvserver syslog. The top right
 contains a live view of the replicator log.
 
- The buttom area of the window contains a live view of the incoming data, as it is
+ The bottom area of the window contains a live view of the incoming data, as it is
 originally formatted, without the blockchain and hash details.
 
-  All views monitor the live files, without intefering with any of the operations.
+  All views monitor the live files, without interfering with any of the operations.
 
 
 ## History:
