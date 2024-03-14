@@ -118,6 +118,22 @@ sample client examples in the client source tree. (Files named pycli_*)
 
 Additional tests can be found in the test directory.
 
+## Screenshots:
+
+Screenshot of the Monitoring tool:
+
+![Screen Shot](montool.png)
+
+ This screenshot depicts the monitoring (control panel) application 'pyvcpanel'.
+The top left area contains a live view of the pycserver syslog. The top right
+contains a live view of the replicator log.
+
+ The buttom area of the window contains a live view of the incoming data, as it is
+originally formatted, without the blockchain and hash details.
+
+  All views monitor the live files, without intefering with any of the operations.
+
+
 ## History:
 
     1.0.0   Sun 03.Mar.2024    Beta ready
