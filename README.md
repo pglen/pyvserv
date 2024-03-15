@@ -209,6 +209,24 @@ originally formatted, without the blockchain and hash details.
 
 ![Screen Shot](commits_by_year_month.png)
 
+## Security review:
+
+ &nbsp;  As of today, (Fri 15.Mar.2024) the 256 bit AES is considered unbreakable by
+available state of the art means. The key exchange algorithm ECC 384 bit is
+also considered safe. These algorythms are used dynamically, as a randomly picked
+key is used in every session. The session is also able to dynamically change keys
+mid flight, on command.
+
+ &nbsp; The checksum verification and link verification both use SHA256 (256 bit)
+hashes. This is generated every time a transaction is created.
+
+ &nbsp The proof of work is a modest 3 generations deep. This can be calculated
+with an everyday desktop in one - to - three seconds. Even though this looks like
+a small amount, it adds up if one wants to re-generate (fake) a whole chain.
+Additionally, the checksum and proof of work interact, changing one will effect
+the other. This way a link verification and the proof of work verification
+ together create an ironclad safety level.
+
 Written by Peter Glen, 2022, 2023
 
 // EOF
