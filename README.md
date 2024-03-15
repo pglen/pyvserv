@@ -1,9 +1,10 @@
 #  PyvServer
-## 	Python fully encrypted TCP/IP server
+## 	Fully encrypted TCP/IP server.
 
  &nbsp; &nbsp; PyvServ is an encrypting TCP/IP server written in Python. The
-encryption algorithm is AES. (Advanced Encryption Standard) The server can be
-fully administered from the protocol side. The key exchange uses ECC. (Elliptic curve)
+encryption algorithm is AES. (Advanced Encryption Standard) The key exchange
+uses ECC. (Elliptic curve) The server can be fully administered from the
+protocol side.
 
 ## How to use, what it is for:
 
@@ -14,14 +15,14 @@ fully administered from the protocol side. The key exchange uses ECC. (Elliptic 
 #### Public Voting System Blockchain server.
 
   The system maintains an encrypted chain of vote events. Every entry has
-the Voter ID, an Electronic ID, and the vote action (register / cast /
+(among others) the Voter ID, an Electronic ID, and the vote action (register / cast /
 un-cast / withdraw), and of course, the vote.
 
   The voter ID is a number allocated by authorities, the Electronic ID is a
-number allocated on initial login / registration by the system.
-The Voter Block Chain and Electronic ID and the vote is visible by the public,
-so every voter can verify his / her participation. The voter ID
-is visible by the electorate only.
+number allocated on initial login / registration / transaction by the system.
+The Voter Block Chain, the associated IDs, and the vote is visible to the public,
+so every voter can verify his / her participation. The voter ID is visible, but
+the data behind it is known by the electorate only.
 
   The blockchain may be replicated to independent hosts, so falsifying it
 would require breaching multiple services.
@@ -54,7 +55,8 @@ can be transmitted securely. The key exchange is based on ECC.
  PyvServ has utilities to generate encryption keys. At least one
 key needs to be generated before use. (now automatic) The server picks from
 a pool of keys, so communication data is always distinctive. Make sure you
-generate them with the 'pyvgenkeys' utility.
+generate some new keys with the 'pyvgenkeys' utility before production
+deployment.
 
  PyvServ has blockchain empowered back end. The new data is linked to the
 previous record. Utilities to verify the data are also provided.
@@ -134,7 +136,7 @@ Quick rundown of the above test:
 2.) Delivers OK status, hello message, server serial number, and a unique id
 3.) Server signs off. This interaction is typical of all the commands.
 
- The unique ID the thread ID and it is not cryptographically secure;
+ The unique ID is the session's thread ID and it is not cryptographically secure;
 
  The best way to learn about the operation of the server is to look at the
 sample client examples in the client source tree. (Files named pyvcli_*)
@@ -144,7 +146,7 @@ sample client examples in the client source tree. (Files named pyvcli_*)
  All pytest cases pass. Note that the for the pytest client tests one needs to
  start the 'pyvserv.py' server.
  The server --port and --dataroot option can ba used to start the server in an alternate
- universe.  Please make sure it does not interfere with production.
+ universe. Please make sure it does not interfere with production.
 
    More test coming soon ....
 
@@ -164,7 +166,8 @@ sample client examples in the client source tree. (Files named pyvcli_*)
 
     ============================== 9 passed in 1.35s ===============================
 
-Additional tests can be found in the test directory.
+Additional tests can be found in the test directory. The pyvcli_* files may also
+serve as test cases.
 
 ## Screen shots:
 
@@ -179,7 +182,8 @@ contains a live view of the replicator log.
  The bottom area of the window contains a live view of the incoming data, as it is
 originally formatted, without the blockchain and hash details.
 
-  All views monitor the live files, without interfering with any of the operations.
+  All views monitor the live files, on the default setup, without interfering
+with any of the operations.
 
 ## History:
 
@@ -224,11 +228,11 @@ hashes. This is generated every time a transaction is created.
  &nbsp; The proof of work is a modest 3 generations deep. This can be calculated
 with an everyday desktop in one - to - three seconds. Even though this looks like
 a small amount, it adds up if one wants to re-generate (fake) a whole chain.
-Additionally, the check sum the link sum and proof of work interact, changing one
+Additionally, the check sum, the link sum, and proof of work interact, changing one
 will effect the other. This way a sum verification and link verification and the
 proof of work verification together create an ironclad safety solution.
 
-Written by Peter Glen, 2022, 2023
+Written by Peter Glen, 2022, 2023, 2024
 Released under MIT License (MIT)
 
 // EOF
