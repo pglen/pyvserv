@@ -6,11 +6,12 @@
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat, uuid, atexit
 
-from Crypto.Hash import SHA512
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
+#from Crypto.Hash import SHA512
+#from Crypto.PublicKey import RSA
+#from Crypto.Cipher import PKCS1_v1_5
+#from Crypto.PublicKey import RSA
+#from Crypto.Hash import SHA
+
 from Crypto import Random
 
 from pyvcli_utils import *
@@ -85,10 +86,14 @@ def mainfunct():
 
     atexit.register(atexit_func, hand, conf)
 
+    actstr = ["register", "unregister", "cast", "uncast", ]
+    act = actstr[random.randint(0, len(actstr)-1)]
+
     ttt = time.time()
     pvh = pyvhash.BcData()
     pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
-    pvh.addpayload({"SubVote": random.randint(0, 10), "GUID":  str(uuid.uuid1()), })
+    pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
+    pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
     #print(pvh.datax)
 
     if conf.putkey:

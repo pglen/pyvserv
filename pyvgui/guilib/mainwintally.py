@@ -1,0 +1,299 @@
+#!/usr/bin/env python
+
+import os, sys, getopt, signal, random, time, warnings
+
+from pymenu import  *
+from pgui import *
+
+base = os.path.dirname(os.path.realpath(__file__))
+#sys.path.append(os.path.join(base, '../../'))
+
+sys.path.append('../../')
+
+from pyvguicom import pgbox
+from pyvguicom import pgsimp
+from pyvguicom import sutil
+from pyvguicom import pggui
+
+from pyvcommon import pydata, pyservsup,  crysupp
+from pydbase import twinchain
+
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GLib
+from gi.repository import GObject
+from gi.repository import Pango
+
+import pyvpacker
+
+# ------------------------------------------------------------------------
+
+class MainWin(Gtk.Window):
+
+    def __init__(self):
+
+        Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
+
+        self.start_anal = False
+        self.core = None
+        self.in_timer = False
+        self.cnt = 0
+        self.old_sss = 1
+        self.status_cnt = 0
+        self.set_title("PyVServer Vote Analisys")
+        self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+
+        #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
+        #window.set_icon(ic.get_pixbuf())
+
+        www = Gdk.Screen.width(); hhh = Gdk.Screen.height();
+
+        disp2 = Gdk.Display()
+        disp = disp2.get_default()
+        #print( disp)
+        scr = disp.get_default_screen()
+        ptr = disp.get_pointer()
+        mon = scr.get_monitor_at_point(ptr[1], ptr[2])
+        geo = scr.get_monitor_geometry(mon)
+        www = geo.width; hhh = geo.height
+        xxx = geo.x;     yyy = geo.y
+
+        # Resort to old means of getting screen w / h
+        if www == 0 or hhh == 0:
+            www = Gdk.screen_width(); hhh = Gdk.screen_height();
+
+        if www / hhh > 2:
+            self.set_default_size(5*www/8, 7*hhh/8)
+        else:
+            self.set_default_size(7*www/8, 7*hhh/8)
+
+        self.connect("destroy", self.OnExit)
+        self.connect("key-press-event", self.key_press_event)
+        self.connect("button-press-event", self.button_press_event)
+
+        self.tally = []
+        for aa in range(11):
+            self.tally.append(0)
+
+        self.untally = []
+        for aa in range(11):
+            self.untally.append(0)
+
+        try:
+            self.set_icon_from_file("icon.png")
+        except:
+            pass
+
+        vbox = Gtk.VBox(); hbox4 = Gtk.HBox()
+
+        merge = Gtk.UIManager()
+        #self.mywin.set_data("ui-manager", merge)
+
+        aa = create_action_group(self)
+        merge.insert_action_group(aa, 0)
+        self.add_accel_group(merge.get_accel_group())
+
+        merge_id = merge.new_merge_id()
+
+        try:
+            mergeid = merge.add_ui_from_string(ui_info)
+        except GLib.GError as msg:
+            print("Building menus failed: %s" % msg)
+
+        #self.mbar = merge.get_widget("/MenuBar")
+        #self.mbar.show()
+        #self.tbar = merge.get_widget("/ToolBar");
+        #self.tbar.show()
+        #bbox = Gtk.VBox()
+        #bbox.pack_start(self.mbar, 0,0, 0)
+        #bbox.pack_start(self.tbar, 0,0, 0)
+        #vbox.pack_start(bbox, False, 0, 0)
+
+        lab1 = Gtk.Label("   ");  hbox4.pack_start(lab1, 0, 0, 0)
+        lab2a = Gtk.Label(" Initializing ");  hbox4.pack_start(lab2a, 1, 1, 0)
+        lab2a.set_xalign(0)
+        lab2a.set_size_request(300, -1)
+        self.status = lab2a
+        self.status_cnt = 1
+
+        lab1 = Gtk.Label(" ");  hbox4.pack_start(lab1, 1, 1, 0)
+
+        butt1 = Gtk.Button.new_with_mnemonic(" _Start ")
+        butt1.connect("clicked", self.start_analize)
+        hbox4.pack_start(butt1, False, 0, 4)
+
+        butt2 = Gtk.Button.new_with_mnemonic(" E_xit ")
+        butt2.connect("clicked", self.OnExit, self)
+        hbox4.pack_start(butt2, False, 0, 4)
+
+        lab2 = Gtk.Label("   ");  hbox4.pack_start(lab2, 0, 0, 0)
+
+        hbox2 = Gtk.HBox()
+        lab3 = Gtk.Label("");  hbox2.pack_start(lab3, 0, 0, 0)
+        lab4 = Gtk.Label("");  hbox2.pack_start(lab4, 0, 0, 0)
+        vbox.pack_start(hbox2, False, 0, 0)
+
+        hbox3 = Gtk.HBox()
+        #self.edit1 = pgsimp.SimpleEdit();
+
+        self.tree1s, self.tree1 = self.wrap(pgsimp.SimpleTree(["Head", "Payload", ], xalign=0))
+        self.tree2s, self.tree2 = self.wrap(pgsimp.SimpleTree(["Head", "Payload", ], xalign=0))
+
+        hbox3.pack_start(self.tree1s, True, True, 6)
+        vbox.pack_start(hbox3, True, True, 2)
+
+        hbox3a = Gtk.HBox()
+        hbox3a.pack_start(self.tree2s, True, True, 6)
+        vbox.pack_start(hbox3a, True, True, 2)
+
+        vbox.pack_start(hbox4, False, 0, 6)
+
+        self.add(vbox)
+        self.show_all()
+
+        GLib.timeout_add(1000, self.timer)
+
+    def wrap(self, cont):
+        sc = Gtk.ScrolledWindow()
+        sc.set_hexpand(True)
+        sc.set_vexpand(True)
+        sc.add(cont)
+        return sc, cont
+
+    def start_analize(self, arg1):
+        print("Analize")
+        self.start_anal = True
+
+    def timer(self):
+
+        #print("Called timer")
+
+        if self.in_timer:
+            return True
+        in_timer = True
+
+        if self.start_anal:
+            if not self.core:
+                dbname = os.path.join(pyservsup.globals.chaindir, "vote", pyservsup.chainfname + ".pydb")
+                self.core = twinchain.TwinChain(dbname)
+                #print("opened", self.core)
+            sss = self.core.getdbsize()
+            #sss = 3 # test
+            if sss != self.old_sss:
+                cnt = 0
+                # Start from one
+                for aa in range(self.old_sss, sss):
+                    rec = self.core.get_rec(aa)
+                    if not rec:
+                        continue
+                    #print("Datamon", rec)
+                    pb = pyvpacker.packbin()
+                    dec = pb.decode_data(rec[1])[0]
+                    #print("dec", dec)
+                    decpay   = pb.decode_data(dec['payload'])[0]
+
+                    actstr = ["register", "unregister", "cast", "uncast", ]
+                    #print("decpay", decpay)
+                    #for aa in actstr:
+                    #    if aa == decpay['payload']['Action']:
+                    #        print("action", aa, "for", decpay['payload']['Vote'])
+
+
+                    if decpay['payload']['Action'] == 'cast':
+                        idx = int(decpay['payload']['Vote'])
+                        if idx >= 11:
+                            print("bad vote value", idx)
+                        self.tally[ idx % 11 ] += 1
+
+                    if decpay['payload']['Action'] == 'uncast':
+                        idx = int(decpay['payload']['Vote'])
+                        if idx >= 11:
+                            print("bad unvote value", idx)
+                        self.untally[ idx % 11 ] += 1
+
+                    for bb in sorted(decpay.keys()):
+                        strx = ""
+                        if bb[0] != "_":
+                            strx += bb + " : " + str(decpay[bb]) + "  "
+                    #print("append:", strx)
+                    self.tree1.append([dec['header'], strx])
+
+                    cnt += 1
+                    self.set_status_text("Getting rec: %d" % cnt)
+                    sutil.usleep(2)
+
+                self.old_sss = sss
+                self.tree1.sel_last()
+                #self.led2.set_color("00ff00")
+                #GLib.timeout_add(400, self.led_off, self.led2, "#aaaaaa")
+
+                print(self.tally)
+                print(self.untally)
+
+        self.cnt += 1
+        if self.status_cnt:
+            self.status_cnt -= 1
+            if not self.status_cnt:
+                self.status.set_text("Idle")
+
+        in_timer = False
+        return True
+
+    def set_status_text(self, text):
+        self.status.set_text(text)
+        self.status_cnt = 4
+
+    def main(self):
+        Gtk.main()
+
+    def  OnExit(self, arg, srg2 = None):
+        self.exit_all()
+
+    def exit_all(self):
+        Gtk.main_quit()
+
+    def key_press_event(self, win, event):
+        #print( "key_press_event", win, event)
+        pass
+
+    def button_press_event(self, win, event):
+        #print( "button_press_event", win, event)
+        pass
+
+    def activate_action(self, action):
+
+        #dialog = Gtk.MessageDialog(None, Gtk.DIALOG_DESTROY_WITH_PARENT,
+        #    Gtk.MESSAGE_INFO, Gtk.BUTTONS_CLOSE,
+        #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
+        # Close dialog on user response
+        #dialog.connect ("response", lambda d, r: d.destroy())
+        #dialog.show()
+
+        warnings.simplefilter("ignore")
+        strx = action.get_name()
+        warnings.simplefilter("default")
+
+        print ("activate_action", strx)
+
+    def activate_quit(self, action):
+        print( "activate_quit called")
+        self.OnExit(False)
+
+    def activate_exit(self, action):
+        print( "activate_exit called" )
+        self.OnExit(False)
+
+    def activate_about(self, action):
+        print( "activate_about called")
+        pass
+
+# Start of program:
+
+if __name__ == '__main__':
+
+    mainwin = MainWin()
+    Gtk.main()
+
+# EOF

@@ -30,6 +30,10 @@ pgdebug = 0
 #buffsize = 1024;
 buffsize = 4096;
 
+chainfname  = "initial"
+repfname    = "pyvreplic"
+logfname    = "pyvserver"
+
 class   Global_Vars:
 
     def __init__(self, scriptname, dataroot):

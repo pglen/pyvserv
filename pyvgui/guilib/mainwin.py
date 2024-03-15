@@ -28,9 +28,6 @@ from pydbase import twinchain
 
 import pyvpacker
 
-chainfname = "initial"
-repfname = "replic"
-
 # ------------------------------------------------------------------------
 
 class MainWin(Gtk.Window):
@@ -44,11 +41,10 @@ class MainWin(Gtk.Window):
         self.repmon_ena = False
         self.status_cnt = 0
         self.core = None
-        self.old_sss = 0
         self.replog_fp = 0
-        self.log_ena = False
         self.log_fp = None
-
+        self.log_ena = False
+        self.old_sss = 1        # Remember, cnnot use record one
 
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
@@ -153,16 +149,16 @@ class MainWin(Gtk.Window):
         hbox3 = Gtk.HBox()
         hbox4 = Gtk.HBox()
 
-        self.edit1s, self.edit1 = self.wrap(pgsimp.SimpleTree(["Date", "Time", "Level", "Entry"], xalign=0))
-        self.edit2s, self.edit2 = self.wrap(pgsimp.SimpleTree(["Date", "Time", "Level", "Entry"], xalign=0))
-        self.edit3s, self.edit3 = self.wrap(pgsimp.SimpleTree(["Head", "Payload",]))
-        #self.edit4s, self.edit4 = self.wrap(pgsimp.SimpleTree([" Main4 "]))
+        self.tree1s, self.tree1 = self.wrap(pgsimp.SimpleTree(["Date", "Time", "Level", "Entry"], xalign=0))
+        self.tree2s, self.tree2 = self.wrap(pgsimp.SimpleTree(["Date", "Time", "Level", "Entry"], xalign=0))
+        self.tree3s, self.tree3 = self.wrap(pgsimp.SimpleTree(["Head", "Payload",]))
+        #self.tree4s, self.tree4 = self.wrap(pgsimp.SimpleTree([" Main4 "]))
 
-        hbox3.pack_start(self.edit1s, True, True, 6)
-        hbox3.pack_start(self.edit2s, True, True, 6)
+        hbox3.pack_start(self.tree1s, True, True, 6)
+        hbox3.pack_start(self.tree2s, True, True, 6)
 
-        hbox4.pack_start(self.edit3s, True, True, 6)
-        #hbox4.pack_start(self.edit4s, True, True, 6)
+        hbox4.pack_start(self.tree3s, True, True, 6)
+        #hbox4.pack_start(self.tree4s, True, True, 6)
 
         vbox.pack_start(hbox3, True, True, 2)
         vbox.pack_start(hbox4, True, True, 2)
@@ -170,21 +166,16 @@ class MainWin(Gtk.Window):
         hbox4p = Gtk.HBox()
         lab1 = Gtk.Label("   ");  hbox4p.pack_start(lab1, 1, 1, 0)
 
-        # buttom row-1
-        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Placeholder  ")
-        #butt1.connect("clicked", self.show_new, window)
+        #butt1 = Gtk.Button.new_with_mnemonic("    Placeholder  ")
+        ##butt1.connect("clicked", self.show_new, window)
+        #hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic("    _Start Log Mon.  ")
+        butt1.connect("clicked", self.mon_log)
         hbox4p.pack_start(butt1, False, 0, 2)
 
-        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Placeholder  ")
-        #butt1.connect("clicked", self.show_new, window)
-        hbox4p.pack_start(butt1, False, 0, 2)
-
-        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Placeholder  ")
-        #butt1.connect("clicked", self.show_new, window)
-        hbox4p.pack_start(butt1, False, 0, 2)
-
-        butt1 = Gtk.Button.new_with_mnemonic("    _Butt  Placeholder  ")
-        #butt1.connect("clicked", self.show_new, window)
+        butt1 = Gtk.Button.new_with_mnemonic("    _Stop Log Mon.  ")
+        butt1.connect("clicked", self.mon_log_off)
         hbox4p.pack_start(butt1, False, 0, 2)
 
         butt1 = Gtk.Button.new_with_mnemonic("    Start Replic. Mon.  ")
@@ -213,14 +204,6 @@ class MainWin(Gtk.Window):
 
         butt1 = Gtk.Button.new_with_mnemonic("    S_top Data Mon.   ")
         butt1.connect("clicked", self.datamon_off)
-        hbox4.pack_start(butt1, False, 0, 2)
-
-        butt1 = Gtk.Button.new_with_mnemonic("    _Start Log Mon.  ")
-        butt1.connect("clicked", self.mon_log)
-        hbox4.pack_start(butt1, False, 0, 2)
-
-        butt1 = Gtk.Button.new_with_mnemonic("    _Stop Log Mon.  ")
-        butt1.connect("clicked", self.mon_log_off)
         hbox4.pack_start(butt1, False, 0, 2)
 
         #butt1 = Gtk.Button.new_with_mnemonic("    _Last Hour    ")
@@ -349,12 +332,13 @@ class MainWin(Gtk.Window):
 
         if self.repmon_ena:
             if not self.replog_fp:
-                rlogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvreplic.log")
+                rlogfile = os.path.join(pyservsup.globals.logdir, pyservsup.repfname +".log")
                 print("log", rlogfile)
-                self.replog_fp = open(rlogfile, "rt")
-                self.replog_fp.seek(0, os.SEEK_END)
-                sss = max(0, self.replog_fp.tell() - 1000)
-                self.replog_fp.seek(sss, os.SEEK_SET)
+                if not self.replog_fp:
+                    self.replog_fp = open(rlogfile, "rt")
+                    self.replog_fp.seek(0, os.SEEK_END)
+                    sss = max(0, self.replog_fp.tell() - 1000)
+                    self.replog_fp.seek(sss, os.SEEK_SET)
                 if sss:
                     while True:
                         rrr =  self.replog_fp.read(1)
@@ -370,19 +354,18 @@ class MainWin(Gtk.Window):
                 aa = aa.strip()
                 #print(aa)
                 bb = aa.split()
-                self.edit2.append([bb[0], bb[1], bb[2], " ".join(bb[3:]) ])
+                self.tree2.append([bb[0], bb[1], bb[2], " ".join(bb[3:]) ])
                 sutil.usleep(10)
                 got = True
 
             if got:
-                self.edit2.sel_last()
+                self.tree2.sel_last()
                 self.led3.set_color("00ff00")
                 GLib.timeout_add(400, self.led_off, self.led3, "#888888")
 
         if self.log_ena:
             if not self.log_fp:
-                slogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvserver.log")
-                #logfname = os.path.join(pyservsup.globals.logdir, "pyvserver.log")
+                slogfile = os.path.join(pyservsup.globals.logdir, pyservsup.logfname + ".log")
                 self.log_fp = open(slogfile, "rt")
                 self.log_fp.seek(0, os.SEEK_END)
                 sss = max(0, self.log_fp.tell() - 1000)
@@ -402,41 +385,44 @@ class MainWin(Gtk.Window):
                 aa = aa.strip()
                 #print(aa)
                 bb = aa.split()
-                self.edit1.append([bb[0], bb[1], bb[2], " ".join(bb[3:]) ])
+                self.tree1.append([bb[0], bb[1], bb[2], " ".join(bb[3:]) ])
                 sutil.usleep(10)
                 got = True
 
             if got:
-                self.edit1.sel_last()
+                self.tree1.sel_last()
                 self.led1.set_color("00ff00")
                 GLib.timeout_add(400, self.led_off, self.led1, "#888888")
 
         if self.datamon_ena:
             if not self.core:
-                dbname = os.path.join(pyservsup.globals.chaindir, "vote", chainfname + ".pydb")
+                dbname = os.path.join(pyservsup.globals.chaindir, "vote",
+                                    pyservsup.chainfname + ".pydb")
                 self.core = twinchain.TwinChain(dbname)
                 #print("opened", self.core)
             sss = self.core.getdbsize()
             if sss != self.old_sss:
-                self.old_sss = sss
-                for aa in range(sss-10, sss):
+                # Start from one
+                for aa in range(self.old_sss, sss):
                     rec = self.core.get_rec(aa)
+                    if not rec:
+                        continue
                     #print("Datamon", rec)
                     pb = pyvpacker.packbin()
                     dec = pb.decode_data(rec[1])[0]
                     #print("dec", dec)
-                    decpay = pb.decode_data(dec['payload'])[0]
+                    decpay   = pb.decode_data(dec['payload'])[0]
                     #print("decpay", decpay)
                     for bb in sorted(decpay.keys()):
                         strx = ""
                         if bb[0] != "_":
                             strx += bb + " : " + str(decpay[bb]) + "  "
-                    self.edit3.append([dec['header'], strx])
-
-                self.edit3.sel_last()
+                    #print("append:", strx)
+                    self.tree3.append([dec['header'], strx])
+                self.old_sss = sss
+                self.tree3.sel_last()
                 self.led2.set_color("00ff00")
                 GLib.timeout_add(400, self.led_off, self.led2, "#aaaaaa")
-
 
         self.cnt += 1
         if self.status_cnt:

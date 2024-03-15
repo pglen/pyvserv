@@ -26,7 +26,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyvserv",
-    version="1.0.0",
+    version="1.0.1",
     author="Peter Glen",
     author_email="peterglen99@gmail.com",
     description="High power secure server with blockchain backend.",

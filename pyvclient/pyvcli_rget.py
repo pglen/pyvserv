@@ -141,10 +141,14 @@ if __name__ == '__main__':
         #print("rgetarr:", rgetarr)
         cresp = hand.client(["rget", "vote", rgetarr], conf.sess_key)
         if cresp[0] == "OK":
-            #print("rget resp:", cresp)
-            for aa in cresp[1]:
-                #print("aa", aa)
-                dec = hand.pb.decode_data(aa[1])[0]
+            #print("rget resp:", cresp[1])
+            for bb in cresp[1]:
+                #print("rget bb:", bb)
+                if type(bb[1]) == type({}):
+                    print("Initial record. Skipping.")
+                    continue
+                #print("bb", bb)
+                dec = hand.pb.decode_data(bb[1])[0]
                 #print("dec", dec)
                 print(dec['header'], dec['payload'])
     else:

@@ -84,12 +84,13 @@ ekey_help  = "Usage: ekey encryption_key -- Set encryption key "
 sess_help  = "Usage: sess session data -- Start session "
 buff_help  = "Usage: buff buff_size -- limited to 64k"
 
-rput_help  = "Usage: rput kind header, [field1, field2] ... -- put record in blockcain."
-rlist_help = "Usage: rlist kind beg_date end_date -- get records from blockcain."
-rcount_help= "Usage: rcount kind beg_date end_date -- get record count from blockcain."
-rsize_help = "Usage: rsize kind -- get total record count from blockcain."
-rget_help  = "Usage: rget kind header -- get record from blockcain."
-rhave_help = "Usage: rhave kind header -- is record in blockcain."
+rput_help  =  "Usage: rcheck kind link | sum -- check records. Link check or sum check"
+rcheck_help = "Usage: rput kind header, [field1, field2] ... -- put record in blockcain."
+rlist_help =  "Usage: rlist kind beg_date end_date -- get records from blockcain."
+rcount_help=  "Usage: rcount kind beg_date end_date -- get record count from blockcain."
+rsize_help =  "Usage: rsize kind -- get total record count from blockcain."
+rget_help  =  "Usage: rget kind header -- get record from blockcain."
+rhave_help =  "Usage: rhave kind header -- is record in blockcain."
 
 qr_help    = "Usage: qr -- get qrcode image for 2fa"
 twofa_help = "Usage: twofa -- two factor authentication"
@@ -159,6 +160,7 @@ def init_state_table():
 
     # Following the two factor auth commands. Disabled during development
     ("rput",     all_in,  none_in,    minauth,   get_rput_func,   rput_help),
+    ("rcheck",   all_in,  none_in,    minauth,   get_rcheck_func,  rcheck_help),
     ("rlist",    all_in,  none_in,    auth_pass, get_rlist_func,  rlist_help),
     ("rcount",   all_in,  none_in,    auth_pass, get_rcount_func, rcount_help),
     ("rsize",    all_in,  none_in,    auth_pass, get_rsize_func,  rsize_help),

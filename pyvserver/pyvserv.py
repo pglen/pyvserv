@@ -561,8 +561,8 @@ def mainfunct():
     pyvfunc.pgdebug = conf.pgdebug
     pyvfunc.pglog = conf.pglog
 
-    slogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvserver.log")
-    rlogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvreplic.log")
+    slogfile = os.path.join(pyservsup.globals.logdir, pyservsup.logfname + ".log")
+    rlogfile = os.path.join(pyservsup.globals.logdir, pyservsup.repfname +".log")
 
     pysyslog.init_loggers(
             ("system", slogfile), ("replic", rlogfile))

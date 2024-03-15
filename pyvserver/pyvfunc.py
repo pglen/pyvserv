@@ -10,11 +10,11 @@ import datetime,  time, stat, base64, uuid
 
 from pyvecc.Key import Key
 
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
+#from Crypto.Cipher import PKCS1_v1_5
+#from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Cipher import AES
-from Crypto.Hash import SHA
+#from Crypto.Hash import SHA
 #from Crypto.Hash import SHA512
 from Crypto.Hash import SHA256
 
@@ -34,7 +34,7 @@ __doc__ = \
     The keyword is embedded into the function name.
 '''
 
-chainfname = "initial"
+#chainfname = "initial"
 repfname = "replic"
 
 OK = "OK"
@@ -49,9 +49,7 @@ def _print_handles(self):
 
 def check_chain_path(self, strp):
 
-    chainp = pyservsup.globals.myhome + "chain"
-    chainp = os.path.normpath(chainp)
-
+    chainp = os.path.normpath(pyservsup.globals.chaindir)
     #print("check:", strp)
     #print("root:", chainp)
     dpath = os.path.normpath(strp)
@@ -449,6 +447,55 @@ def get_pwd_func(self, strx):
     response = [OK,  dname2]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
+def get_rcheck_func(self, strx):
+
+    if len(strx) < 2:
+        response = [ERR, "Must specify blockchain kind", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 3:
+        response = [ERR, "Must specify link or sum", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, "Directory does not exist", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
+
+    errx = False; cnt = -1; arrx = []
+    sss = core.getdbsize()
+    for aa in range(sss-1, 0, -1):
+        if  strx[2] == "sum":
+            ppp = core.checkdata(aa)
+            if not ppp:
+                arrx.append(aa)
+        elif strx[2] == "link":
+            ppp = core.linkintegrity(aa)
+            if not ppp:
+                arrx.append(aa)
+        else:
+            response = [ERR, "One of 'link' or 'sum' is required", strx[0]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+    if len(arrx):
+        response = [ERR,  arrx, len(arrx), "errors", strx[2]]
+    else:
+        response = [OK,  "No errors", strx[2]]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+
 def get_rsize_func(self, strx):
 
     if len(strx) < 2:
@@ -456,7 +503,7 @@ def get_rsize_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
     dname = check_chain_path(self, tmpname)
 
     if not dname:
@@ -469,7 +516,7 @@ def get_rsize_func(self, strx):
         return
 
     #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
-    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
 
     dbsize = core.getdbsize()
@@ -502,7 +549,7 @@ def get_rcount_func(self, strx):
         print("rlist begin:", datetime.datetime.fromtimestamp(strx[2]),
                             "end:", datetime.datetime.fromtimestamp(strx[3]) )
 
-    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
     dname = check_chain_path(self, tmpname)
 
     if not dname:
@@ -515,13 +562,13 @@ def get_rcount_func(self, strx):
         return
 
     #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
-    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
 
     arr = []
     rcnt = 0
     dbsize = core.getdbsize()
-    for aa in range(1, dbsize):
+    for aa in range(dbsize - 1, -1, -1):
         rec = core.get_header(aa)
         ddd = pyservsup.uuid2timestamp(uuid.UUID(rec))
         #ttt = pyservsup.uuid2date(uuid.UUID(rec))
@@ -560,7 +607,7 @@ def get_rlist_func(self, strx):
         print("rlist begin:", datetime.datetime.fromtimestamp(strx[2]),
                             "end:", datetime.datetime.fromtimestamp(strx[3]) )
 
-    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
     dname = check_chain_path(self, tmpname)
 
     if not dname:
@@ -573,12 +620,12 @@ def get_rlist_func(self, strx):
         return
 
     #print("db op1 %.3f" % ((time.time() - ttt) * 1000) )
-    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
 
     arr = []
     dbsize = core.getdbsize()
-    for aa in range(1, dbsize):
+    for aa in range(dbsize-1, -1, -1):
         rec = core.get_header(aa)
         ddd = pyservsup.uuid2timestamp(uuid.UUID(rec))
         #ttt = pyservsup.uuid2date(uuid.UUID(rec))
@@ -612,7 +659,7 @@ def get_rhave_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
     dname = check_chain_path(self, tmpname)
 
     if not dname:
@@ -629,7 +676,7 @@ def get_rhave_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 2:
         print("rget", strx[1], strx[2])
 
-    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     ddd = []
     try:
@@ -657,7 +704,7 @@ def get_rget_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
     dname = check_chain_path(self, tmpname)
 
     if not dname:
@@ -674,7 +721,7 @@ def get_rget_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 2:
         print("rget", strx[1], strx[2])
 
-    core = twinchain.TwinChain(os.path.join(dname, chainfname + ".pydb"), 0)
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     datax = []
     for aa in strx[2]:
@@ -735,7 +782,7 @@ def get_rput_func(self, strx):
     #print("strx[1]", strx[1])
     #print('curr', self.resp.dir)
 
-    tmpname = pyservsup.globals.myhome + "chain" + os.sep + strx[1]
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
     dname = check_chain_path(self, tmpname)
     if not dname:
         response = [ERR, "No Access to directory.", strx[1]]
@@ -769,7 +816,7 @@ def get_rput_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    cfname = os.path.join(dname, chainfname + ".pydb")
+    cfname = os.path.join(dname, pyservsup.chainfname + ".pydb")
     #print("cfname", cfname)
     savecore = twinchain.TwinChain(cfname)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
@@ -837,7 +884,8 @@ def get_rput_func(self, strx):
 
         del repcore
     else:
-        #print("Not replicating")
+        if self.pgdebug > 2:
+            print("Not replicating", strx[2]['header'])
         pass
 
         #print("db op3 %.3f" % ((time.time() - ttt) * 1000) )
@@ -895,7 +943,7 @@ def get_ihost_func(self, strx):
 
     elif strx[1] == 'list':
         arr = []
-        for aa in range(repcore.getdbsize()):
+        for aa in range(repcore.getdbsize()-1, -1, -1):
             ddd = repcore.get_rec(aa)
             if ddd:
                 arr.append(str(ddd[0]))
