@@ -15,11 +15,11 @@ fully administered from the protocol side. The key exchange uses ECC. (Elliptic 
 
   The system maintains an encrypted chain of vote events. Every entry has
 the Voter ID, an Electronic ID, and the vote action (register / cast /
-un-cast / withdraw)
+un-cast / withdraw), and of course, the vote.
 
   The voter ID is a number allocated by authorities, the Electronic ID is a
 number allocated on initial login / registration by the system.
-The Voter Block Chain and Electronic ID and vote is visible by the public,
+The Voter Block Chain and Electronic ID and the vote is visible by the public,
 so every voter can verify his / her participation. The voter ID
 is visible by the electorate only.
 
@@ -30,11 +30,16 @@ would require breaching multiple services.
 This also allows all parties to verify the chain, and create independent counts.
 
  The chain can  be verified for legitimate and singular registration. This system
-crates accountability from both the voter sides and the electorate (authority's) side.
+crates accountability from both the voter's side and the electorate (authority's) side.
 
 #### Charity administration, trust maintenance. (Zakat)
 
- The blockchain will allow the donation's public visibility and usage.
+ The blockchain will allow the donation's public visibility and the donation's
+usage. It can accommodate arbitrary information, for instance: disbursement
+target, fund source, funding entity ... etc. The system handles unique IDs
+transparently, which allows privileged information to be encoded as a unique ID.
+This unique ID than can be turned back to real information by the publisher
+of the Unique ID, preserving privacy.
 
 #### Internal resource / currency maintenance
 
@@ -189,10 +194,6 @@ originally formatted, without the blockchain and hash details.
 
     Project name
         pyvserv
-    Generated
-        2024-03-15 04:52:26 (in 3 seconds)
-    Generator
-        GitStats (version 55c5c28), git version 2.34.1, gnuplot 5.4 patchlevel 2
     Report Period
         2018-12-31 20:50:04 to 2024-03-15 04:47:25
     Age
@@ -205,6 +206,7 @@ originally formatted, without the blockchain and hash details.
         216 (average 2.1 commits per active day, 0.1 per all days)
     Authors
         6 (average 36.0 commits per author)
+
 ![Screen Shot](commits_by_year_month.png)
 
 Written by Peter Glen, 2022, 2023
