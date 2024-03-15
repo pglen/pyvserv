@@ -185,6 +185,28 @@ originally formatted, without the blockchain and hash details.
     1.0.0   Wed 13.Mar.2024    rget rput and family (rget=BC record get)
     1.0.0   Thu 14.Mar.2024    Started GUI tools
 
+## Statistics
+
+    Project name
+        pyvserv
+    Generated
+        2024-03-15 04:52:26 (in 3 seconds)
+    Generator
+        GitStats (version 55c5c28), git version 2.34.1, gnuplot 5.4 patchlevel 2
+    Report Period
+        2018-12-31 20:50:04 to 2024-03-15 04:47:25
+    Age
+        1901 days, 101 active days (5.31%)
+    Total Files
+        287
+    Total Lines of Code
+        70286 (235368 added, 165082 removed)
+    Total Commits
+        216 (average 2.1 commits per active day, 0.1 per all days)
+    Authors
+        6 (average 36.0 commits per author)
+![Screen Shot](commits_by_year_month.png)
+
 Written by Peter Glen, 2022, 2023
 
 // EOF
