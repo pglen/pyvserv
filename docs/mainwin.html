@@ -33,12 +33,7 @@
 
 import os, sys, getopt, signal, random, time, warnings
 
-from pymenu import  *
-
-#sys.path.append(&#39;../../pycommon&#39;)
-
-from pgutil import  *
-from pgui import  *
+sys.path.append(&#34;pyvguicom&#34;)
 
 import gi
 gi.require_version(&#34;Gtk&#34;, &#34;3.0&#34;)
@@ -48,6 +43,19 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
+from pyvguicom import pgbox
+from pyvguicom import pgsimp
+from pyvguicom import sutil
+from pyvguicom import pggui
+
+from pymenu import  *
+from pgui import  *
+
+from pyvcommon import pydata, pyservsup,  crysupp
+from pydbase import twinchain
+
+import pyvpacker
+
 # ------------------------------------------------------------------------
 
 class MainWin(Gtk.Window):
@@ -55,17 +63,30 @@ class MainWin(Gtk.Window):
     def __init__(self):
 
         self.cnt = 0
+        self.led1_cnt = 0
+        self.in_timer = False
+        self.datamon_ena = False
+        self.repmon_ena = False
+        self.status_cnt = 0
+        self.core = None
+        self.replog_fp = 0
+        self.log_fp = None
+        self.log_ena = False
+        self.old_sss = 1        # Remember, cnnot use record one
+
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
-        #self = Gtk.Window(Gtk.WindowType.TOPLEVEL)
-
-        #Gtk.register_stock_icons()
-
-        self.set_title(&#34;Template&#34;)
+        self.set_title(&#34;PyVserv Control Panel&#34;)
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
-        #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
-        #window.set_icon(ic.get_pixbuf())
+        try:
+            pixbuf = Gtk.IconTheme.get_default().load_icon(&#34;weather-storm&#34;, 32, 0)
+            self.set_icon(pixbuf)
+        except:
+
+            icon = os.path.join(os.path.dirname(__file__), &#34;weather-storm.png&#34;)
+            ic = Gtk.Image(); ic.set_from_file(icon)
+            self.set_icon(ic.get_pixbuf())
 
         www = Gdk.Screen.width(); hhh = Gdk.Screen.height();
 
@@ -87,18 +108,6 @@ class MainWin(Gtk.Window):
             self.set_default_size(5*www/8, 7*hhh/8)
         else:
             self.set_default_size(7*www/8, 7*hhh/8)
-
-
-        &#39;&#39;&#39;self.set_flags(Gtk.CAN_FOCUS | Gtk.SENSITIVE)
-
-        self.set_events(  Gdk.POINTER_MOTION_MASK |
-                            Gdk.POINTER_MOTION_HINT_MASK |
-                            Gdk.BUTTON_PRESS_MASK |
-                            Gdk.BUTTON_RELEASE_MASK |
-                            Gdk.KEY_PRESS_MASK |
-                            Gdk.KEY_RELEASE_MASK |
-                            Gdk.FOCUS_CHANGE_MASK )
-        &#39;&#39;&#39;
         self.connect(&#34;destroy&#34;, self.OnExit)
         self.connect(&#34;key-press-event&#34;, self.key_press_event)
         self.connect(&#34;button-press-event&#34;, self.button_press_event)
@@ -130,43 +139,121 @@ class MainWin(Gtk.Window):
         self.tbar = merge.get_widget(&#34;/ToolBar&#34;);
         #self.tbar.show()
 
-        bbox = Gtk.VBox()
-        bbox.pack_start(self.mbar, 0, 0, 0)
-        bbox.pack_start(self.tbar, 0, 0, 0)
-        vbox.pack_start(bbox, 0, 0, 0)
+        #bbox = Gtk.VBox()
+        #bbox.pack_start(self.mbar, 0, 0, 0)
+        #bbox.pack_start(self.tbar, 0, 0, 0)
+        #vbox.pack_start(bbox, 0, 0, 0)
 
-        hbox2 = Gtk.HBox()
-        lab3 = Gtk.Label(&#34; 1 &#34;);  hbox2.pack_start(lab3, 0, 0, 0)
-        lab4 = Gtk.Label(&#34;Top&#34;);  hbox2.pack_start(lab4, 1, 1, 0)
-        lab5 = Gtk.Label(&#34; 2 &#34;);  hbox2.pack_start(lab5, 0, 0, 0)
-        vbox.pack_start(hbox2, False, 0, 0)
+        #hbox2 = Gtk.HBox()
+        #lab3 = Gtk.Label(&#34; 1 &#34;);  hbox2.pack_start(lab3, 0, 0, 0)
+        #lab4 = Gtk.Label(&#34;Top&#34;);  hbox2.pack_start(lab4, 1, 1, 0)
+        #lab5 = Gtk.Label(&#34; 2 &#34;);  hbox2.pack_start(lab5, 0, 0, 0)
+        #vbox.pack_start(hbox2, False, 0, 0)
 
+        hbox4t = Gtk.HBox()
+        lab1 = Gtk.Label(&#34;   &#34;);  hbox4t.pack_start(lab1, 1, 1, 0)
+
+        self.led1 = pggui.Led(&#34;#aaaaaa&#34;)
+        hbox4t.pack_start(self.led1, 0, 0, 0)
+        lab1 = Gtk.Label(&#34; Server Activity &#34;);  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        lab1 = Gtk.Label(&#34;      &#34;);  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        self.led2 = pggui.Led(&#34;#aaaaaa&#34;)
+        hbox4t.pack_start(self.led2, 0, 0, 0)
+        lab1 = Gtk.Label(&#34; Data Activity &#34;);  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        lab1 = Gtk.Label(&#34;      &#34;);  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        self.led3 = pggui.Led(&#34;#aaaaaa&#34;)
+        hbox4t.pack_start(self.led3, 0, 0, 0)
+        lab1 = Gtk.Label(&#34; Replication Activity&#34;);  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        lab1 = Gtk.Label(&#34;   &#34;);  hbox4t.pack_end(lab1, 1, 1, 0)
+
+        vbox.pack_start(hbox4t, False, 0, 4)
+
+        vbox3 = Gtk.VBox()
         hbox3 = Gtk.HBox()
-        #self.edit = SimpleEdit();
-        self.edit = Gtk.Label(&#34; Main &#34;)
-        hbox3.pack_start(self.edit, True, True, 6)
+        hbox4 = Gtk.HBox()
+
+        self.tree1s, self.tree1 = self.wrap(pgsimp.SimpleTree([&#34;Date&#34;, &#34;Time&#34;, &#34;Level&#34;, &#34;Entry&#34;], xalign=0))
+        self.tree2s, self.tree2 = self.wrap(pgsimp.SimpleTree([&#34;Date&#34;, &#34;Time&#34;, &#34;Level&#34;, &#34;Entry&#34;], xalign=0))
+        self.tree3s, self.tree3 = self.wrap(pgsimp.SimpleTree([&#34;Head&#34;, &#34;Payload&#34;,]))
+        #self.tree4s, self.tree4 = self.wrap(pgsimp.SimpleTree([&#34; Main4 &#34;]))
+
+        hbox3.pack_start(self.tree1s, True, True, 6)
+        hbox3.pack_start(self.tree2s, True, True, 6)
+
+        hbox4.pack_start(self.tree3s, True, True, 6)
+        #hbox4.pack_start(self.tree4s, True, True, 6)
 
         vbox.pack_start(hbox3, True, True, 2)
+        vbox.pack_start(hbox4, True, True, 2)
+
+        hbox4p = Gtk.HBox()
+        lab1 = Gtk.Label(&#34;   &#34;);  hbox4p.pack_start(lab1, 1, 1, 0)
+
+        #butt1 = Gtk.Button.new_with_mnemonic(&#34;    Placeholder  &#34;)
+        ##butt1.connect(&#34;clicked&#34;, self.show_new, window)
+        #hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    _Start Log Mon.  &#34;)
+        butt1.connect(&#34;clicked&#34;, self.mon_log)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    _Stop Log Mon.  &#34;)
+        butt1.connect(&#34;clicked&#34;, self.mon_log_off)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    Start Replic. Mon.  &#34;)
+        butt1.connect(&#34;clicked&#34;, self.enable_replic)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    Stop Replic. Mon. &#34;)
+        butt1.connect(&#34;clicked&#34;, self.disable_replic)
+        hbox4p.pack_start(butt1, False, 0, 2)
 
         hbox4 = Gtk.HBox()
-        lab1 = Gtk.Label(&#34; 3 &#34;);  hbox4.pack_start(lab1, 0, 0, 0)
+        lab1 = Gtk.Label(&#34;   &#34;);  hbox4p.pack_start(lab1, 0, 0, 0)
 
-        # buttom row
+        # Buttom row
+        lab1 = Gtk.Label(&#34;  &#34;);  hbox4.pack_start(lab1, 0, 0, 0)
         lab2a = Gtk.Label(&#34; buttom &#34;);  hbox4.pack_start(lab2a, 1, 1, 0)
         lab2a.set_xalign(0)
+        lab2a.set_size_request(300, -1)
         self.status = lab2a
 
-        butt1 = Gtk.Button.new_with_mnemonic(&#34;    _New    &#34;)
-        #butt1.connect(&#34;clicked&#34;, self.show_new, window)
+        lab1 = Gtk.Label(&#34;  &#34;);  hbox4.pack_start(lab1, 1, 1, 0)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    _Start Data Mon.  &#34;)
+        butt1.connect(&#34;clicked&#34;, self.datamon_on)
         hbox4.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    S_top Data Mon.   &#34;)
+        butt1.connect(&#34;clicked&#34;, self.datamon_off)
+        hbox4.pack_start(butt1, False, 0, 2)
+
+        #butt1 = Gtk.Button.new_with_mnemonic(&#34;    _Last Hour    &#34;)
+        ##butt1.connect(&#34;clicked&#34;, self.show_new, window)
+        #hbox4.pack_start(butt1, False, 0, 2)
+        #
+        #butt1 = Gtk.Button.new_with_mnemonic(&#34;    _Last Day    &#34;)
+        ##butt1.connect(&#34;clicked&#34;, self.show_new, window)
+        #hbox4.pack_start(butt1, False, 0, 2)
+
+        #butt1 = Gtk.Button.new_with_mnemonic(&#34;    _New    &#34;)
+        ##butt1.connect(&#34;clicked&#34;, self.show_new, window)
+        #hbox4.pack_start(butt1, False, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic(&#34;    E_xit    &#34;)
         butt2.connect(&#34;clicked&#34;, self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
 
-        lab2b = Gtk.Label(&#34; 5 &#34;);  hbox4.pack_start(lab2b, 0, 0, 0)
+        lab2b = Gtk.Label(&#34;   &#34;);  hbox4.pack_start(lab2b, 0, 0, 0)
 
-        vbox.pack_start(hbox4, False, 0, 6)
+        vbox.pack_start(hbox4p, False, 0, 2)
+        vbox.pack_start(hbox4, False, 0, 2)
 
         self.add(vbox)
         self.show_all()
@@ -174,9 +261,48 @@ class MainWin(Gtk.Window):
         GLib.timeout_add(200, self.load)
         GLib.timeout_add(1000, self.timer)
 
+    def set_status_text(self, text):
+        self.status.set_text(text)
+        self.status_cnt = 4
+
+    def datamon_on(self, aarg1):
+        self.datamon_ena = True
+        self.status.set_text(&#34;Enabled DATA monitoring&#34;)
+
+    def datamon_off(self, aarg1):
+        self.datamon_ena = False
+        self.set_status_text(&#34;Disabled DATA monitoring&#34;)
+        self.status_cnt = 4
+
+    def mon_log(self, arg1):
+        self.log_ena = True
+        self.set_status_text(&#34;Enabled LOG monitoring&#34;)
+        self.status_cnt = 4
+
+    def enable_replic(self, arg1):
+        self.repmon_ena = True
+        self.set_status_text(&#34;Enabled REPLIC monitoring&#34;)
+        self.status_cnt = 4
+
+    def disable_replic(self, arg1):
+        self.repmon_ena = False
+        self.set_status_text(&#34;Disabled REPLIC monitoring&#34;)
+        self.status_cnt = 4
+
+    def mon_log_off(self, arg1):
+        self.log_ena = False
+        self.set_status_text(&#34;Disabled LOG monitoring&#34;)
+        self.status_cnt = 4
 
     def  OnExit(self, arg, srg2 = None):
         self.exit_all()
+
+    def wrap(self, cont):
+        sc = Gtk.ScrolledWindow()
+        sc.set_hexpand(True)
+        sc.set_vexpand(True)
+        sc.add(cont)
+        return sc, cont
 
     def exit_all(self):
         Gtk.main_quit()
@@ -221,13 +347,122 @@ class MainWin(Gtk.Window):
 
     def load(self):
         #print(&#34;Called load&#34;)
-        self.status.set_text(&#34;Status text for load&#34;)
+        self.set_status_text(&#34;Status text for load&#34;)
+        self.status_cnt = 4
 
     def timer(self):
+
         #print(&#34;Called timer&#34;)
-        self.status.set_text(&#34;Status timer %d&#34; % self.cnt)
+
+        if self.in_timer:
+            return True
+        in_timer = True
+
+        if self.repmon_ena:
+            if not self.replog_fp:
+                rlogfile = os.path.join(pyservsup.globals.logdir, pyservsup.repfname +&#34;.log&#34;)
+                print(&#34;log&#34;, rlogfile)
+                if not self.replog_fp:
+                    self.replog_fp = open(rlogfile, &#34;rt&#34;)
+                    self.replog_fp.seek(0, os.SEEK_END)
+                    sss = max(0, self.replog_fp.tell() - 1000)
+                    self.replog_fp.seek(sss, os.SEEK_SET)
+                if sss:
+                    while True:
+                        rrr =  self.replog_fp.read(1)
+                        if not rrr:
+                            break
+                        if rrr == &#39;\n&#39;:
+                            break
+            got = False
+            while True:
+                aa = self.replog_fp.readline()
+                if not aa:
+                    break
+                aa = aa.strip()
+                #print(aa)
+                bb = aa.split()
+                self.tree2.append([bb[0], bb[1], bb[2], &#34; &#34;.join(bb[3:]) ])
+                sutil.usleep(10)
+                got = True
+
+            if got:
+                self.tree2.sel_last()
+                self.led3.set_color(&#34;00ff00&#34;)
+                GLib.timeout_add(400, self.led_off, self.led3, &#34;#888888&#34;)
+
+        if self.log_ena:
+            if not self.log_fp:
+                slogfile = os.path.join(pyservsup.globals.logdir, pyservsup.logfname + &#34;.log&#34;)
+                self.log_fp = open(slogfile, &#34;rt&#34;)
+                self.log_fp.seek(0, os.SEEK_END)
+                sss = max(0, self.log_fp.tell() - 1000)
+                self.log_fp.seek(sss, os.SEEK_SET)
+                if sss:
+                    while True:
+                        rrr =  self.log_fp.read(1)
+                        if not rrr:
+                            break
+                        if rrr == &#39;\n&#39;:
+                            break
+            got = False
+            while True:
+                aa = self.log_fp.readline()
+                if not aa:
+                    break
+                aa = aa.strip()
+                #print(aa)
+                bb = aa.split()
+                self.tree1.append([bb[0], bb[1], bb[2], &#34; &#34;.join(bb[3:]) ])
+                sutil.usleep(10)
+                got = True
+
+            if got:
+                self.tree1.sel_last()
+                self.led1.set_color(&#34;00ff00&#34;)
+                GLib.timeout_add(400, self.led_off, self.led1, &#34;#888888&#34;)
+
+        if self.datamon_ena:
+            if not self.core:
+                dbname = os.path.join(pyservsup.globals.chaindir, &#34;vote&#34;,
+                                    pyservsup.chainfname + &#34;.pydb&#34;)
+                self.core = twinchain.TwinChain(dbname)
+                #print(&#34;opened&#34;, self.core)
+            sss = self.core.getdbsize()
+            if sss != self.old_sss:
+                # Start from one
+                for aa in range(self.old_sss, sss):
+                    rec = self.core.get_rec(aa)
+                    if not rec:
+                        continue
+                    #print(&#34;Datamon&#34;, rec)
+                    pb = pyvpacker.packbin()
+                    dec = pb.decode_data(rec[1])[0]
+                    #print(&#34;dec&#34;, dec)
+                    decpay   = pb.decode_data(dec[&#39;payload&#39;])[0]
+                    #print(&#34;decpay&#34;, decpay)
+                    for bb in sorted(decpay.keys()):
+                        strx = &#34;&#34;
+                        if bb[0] != &#34;_&#34;:
+                            strx += bb + &#34; : &#34; + str(decpay[bb]) + &#34;  &#34;
+                    #print(&#34;append:&#34;, strx)
+                    self.tree3.append([dec[&#39;header&#39;], strx])
+                self.old_sss = sss
+                self.tree3.sel_last()
+                self.led2.set_color(&#34;00ff00&#34;)
+                GLib.timeout_add(400, self.led_off, self.led2, &#34;#aaaaaa&#34;)
+
         self.cnt += 1
+        if self.status_cnt:
+            self.status_cnt -= 1
+            if not self.status_cnt:
+                self.status.set_text(&#34;Idle&#34;)
+
+        self.in_timer = False
         return True
+
+    def led_off(self, ledx, color):
+        ledx.set_color(color)
 
 # Start of program:
 
@@ -266,17 +501,30 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     def __init__(self):
 
         self.cnt = 0
+        self.led1_cnt = 0
+        self.in_timer = False
+        self.datamon_ena = False
+        self.repmon_ena = False
+        self.status_cnt = 0
+        self.core = None
+        self.replog_fp = 0
+        self.log_fp = None
+        self.log_ena = False
+        self.old_sss = 1        # Remember, cnnot use record one
+
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
-        #self = Gtk.Window(Gtk.WindowType.TOPLEVEL)
-
-        #Gtk.register_stock_icons()
-
-        self.set_title(&#34;Template&#34;)
+        self.set_title(&#34;PyVserv Control Panel&#34;)
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
-        #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
-        #window.set_icon(ic.get_pixbuf())
+        try:
+            pixbuf = Gtk.IconTheme.get_default().load_icon(&#34;weather-storm&#34;, 32, 0)
+            self.set_icon(pixbuf)
+        except:
+
+            icon = os.path.join(os.path.dirname(__file__), &#34;weather-storm.png&#34;)
+            ic = Gtk.Image(); ic.set_from_file(icon)
+            self.set_icon(ic.get_pixbuf())
 
         www = Gdk.Screen.width(); hhh = Gdk.Screen.height();
 
@@ -298,18 +546,6 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
             self.set_default_size(5*www/8, 7*hhh/8)
         else:
             self.set_default_size(7*www/8, 7*hhh/8)
-
-
-        &#39;&#39;&#39;self.set_flags(Gtk.CAN_FOCUS | Gtk.SENSITIVE)
-
-        self.set_events(  Gdk.POINTER_MOTION_MASK |
-                            Gdk.POINTER_MOTION_HINT_MASK |
-                            Gdk.BUTTON_PRESS_MASK |
-                            Gdk.BUTTON_RELEASE_MASK |
-                            Gdk.KEY_PRESS_MASK |
-                            Gdk.KEY_RELEASE_MASK |
-                            Gdk.FOCUS_CHANGE_MASK )
-        &#39;&#39;&#39;
         self.connect(&#34;destroy&#34;, self.OnExit)
         self.connect(&#34;key-press-event&#34;, self.key_press_event)
         self.connect(&#34;button-press-event&#34;, self.button_press_event)
@@ -341,43 +577,121 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         self.tbar = merge.get_widget(&#34;/ToolBar&#34;);
         #self.tbar.show()
 
-        bbox = Gtk.VBox()
-        bbox.pack_start(self.mbar, 0, 0, 0)
-        bbox.pack_start(self.tbar, 0, 0, 0)
-        vbox.pack_start(bbox, 0, 0, 0)
+        #bbox = Gtk.VBox()
+        #bbox.pack_start(self.mbar, 0, 0, 0)
+        #bbox.pack_start(self.tbar, 0, 0, 0)
+        #vbox.pack_start(bbox, 0, 0, 0)
 
-        hbox2 = Gtk.HBox()
-        lab3 = Gtk.Label(&#34; 1 &#34;);  hbox2.pack_start(lab3, 0, 0, 0)
-        lab4 = Gtk.Label(&#34;Top&#34;);  hbox2.pack_start(lab4, 1, 1, 0)
-        lab5 = Gtk.Label(&#34; 2 &#34;);  hbox2.pack_start(lab5, 0, 0, 0)
-        vbox.pack_start(hbox2, False, 0, 0)
+        #hbox2 = Gtk.HBox()
+        #lab3 = Gtk.Label(&#34; 1 &#34;);  hbox2.pack_start(lab3, 0, 0, 0)
+        #lab4 = Gtk.Label(&#34;Top&#34;);  hbox2.pack_start(lab4, 1, 1, 0)
+        #lab5 = Gtk.Label(&#34; 2 &#34;);  hbox2.pack_start(lab5, 0, 0, 0)
+        #vbox.pack_start(hbox2, False, 0, 0)
 
+        hbox4t = Gtk.HBox()
+        lab1 = Gtk.Label(&#34;   &#34;);  hbox4t.pack_start(lab1, 1, 1, 0)
+
+        self.led1 = pggui.Led(&#34;#aaaaaa&#34;)
+        hbox4t.pack_start(self.led1, 0, 0, 0)
+        lab1 = Gtk.Label(&#34; Server Activity &#34;);  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        lab1 = Gtk.Label(&#34;      &#34;);  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        self.led2 = pggui.Led(&#34;#aaaaaa&#34;)
+        hbox4t.pack_start(self.led2, 0, 0, 0)
+        lab1 = Gtk.Label(&#34; Data Activity &#34;);  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        lab1 = Gtk.Label(&#34;      &#34;);  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        self.led3 = pggui.Led(&#34;#aaaaaa&#34;)
+        hbox4t.pack_start(self.led3, 0, 0, 0)
+        lab1 = Gtk.Label(&#34; Replication Activity&#34;);  hbox4t.pack_start(lab1, 0, 0, 0)
+
+        lab1 = Gtk.Label(&#34;   &#34;);  hbox4t.pack_end(lab1, 1, 1, 0)
+
+        vbox.pack_start(hbox4t, False, 0, 4)
+
+        vbox3 = Gtk.VBox()
         hbox3 = Gtk.HBox()
-        #self.edit = SimpleEdit();
-        self.edit = Gtk.Label(&#34; Main &#34;)
-        hbox3.pack_start(self.edit, True, True, 6)
+        hbox4 = Gtk.HBox()
+
+        self.tree1s, self.tree1 = self.wrap(pgsimp.SimpleTree([&#34;Date&#34;, &#34;Time&#34;, &#34;Level&#34;, &#34;Entry&#34;], xalign=0))
+        self.tree2s, self.tree2 = self.wrap(pgsimp.SimpleTree([&#34;Date&#34;, &#34;Time&#34;, &#34;Level&#34;, &#34;Entry&#34;], xalign=0))
+        self.tree3s, self.tree3 = self.wrap(pgsimp.SimpleTree([&#34;Head&#34;, &#34;Payload&#34;,]))
+        #self.tree4s, self.tree4 = self.wrap(pgsimp.SimpleTree([&#34; Main4 &#34;]))
+
+        hbox3.pack_start(self.tree1s, True, True, 6)
+        hbox3.pack_start(self.tree2s, True, True, 6)
+
+        hbox4.pack_start(self.tree3s, True, True, 6)
+        #hbox4.pack_start(self.tree4s, True, True, 6)
 
         vbox.pack_start(hbox3, True, True, 2)
+        vbox.pack_start(hbox4, True, True, 2)
+
+        hbox4p = Gtk.HBox()
+        lab1 = Gtk.Label(&#34;   &#34;);  hbox4p.pack_start(lab1, 1, 1, 0)
+
+        #butt1 = Gtk.Button.new_with_mnemonic(&#34;    Placeholder  &#34;)
+        ##butt1.connect(&#34;clicked&#34;, self.show_new, window)
+        #hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    _Start Log Mon.  &#34;)
+        butt1.connect(&#34;clicked&#34;, self.mon_log)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    _Stop Log Mon.  &#34;)
+        butt1.connect(&#34;clicked&#34;, self.mon_log_off)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    Start Replic. Mon.  &#34;)
+        butt1.connect(&#34;clicked&#34;, self.enable_replic)
+        hbox4p.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    Stop Replic. Mon. &#34;)
+        butt1.connect(&#34;clicked&#34;, self.disable_replic)
+        hbox4p.pack_start(butt1, False, 0, 2)
 
         hbox4 = Gtk.HBox()
-        lab1 = Gtk.Label(&#34; 3 &#34;);  hbox4.pack_start(lab1, 0, 0, 0)
+        lab1 = Gtk.Label(&#34;   &#34;);  hbox4p.pack_start(lab1, 0, 0, 0)
 
-        # buttom row
+        # Buttom row
+        lab1 = Gtk.Label(&#34;  &#34;);  hbox4.pack_start(lab1, 0, 0, 0)
         lab2a = Gtk.Label(&#34; buttom &#34;);  hbox4.pack_start(lab2a, 1, 1, 0)
         lab2a.set_xalign(0)
+        lab2a.set_size_request(300, -1)
         self.status = lab2a
 
-        butt1 = Gtk.Button.new_with_mnemonic(&#34;    _New    &#34;)
-        #butt1.connect(&#34;clicked&#34;, self.show_new, window)
+        lab1 = Gtk.Label(&#34;  &#34;);  hbox4.pack_start(lab1, 1, 1, 0)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    _Start Data Mon.  &#34;)
+        butt1.connect(&#34;clicked&#34;, self.datamon_on)
         hbox4.pack_start(butt1, False, 0, 2)
+
+        butt1 = Gtk.Button.new_with_mnemonic(&#34;    S_top Data Mon.   &#34;)
+        butt1.connect(&#34;clicked&#34;, self.datamon_off)
+        hbox4.pack_start(butt1, False, 0, 2)
+
+        #butt1 = Gtk.Button.new_with_mnemonic(&#34;    _Last Hour    &#34;)
+        ##butt1.connect(&#34;clicked&#34;, self.show_new, window)
+        #hbox4.pack_start(butt1, False, 0, 2)
+        #
+        #butt1 = Gtk.Button.new_with_mnemonic(&#34;    _Last Day    &#34;)
+        ##butt1.connect(&#34;clicked&#34;, self.show_new, window)
+        #hbox4.pack_start(butt1, False, 0, 2)
+
+        #butt1 = Gtk.Button.new_with_mnemonic(&#34;    _New    &#34;)
+        ##butt1.connect(&#34;clicked&#34;, self.show_new, window)
+        #hbox4.pack_start(butt1, False, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic(&#34;    E_xit    &#34;)
         butt2.connect(&#34;clicked&#34;, self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
 
-        lab2b = Gtk.Label(&#34; 5 &#34;);  hbox4.pack_start(lab2b, 0, 0, 0)
+        lab2b = Gtk.Label(&#34;   &#34;);  hbox4.pack_start(lab2b, 0, 0, 0)
 
-        vbox.pack_start(hbox4, False, 0, 6)
+        vbox.pack_start(hbox4p, False, 0, 2)
+        vbox.pack_start(hbox4, False, 0, 2)
 
         self.add(vbox)
         self.show_all()
@@ -385,9 +699,48 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         GLib.timeout_add(200, self.load)
         GLib.timeout_add(1000, self.timer)
 
+    def set_status_text(self, text):
+        self.status.set_text(text)
+        self.status_cnt = 4
+
+    def datamon_on(self, aarg1):
+        self.datamon_ena = True
+        self.status.set_text(&#34;Enabled DATA monitoring&#34;)
+
+    def datamon_off(self, aarg1):
+        self.datamon_ena = False
+        self.set_status_text(&#34;Disabled DATA monitoring&#34;)
+        self.status_cnt = 4
+
+    def mon_log(self, arg1):
+        self.log_ena = True
+        self.set_status_text(&#34;Enabled LOG monitoring&#34;)
+        self.status_cnt = 4
+
+    def enable_replic(self, arg1):
+        self.repmon_ena = True
+        self.set_status_text(&#34;Enabled REPLIC monitoring&#34;)
+        self.status_cnt = 4
+
+    def disable_replic(self, arg1):
+        self.repmon_ena = False
+        self.set_status_text(&#34;Disabled REPLIC monitoring&#34;)
+        self.status_cnt = 4
+
+    def mon_log_off(self, arg1):
+        self.log_ena = False
+        self.set_status_text(&#34;Disabled LOG monitoring&#34;)
+        self.status_cnt = 4
 
     def  OnExit(self, arg, srg2 = None):
         self.exit_all()
+
+    def wrap(self, cont):
+        sc = Gtk.ScrolledWindow()
+        sc.set_hexpand(True)
+        sc.set_vexpand(True)
+        sc.add(cont)
+        return sc, cont
 
     def exit_all(self):
         Gtk.main_quit()
@@ -432,13 +785,122 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
     def load(self):
         #print(&#34;Called load&#34;)
-        self.status.set_text(&#34;Status text for load&#34;)
+        self.set_status_text(&#34;Status text for load&#34;)
+        self.status_cnt = 4
 
     def timer(self):
+
         #print(&#34;Called timer&#34;)
-        self.status.set_text(&#34;Status timer %d&#34; % self.cnt)
+
+        if self.in_timer:
+            return True
+        in_timer = True
+
+        if self.repmon_ena:
+            if not self.replog_fp:
+                rlogfile = os.path.join(pyservsup.globals.logdir, pyservsup.repfname +&#34;.log&#34;)
+                print(&#34;log&#34;, rlogfile)
+                if not self.replog_fp:
+                    self.replog_fp = open(rlogfile, &#34;rt&#34;)
+                    self.replog_fp.seek(0, os.SEEK_END)
+                    sss = max(0, self.replog_fp.tell() - 1000)
+                    self.replog_fp.seek(sss, os.SEEK_SET)
+                if sss:
+                    while True:
+                        rrr =  self.replog_fp.read(1)
+                        if not rrr:
+                            break
+                        if rrr == &#39;\n&#39;:
+                            break
+            got = False
+            while True:
+                aa = self.replog_fp.readline()
+                if not aa:
+                    break
+                aa = aa.strip()
+                #print(aa)
+                bb = aa.split()
+                self.tree2.append([bb[0], bb[1], bb[2], &#34; &#34;.join(bb[3:]) ])
+                sutil.usleep(10)
+                got = True
+
+            if got:
+                self.tree2.sel_last()
+                self.led3.set_color(&#34;00ff00&#34;)
+                GLib.timeout_add(400, self.led_off, self.led3, &#34;#888888&#34;)
+
+        if self.log_ena:
+            if not self.log_fp:
+                slogfile = os.path.join(pyservsup.globals.logdir, pyservsup.logfname + &#34;.log&#34;)
+                self.log_fp = open(slogfile, &#34;rt&#34;)
+                self.log_fp.seek(0, os.SEEK_END)
+                sss = max(0, self.log_fp.tell() - 1000)
+                self.log_fp.seek(sss, os.SEEK_SET)
+                if sss:
+                    while True:
+                        rrr =  self.log_fp.read(1)
+                        if not rrr:
+                            break
+                        if rrr == &#39;\n&#39;:
+                            break
+            got = False
+            while True:
+                aa = self.log_fp.readline()
+                if not aa:
+                    break
+                aa = aa.strip()
+                #print(aa)
+                bb = aa.split()
+                self.tree1.append([bb[0], bb[1], bb[2], &#34; &#34;.join(bb[3:]) ])
+                sutil.usleep(10)
+                got = True
+
+            if got:
+                self.tree1.sel_last()
+                self.led1.set_color(&#34;00ff00&#34;)
+                GLib.timeout_add(400, self.led_off, self.led1, &#34;#888888&#34;)
+
+        if self.datamon_ena:
+            if not self.core:
+                dbname = os.path.join(pyservsup.globals.chaindir, &#34;vote&#34;,
+                                    pyservsup.chainfname + &#34;.pydb&#34;)
+                self.core = twinchain.TwinChain(dbname)
+                #print(&#34;opened&#34;, self.core)
+            sss = self.core.getdbsize()
+            if sss != self.old_sss:
+                # Start from one
+                for aa in range(self.old_sss, sss):
+                    rec = self.core.get_rec(aa)
+                    if not rec:
+                        continue
+                    #print(&#34;Datamon&#34;, rec)
+                    pb = pyvpacker.packbin()
+                    dec = pb.decode_data(rec[1])[0]
+                    #print(&#34;dec&#34;, dec)
+                    decpay   = pb.decode_data(dec[&#39;payload&#39;])[0]
+                    #print(&#34;decpay&#34;, decpay)
+                    for bb in sorted(decpay.keys()):
+                        strx = &#34;&#34;
+                        if bb[0] != &#34;_&#34;:
+                            strx += bb + &#34; : &#34; + str(decpay[bb]) + &#34;  &#34;
+                    #print(&#34;append:&#34;, strx)
+                    self.tree3.append([dec[&#39;header&#39;], strx])
+                self.old_sss = sss
+                self.tree3.sel_last()
+                self.led2.set_color(&#34;00ff00&#34;)
+                GLib.timeout_add(400, self.led_off, self.led2, &#34;#aaaaaa&#34;)
+
         self.cnt += 1
-        return True</code></pre>
+        if self.status_cnt:
+            self.status_cnt -= 1
+            if not self.status_cnt:
+                self.status.set_text(&#34;Idle&#34;)
+
+        self.in_timer = False
+        return True
+
+    def led_off(self, ledx, color):
+        ledx.set_color(color)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -553,6 +1015,65 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     pass</code></pre>
 </details>
 </dd>
+<dt id="mainwin.MainWin.datamon_off"><code class="name flex">
+<span>def <span class="ident">datamon_off</span></span>(<span>self, aarg1)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def datamon_off(self, aarg1):
+    self.datamon_ena = False
+    self.set_status_text(&#34;Disabled DATA monitoring&#34;)
+    self.status_cnt = 4</code></pre>
+</details>
+</dd>
+<dt id="mainwin.MainWin.datamon_on"><code class="name flex">
+<span>def <span class="ident">datamon_on</span></span>(<span>self, aarg1)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def datamon_on(self, aarg1):
+    self.datamon_ena = True
+    self.status.set_text(&#34;Enabled DATA monitoring&#34;)</code></pre>
+</details>
+</dd>
+<dt id="mainwin.MainWin.disable_replic"><code class="name flex">
+<span>def <span class="ident">disable_replic</span></span>(<span>self, arg1)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def disable_replic(self, arg1):
+    self.repmon_ena = False
+    self.set_status_text(&#34;Disabled REPLIC monitoring&#34;)
+    self.status_cnt = 4</code></pre>
+</details>
+</dd>
+<dt id="mainwin.MainWin.enable_replic"><code class="name flex">
+<span>def <span class="ident">enable_replic</span></span>(<span>self, arg1)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def enable_replic(self, arg1):
+    self.repmon_ena = True
+    self.set_status_text(&#34;Enabled REPLIC monitoring&#34;)
+    self.status_cnt = 4</code></pre>
+</details>
+</dd>
 <dt id="mainwin.MainWin.exit_all"><code class="name flex">
 <span>def <span class="ident">exit_all</span></span>(<span>self)</span>
 </code></dt>
@@ -580,6 +1101,19 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     pass</code></pre>
 </details>
 </dd>
+<dt id="mainwin.MainWin.led_off"><code class="name flex">
+<span>def <span class="ident">led_off</span></span>(<span>self, ledx, color)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def led_off(self, ledx, color):
+    ledx.set_color(color)</code></pre>
+</details>
+</dd>
 <dt id="mainwin.MainWin.load"><code class="name flex">
 <span>def <span class="ident">load</span></span>(<span>self)</span>
 </code></dt>
@@ -591,7 +1125,8 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 </summary>
 <pre><code class="python">def load(self):
     #print(&#34;Called load&#34;)
-    self.status.set_text(&#34;Status text for load&#34;)</code></pre>
+    self.set_status_text(&#34;Status text for load&#34;)
+    self.status_cnt = 4</code></pre>
 </details>
 </dd>
 <dt id="mainwin.MainWin.main"><code class="name flex">
@@ -607,6 +1142,50 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     Gtk.main()</code></pre>
 </details>
 </dd>
+<dt id="mainwin.MainWin.mon_log"><code class="name flex">
+<span>def <span class="ident">mon_log</span></span>(<span>self, arg1)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mon_log(self, arg1):
+    self.log_ena = True
+    self.set_status_text(&#34;Enabled LOG monitoring&#34;)
+    self.status_cnt = 4</code></pre>
+</details>
+</dd>
+<dt id="mainwin.MainWin.mon_log_off"><code class="name flex">
+<span>def <span class="ident">mon_log_off</span></span>(<span>self, arg1)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mon_log_off(self, arg1):
+    self.log_ena = False
+    self.set_status_text(&#34;Disabled LOG monitoring&#34;)
+    self.status_cnt = 4</code></pre>
+</details>
+</dd>
+<dt id="mainwin.MainWin.set_status_text"><code class="name flex">
+<span>def <span class="ident">set_status_text</span></span>(<span>self, text)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_status_text(self, text):
+    self.status.set_text(text)
+    self.status_cnt = 4</code></pre>
+</details>
+</dd>
 <dt id="mainwin.MainWin.timer"><code class="name flex">
 <span>def <span class="ident">timer</span></span>(<span>self)</span>
 </code></dt>
@@ -617,10 +1196,132 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def timer(self):
+
     #print(&#34;Called timer&#34;)
-    self.status.set_text(&#34;Status timer %d&#34; % self.cnt)
+
+    if self.in_timer:
+        return True
+    in_timer = True
+
+    if self.repmon_ena:
+        if not self.replog_fp:
+            rlogfile = os.path.join(pyservsup.globals.logdir, pyservsup.repfname +&#34;.log&#34;)
+            print(&#34;log&#34;, rlogfile)
+            if not self.replog_fp:
+                self.replog_fp = open(rlogfile, &#34;rt&#34;)
+                self.replog_fp.seek(0, os.SEEK_END)
+                sss = max(0, self.replog_fp.tell() - 1000)
+                self.replog_fp.seek(sss, os.SEEK_SET)
+            if sss:
+                while True:
+                    rrr =  self.replog_fp.read(1)
+                    if not rrr:
+                        break
+                    if rrr == &#39;\n&#39;:
+                        break
+        got = False
+        while True:
+            aa = self.replog_fp.readline()
+            if not aa:
+                break
+            aa = aa.strip()
+            #print(aa)
+            bb = aa.split()
+            self.tree2.append([bb[0], bb[1], bb[2], &#34; &#34;.join(bb[3:]) ])
+            sutil.usleep(10)
+            got = True
+
+        if got:
+            self.tree2.sel_last()
+            self.led3.set_color(&#34;00ff00&#34;)
+            GLib.timeout_add(400, self.led_off, self.led3, &#34;#888888&#34;)
+
+    if self.log_ena:
+        if not self.log_fp:
+            slogfile = os.path.join(pyservsup.globals.logdir, pyservsup.logfname + &#34;.log&#34;)
+            self.log_fp = open(slogfile, &#34;rt&#34;)
+            self.log_fp.seek(0, os.SEEK_END)
+            sss = max(0, self.log_fp.tell() - 1000)
+            self.log_fp.seek(sss, os.SEEK_SET)
+            if sss:
+                while True:
+                    rrr =  self.log_fp.read(1)
+                    if not rrr:
+                        break
+                    if rrr == &#39;\n&#39;:
+                        break
+        got = False
+        while True:
+            aa = self.log_fp.readline()
+            if not aa:
+                break
+            aa = aa.strip()
+            #print(aa)
+            bb = aa.split()
+            self.tree1.append([bb[0], bb[1], bb[2], &#34; &#34;.join(bb[3:]) ])
+            sutil.usleep(10)
+            got = True
+
+        if got:
+            self.tree1.sel_last()
+            self.led1.set_color(&#34;00ff00&#34;)
+            GLib.timeout_add(400, self.led_off, self.led1, &#34;#888888&#34;)
+
+    if self.datamon_ena:
+        if not self.core:
+            dbname = os.path.join(pyservsup.globals.chaindir, &#34;vote&#34;,
+                                pyservsup.chainfname + &#34;.pydb&#34;)
+            self.core = twinchain.TwinChain(dbname)
+            #print(&#34;opened&#34;, self.core)
+        sss = self.core.getdbsize()
+        if sss != self.old_sss:
+            # Start from one
+            for aa in range(self.old_sss, sss):
+                rec = self.core.get_rec(aa)
+                if not rec:
+                    continue
+                #print(&#34;Datamon&#34;, rec)
+                pb = pyvpacker.packbin()
+                dec = pb.decode_data(rec[1])[0]
+                #print(&#34;dec&#34;, dec)
+                decpay   = pb.decode_data(dec[&#39;payload&#39;])[0]
+                #print(&#34;decpay&#34;, decpay)
+                for bb in sorted(decpay.keys()):
+                    strx = &#34;&#34;
+                    if bb[0] != &#34;_&#34;:
+                        strx += bb + &#34; : &#34; + str(decpay[bb]) + &#34;  &#34;
+                #print(&#34;append:&#34;, strx)
+                self.tree3.append([dec[&#39;header&#39;], strx])
+            self.old_sss = sss
+            self.tree3.sel_last()
+            self.led2.set_color(&#34;00ff00&#34;)
+            GLib.timeout_add(400, self.led_off, self.led2, &#34;#aaaaaa&#34;)
+
     self.cnt += 1
+    if self.status_cnt:
+        self.status_cnt -= 1
+        if not self.status_cnt:
+            self.status.set_text(&#34;Idle&#34;)
+
+    self.in_timer = False
     return True</code></pre>
+</details>
+</dd>
+<dt id="mainwin.MainWin.wrap"><code class="name flex">
+<span>def <span class="ident">wrap</span></span>(<span>self, cont)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wrap(self, cont):
+    sc = Gtk.ScrolledWindow()
+    sc.set_hexpand(True)
+    sc.set_vexpand(True)
+    sc.add(cont)
+    return sc, cont</code></pre>
 </details>
 </dd>
 </dl>
@@ -645,11 +1346,20 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 <li><code><a title="mainwin.MainWin.activate_exit" href="#mainwin.MainWin.activate_exit">activate_exit</a></code></li>
 <li><code><a title="mainwin.MainWin.activate_quit" href="#mainwin.MainWin.activate_quit">activate_quit</a></code></li>
 <li><code><a title="mainwin.MainWin.button_press_event" href="#mainwin.MainWin.button_press_event">button_press_event</a></code></li>
+<li><code><a title="mainwin.MainWin.datamon_off" href="#mainwin.MainWin.datamon_off">datamon_off</a></code></li>
+<li><code><a title="mainwin.MainWin.datamon_on" href="#mainwin.MainWin.datamon_on">datamon_on</a></code></li>
+<li><code><a title="mainwin.MainWin.disable_replic" href="#mainwin.MainWin.disable_replic">disable_replic</a></code></li>
+<li><code><a title="mainwin.MainWin.enable_replic" href="#mainwin.MainWin.enable_replic">enable_replic</a></code></li>
 <li><code><a title="mainwin.MainWin.exit_all" href="#mainwin.MainWin.exit_all">exit_all</a></code></li>
 <li><code><a title="mainwin.MainWin.key_press_event" href="#mainwin.MainWin.key_press_event">key_press_event</a></code></li>
+<li><code><a title="mainwin.MainWin.led_off" href="#mainwin.MainWin.led_off">led_off</a></code></li>
 <li><code><a title="mainwin.MainWin.load" href="#mainwin.MainWin.load">load</a></code></li>
 <li><code><a title="mainwin.MainWin.main" href="#mainwin.MainWin.main">main</a></code></li>
+<li><code><a title="mainwin.MainWin.mon_log" href="#mainwin.MainWin.mon_log">mon_log</a></code></li>
+<li><code><a title="mainwin.MainWin.mon_log_off" href="#mainwin.MainWin.mon_log_off">mon_log_off</a></code></li>
+<li><code><a title="mainwin.MainWin.set_status_text" href="#mainwin.MainWin.set_status_text">set_status_text</a></code></li>
 <li><code><a title="mainwin.MainWin.timer" href="#mainwin.MainWin.timer">timer</a></code></li>
+<li><code><a title="mainwin.MainWin.wrap" href="#mainwin.MainWin.wrap">wrap</a></code></li>
 </ul>
 </li>
 </ul>

@@ -111,8 +111,15 @@ tout_help  = &#34;Usage: tout new_val -- Set / Reset timeout in seconds&#34;
 ekey_help  = &#34;Usage: ekey encryption_key -- Set encryption key &#34;
 sess_help  = &#34;Usage: sess session data -- Start session &#34;
 buff_help  = &#34;Usage: buff buff_size -- limited to 64k&#34;
-rput_help  = &#34;Usage: rput header, field1, field2... -- put record in blockcain.&#34;
-rget_help  = &#34;Usage: rget header -- get record from blockcain.&#34;
+
+rput_help  =  &#34;Usage: rcheck kind link | sum -- check records. Link check or sum check&#34;
+rcheck_help = &#34;Usage: rput kind header, [field1, field2] ... -- put record in blockcain.&#34;
+rlist_help =  &#34;Usage: rlist kind beg_date end_date -- get records from blockcain.&#34;
+rcount_help=  &#34;Usage: rcount kind beg_date end_date -- get record count from blockcain.&#34;
+rsize_help =  &#34;Usage: rsize kind -- get total record count from blockcain.&#34;
+rget_help  =  &#34;Usage: rget kind header -- get record from blockcain.&#34;
+rhave_help =  &#34;Usage: rhave kind header -- is record in blockcain.&#34;
+
 qr_help    = &#34;Usage: qr -- get qrcode image for 2fa&#34;
 twofa_help = &#34;Usage: twofa -- two factor authentication&#34;
 dmode_help = &#34;Usage: dmode -- get dmode (Developer Mode) flag&#34;
@@ -180,9 +187,13 @@ def init_state_table():
     (&#34;ihost&#34;,   all_in,  none_in,    initial, get_ihost_func,  ihost_help),
 
     # Following the two factor auth commands. Disabled during development
-    (&#34;rput&#34;,    all_in,  none_in,     minauth, get_rput_func,  rput_help),
-    (&#34;rlist&#34;,    all_in,  none_in,    minauth, get_rlist_func,  rput_help),
-    (&#34;rget&#34;,     all_in,  none_in,    minauth, get_rget_func,  rget_help),
+    (&#34;rput&#34;,     all_in,  none_in,    minauth,   get_rput_func,   rput_help),
+    (&#34;rcheck&#34;,   all_in,  none_in,    minauth,   get_rcheck_func,  rcheck_help),
+    (&#34;rlist&#34;,    all_in,  none_in,    auth_pass, get_rlist_func,  rlist_help),
+    (&#34;rcount&#34;,   all_in,  none_in,    auth_pass, get_rcount_func, rcount_help),
+    (&#34;rsize&#34;,    all_in,  none_in,    auth_pass, get_rsize_func,  rsize_help),
+    (&#34;rget&#34;,     all_in,  none_in,    auth_pass, get_rget_func,   rget_help),
+    (&#34;rhave&#34;,    all_in,  none_in,    auth_pass, get_rhave_func,   rhave_help),
     ]
 # ------------------------------------------------------------------------
 
@@ -405,9 +416,13 @@ class StateHandler():
     (&#34;ihost&#34;,   all_in,  none_in,    initial, get_ihost_func,  ihost_help),
 
     # Following the two factor auth commands. Disabled during development
-    (&#34;rput&#34;,    all_in,  none_in,     minauth, get_rput_func,  rput_help),
-    (&#34;rlist&#34;,    all_in,  none_in,    minauth, get_rlist_func,  rput_help),
-    (&#34;rget&#34;,     all_in,  none_in,    minauth, get_rget_func,  rget_help),
+    (&#34;rput&#34;,     all_in,  none_in,    minauth,   get_rput_func,   rput_help),
+    (&#34;rcheck&#34;,   all_in,  none_in,    minauth,   get_rcheck_func,  rcheck_help),
+    (&#34;rlist&#34;,    all_in,  none_in,    auth_pass, get_rlist_func,  rlist_help),
+    (&#34;rcount&#34;,   all_in,  none_in,    auth_pass, get_rcount_func, rcount_help),
+    (&#34;rsize&#34;,    all_in,  none_in,    auth_pass, get_rsize_func,  rsize_help),
+    (&#34;rget&#34;,     all_in,  none_in,    auth_pass, get_rget_func,   rget_help),
+    (&#34;rhave&#34;,    all_in,  none_in,    auth_pass, get_rhave_func,   rhave_help),
     ]</code></pre>
 </details>
 </dd>

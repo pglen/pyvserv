@@ -44,11 +44,11 @@ import datetime,  time, stat, base64, uuid
 
 from pyvecc.Key import Key
 
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
+#from Crypto.Cipher import PKCS1_v1_5
+#from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Cipher import AES
-from Crypto.Hash import SHA
+#from Crypto.Hash import SHA
 #from Crypto.Hash import SHA512
 from Crypto.Hash import SHA256
 
@@ -68,7 +68,7 @@ __doc__ = \
     The keyword is embedded into the function name.
 &#39;&#39;&#39;
 
-chainfname = &#34;initial&#34;
+#chainfname = &#34;initial&#34;
 repfname = &#34;replic&#34;
 
 OK = &#34;OK&#34;
@@ -76,11 +76,14 @@ ERR = &#34;ERR&#34;
 
 #pgdebug = 0
 
+def _print_handles(self):
+        &#39;&#39;&#39; Debug helper &#39;&#39;&#39;
+        open_file_handles = os.listdir(&#39;/proc/self/fd&#39;)
+        print(&#39;open file handles: &#39; + &#39;, &#39;.join(map(str, open_file_handles)))
+
 def check_chain_path(self, strp):
 
-    chainp = pyservsup.globals.myhome + &#34;chain&#34;
-    chainp = os.path.normpath(chainp)
-
+    chainp = os.path.normpath(pyservsup.globals.chaindir)
     #print(&#34;check:&#34;, strp)
     #print(&#34;root:&#34;, chainp)
     dpath = os.path.normpath(strp)
@@ -122,7 +125,7 @@ def contain_path(self, strp):
     #print(&#34;dname4&#34;, dname4)
     #print(&#34;slice&#34;, dname4[:len(self.resp.cwd)])
 
-    # Compare root
+    # Compare roots
     if dname4[:len(self.resp.cwd)] != self.resp.cwd:
         return None
 
@@ -478,6 +481,142 @@ def get_pwd_func(self, strx):
     response = [OK,  dname2]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
+def get_rcheck_func(self, strx):
+
+    if len(strx) &lt; 2:
+        response = [ERR, &#34;Must specify blockchain kind&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) &lt; 3:
+        response = [ERR, &#34;Must specify link or sum&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, &#34;Directory does not exist&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
+
+    errx = False; cnt = -1; arrx = []
+    sss = core.getdbsize()
+    for aa in range(sss-1, 0, -1):
+        if  strx[2] == &#34;sum&#34;:
+            ppp = core.checkdata(aa)
+            if not ppp:
+                arrx.append(aa)
+        elif strx[2] == &#34;link&#34;:
+            ppp = core.linkintegrity(aa)
+            if not ppp:
+                arrx.append(aa)
+        else:
+            response = [ERR, &#34;One of &#39;link&#39; or &#39;sum&#39; is required&#34;, strx[0]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+    if len(arrx):
+        response = [ERR,  arrx, len(arrx), &#34;errors&#34;, strx[2]]
+    else:
+        response = [OK,  &#34;No errors&#34;, strx[2]]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+
+def get_rsize_func(self, strx):
+
+    if len(strx) &lt; 2:
+        response = [ERR, &#34;Must specify blockchain kind&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, &#34;Directory does not exist&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print(&#34;db op1 %.3f&#34; % ((time.time() - ttt) * 1000) )
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
+    #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
+
+    dbsize = core.getdbsize()
+
+    response = [OK,  dbsize, &#34;records&#34;]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+
+def get_rcount_func(self, strx):
+
+    if len(strx) &lt; 2:
+        response = [ERR, &#34;Must specify blockchain kind&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) &lt; 3:
+        response = [ERR, &#34;Must specify starting point&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) &lt; 4:
+        response = [ERR, &#34;Must specify ending point&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if pyservsup.globals.conf.pgdebug &gt; 3:
+        print(&#34;list: start&#34;, strx[2], &#34;end&#34;, strx[3])
+
+    if pyservsup.globals.conf.pgdebug &gt; 2:
+        print(&#34;rlist begin:&#34;, datetime.datetime.fromtimestamp(strx[2]),
+                            &#34;end:&#34;, datetime.datetime.fromtimestamp(strx[3]) )
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, &#34;Directory does not exist&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print(&#34;db op1 %.3f&#34; % ((time.time() - ttt) * 1000) )
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
+    #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
+
+    arr = []
+    rcnt = 0
+    dbsize = core.getdbsize()
+    for aa in range(dbsize - 1, -1, -1):
+        rec = core.get_header(aa)
+        ddd = pyservsup.uuid2timestamp(uuid.UUID(rec))
+        #ttt = pyservsup.uuid2date(uuid.UUID(rec))
+        #print(ddd, ttt)
+
+        if ddd &gt; strx[2] and ddd &lt; strx[3]:
+            rcnt += 1
+
+    if self.pgdebug &gt; 2:
+        print(&#34;rcnt&#34;, &#34;total: %d records&#34; % dbsize, &#34;got: %d records&#34; % rcnt)
+
+    response = [OK,  rcnt, &#34;records&#34;]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
 def get_rlist_func(self, strx):
 
     if len(strx) &lt; 2:
@@ -502,7 +641,9 @@ def get_rlist_func(self, strx):
         print(&#34;rlist begin:&#34;, datetime.datetime.fromtimestamp(strx[2]),
                             &#34;end:&#34;, datetime.datetime.fromtimestamp(strx[3]) )
 
-    dname = contain_path(self, strx[1])
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
     if not dname:
         response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -513,12 +654,12 @@ def get_rlist_func(self, strx):
         return
 
     #print(&#34;db op1 %.3f&#34; % ((time.time() - ttt) * 1000) )
-    core = twinchain.TwinChain(os.path.join(dname, chainfname + &#34;.pydb&#34;), 0)
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
     #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
 
     arr = []
     dbsize = core.getdbsize()
-    for aa in range(1, dbsize):
+    for aa in range(dbsize-1, -1, -1):
         rec = core.get_header(aa)
         ddd = pyservsup.uuid2timestamp(uuid.UUID(rec))
         #ttt = pyservsup.uuid2date(uuid.UUID(rec))
@@ -540,7 +681,7 @@ def get_rlist_func(self, strx):
     response = [OK,  arr]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
-def get_rget_func(self, strx):
+def get_rhave_func(self, strx):
 
     if len(strx) &lt; 2:
         response = [ERR, &#34;Must specify blockchain kind&#34;, strx[0]]
@@ -552,7 +693,8 @@ def get_rget_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    dname = contain_path(self, strx[1])
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
 
     if not dname:
         response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
@@ -568,48 +710,100 @@ def get_rget_func(self, strx):
     if pyservsup.globals.conf.pgdebug &gt; 2:
         print(&#34;rget&#34;, strx[1], strx[2])
 
-    core = twinchain.TwinChain(os.path.join(dname, chainfname + &#34;.pydb&#34;), 0)
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
     #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
-
-    data = []; ddd = []
+    ddd = []
     try:
         ddd = core.get_payoffs_bykey(strx[2])
     except:
         pass
     if len(ddd) == 0:
-        response = [OK, &#34;Data not found&#34;, strx[2],]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
-    try:
-        rechead = core.get_header(ddd[0])
-    except:
-        print(sys.exc_info())
-
-    if not rechead:
-        response = [OK, &#34;Cannot get data&#34;, strx[2],]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
-
-    if self.pgdebug &gt; 2:
-        print(&#34;got rechead&#34;, rechead)
-
-    if not core.checkdata(ddd[0]):
-        data = [ERR, &#34;Invalid Record, bad checksum&#34;, rec]
-    elif not core.linkintegrity(ddd[0]):
-        data = [ERR, &#34;Invalid Record, link damaged&#34;, rec]
+        response = [ERR, &#34;Data not found&#34;, strx[2],]
     else:
+        response = [OK, &#34;Data found&#34;, strx[2],]
+
+    #_print_handles(self)
+
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+def get_rget_func(self, strx):
+
+    if len(strx) &lt; 2:
+        response = [ERR, &#34;Must specify blockchain kind&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) &lt; 3:
+        response = [ERR, &#34;Must specify data header&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print(&#34;dname&#34;, dname)
+    if not os.path.isdir(dname):
+        response = [ERR, &#34;Blockchain &#39;kind&#39; directory does not exist.&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if pyservsup.globals.conf.pgdebug &gt; 2:
+        print(&#34;rget&#34;, strx[1], strx[2])
+
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
+    #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
+    datax = []
+    for aa in strx[2]:
+        data = []; ddd = []
         try:
-            data = core.get_payload(ddd[0])
+            ddd = core.get_payoffs_bykey(aa)
         except:
-            data = &#34;error on get data&#34;, str(sys.exc_info())
-        if self.pgdebug &gt; 4:
-            print(&#34;rec data&#34;, data)
+            pass
+        if len(ddd) == 0:
+            response = [ERR, &#34;Data not found&#34;, aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        try:
+            rechead = core.get_header(ddd[0])
+        except:
+            print(sys.exc_info())
 
-    if not data:
-        response = [OK, &#34;Record not found&#34;, strx[2],]
-    else:
-        response = [OK, data, strx[2],]
+        if not rechead:
+            response = [ERR, &#34;Cannot get data&#34;, aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
 
+        if self.pgdebug &gt; 2:
+            print(&#34;got rechead&#34;, rechead)
+
+        if not core.checkdata(ddd[0]):
+            data = [ERR, &#34;Invalid Record, bad checksum&#34;, aa]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+        if not core.linkintegrity(ddd[0]):
+            data = [ERR, &#34;Invalid Record, link damaged&#34;, aa]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        else:
+            try:
+                data = core.get_payload(ddd[0])
+            except:
+                data = &#34;error on get data&#34;, str(sys.exc_info())
+            if self.pgdebug &gt; 4:
+                print(&#34;rec data&#34;, data)
+        if not data:
+            response = [ERR, &#34;Record not found&#34;, aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        datax.append(data)
+
+    response = [OK, datax, datax, len(datax), &#34;records&#34;]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rput_func(self, strx):
@@ -622,7 +816,7 @@ def get_rput_func(self, strx):
     #print(&#34;strx[1]&#34;, strx[1])
     #print(&#39;curr&#39;, self.resp.dir)
 
-    tmpname = pyservsup.globals.myhome + &#34;chain&#34; + os.sep + strx[1]
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
     dname = check_chain_path(self, tmpname)
     if not dname:
         response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
@@ -656,7 +850,7 @@ def get_rput_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    cfname = os.path.join(dname, chainfname + &#34;.pydb&#34;)
+    cfname = os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;)
     #print(&#34;cfname&#34;, cfname)
     savecore = twinchain.TwinChain(cfname)
     #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
@@ -664,7 +858,6 @@ def get_rput_func(self, strx):
     #print(&#34;Got:&#34;, strx[2])
 
     # Do we have it already?:
-
     #ttt = time.time()
     #rethas = savecore.get_data_bykey(strx[2][&#39;header&#39;])
     #print(&#34;db get data  %.3f&#34; % ((time.time() - ttt) * 1000) )
@@ -679,9 +872,9 @@ def get_rput_func(self, strx):
     retoffs = savecore.get_payoffs_bykey(strx[2][&#39;header&#39;])
     #print(&#34;db get offs  %.3f&#34; % ((time.time() - ttt) * 1000) )
     if retoffs:
-        if self.pgdebug &gt; 1:
+        if self.pgdebug &gt; 2:
             print(&#34;Duplicate block, retoffs&#34;, retoffs)
-        response = [ERR, &#34;Duplicate block, not saved.&#34;, strx[0]]
+        response = [ERR, &#34;Duplicate block, not saved.&#34;, strx[2][&#39;header&#39;]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -725,7 +918,8 @@ def get_rput_func(self, strx):
 
         del repcore
     else:
-        #print(&#34;Not replicating&#34;)
+        if self.pgdebug &gt; 2:
+            print(&#34;Not replicating&#34;, strx[2][&#39;header&#39;])
         pass
 
         #print(&#34;db op3 %.3f&#34; % ((time.time() - ttt) * 1000) )
@@ -783,7 +977,7 @@ def get_ihost_func(self, strx):
 
     elif strx[1] == &#39;list&#39;:
         arr = []
-        for aa in range(repcore.getdbsize()):
+        for aa in range(repcore.getdbsize()-1, -1, -1):
             ddd = repcore.get_rec(aa)
             if ddd:
                 arr.append(str(ddd[0]))
@@ -1121,8 +1315,8 @@ def get_pass_func(self, strx):
         pysyslog.syslog(stry)
         rrr = [ERR, &#34;No such user&#34;, self.resp.user]
     elif xret[0] == 1:
-        stry = &#34;Successful logon  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
-                str(self.resp.client_address)
+        stry = &#34;Successful logon &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
+                            str(self.resp.client_address)
         pysyslog.syslog(stry)
 
         if self.pgdebug &gt; 3:
@@ -1133,17 +1327,8 @@ def get_pass_func(self, strx):
         #print(&#34;Contained&#34;,  self.userdir)
         if not os.path.isdir(self.userdir):
             os.mkdir(self.userdir)
-
         self.resp.cwd = self.userdir
-
-        #try:
-        #    os.chdir(self.resp.cwd)
-        #except:
-        #    print(&#34;Cannot change to payload dir.&#34;)
-        #    pass
-
-        rrr = [OK, self.resp.user + &#34; Authenticated.&#34;]
-
+        rrr = [OK,  &#34;Authenticated.&#34;, self.resp.user]
         retval = False
     else:
         stry = &#34;Error on logon  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
@@ -1562,9 +1747,7 @@ if __name__ == &#39;__main__&#39;:
 </summary>
 <pre><code class="python">def check_chain_path(self, strp):
 
-    chainp = pyservsup.globals.myhome + &#34;chain&#34;
-    chainp = os.path.normpath(chainp)
-
+    chainp = os.path.normpath(pyservsup.globals.chaindir)
     #print(&#34;check:&#34;, strp)
     #print(&#34;root:&#34;, chainp)
     dpath = os.path.normpath(strp)
@@ -1616,7 +1799,7 @@ if __name__ == &#39;__main__&#39;:
     #print(&#34;dname4&#34;, dname4)
     #print(&#34;slice&#34;, dname4[:len(self.resp.cwd)])
 
-    # Compare root
+    # Compare roots
     if dname4[:len(self.resp.cwd)] != self.resp.cwd:
         return None
 
@@ -2317,7 +2500,7 @@ if __name__ == &#39;__main__&#39;:
 
     elif strx[1] == &#39;list&#39;:
         arr = []
-        for aa in range(repcore.getdbsize()):
+        for aa in range(repcore.getdbsize()-1, -1, -1):
             ddd = repcore.get_rec(aa)
             if ddd:
                 arr.append(str(ddd[0]))
@@ -2560,8 +2743,8 @@ if __name__ == &#39;__main__&#39;:
         pysyslog.syslog(stry)
         rrr = [ERR, &#34;No such user&#34;, self.resp.user]
     elif xret[0] == 1:
-        stry = &#34;Successful logon  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
-                str(self.resp.client_address)
+        stry = &#34;Successful logon &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
+                            str(self.resp.client_address)
         pysyslog.syslog(stry)
 
         if self.pgdebug &gt; 3:
@@ -2572,17 +2755,8 @@ if __name__ == &#39;__main__&#39;:
         #print(&#34;Contained&#34;,  self.userdir)
         if not os.path.isdir(self.userdir):
             os.mkdir(self.userdir)
-
         self.resp.cwd = self.userdir
-
-        #try:
-        #    os.chdir(self.resp.cwd)
-        #except:
-        #    print(&#34;Cannot change to payload dir.&#34;)
-        #    pass
-
-        rrr = [OK, self.resp.user + &#34; Authenticated.&#34;]
-
+        rrr = [OK,  &#34;Authenticated.&#34;, self.resp.user]
         retval = False
     else:
         stry = &#34;Error on logon  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
@@ -2630,6 +2804,132 @@ if __name__ == &#39;__main__&#39;:
     self.resp.datahandler.putencode([OK, buff], self.resp.ekey)</code></pre>
 </details>
 </dd>
+<dt id="pyvfunc.get_rcheck_func"><code class="name flex">
+<span>def <span class="ident">get_rcheck_func</span></span>(<span>self, strx)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_rcheck_func(self, strx):
+
+    if len(strx) &lt; 2:
+        response = [ERR, &#34;Must specify blockchain kind&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) &lt; 3:
+        response = [ERR, &#34;Must specify link or sum&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, &#34;Directory does not exist&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
+
+    errx = False; cnt = -1; arrx = []
+    sss = core.getdbsize()
+    for aa in range(sss-1, 0, -1):
+        if  strx[2] == &#34;sum&#34;:
+            ppp = core.checkdata(aa)
+            if not ppp:
+                arrx.append(aa)
+        elif strx[2] == &#34;link&#34;:
+            ppp = core.linkintegrity(aa)
+            if not ppp:
+                arrx.append(aa)
+        else:
+            response = [ERR, &#34;One of &#39;link&#39; or &#39;sum&#39; is required&#34;, strx[0]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+    if len(arrx):
+        response = [ERR,  arrx, len(arrx), &#34;errors&#34;, strx[2]]
+    else:
+        response = [OK,  &#34;No errors&#34;, strx[2]]
+    self.resp.datahandler.putencode(response, self.resp.ekey)</code></pre>
+</details>
+</dd>
+<dt id="pyvfunc.get_rcount_func"><code class="name flex">
+<span>def <span class="ident">get_rcount_func</span></span>(<span>self, strx)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_rcount_func(self, strx):
+
+    if len(strx) &lt; 2:
+        response = [ERR, &#34;Must specify blockchain kind&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) &lt; 3:
+        response = [ERR, &#34;Must specify starting point&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) &lt; 4:
+        response = [ERR, &#34;Must specify ending point&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if pyservsup.globals.conf.pgdebug &gt; 3:
+        print(&#34;list: start&#34;, strx[2], &#34;end&#34;, strx[3])
+
+    if pyservsup.globals.conf.pgdebug &gt; 2:
+        print(&#34;rlist begin:&#34;, datetime.datetime.fromtimestamp(strx[2]),
+                            &#34;end:&#34;, datetime.datetime.fromtimestamp(strx[3]) )
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, &#34;Directory does not exist&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print(&#34;db op1 %.3f&#34; % ((time.time() - ttt) * 1000) )
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
+    #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
+
+    arr = []
+    rcnt = 0
+    dbsize = core.getdbsize()
+    for aa in range(dbsize - 1, -1, -1):
+        rec = core.get_header(aa)
+        ddd = pyservsup.uuid2timestamp(uuid.UUID(rec))
+        #ttt = pyservsup.uuid2date(uuid.UUID(rec))
+        #print(ddd, ttt)
+
+        if ddd &gt; strx[2] and ddd &lt; strx[3]:
+            rcnt += 1
+
+    if self.pgdebug &gt; 2:
+        print(&#34;rcnt&#34;, &#34;total: %d records&#34; % dbsize, &#34;got: %d records&#34; % rcnt)
+
+    response = [OK,  rcnt, &#34;records&#34;]
+    self.resp.datahandler.putencode(response, self.resp.ekey)</code></pre>
+</details>
+</dd>
 <dt id="pyvfunc.get_rget_func"><code class="name flex">
 <span>def <span class="ident">get_rget_func</span></span>(<span>self, strx)</span>
 </code></dt>
@@ -2651,7 +2951,8 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    dname = contain_path(self, strx[1])
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
 
     if not dname:
         response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
@@ -2667,47 +2968,109 @@ if __name__ == &#39;__main__&#39;:
     if pyservsup.globals.conf.pgdebug &gt; 2:
         print(&#34;rget&#34;, strx[1], strx[2])
 
-    core = twinchain.TwinChain(os.path.join(dname, chainfname + &#34;.pydb&#34;), 0)
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
     #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
+    datax = []
+    for aa in strx[2]:
+        data = []; ddd = []
+        try:
+            ddd = core.get_payoffs_bykey(aa)
+        except:
+            pass
+        if len(ddd) == 0:
+            response = [ERR, &#34;Data not found&#34;, aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        try:
+            rechead = core.get_header(ddd[0])
+        except:
+            print(sys.exc_info())
 
-    data = []; ddd = []
+        if not rechead:
+            response = [ERR, &#34;Cannot get data&#34;, aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+        if self.pgdebug &gt; 2:
+            print(&#34;got rechead&#34;, rechead)
+
+        if not core.checkdata(ddd[0]):
+            data = [ERR, &#34;Invalid Record, bad checksum&#34;, aa]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+        if not core.linkintegrity(ddd[0]):
+            data = [ERR, &#34;Invalid Record, link damaged&#34;, aa]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        else:
+            try:
+                data = core.get_payload(ddd[0])
+            except:
+                data = &#34;error on get data&#34;, str(sys.exc_info())
+            if self.pgdebug &gt; 4:
+                print(&#34;rec data&#34;, data)
+        if not data:
+            response = [ERR, &#34;Record not found&#34;, aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        datax.append(data)
+
+    response = [OK, datax, datax, len(datax), &#34;records&#34;]
+    self.resp.datahandler.putencode(response, self.resp.ekey)</code></pre>
+</details>
+</dd>
+<dt id="pyvfunc.get_rhave_func"><code class="name flex">
+<span>def <span class="ident">get_rhave_func</span></span>(<span>self, strx)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_rhave_func(self, strx):
+
+    if len(strx) &lt; 2:
+        response = [ERR, &#34;Must specify blockchain kind&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) &lt; 3:
+        response = [ERR, &#34;Must specify data header&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print(&#34;dname&#34;, dname)
+    if not os.path.isdir(dname):
+        response = [ERR, &#34;Blockchain &#39;kind&#39; directory does not exist.&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if pyservsup.globals.conf.pgdebug &gt; 2:
+        print(&#34;rget&#34;, strx[1], strx[2])
+
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
+    #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
+    ddd = []
     try:
         ddd = core.get_payoffs_bykey(strx[2])
     except:
         pass
     if len(ddd) == 0:
-        response = [OK, &#34;Data not found&#34;, strx[2],]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
-    try:
-        rechead = core.get_header(ddd[0])
-    except:
-        print(sys.exc_info())
-
-    if not rechead:
-        response = [OK, &#34;Cannot get data&#34;, strx[2],]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
-
-    if self.pgdebug &gt; 2:
-        print(&#34;got rechead&#34;, rechead)
-
-    if not core.checkdata(ddd[0]):
-        data = [ERR, &#34;Invalid Record, bad checksum&#34;, rec]
-    elif not core.linkintegrity(ddd[0]):
-        data = [ERR, &#34;Invalid Record, link damaged&#34;, rec]
+        response = [ERR, &#34;Data not found&#34;, strx[2],]
     else:
-        try:
-            data = core.get_payload(ddd[0])
-        except:
-            data = &#34;error on get data&#34;, str(sys.exc_info())
-        if self.pgdebug &gt; 4:
-            print(&#34;rec data&#34;, data)
+        response = [OK, &#34;Data found&#34;, strx[2],]
 
-    if not data:
-        response = [OK, &#34;Record not found&#34;, strx[2],]
-    else:
-        response = [OK, data, strx[2],]
+    #_print_handles(self)
 
     self.resp.datahandler.putencode(response, self.resp.ekey)</code></pre>
 </details>
@@ -2745,7 +3108,9 @@ if __name__ == &#39;__main__&#39;:
         print(&#34;rlist begin:&#34;, datetime.datetime.fromtimestamp(strx[2]),
                             &#34;end:&#34;, datetime.datetime.fromtimestamp(strx[3]) )
 
-    dname = contain_path(self, strx[1])
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
     if not dname:
         response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -2756,12 +3121,12 @@ if __name__ == &#39;__main__&#39;:
         return
 
     #print(&#34;db op1 %.3f&#34; % ((time.time() - ttt) * 1000) )
-    core = twinchain.TwinChain(os.path.join(dname, chainfname + &#34;.pydb&#34;), 0)
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
     #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
 
     arr = []
     dbsize = core.getdbsize()
-    for aa in range(1, dbsize):
+    for aa in range(dbsize-1, -1, -1):
         rec = core.get_header(aa)
         ddd = pyservsup.uuid2timestamp(uuid.UUID(rec))
         #ttt = pyservsup.uuid2date(uuid.UUID(rec))
@@ -2803,7 +3168,7 @@ if __name__ == &#39;__main__&#39;:
     #print(&#34;strx[1]&#34;, strx[1])
     #print(&#39;curr&#39;, self.resp.dir)
 
-    tmpname = pyservsup.globals.myhome + &#34;chain&#34; + os.sep + strx[1]
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
     dname = check_chain_path(self, tmpname)
     if not dname:
         response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
@@ -2837,7 +3202,7 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    cfname = os.path.join(dname, chainfname + &#34;.pydb&#34;)
+    cfname = os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;)
     #print(&#34;cfname&#34;, cfname)
     savecore = twinchain.TwinChain(cfname)
     #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
@@ -2845,7 +3210,6 @@ if __name__ == &#39;__main__&#39;:
     #print(&#34;Got:&#34;, strx[2])
 
     # Do we have it already?:
-
     #ttt = time.time()
     #rethas = savecore.get_data_bykey(strx[2][&#39;header&#39;])
     #print(&#34;db get data  %.3f&#34; % ((time.time() - ttt) * 1000) )
@@ -2860,9 +3224,9 @@ if __name__ == &#39;__main__&#39;:
     retoffs = savecore.get_payoffs_bykey(strx[2][&#39;header&#39;])
     #print(&#34;db get offs  %.3f&#34; % ((time.time() - ttt) * 1000) )
     if retoffs:
-        if self.pgdebug &gt; 1:
+        if self.pgdebug &gt; 2:
             print(&#34;Duplicate block, retoffs&#34;, retoffs)
-        response = [ERR, &#34;Duplicate block, not saved.&#34;, strx[0]]
+        response = [ERR, &#34;Duplicate block, not saved.&#34;, strx[2][&#39;header&#39;]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -2906,7 +3270,8 @@ if __name__ == &#39;__main__&#39;:
 
         del repcore
     else:
-        #print(&#34;Not replicating&#34;)
+        if self.pgdebug &gt; 2:
+            print(&#34;Not replicating&#34;, strx[2][&#39;header&#39;])
         pass
 
         #print(&#34;db op3 %.3f&#34; % ((time.time() - ttt) * 1000) )
@@ -2920,6 +3285,44 @@ if __name__ == &#39;__main__&#39;:
     #print(&#39;open file handles: &#39; + &#39;, &#39;.join(map(str, open_file_handles)))
 
     pysyslog.syslog(&#34;BCD %s&#34; % strx[2][&#39;header&#39;])</code></pre>
+</details>
+</dd>
+<dt id="pyvfunc.get_rsize_func"><code class="name flex">
+<span>def <span class="ident">get_rsize_func</span></span>(<span>self, strx)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_rsize_func(self, strx):
+
+    if len(strx) &lt; 2:
+        response = [ERR, &#34;Must specify blockchain kind&#34;, strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, &#34;No Access to directory.&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, &#34;Directory does not exist&#34;, strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print(&#34;db op1 %.3f&#34; % ((time.time() - ttt) * 1000) )
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + &#34;.pydb&#34;), 0)
+    #print(&#34;db op2 %.3f&#34; % ((time.time() - ttt) * 1000) )
+
+    dbsize = core.getdbsize()
+
+    response = [OK,  dbsize, &#34;records&#34;]
+    self.resp.datahandler.putencode(response, self.resp.ekey)</code></pre>
 </details>
 </dd>
 <dt id="pyvfunc.get_sess_func"><code class="name flex">
@@ -3447,9 +3850,13 @@ if __name__ == &#39;__main__&#39;:
 <li><code><a title="pyvfunc.get_pass_func" href="#pyvfunc.get_pass_func">get_pass_func</a></code></li>
 <li><code><a title="pyvfunc.get_pwd_func" href="#pyvfunc.get_pwd_func">get_pwd_func</a></code></li>
 <li><code><a title="pyvfunc.get_qr_func" href="#pyvfunc.get_qr_func">get_qr_func</a></code></li>
+<li><code><a title="pyvfunc.get_rcheck_func" href="#pyvfunc.get_rcheck_func">get_rcheck_func</a></code></li>
+<li><code><a title="pyvfunc.get_rcount_func" href="#pyvfunc.get_rcount_func">get_rcount_func</a></code></li>
 <li><code><a title="pyvfunc.get_rget_func" href="#pyvfunc.get_rget_func">get_rget_func</a></code></li>
+<li><code><a title="pyvfunc.get_rhave_func" href="#pyvfunc.get_rhave_func">get_rhave_func</a></code></li>
 <li><code><a title="pyvfunc.get_rlist_func" href="#pyvfunc.get_rlist_func">get_rlist_func</a></code></li>
 <li><code><a title="pyvfunc.get_rput_func" href="#pyvfunc.get_rput_func">get_rput_func</a></code></li>
+<li><code><a title="pyvfunc.get_rsize_func" href="#pyvfunc.get_rsize_func">get_rsize_func</a></code></li>
 <li><code><a title="pyvfunc.get_sess_func" href="#pyvfunc.get_sess_func">get_sess_func</a></code></li>
 <li><code><a title="pyvfunc.get_stat_func" href="#pyvfunc.get_stat_func">get_stat_func</a></code></li>
 <li><code><a title="pyvfunc.get_tout_func" href="#pyvfunc.get_tout_func">get_tout_func</a></code></li>

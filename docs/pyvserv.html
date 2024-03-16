@@ -549,6 +549,7 @@ def mainfunct():
         exec = os.path.dirname(os.path.split(pyservsup.globals._script_home)[0]) + os.sep
         exec += &#34;../pyvtools/pyvgenkey.py&#34;
         print(&#34;Notice: Generating key in&#34;, &#34;&#39;&#34; + pyservsup.globals.keydir + &#34;&#39;&#34;)
+        print(&#34;For added security please generate more keys with &#39;pyvgenkeys&#39;&#34;);
         if conf.pgdebug &gt; 2:
             print(&#34;Exec:  &#34;, exec)
 
@@ -589,8 +590,8 @@ def mainfunct():
     pyvfunc.pgdebug = conf.pgdebug
     pyvfunc.pglog = conf.pglog
 
-    slogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvserver.log&#34;)
-    rlogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvreplic.log&#34;)
+    slogfile = os.path.join(pyservsup.globals.logdir, pyservsup.logfname + &#34;.log&#34;)
+    rlogfile = os.path.join(pyservsup.globals.logdir, pyservsup.repfname +&#34;.log&#34;)
 
     pysyslog.init_loggers(
             (&#34;system&#34;, slogfile), (&#34;replic&#34;, rlogfile))
@@ -725,6 +726,7 @@ if __name__ == &#39;__main__&#39;:
         exec = os.path.dirname(os.path.split(pyservsup.globals._script_home)[0]) + os.sep
         exec += &#34;../pyvtools/pyvgenkey.py&#34;
         print(&#34;Notice: Generating key in&#34;, &#34;&#39;&#34; + pyservsup.globals.keydir + &#34;&#39;&#34;)
+        print(&#34;For added security please generate more keys with &#39;pyvgenkeys&#39;&#34;);
         if conf.pgdebug &gt; 2:
             print(&#34;Exec:  &#34;, exec)
 
@@ -765,8 +767,8 @@ if __name__ == &#39;__main__&#39;:
     pyvfunc.pgdebug = conf.pgdebug
     pyvfunc.pglog = conf.pglog
 
-    slogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvserver.log&#34;)
-    rlogfile = os.path.join(pyservsup.globals.myhome, &#34;log&#34;, &#34;pyvreplic.log&#34;)
+    slogfile = os.path.join(pyservsup.globals.logdir, pyservsup.logfname + &#34;.log&#34;)
+    rlogfile = os.path.join(pyservsup.globals.logdir, pyservsup.repfname +&#34;.log&#34;)
 
     pysyslog.init_loggers(
             (&#34;system&#34;, slogfile), (&#34;replic&#34;, rlogfile))
