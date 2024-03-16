@@ -160,7 +160,8 @@ class BcData():
         ssss = self.pb.encode_data("", arrx2)
         #print(type(ssss))
         #print(ssss)
-        ssss  = bytes(ssss, "utf-8")
+        #ssss  = bytes(ssss) #, "utf-8")
+        ssss  = ssss.encode()
         hhh = shahex(ssss)
         self.datax[Hash] = hhh
 
@@ -201,7 +202,8 @@ class BcData():
             ssss = "".join(arrx3)
 
             #print(ssss)
-            ssss  = bytes(ssss, "utf-8")
+            #ssss  = bytes(ssss) #, "utf-8")
+            ssss  = ssss.encode("cp437")
             hhh = shahex(ssss)
             if hhh[-self.num_zeros:] == '0' * self.num_zeros:
                 break
@@ -238,7 +240,9 @@ class BcData():
         ssss = self.pb.encode_data("", arrx2)
         #print(type(ssss))
         #print(ssss)
-        ssss  = bytes(ssss, "utf-8")
+        #ssss  = bytes(ssss) #, "utf-8")
+        ssss  = ssss.encode("cp437")
+
         hhh = shahex(ssss)
         #print("asave", asave)
         arrx2[Link] = hhh
@@ -268,7 +272,9 @@ class BcData():
         ssss = self.pb.encode_data("", arrx2)
         #print(type(ssss))
         #print(ssss)
-        ssss  = bytes(ssss, "utf-8")
+        #ssss  = bytes(ssss) #, "utf-8")
+        ssss  = ssss.encode("cp437")
+
         hhh = shahex(ssss)
         #print("chk arrx2", arrx2)
         hhh = shahex(ssss)
@@ -302,7 +308,8 @@ class BcData():
         #ssss = self.pb.encode_data("", arrx3)
         ssss = "".join(arrx3)
         #print(ssss)
-        ssss  = bytes(ssss, "utf-8")
+        #ssss  = bytes(ssss) #, "utf-8")
+        ssss = ssss.encode("cp437")
         hhh = shahex(ssss)
         #print ("Proof", self.datax[Proof], hhh)
         return self.datax[Proof] == hhh
@@ -322,7 +329,8 @@ class BcData():
         #print("raw arrx2", arrx2)
         ssss = self.pb.encode_data("", arrx2)
         #print(ssss)
-        ssss  = bytes(ssss, "utf-8")
+        #ssss  = bytes(ssss) #) #, "utf-8")
+        ssss = ssss.encode("cp437")
         hhh = shahex(ssss)
         #print (hhh, self.datax[Link])
         return(hhh == self.datax[Link])

@@ -42,7 +42,7 @@ try:
     # Get Parent of module root
     sf = os.path.dirname(support.__file__)
     sf = os.path.dirname(sf)
-    print(&#34;sf&#34;, sf)
+    #print(&#34;sf&#34;, sf)
     sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
     sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
     sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
@@ -57,7 +57,21 @@ except:
     sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
     from pyvcommon import support
 
-print(&#34;Load:&#34;, sys.path[-1])
+try:
+    from pyvguicom import sutil
+    # Get Parent of module root
+    sf = os.path.dirname(sutil.__file__)
+    sf = os.path.dirname(sf)
+    sys.path.append(os.path.join(sf, &#34;pyvguicom&#34;))
+except:
+    #print(sys.exc_info())
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;..&#34;, &#34;pyvguicom&#34;))
+    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;..&#34;, &#34;pyvguicom&#34;, &#34;pyvguicom&#34;))
+    from pyvguicom import sutil
+
+
+#print(&#34;Load:&#34;, sys.path[-1])
 
 from pyvcommon import support, comline, pywrap
 from pyvcommon import pydata, pyservsup,  crysupp

@@ -299,7 +299,14 @@ class CliSup():
         if self.pgdebug > 0:
             cnt = 0
             for aa in message:
-                print( "   message %d:" % cnt, aa[:12], end=' ')
+                try:
+                    if len(aa) > 30:
+                        aa = aa[:24]
+                except:
+                    # Not iterable
+                    pass
+
+                print( "   message %d:" % cnt, aa, end=' ')
                 cnt += 1
             print()
             #print("    key",  key)
@@ -318,7 +325,14 @@ class CliSup():
         if self.pgdebug > 0:
             cnt = 0
             for aa in response:
-                print( "   response %d:" % cnt, aa[:12], end=' ')
+
+                try:
+                    if len(aa) > 30:
+                        aa = aa[:12]
+                except:
+                    # Not iterable
+                    pass
+                print( "   response %d:" % cnt, aa, end=' ')
                 cnt += 1
             print()
 
@@ -453,7 +467,7 @@ class CliSup():
             ttt = SHA256.new(); ttt.update(sess_keyx.encode())
 
             if conf.pgdebug > 2:
-                print("sess_keyx", sess_keyx[:24])
+                print("sess_keyx", crysupp.hexdump(sess_keyx.encode(), 24))
         else:
             sess_keyx = ""
 

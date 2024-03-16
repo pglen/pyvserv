@@ -43,10 +43,10 @@ try:
     sf = os.path.dirname(sf)
     sys.path.append(os.path.join(sf, "pyvguicom"))
 except:
-    print("local")
-    print("import", sys.exc_info())
+    #print("import", sys.exc_info())
     base = os.path.dirname(os.path.realpath(__file__))
-    sys.path.append(os.path.join(base,  "..", "pyvguicom"))
+    sys.path.append(os.path.join(base, "..", "..", "pyvguicom"))
+    sys.path.append(os.path.join(base, "..", "..", "pyvguicom", "pyvguicom"))
     from pyvguicom import sutil
 
 #print("Load:", sys.path[-1])

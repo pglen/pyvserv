@@ -14,7 +14,7 @@ try:
     # Get Parent of module root
     sf = os.path.dirname(support.__file__)
     sf = os.path.dirname(sf)
-    print("sf", sf)
+    #print("sf", sf)
     sys.path.append(os.path.join(sf, "pyvcommon"))
     sys.path.append(os.path.join(sf, "pyvserver"))
     sys.path.append(os.path.join(sf, "pyvgui"))
@@ -29,7 +29,21 @@ except:
     sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
-print("Load:", sys.path[-1])
+try:
+    from pyvguicom import sutil
+    # Get Parent of module root
+    sf = os.path.dirname(sutil.__file__)
+    sf = os.path.dirname(sf)
+    sys.path.append(os.path.join(sf, "pyvguicom"))
+except:
+    #print(sys.exc_info())
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base, "..", "..", "pyvguicom"))
+    sys.path.append(os.path.join(base, "..", "..", "pyvguicom", "pyvguicom"))
+    from pyvguicom import sutil
+
+
+#print("Load:", sys.path[-1])
 
 from pyvcommon import support, comline, pywrap
 from pyvcommon import pydata, pyservsup,  crysupp

@@ -2,22 +2,6 @@
 
 import os, sys, getopt, signal, random, time, warnings
 
-from pymenu import  *
-from pgui import *
-
-base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join(base, '../../'))
-
-sys.path.append('../../')
-
-from pyvguicom import pgbox
-from pyvguicom import pgsimp
-from pyvguicom import sutil
-from pyvguicom import pggui
-
-from pyvcommon import pydata, pyservsup,  crysupp
-from pydbase import twinchain
-
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
@@ -25,6 +9,17 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
+
+from pyvguicom import pgbox
+from pyvguicom import pgsimp
+from pyvguicom import sutil
+from pyvguicom import pggui
+
+from pymenu import  *
+from pgui import  *
+
+from pyvcommon import pydata, pyservsup,  crysupp
+from pydbase import twinchain
 
 import pyvpacker
 
@@ -35,6 +30,15 @@ class MainWin(Gtk.Window):
     def __init__(self):
 
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
+
+        try:
+            pixbuf = Gtk.IconTheme.get_default().load_icon("weather-storm", 32, 0)
+            self.set_icon(pixbuf)
+        except:
+
+            icon = os.path.join(os.path.dirname(__file__), "weather-storm.png")
+            ic = Gtk.Image(); ic.set_from_file(icon)
+            self.set_icon(ic.get_pixbuf())
 
         self.start_anal = False
         self.core = None
@@ -180,18 +184,18 @@ class MainWin(Gtk.Window):
                 self.core = twinchain.TwinChain(dbname)
                 #print("opened", self.core)
             sss = self.core.getdbsize()
-            #sss = 3 # test
+            sss = 3 # test
             if sss != self.old_sss:
                 cnt = 0
                 # Start from one
-                for aa in range(self.old_sss, sss):
+                for aa in range(self.old_sss+1, sss):
                     rec = self.core.get_rec(aa)
                     if not rec:
                         continue
-                    #print("Datamon", rec)
+                    print("Datamon", rec[1])
                     pb = pyvpacker.packbin()
                     dec = pb.decode_data(rec[1])[0]
-                    #print("dec", dec)
+                    print("dec", dec)
                     decpay   = pb.decode_data(dec['payload'])[0]
 
                     actstr = ["register", "unregister", "cast", "uncast", ]

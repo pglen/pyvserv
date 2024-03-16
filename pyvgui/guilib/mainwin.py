@@ -5,8 +5,6 @@
 
 import os, sys, getopt, signal, random, time, warnings
 
-sys.path.append("pyvguicom")
-
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk

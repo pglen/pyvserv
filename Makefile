@@ -45,18 +45,22 @@ cleankeys:
 tests:
 	echo No tests
 
+XPATH="pyvcommon,../pyvguicom,pyvgui/guilib "
+XPATH2="pyvcommon:../pyvguicom:../pyvguicom/pyvguicom:pyvgui/guilib"
+
 docs:
-	@#PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvserver/pyvserv.py
-	@#PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvserver/pyvfunc.py
-	@#PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvserver/pyvreplic.py
-	@#PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvserver/pyvstate.py
-	@#PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvtools/pyvgenkeys.py
-	@#PYTHONPATH=pyvcommon pdoc  --force --html -o docs pyvtools/pyvgenkey.py
-	@PYTHONPATH=pyvcommon:../pyvguicom:pyvgui/guilib  pdoc  --force --html -o docs pyvgui/pyvcpanel.py
-	@PYTHONPATH=pyvcommon:../pyvguicom:pyvgui/guilib  pdoc  --force --html -o docs pyvgui/pyvservui.py
-	@PYTHONPATH=pyvcommon:../pyvguicom:pyvgui/guilib  pdoc  --force --html -o docs pyvgui/pyvtally.py
-	@PYTHONPATH=pyvcommon:../pyvguicom:pyvgui/guilib  pdoc  --force --html -o docs pyvgui/guilib/mainwin.py
-	@PYTHONPATH=pyvcommon:../pyvguicom:pyvgui/guilib  pdoc  --force --html -o docs pyvgui/guilib/pgui.py
+	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvserver/pyvserv.py
+	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvserver/pyvfunc.py
+	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvserver/pyvreplic.py
+	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvserver/pyvstate.py
+	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvtools/pyvgenkeys.py
+	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvtools/pyvgenkey.py
+	@PYTHONPATH=${XPATH} pdoc --force --html -o docs pyvgui/pyvcpanel.py
+	@PYTHONPATH=${XPATH} pdoc --force --html -o docs pyvgui/pyvservui.py
+	@PYTHONPATH=${XPATH} pdoc --force --html -o docs pyvgui/pyvtally.py
+	@PYTHONPATH=${XPATH2} pdoc --force --html -o docs pyvgui/guilib/mainwin.py
+	@PYTHONPATH=${XPATH2} pdoc --force --html -o docs pyvgui/guilib/mainwinserv.py
+	@PYTHONPATH=${XPATH2} pdoc --force --html -o docs pyvgui/guilib/mainwintally.py
 
 md5:
 	@cat md5sum.txt

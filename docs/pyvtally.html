@@ -71,8 +71,10 @@ try:
     sf = os.path.dirname(sf)
     sys.path.append(os.path.join(sf, &#34;pyvguicom&#34;))
 except:
-    print(sys_exc_info())
-    sys.path.append(os.path.join(base,  &#34;..&#34;, &#34;pyvguicom&#34;))
+    #print(&#34;import&#34;, sys.exc_info())
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;..&#34;, &#34;pyvguicom&#34;))
+    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;..&#34;, &#34;pyvguicom&#34;, &#34;pyvguicom&#34;))
     from pyvguicom import sutil
 
 #print(&#34;Load:&#34;, sys.path[-1])

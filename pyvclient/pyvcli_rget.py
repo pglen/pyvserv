@@ -161,8 +161,6 @@ if __name__ == '__main__':
             sys.exit(0)
         print("rlist got", cresp[1], "records")
         for aa in cresp[1]:
-            if conf.verbose:
-                print("rget", aa[1]['header'], aa)
             cresp2 = hand.client(["rget", "vote", [aa]], conf.sess_key)
             if cresp2[0] != "OK":
                 print("Cannot get record", cresp)

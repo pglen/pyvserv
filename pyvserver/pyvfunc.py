@@ -845,9 +845,15 @@ def get_rput_func(self, strx):
         return
 
     undec = self.pb.encode_data("", strx[2])
+
     if  self.pgdebug > 5:
-        print("Save_data header:", strx[2]["header"], "Data:",  undec)
+        print("Save_data header:", strx[2]["header"])
+
+    if self.pgdebug > 7:
+        print("Save data:", undec)
+
     try:
+        #savecore.pgdebug = 10
         ret = savecore.appendwith(strx[2]['header'], undec)
     except:
         del savecore
