@@ -3,7 +3,13 @@
 from __future__ import print_function
 
 import os, sys, getopt, signal, select, string, time, copy
-import struct, stat, base64, random, zlib, uuid, datetime, psutil
+import struct, stat, base64, random, zlib, uuid, datetime
+
+try:
+    import psutil
+except:
+    psutil = None
+    pass
 
 from Crypto import Random
 #from Crypto.Hash import SHA512
@@ -170,13 +176,14 @@ class BcData():
         ''' Provide proof of work. Only payload and powerhash '''
 
         # Make sure we are not killing the system
-        while True:
-            cpu = psutil.cpu_percent(1)
-            if cpu > 60:
-                print("CPU", cpu)
-                time.sleep(1)
-            else:
-                break
+        if psutil:
+            while True:
+                cpu = psutil.cpu_percent(1)
+                if cpu > 60:
+                    print("CPU", cpu)
+                    time.sleep(1)
+                else:
+                    break
         # Replicate without non participating fields:
         arrx2 = {};
         arrx2[PowRand] = self.rrr.read(12)

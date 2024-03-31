@@ -111,7 +111,7 @@ if __name__ == '__main__':
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
-    cresp = hand.login(conf, "admin", "1234")
+    cresp = hand.login("admin", "1234", conf)
     print ("Server login response:", cresp)
 
     #cresp = hand.client(["ls", ], conf.sess_key)

@@ -127,7 +127,7 @@ if __name__ == '__main__':
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
-    ret =  hand.login(conf, "admin", "1234")
+    ret =  hand.login("admin", "1234", conf)
     if ret[0] != "OK":
         print ("Server login fail:", ret)
         hand.client(["quit"], conf.sess_key)

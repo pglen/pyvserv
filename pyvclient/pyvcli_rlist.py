@@ -109,7 +109,7 @@ if __name__ == '__main__':
     resp3 = hand.client(["hello", ],  conf.sess_key, False)
     print("Hello Response:", resp3)
 
-    cresp = hand.login(conf, "admin", "1234")
+    cresp = hand.login("admin", "1234", conf)
     print ("Server login response:", cresp)
 
     # Set date range

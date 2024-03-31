@@ -32,14 +32,14 @@ test:
 
 # This is optional (untested)
 test2:
-	-python3 ./pyvcli_kadd.py -q
-	-python3 ./pyvcli_kini.py -q
 	-python3 ./pyvcli_uadd.py -q
 	-python3 ./pyvcli_uini.py -q
-	-python3 ./pyvcli_down.py -q
-	-python3 ./pyvcli_enc.py -q
-	-python3 ./pyvcli_up.py -q
-	-python3 ./killserv.sh
+	@#-python3 ./pyvcli_kadd.py -q
+	@#-python3 ./pyvcli_kini.py -q
+	@#-python3 ./pyvcli_down.py -q
+	@#-python3 ./pyvcli_enc.py -q
+	@#-python3 ./pyvcli_up.py -q
+	@#-python3 ./killserv.sh
 
 # "ps xa | grep "pyserv.py" | grep python")
 #	@-cd ../server; python ./pyserv.py &

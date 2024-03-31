@@ -23,7 +23,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
+    print( "            -p        - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -72,74 +72,77 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    #resp3 = hand.client(["hello",] , "", False)
-    #print("Hello Response:", resp3)
+    resp3 = hand.client(["hello",] , "", False)
+    print("Hello Response:", resp3)
 
     resp3 = hand.start_session(conf)
     print("Sess Response:", resp3)
 
+    #resp3 = hand.client(["hello",] , conf.sess_key, False)
+    #print("Hello Response:", resp3[1])
+
+    resp = hand.client(["user", "admin"], conf.sess_key)
+    print("user Response:", resp)
+    if resp[0] != "OK":
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        raise ValueError("No user", resp[1])
+
+    resp = hand.client(["pass", "1234"], conf.sess_key)
+    print("pass Response:", resp)
+    if resp[0] != "OK":
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        raise ValueError("Not authorized", resp[1])
+
+    resp = hand.client(["udel", "admin2", "1234"], conf.sess_key)
+    print("udel Response:", resp)
+
+    resp = hand.client(["aadd", "admin2", "1234"], conf.sess_key)
+    print("aadd Response:", resp)
+
+    resp = hand.client(["udel", "peter", "1234"], conf.sess_key)
+    print("udel Response:", resp)
+
+    resp = hand.client(["uadd", "peter", "1234"], conf.sess_key)
+    print("uadd Response:", resp)
+
+    resp = hand.client(["logout",], conf.sess_key)
+    print("logout Response:", resp)
+
+    resp = hand.login("peter", "1234", conf)
+    print("login Response:", resp)
+
+    resp = hand.client(["chpass", "1234", "12345"], conf.sess_key)
+    print("chpass Response:", resp)
+
+    resp = hand.client(["logout",], conf.sess_key)
+    print("logout Response:", resp)
+
+    resp = hand.login("peter", "12345", conf)
+    print("login Response:", resp)
+
     resp3 = hand.client(["hello",] , conf.sess_key, False)
     print("Hello Response:", resp3)
 
-    resp = hand.client(["user", "admin"], conf.sess_key)
-    print("user Response:", resp)
+    resp = hand.client(["logout",], conf.sess_key)
+    print("logout Response:", resp)
 
-    resp = hand.client(["pass", "1234"], conf.sess_key)
-    print("pass Response:", resp)
-    if resp[0] != "OK":
-        raise ValueError("Not authorized", resp[1])
+    resp = hand.login("admin2", "1234", conf)
+    print("login Response:", resp)
 
-    resp = hand.client(["uena", "peter2", "enable"], conf.sess_key)
-    print("uena Response:", resp)
+    resp = hand.client(["chpass", "1234", "12345"], conf.sess_key)
+    print("chpass Response:", resp)
 
     resp = hand.client(["logout",], conf.sess_key)
     print("logout Response:", resp)
 
-    resp = hand.client(["uena", "peter2", "enable"], conf.sess_key)
-    print("uena Response:", resp)
-
-    resp = hand.client(["user", "admin"], conf.sess_key)
-    print("user Response:", resp)
-
-    resp = hand.client(["pass", "1234"], conf.sess_key)
-    print("pass Response:", resp)
-    if resp[0] != "OK":
-        raise ValueError("Not authorized", resp[1])
-
-    resp = hand.client(["uena", "peter2", "disable"], conf.sess_key)
-    print("uena Response:", resp)
-
-    resp = hand.client(["logout",], conf.sess_key)
-    print("logout Response:", resp)
-
-    resp = hand.client(["user", "peter2"], conf.sess_key)
-    print("user Response:", resp)
-
-    resp = hand.client(["pass", "1234"], conf.sess_key)
-    print("pass Response:", resp)
+    resp = hand.login("admin2", "12345", conf)
+    print("login Response:", resp)
 
     hand.client(["quit"], conf.sess_key)
     hand.close();
 
     sys.exit(0)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# EOF

@@ -82,58 +82,37 @@ if __name__ == '__main__':
     print("Hello sess Response:", resp3[1])
 
     resp = hand.client(["user", "admin"], conf.sess_key)
-    print("user Response:", resp[1])
-    if resp[1].split()[0] != "OK":
+    print("user Response:", resp)
+    if resp[0] != "OK":
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
         raise ValueError("No user", resp[1])
 
     resp = hand.client(["pass", "1234"], conf.sess_key)
-    print("pass Response:", resp[1])
-    if resp[1].split()[0] != "OK":
+    print("pass Response:", resp)
+    if resp[0] != "OK":
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
         raise ValueError("Not authorized", resp[1])
 
+    resp = hand.client(["uadd", "peter", "1234"], conf.sess_key)
+    print("uadd Response:", resp)
+
     resp = hand.client(["uadd", "peter2", "1234"], conf.sess_key)
-    print("uadd Response:", resp[1])
-    if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
+    print("uadd Response:", resp)
 
     resp = hand.client(["uadd", "peter3,comma", "1234"], conf.sess_key)
-    print("uadd Response:", resp[1])
-    if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
+    print("uadd Response:", resp)
 
     resp = hand.client(["uadd", "peter4 space", "1234"], conf.sess_key)
-    print("uadd Response:", resp[1])
-    if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
+    print("uadd Response:", resp)
 
-    resp = hand.client(["aadd", "admin", "1234"], conf.sess_key)
-    print("aadd Response:", resp[1])
-    if resp[1].split()[0] != "OK":
-        raise ValueError("add user error", resp[1])
+    resp = hand.client(["aadd", "admin2", "1234"], conf.sess_key)
+    print("aadd Response:", resp)
 
     hand.client(["quit"], conf.sess_key)
-
     hand.close();
 
     sys.exit(0)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# EOF

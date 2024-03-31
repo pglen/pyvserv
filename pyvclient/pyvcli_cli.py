@@ -161,7 +161,7 @@ def mainfunct():
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
-    cresp = hand.login(conf, "admin", "1234")
+    cresp = hand.login("admin", "1234", conf)
     print ("Login resp:", cresp)
 
     # Start a new session for the rest of the work

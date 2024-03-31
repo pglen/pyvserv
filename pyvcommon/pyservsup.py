@@ -2,7 +2,8 @@
 
 from __future__ import print_function
 
-import os, sys, string, time, traceback, random, uuid, datetime, base64
+import os, sys, string, time, traceback, random, uuid
+import datetime, base64, fcntl
 
 #base = os.path.dirname(os.path.realpath(__file__))
 #sys.path.append(os.path.join(base, '../pyvcommon'))
@@ -17,12 +18,15 @@ from Crypto import Random
 
 version = "1.0"
 
+# Actions
 USER_AUTH  = 0;  USER_ADD = 1;   USER_DEL = 2;   USER_CHPASS = 3;
 USER_CHMOD = 4;
 
+# Permissions
 PERM_NONE = 0;  PERM_INI = 1;   PERM_ADMIN = 2;   PERM_DIS = 4;
 PERM_NON = 8;
 
+# Modes
 RESET_MODE = 0x80;
 
 pgdebug = 0
@@ -33,6 +37,9 @@ buffsize = 4096;
 chainfname  = "initial"
 repfname    = "pyvreplic"
 logfname    = "pyvserver"
+
+lock_pgdebug = 0
+lock_locktout = 5
 
 class   Global_Vars:
 
@@ -89,9 +96,8 @@ class   Global_Vars:
         self._softmkdir(self.tmpdir, "Temporary dir")
         self._softmkdir(self.logdir, "Log dir")
 
-        self.lockfname = self.tmpdir + "lockfile"
-        self.passfile = self.passdir + self._passfile
-        #self.keyfile = self._datadir + self._keyfile
+        self.lockfname = self.tmpdir + os.sep + "lockfile"
+        self.passfile = self.passdir + os.sep + self._passfile
         self.idfile = self.myhome + self._idfile
 
         self.siteid     =  None
@@ -100,6 +106,8 @@ class   Global_Vars:
         self.maxthdat   =  100      # max data in throttle var
 
         #print("init globals");
+        #global globals
+        #globals = self
         pass
 
     # Soft make dir
@@ -187,6 +195,61 @@ def  create_read_idfile(fname):
     return uuuu
 
 # ------------------------------------------------------------------------
+
+class   FileLock():
+
+    ''' A working file lock in Linux '''
+
+    def __init__(self):
+
+        ''' Create the lock file '''
+        self.lockname = None
+
+    def waitlock(self):
+
+        if not self.lockname:
+            self.lockname = globals.passfile + ".lock"
+            #print("lockname", self.lockname)
+
+            try:
+                self.fpx = open(self.lockname, "rb+")
+            except:
+                try:
+                    self.fpx = open(self.lockname, "wb+")
+                except:
+                    if lock_pgdebug > 1:
+                        print("Cannot create lock file")
+                    raise
+
+        if lock_pgdebug > 1:
+            print("Waitlock", self.lockname)
+
+        cnt = 0
+        while True:
+            try:
+                buff = self.fpx.read()
+                self.fpx.seek(0, os.SEEK_SET)
+                self.fpx.write(buff)
+                break;
+            except:
+                if lock_pgdebug > 1:
+                    print("waiting", sys.exc_info())
+
+            if cnt > lock_locktout :
+                # Taking too long; break in
+                if 1: #lock_pgdebug > 1:
+                    print("Lock held too long pid =", os.getpid(), cnt)
+                self.unlock()
+                break
+            cnt += 1
+            time.sleep(1)
+        # Lock NOW
+        fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+
+    def unlock(self):
+        fcntl.lockf(self.fpx, fcntl.LOCK_UN)
+
+# ------------------------------------------------------------------------
 # This class will maintain a passwd database, similar to
 #  the system database
 
@@ -195,6 +258,9 @@ class Passwd():
     def __init__(self):
         self.pgdebug = 0
         self.verbose = 0
+        global lock_pgdebug
+        lock_pgdebug = 0
+        self.lock = FileLock()
 
     def     _xjoin(self, iterx, charx):
         sss = ""
@@ -208,47 +274,6 @@ class Passwd():
         except:
             print(sys.exc_info())
         return sss
-
-    def     _unlock(self):
-        pname4 = globals.passfile + ".lock"
-        try:
-            os.unlink(pname4);
-        except:
-            print("Cannot unlock", pname4)
-            pass
-
-    def     _lock(self):
-
-        maxtry = 20
-        pname4 = globals.passfile + ".lock"
-        acc = False;  cnt = 0
-        while (True):
-            try:
-                acc = os.access(pname4, R_OK)
-            except:
-                pass
-
-            if not acc:
-                try:
-                    acc = open(pname4, "w+b")
-                    acc.close()
-                    break;
-                except:
-                    #print("Could not open lockfile", pname4)
-                    #support.put_exception("open lockfile")
-                    pass
-
-            if cnt > maxtry:
-                print("Breaking lock", pname4)
-                try:
-                    os.unlink(pname4);
-                except:
-                    print("Could not break lock")
-                    pass
-
-            cnt += 1
-            time.sleep(.1)
-            print("Waiting in lock")
 
     # Use fast hash, imitate salt by random numvber at the end
 
@@ -280,13 +305,11 @@ class Passwd():
         # Delete userx
         pname3 = globals.passfile + ".tmp"
         try:
-            fh3 = open(pname3, "r+")
+            fh3 = open(pname3, "w+")
         except:
-            try:
-                fh3 = open(pname3, "w+")
-            except:
-                ret = 0, "Cannot open " + pname3 + " for writing"
-                return ret
+            ret = -1, "Cannot open " + pname3 + " for writing"
+            return ret
+
         for line in passdb:
             fields = line.split(",")
             if fields[0] == userx:
@@ -320,21 +343,15 @@ class Passwd():
         # Filter onto temp file
         pname3 = globals.passfile + ".tmp"
         try:
-            fh3 = open(pname3, "r+")
+            fh3 = open(pname3, "w+")
         except:
-            try:
-                fh3 = open(pname3, "w+")
-            except:
-                ret = (0, "Cannot open " + pname3 + " for writing")
-                return ret
+            ret = (-1, "Cannot open " + pname3 + " for writing")
+            return ret
 
         for line in passdb:
             fields = line.split(",")
             if fields[0] == userx:
-                #upass2 = bcrypt.hashpw(upass.encode("utf-8"), bcrypt.gensalt())
-                #hhh = SHA256.new(); hhh.update(bytes(upass, "utf-8"))
-                #upass2 = hhh.hexdigest()
-                fields[2] = self._dblsalt(upass2)
+                fields[2] = self._dblsalt(upass) + '\n'
             line2 = self._xjoin(fields, ",")
             fh3.write(line2)
         fh3.close()
@@ -359,6 +376,22 @@ class Passwd():
 
         return ret
 
+    def _auth(self, passdb, userx, upass):
+
+        ret = [0, "Bad User or Bad Pass"]
+        for line in passdb:
+           fields = line.split(",")
+           if fields[0] == userx:
+               fff = fields[2].rstrip()
+               #print("this user", fields)
+               c2 = self._unsalt(upass, fff)
+               if c2 == fff:
+                   if self.verbose:
+                       print ("Auth OK for ", userx)
+                   ret = [1, "Authenicated", userx]
+                   break
+        return ret
+
     def     _chmod(self, passdb, userx, umode):
 
         modeok = 0
@@ -366,13 +399,10 @@ class Passwd():
         # Filter onto temp file
         pname3 = globals.passfile + ".tmp"
         try:
-            fh3 = open(pname3, "r+")
+            fh3 = open(pname3, "w+")
         except:
-            try:
-                fh3 = open(pname3, "w+")
-            except:
-                ret = (0, "Cannot open " + pname3 + " for writing")
-                return ret
+            ret = (0, "Cannot open " + pname3 + " for writing")
+            return ret
 
         for line in passdb:
             fields = line.split(",")
@@ -453,11 +483,8 @@ class Passwd():
 
         #print("auth()", userx, upass, flags)
 
-        ttt = time.time()
-
-        if uadd == USER_CHPASS or  uadd == USER_DEL or  uadd == USER_ADD:
-            self._lock()
-
+        #ttt = time.time()
+        self.lock.waitlock()
         #print("   auth 1 %.3f" % ((time.time() - ttt) * 1000) )
 
         userx = support.escape(userx)
@@ -469,16 +496,17 @@ class Passwd():
             try:
                 fh = open(globals.passfile, "w+")
             except:
-                self._unlock()
+                self.lock.unlock()
                 return -1, "Cannot open / create pass file " + globals.passfile
 
         passdb = fh.readlines()
         for line in passdb:
             fields = line.split(",")
+            #print("fieldx", fields)
             if fields[0] == userx:
                 haveusr = True
                 break
-            fh.close()
+        fh.close()
 
         #print("   auth 2 %.3f" % ((time.time() - ttt) * 1000) )
 
@@ -494,9 +522,6 @@ class Passwd():
                         return ret
 
                 fh2.seek(0, os.SEEK_END)
-                #upass2 = bcrypt.hashpw(upass.encode("utf-8"), bcrypt.gensalt())
-                #hhh = SHA256.new(); hhh.update(bytes(upass, "utf-8"))
-                #upass2 = hhh.hexdigest()
                 upass2 = self._dblsalt(upass)
 
                 #fh2.write(userx + "," + str(flags) + "," + upass2.decode("utf-8") + "\n")
@@ -507,67 +532,37 @@ class Passwd():
                 ret = 3, "No such user"
         else:
             if uadd == USER_CHPASS:
+                #print("Change pass", hex(flags))
                 ret = self._chpass(passdb, userx, upass)
 
             elif uadd == USER_CHMOD:
                 #print("Change mode", hex(flags))
                 ret = self._chmod(passdb, userx, flags)
-                #if flags & RESET_MODE:
-                #    ret = 8, "User disabled"
-                #else:
-                #    ret = 8, "User Enabled"
 
             elif uadd == USER_DEL:
-                #c2 = bcrypt.hashpw(upass.encode("utf-8"), fields[2].encode("utf-8"))
-                #hhh = SHA256.new(); hhh.update(bytes(upass, "utf-8"))
-                #c2 = hhh.hexdigest()
-                c2 = self._dblsalt(upass)
-
+                #c2 = self._dblsalt(upass)
                 #print ("upass", c2, "org:", fields[2].rstrip().encode("utf-8"))
                 if int(fields[1]) & PERM_INI == PERM_INI:
                     ret = 0, "Cannot delete uini user"
-                elif c2 == fields[2].rstrip().encode("utf-8"):
-                    ret = self._deluser(passdb, userx, upass)
                 else:
-                    ret = 0, "Bad User or Bad Pass"
+                    ret = self._deluser(passdb, userx, upass)
 
             elif uadd == USER_AUTH:
 
-                #print("   auth 2a %.3f" % ((time.time() - ttt) * 1000) )
-                #c2 = bcrypt.hashpw(upass.encode("utf-8"), fields[2].encode("utf-8"))
-                #print("   auth 2b %.3f" % ((time.time() - ttt) * 1000) )
-                #hhh = SHA256.new(); hhh.update(bytes(upass, "utf-8"))
-                #c2 = hhh.hexdigest()
+                ret = self._auth(passdb, userx, upass)
 
-                fff = fields[2].rstrip()
-                c2 = self._unsalt(upass, fff)
-                #print("   auth 2c %.3f" % ((time.time() - ttt) * 1000) )
-
-                #print ("upass: ", c2)
-                #print ("org:   ", fff)
-
-                if c2 == fff:
-                    if self.verbose:
-                        print ("Auth OK for ", userx)
-                    ret = 1, "Authenicated "
-                else:
-                    ret = 0, "Bad User or Bad Pass"
             elif uadd == USER_ADD:
                 ret = 6, "Can not add, Duplicate User "
             else:
                 ret = 0, "Bad auth command issued"
-
-        if uadd == USER_CHPASS or  uadd == USER_DEL or  uadd == USER_ADD:
-            self._unlock()
-
+        self.lock.unlock()
         #print("   auth 3x %.3f" % ((time.time() - ttt) * 1000) )
-
         return ret
 
     def perms(self, userx):
 
-        ttt = time.time()
-        #self._lock()
+        #ttt = time.time()
+        self.lock.waitlock()
         #print("   perms 1 %.3f" % ((time.time() - ttt) * 1000) )
 
         fields = ""; haveusr = False
@@ -585,7 +580,8 @@ class Passwd():
 
         if not passdb:
             ret = 7, "User permissions:", 0
-            #self._unlock()
+            self.lock.unlock()
+            fh.close()
             return ret
 
         for line in passdb:
@@ -597,15 +593,17 @@ class Passwd():
 
         #print("   perms 3 %.3f" % ((time.time() - ttt) * 1000) )
 
-        ret = 7, "User permissions:", fields[1]
-        #self._unlock()
+        if haveusr:
+            ret = 7, "User permissions:", fields[1]
+        else:
+            ret = 7, "User permissions:", 0
+
+        self.lock.unlock()
         #print("   perms 4 %.3f" % ((time.time() - ttt) * 1000) )
 
         return ret
 
 passwd = Passwd()
-
-#print("created passwd global");
 
 # ------------------------------------------------------------------------
 # Save key to local file. Return err code and cause.
@@ -620,85 +618,85 @@ passwd = Passwd()
 #        2 for duplicate
 #        4 for key deleted
 
-def kauth(namex, keyx, kadd = False):
-
-    fields = ""; dup = False; ret = 0, ""
-    try:
-        fh = open(globals.keyfile, "r")
-    except:
-        try:
-            fh = open(globals.keyfile, "w+")
-        except:
-            return -1, "Cannot open / create key file " + globals.keyfile + " for reading"
-    keydb = fh.readlines()
-    for line in keydb:
-        fields = line.split(",")
-        if namex == fields[0]:
-            dup = True
-            break
-    if not dup:
-        if kadd == 1:
-            # Add
-            fh.close()
-            try:
-                fh2 = open(globals.keyfile, "r+")
-            except:
-                try:
-                    fh2 = open(globals.keyfile, "w+")
-                except:
-                    return -1, "Cannot open / create " + globals.keyfile + " for writing"
-            try:
-                fh2.seek(0, os.SEEK_END)
-                fh2.write(namex + "," + keyx + "\n")
-            except:
-                fh2.close()
-                return -1, "Cannot write to " + globals.keyfile
-            fh2.close()
-            ret = 0, "Key saved"
-    else:
-        if kadd == 0:
-            ret = 1, fields[1].rstrip()
-        elif kadd == 1:
-            ret = 2, "Duplicate key"
-        elif kadd == 2:
-            # Delete key
-            delok = 0
-            pname3 = globals.keyfile + ".tmp"
-            try:
-                fh3 = open(pname3, "r+")
-            except:
-                try:
-                    fh3 = open(pname3, "w+")
-                except:
-                    ret = 0, "Cannot open " + pname3 + " for writing"
-                    return ret
-            # Do not touch line 1
-            fh3.write(keydb[0])
-            for line in keydb[1:]:
-                fields = line.split(",")
-                if fields[0] == namex:
-                    delok = 1
-                    pass
-                else:
-                    fh3.write(line)
-            fh3.close()
-            # Rename
-            try:
-                os.remove(globals.keyfile)
-            except:
-                ret = -1, "Cannot remove from " + pname3
-            try:
-                os.rename(pname3, globals.passfile)
-            except:
-                ret = -1, "Cannot rename from " + pname3
-                return ret
-            if delok:
-                ret = 4, "Key deleted"
-            else:
-                ret = -1, "Key NOT deleted (possibly kini key)"
-        else:
-            ret = -1, "Invalid opcode"
-    return ret
+#def kauth(namex, keyx, kadd = False):
+#
+#    fields = ""; dup = False; ret = 0, ""
+#    try:
+#        fh = open(globals.keyfile, "r")
+#    except:
+#        try:
+#            fh = open(globals.keyfile, "w+")
+#        except:
+#            return -1, "Cannot open / create key file " + globals.keyfile + " for reading"
+#    keydb = fh.readlines()
+#    for line in keydb:
+#        fields = line.split(",")
+#        if namex == fields[0]:
+#            dup = True
+#            break
+#    if not dup:
+#        if kadd == 1:
+#            # Add
+#            fh.close()
+#            try:
+#                fh2 = open(globals.keyfile, "r+")
+#            except:
+#                try:
+#                    fh2 = open(globals.keyfile, "w+")
+#                except:
+#                    return -1, "Cannot open / create " + globals.keyfile + " for writing"
+#            try:
+#                fh2.seek(0, os.SEEK_END)
+#                fh2.write(namex + "," + keyx + "\n")
+#            except:
+#                fh2.close()
+#                return -1, "Cannot write to " + globals.keyfile
+#            fh2.close()
+#            ret = 0, "Key saved"
+#    else:
+#        if kadd == 0:
+#            ret = 1, fields[1].rstrip()
+#        elif kadd == 1:
+#            ret = 2, "Duplicate key"
+#        elif kadd == 2:
+#            # Delete key
+#            delok = 0
+#            pname3 = globals.keyfile + ".tmp"
+#            try:
+#                fh3 = open(pname3, "r+")
+#            except:
+#                try:
+#                    fh3 = open(pname3, "w+")
+#                except:
+#                    ret = 0, "Cannot open " + pname3 + " for writing"
+#                    return ret
+#            # Do not touch line 1
+#            fh3.write(keydb[0])
+#            for line in keydb[1:]:
+#                fields = line.split(",")
+#                if fields[0] == namex:
+#                    delok = 1
+#                    pass
+#                else:
+#                    fh3.write(line)
+#            fh3.close()
+#            # Rename
+#            try:
+#                os.remove(globals.keyfile)
+#            except:
+#                ret = -1, "Cannot remove from " + pname3
+#            try:
+#                os.rename(pname3, globals.passfile)
+#            except:
+#                ret = -1, "Cannot rename from " + pname3
+#                return ret
+#            if delok:
+#                ret = 4, "Key deleted"
+#            else:
+#                ret = -1, "Key NOT deleted (possibly kini key)"
+#        else:
+#            ret = -1, "Invalid opcode"
+#    return ret
 
 # Return basename for key file
 
@@ -717,64 +715,67 @@ def pickkey(keydir):
 
 # ------------------------------------------------------------------------
 # Simple file system based locking system
+# !!!!! does not work on Linux !!!!!
+# Linux can access the filesystem differently than windosw, however the
+# file based locking system work well
 
-def _createlock(fname, raisex = True):
-
-    ''' Open for read / write. Create if needed. '''
-
-    fp = None
-    try:
-        fp = open(fname, "wb")
-    except:
-        print("Cannot open / create ", fname, sys.exc_info())
-        if raisex:
-            raise
-    return fp
-
-def dellock(lockname):
-
-    ''' Lock removal;
-        Test for stale lock;
-    '''
-
-    try:
-        if os.path.isfile(lockname):
-            os.unlink(lockname)
-    except:
-        if pgdebug > 1:
-            print("Del lock failed", sys.exc_info())
-
-def waitlock(lockname, locktout = 30):
-
-    ''' Wait for lock file to become available. '''
-
-    cnt = 0
-    while True:
-        if os.path.isfile(lockname):
-            if pgdebug > 1:
-                print("Waiting on", lockname)
-            #if cnt == 0:
-            #    try:
-            #        fpx = open(lockname)
-            #        pid = int(fpx.read())
-            #        fpx.close()
-            #    except:
-            #        print("Exc in pid test", sys.exc_info())
-            cnt += 1
-            time.sleep(0.3)
-            if cnt > locktout:
-                # Taking too long; break in
-                if pgdebug > 1:
-                    print("Warn: main Lock held too long ... pid =", os.getpid(), cnt)
-                dellock(lockname)
-                break
-        else:
-            break
-
-    # Finally, create lock
-    xfp = _createlock(lockname)
-    xfp.write(str(os.getpid()).encode())
-    xfp.close()
+#def _createlock(fname, raisex = True):
+#
+#    ''' Open for read / write. Create if needed. '''
+#
+#    fp = None
+#    try:
+#        fp = open(fname, "wb")
+#    except:
+#        print("Cannot open / create ", fname, sys.exc_info())
+#        if raisex:
+#            raise
+#    return fp
+#
+#def dellock(lockname):
+#
+#    ''' Lock removal;
+#        Test for stale lock;
+#    '''
+#
+#    try:
+#        if os.path.isfile(lockname):
+#            os.unlink(lockname)
+#    except:
+#        if pgdebug > 1:
+#            print("Del lock failed", sys.exc_info())
+#
+#def waitlock(lockname, locktout = 30):
+#
+#    ''' Wait for lock file to become available. '''
+#
+#    cnt = 0
+#    while True:
+#        if os.path.isfile(lockname):
+#            if pgdebug > 1:
+#                print("Waiting on", lockname)
+#            #if cnt == 0:
+#            #    try:
+#            #        fpx = open(lockname)
+#            #        pid = int(fpx.read())
+#            #        fpx.close()
+#            #    except:
+#            #        print("Exc in pid test", sys.exc_info())
+#            cnt += 1
+#            time.sleep(0.3)
+#            if cnt > locktout:
+#                # Taking too long; break in
+#                if pgdebug > 1:
+#                    print("Warn: main Lock held too long ... pid =", os.getpid(), cnt)
+#                dellock(lockname)
+#                break
+#        else:
+#            break
+#
+#    # Finally, create lock
+#    xfp = _createlock(lockname)
+#    xfp.write(str(os.getpid()).encode())
+#    xfp.close()
 
 # ------------------------------------------------------------------------
 # Get date out of UUID

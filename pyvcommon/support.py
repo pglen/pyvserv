@@ -3,7 +3,12 @@
 from __future__ import print_function
 
 import os, sys, string, time,  traceback, getopt
-import random, glob, base64, datetime, psutil, stat
+import random, glob, base64, datetime, stat
+
+try:
+    import psutil
+except:
+    psutil = None
 
 # No dependents, so import can get parent dir
 
@@ -291,9 +296,10 @@ def lock_process(lockfile):
         # Examine if it is still running:
         was = False
         if pidstr != "":
-            for proc in psutil.process_iter():
-                if proc.pid == pidint:
-                    was = True
+            if psutil:
+                for proc in psutil.process_iter():
+                    if proc.pid == pidint:
+                        was = True
         if not was:
             print("Lockfile active, no process ... breaking in")
             os.unlink(lockfile)

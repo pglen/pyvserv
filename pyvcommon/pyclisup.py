@@ -348,8 +348,10 @@ class CliSup():
     # ------------------------------------------------------------------------
     #  Login
 
-    def  login(self, conf, userx, passx):
+    def  login(self, userx, passx, conf):
 
+        if not hasattr(conf, "sess_key"):
+            conf.sess_key = ""
         cresp = self.client(["user", userx], conf.sess_key)
         #print ("Server user response:", cresp)
         if(cresp[0] != "OK"):

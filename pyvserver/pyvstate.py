@@ -44,17 +44,17 @@ none_in      = 120
 user_help   = "Usage: user logon_name -- set session user name"
 akey_help   = "Usage: akey -- get asymmetric key"
 pass_help   = "Usage: pass logon_pass -- password"
-chpass_help = "Usage: chpass newpass"
+chpass_help = "Usage: chpass oldpass, newpass"
 file_help   = "Usage: file fname -- Specify name for upload"
 fget_help   = "Usage: fget fname -- Download (get) file"
 fput_help   = "Usage: fput fname -- Upload (put) file"
 del_help    = "Usage: del  fname -- Delete file"
 uadd_help   = "Usage: uadd user_name user_pass -- Create new user"
-kadd_help   = "Usage: kadd key_name key_val -- Add new encryption key"
+#kadd_help   = "Usage: kadd key_name key_val -- Add new encryption key"
 uini_help   = "Usage: uini user_name user_pass -- Create initial user. "\
                 "Must be from local net."
-kini_help  = "Usage: kini key_name key_pass -- Create initial key. " \
-                "Must be from local net."
+#kini_help  = "Usage: kini key_name key_pass -- Create initial key. " \
+#                "Must be from local net."
 uena_help  = "Usage: uena user_name  flag --  enable / disable user"
 aadd_help  = "Usage: aadd user_name user_pass -- create admin user"
 udel_help  = "Usage: udel user_name -- Delete user"
@@ -82,6 +82,7 @@ stat_help  = "Usage: stat fname  -- Get file stat. Field list:\n"\
 tout_help  = "Usage: tout new_val -- Set / Reset timeout in seconds"
 ekey_help  = "Usage: ekey encryption_key -- Set encryption key "
 sess_help  = "Usage: sess session data -- Start session "
+logout_help = "Usage: logout -- log out user"
 buff_help  = "Usage: buff buff_size -- limited to 64k"
 
 rput_help  =  "Usage: rcheck kind link | sum -- check records. Link check or sum check"
@@ -125,13 +126,14 @@ def init_state_table():
     ("quit",    all_in,     none_in,    initial,  get_exit_func,  quit_help),
     ("exit",    all_in,     none_in,    initial,  get_exit_func,  quit_help),
     ("help",    all_in,     none_in,    initial,  get_help_func,  help_help),
-    ("xkey",    all_in,     none_in,    initial,  get_xkey_func,  ekey_help),
-    ("ekey",    all_in,     none_in,    initial,  get_ekey_func,  ekey_help),
+    #("xkey",    all_in,     none_in,    initial,  get_xkey_func,  ekey_help),
+    #("ekey",    all_in,     none_in,    initial,  get_ekey_func,  ekey_help),
     ("akey",    all_in,     none_in,    initial,  get_akey_func,  akey_help),
     ("uini",    all_in,     none_in,    initial,  get_uini_func,  uini_help),
-    ("kadd",    all_in,     none_in,    initial,  get_kadd_func,  kadd_help),
+    #("kadd",    all_in,     none_in,    initial,  get_kadd_func,  kadd_help),
     ("user",    all_in,     none_in,    initial,  get_user_func,  user_help),
     ("pass",    all_in,     auth_pass,  initial,  get_pass_func,  pass_help),
+    ("logout",  all_in,     initial,    auth_pass,get_logout_func,  logout_help),
     ("sess",    all_in,     none_in,    initial,  get_sess_func,  sess_help),
     ("tout",    all_in,     none_in,    initial,  get_tout_func,  tout_help),
     ("qr",      all_in,     none_in,    initial,  get_qr_func,    qr_help),
