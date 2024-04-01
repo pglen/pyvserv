@@ -3,7 +3,12 @@
 from __future__ import print_function
 
 import os, sys, string, time, traceback, random, uuid
-import datetime, base64, fcntl
+import datetime, base64
+
+try:
+    import fcntl
+except:
+    fcntl = None
 
 #base = os.path.dirname(os.path.realpath(__file__))
 #sys.path.append(os.path.join(base, '../pyvcommon'))
@@ -244,10 +249,12 @@ class   FileLock():
             cnt += 1
             time.sleep(1)
         # Lock NOW
-        fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+        if fcntl:
+            fcntl.lockf(self.fpx, fcntl.LOCK_EX)
 
     def unlock(self):
-        fcntl.lockf(self.fpx, fcntl.LOCK_UN)
+        if fcntl:
+            fcntl.lockf(self.fpx, fcntl.LOCK_UN)
 
 # ------------------------------------------------------------------------
 # This class will maintain a passwd database, similar to

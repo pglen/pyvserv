@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
-import sys, os, readline, atexit
+import sys, os, atexit
+
+try:
+    import readline
+except:
+    pass
 
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")

@@ -4,7 +4,12 @@ from __future__ import print_function
 
 from Crypto.Hash import SHA512
 import os, sys, getopt, signal, select, string, time, stat, base64
-import inspect, fcntl, multiprocessing
+import inspect, multiprocessing
+
+try:
+    import fcntl
+except:
+    fcntl = None
 
 import pyvpacker
 
@@ -195,13 +200,15 @@ class StateHandler():
                 break
         try:
             self.fpx = open(self.lockname, "wb")
-            fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+            if fcntl:
+                fcntl.lockf(self.fpx, fcntl.LOCK_EX)
         except:
             print(sys.exc_info())
             pass
 
     def dellock(self):
-        fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+        if fcntl:
+            fcntl.lockf(self.fpx, fcntl.LOCK_EX)
         try:
             self.fpx.close()
             os.unlink(self.lockname)

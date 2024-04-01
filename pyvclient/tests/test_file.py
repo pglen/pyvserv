@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import pytest, os, sys, syslog
+import pytest, os, sys #, syslog
 from mytest import *
 
 from Crypto.Cipher import AES

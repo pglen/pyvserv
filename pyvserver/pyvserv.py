@@ -250,8 +250,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 # ------------------------------------------------------------------------
 # Override stock methods
 
-#class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+#class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
 
     ''' Overridden socket server '''
 

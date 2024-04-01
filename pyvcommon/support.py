@@ -164,12 +164,21 @@ def unescape(strx):
     return aaa
 
 # ------------------------------------------------------------------------
-# Remove dup //
 
 def dirclean(strx):
+
+    '''  Remove duplicate //
+
+      History:
+        Mon 01.Apr.2024 added c: path exception for MSYS2
+    '''
+
     rrr = ""; aaa = strx.split("/")
     for aa in aaa:
-        if aa != "": rrr += "/" + aa
+        if len(aa) > 1 and aa[1] == ":":
+            rrr += aa
+        elif aa != "":
+            rrr += "/" + aa
     return rrr
 
 # ------------------------------------------------------------------------

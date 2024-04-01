@@ -26,7 +26,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyvserv",
-    version="1.0.1",
+    version="1.0.2",
     author="Peter Glen",
     author_email="peterglen99@gmail.com",
     description="High power secure server with blockchain backend.",
@@ -59,7 +59,8 @@ setuptools.setup(
                    },
 
     python_requires='>=3',
-    install_requires=["pyvpacker", "pydbase", "pycryptodome", "pyvecc"],
+    install_requires=["pyvpacker", "pydbase", "pycryptodome",
+                        "pyvecc", "readline"],
     entry_points={
         'console_scripts': [ "pyvserv=pyvserv:mainfunct",
                              "pyvreplic=pyvreplic:mainfunct",

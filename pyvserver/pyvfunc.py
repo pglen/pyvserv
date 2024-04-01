@@ -3,7 +3,10 @@
 #from __future__ import print_function
 #from __future__ import absolute_import
 
-import pyotp
+try:
+    import pyotp
+except:
+    pyotp = None
 
 import os, sys, getopt, signal, select, string
 import datetime,  time, stat, base64, uuid
@@ -230,10 +233,12 @@ def get_ls_func(self, strx):
         dname = support.unescape(strx[1]);
     except:
         pass
-    dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
-    dname2 = support.dirclean(dname2)
 
+    dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep + dname
     #print("dname2", dname2)
+
+    dname2 = support.dirclean(dname2)
+    #print("dname2c", dname2)
 
     response = [OK]
     try:
@@ -1068,7 +1073,7 @@ def get_id_func(self, strx):
     res = []
     res.append(OK);    res.append("%s" % pyservsup.globals.siteid)
     if pyservsup.globals.conf.pgdebug > 2:
-        print( "get_ver_func->output", "'" + res + "'")
+        print( "get_ver_func->output", res)
     self.resp.datahandler.putencode(res, self.resp.ekey)
 
 #@support.timeit
@@ -1686,8 +1691,14 @@ def get_twofa_func(self, strx):
         return
 
     key = "pyvserverkey"
+
+    if not pyotp:
+        self.resp.datahandler.putencode(["ERR", "2FA lib not installed"],  self.resp.ekey)
+        return
+
     totp = pyotp.TOTP(key)
     res = totp.verify(strx[1])
+
     if not res:
         self.resp.datahandler.putencode(["ERR", "Invalid 2FA code"],  self.resp.ekey)
     else:
