@@ -7,18 +7,12 @@ import struct, stat, base64, random, socket, datetime
 
 from pyvecc.Key import Key
 
-#base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join('..', 'pyvcommon'))
-#sys.path.append(os.path.join('.', 'pyvcommon'))
-
 import pydata, pyservsup, crysupp, support, comline, pywrap
 
 import pyvpacker
 
 from Crypto import Random
 from Crypto.Cipher import AES
-#from Crypto.Hash import SHA512
-#from Crypto.Hash import SHA
 from Crypto.Hash import SHA256
 
 from Crypto.PublicKey import ECC
@@ -486,5 +480,17 @@ class CliSup():
 
         self.sess = True
         return resp3
+
+def atexit_func(hand, conf):
+
+    ''' Severe connection on exit '''
+
+    try:
+        #print("Atexit")
+        cresp = hand.client(["quit", ], conf.sess_key)
+        #print ("Server quit response:", cresp)
+        hand.close();
+    except:
+        pass
 
 # EOF

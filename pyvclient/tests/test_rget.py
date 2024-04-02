@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import pytest, os, sys, subprocess, time, uuid
+import pytest, os, sys, subprocess, time, datetime, uuid
 from mytest import *
 
 hand = None
@@ -50,12 +50,17 @@ def test_func(capsys):
     ip = '127.0.0.1'
     hand = pyclisup.CliSup()
 
-    pvh = pyvhash.BcData()
-    pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
-    pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
-    pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
-    pvh.hasharr();  pvh.powarr()
+    # Pre - generated for speed
+    bbb = \
+    {'header': 'bb5e117e-de0f-11ee-bb2d-0b98efd166b2',
+        'payload': {'Default': 'None'},
+        '_Hash': 'c14bda859bdebf5b87bd9d852bb4074ae825b64113d80feda5f988790f2693a5',
+         '_PowRand': b'\x170<\x9bz\x7f\xca\xf6\xb8t\\\xd8',
+         '_Proof': '0c707fed756a318029db92859d1f0d78782c822a949b51d926b577d85156a000'}
 
+    pvh = pyvhash.BcData(bbb)
+
+    #pvh.hasharr();  pvh.powarr()
     #print(pvh.datax)
     #assert 0
 
@@ -79,11 +84,10 @@ def test_func(capsys):
     cresp = hand.client(["user", "admin"], conf.sess_key)
     print ("Server user respo:", cresp)
 
-    #ttt = time.time()
+    ttt = time.time()
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    #print("pass %.3fms" % ((time.time() - ttt) * 1000) )
+    print("pass %.3fms" % ((time.time() - ttt) * 1000) )
     print ("Server pass resp:", cresp)
-    assert cresp[0] == 'OK'
 
     cresp = hand.client(["dmode",], conf.sess_key)
     #print("dmode", cresp)
@@ -97,13 +101,43 @@ def test_func(capsys):
                 print ("Server twofa failed")
                 sys.exit(0)
 
+    # Put one
+    pvh = pyvhash.BcData()
+    pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
+    pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
+    pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
+    pvh.hasharr();  pvh.powarr()
     cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
     print ("Server rput response:", cresp)
     assert cresp[0] == 'OK'
 
-    qresp = hand.client(["quit"], conf.sess_key)
+    # Get some back
+    dd = datetime.datetime.now()
+    dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    dd_beg = dd + datetime.timedelta(0)
+    dd_end = dd_beg + datetime.timedelta(1)
+    print("from:", dd_beg, "to:", dd_end);
+
+    cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
+                         dd_end.timestamp()], conf.sess_key)
+    #print ("Server  rlist response:", cresp)
+
+    cresp = hand.client(["rget", "vote", cresp[1]], conf.sess_key)
+    #print ("Server rget response:", cresp)
+    assert cresp[0] == 'OK'
+    #print(cresp)
+
+    dec = hand.pb.decode_data(cresp[1][0][1])
+    #print("dec:", dec[0]['header'], dec[0]['now'], dec[0]['payload'])
+    #print("dec:", dec)
+
+    # See if we have a vote int there
+    assert dec[0]['payload']['Vote'] != ""
+
+    resp = hand.client(["quit"], conf.sess_key)
     hand.close()
-    assert qresp[0] == 'OK'
+    assert resp[0] == 'OK'
 
     #assert 0
 

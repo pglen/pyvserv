@@ -75,8 +75,36 @@ in the local shell.</p>
 </summary>
 <pre><code class="python">#!/usr/bin/env python
 
-import sys, os
-import readline
+import sys, os, atexit
+
+try:
+    import readline
+except:
+    pass
+
+if sys.version_info[0] &lt; 3:
+    print(&#34;Python 2 is not supported as of 1/1/2020&#34;)
+    sys.exit(1)
+
+# ------------------------------------------------------------------------
+# Test client for the pyserv project.
+
+import os, sys, getopt, signal, select, socket, time, struct
+import random, stat
+
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, &#34;.&#34;))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  &#39;..&#39;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
+    from pyvcommon import support
+
+from pyvcommon import support, pycrypt, pyclisup
+from pyvcommon import pysyslog, comline
 
 __doc__ = \
 &#39;&#39;&#39; Test unit for pyvserv. Command line interpreter. This interface is similar
@@ -85,7 +113,6 @@ __doc__ = \
     All encryption functionality is exercised as the real client would.
     The command that starts with the exclamation point is executed
     in the local shell.
-
 
 ## The following commands (and more) may be issued.
 
@@ -128,49 +155,6 @@ __doc__ = \
         ihost                           -- Add / delete replicator host
 
 &#39;&#39;&#39;
-
-if sys.version_info[0] &lt; 3:
-    print(&#34;Python 2 is not supported as of 1/1/2020&#34;)
-    sys.exit(1)
-
-# ------------------------------------------------------------------------
-# Test client for the pyserv project. Download file.
-
-import os, sys, getopt, signal, select, socket, time, struct
-import random, stat
-
-# This repairs the path from local run to pip run.
-# Remove pip version for local tests
-try:
-    from pyvcommon import support
-
-    # Get Parent of module root
-    sf = os.path.dirname(support.__file__)
-    sf = os.path.dirname(sf)
-    print(&#34;sf&#34;, sf)
-    sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
-    sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
-    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
-    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
-
-except:
-    base = os.path.dirname(os.path.realpath(__file__))
-    sys.path.append(os.path.join(base,  &#39;..&#39;))
-    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
-    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
-    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;))
-    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
-    from pyvcommon import support
-
-#print(&#34;Load:&#34;, sys.path[-1])
-
-base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join(base,  &#39;../pyvcommon&#39;))
-sys.path.append(os.path.join(base,  &#39;..&#39;))
-
-from pyvcommon import support, pycrypt, pyclisup
-from pyvcommon import pysyslog, comline
-
 # ------------------------------------------------------------------------
 # Globals
 
@@ -205,11 +189,8 @@ def pversion():
 optarr = \
     [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,      None],      \
     [&#34;p:&#34;,  &#34;port&#34;,     6666,   None],      \
-    [&#34;f:&#34;,  &#34;file&#34;,     6666,   None],      \
     [&#34;v&#34;,   &#34;verbose&#34;,  0,      None],      \
     [&#34;q&#34;,   &#34;quiet&#34;,    0,      None],      \
-    [&#34;n&#34;,   &#34;plain&#34;,    0,      None],      \
-    [&#34;t&#34;,   &#34;test&#34;,     &#34;x&#34;,    None],      \
     [&#34;V&#34;,   None,       None,   pversion],  \
     [&#34;h&#34;,   None,       None,   phelp]      \
 
@@ -225,9 +206,6 @@ def mainfunct():
 
     #print(vars(conf))
 
-    #if conf.comm:
-    #    print(&#34;Save to filename&#34;, conf.comm)
-
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
 
@@ -240,13 +218,13 @@ def mainfunct():
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #hand.comm  = conf.comm
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
+
+    atexit.register(pyclisup.atexit_func, hand, conf)
 
     #resp3 = hand.client([&#34;id&#34;,] , &#34;&#34;, False)
     #print(&#34;ID Response:&#34;, resp3[1])
@@ -256,8 +234,6 @@ def mainfunct():
     resp3 = hand.start_session(conf)
     if resp3[0] != &#34;OK&#34;:
         print(&#34;Error on setting session:&#34;, resp3[1])
-        hand.client([&#34;quit&#34;])
-        hand.close();
         sys.exit(0)
 
     # Make a note of the session key
@@ -273,15 +249,13 @@ def mainfunct():
     #resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
     #print(&#34;Hello Response:&#34;, resp4[1])
 
-    cresp = hand.login(conf, &#34;admin&#34;, &#34;1234&#34;)
+    cresp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
     print (&#34;Login resp:&#34;, cresp)
 
     # Start a new session for the rest of the work
     resp3 = hand.start_session(conf)
     if resp3[0] != &#34;OK&#34;:
         print(&#34;Error on setting session:&#34;, resp3[1])
-        hand.client([&#34;quit&#34;])
-        hand.close();
         sys.exit(0)
 
     if conf.sess_key:
@@ -297,20 +271,6 @@ def mainfunct():
 
     mainloop(conf, hand)
 
-    #ret2 = hand.getfile(&#34;zeros&#34;, &#34;zeros_local&#34;, conf.sess_key)
-    #print (&#34;Server  fget response:&#34;, ret2)
-    #bfile =&#34;bigfile&#34;
-    #print(&#34;Started bigfile ...&#34;, bfile)
-    #ttt = time.time()
-    #ret = hand.getfile(bfile, bfile + &#34;_local&#34;, conf.sess_key)
-    #filesize = support.fsize(bfile+ &#34;_local&#34;)/1024
-    #print(&#34;filesize&#34;, filesize)
-    #rate = filesize / (time.time() - ttt)
-    #print (&#34;Server fget response:&#34;, ret, &#34;time %.2f kbytes/sec&#34; % rate)
-
-    cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
-    print (&#34;Server quit response:&#34;, cresp)
-    hand.sock.shutdown(socket.SHUT_RDWR)
     sys.exit(0)
 
 
@@ -375,7 +335,9 @@ def mainloop(conf, hand):
             break
 
 if __name__ == &#39;__main__&#39;:
-    mainfunct()</code></pre>
+    mainfunct()
+
+# EOF</code></pre>
 </details>
 </section>
 <section>
@@ -402,9 +364,6 @@ if __name__ == &#39;__main__&#39;:
 
     #print(vars(conf))
 
-    #if conf.comm:
-    #    print(&#34;Save to filename&#34;, conf.comm)
-
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
 
@@ -417,13 +376,13 @@ if __name__ == &#39;__main__&#39;:
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #hand.comm  = conf.comm
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
+
+    atexit.register(pyclisup.atexit_func, hand, conf)
 
     #resp3 = hand.client([&#34;id&#34;,] , &#34;&#34;, False)
     #print(&#34;ID Response:&#34;, resp3[1])
@@ -433,8 +392,6 @@ if __name__ == &#39;__main__&#39;:
     resp3 = hand.start_session(conf)
     if resp3[0] != &#34;OK&#34;:
         print(&#34;Error on setting session:&#34;, resp3[1])
-        hand.client([&#34;quit&#34;])
-        hand.close();
         sys.exit(0)
 
     # Make a note of the session key
@@ -450,15 +407,13 @@ if __name__ == &#39;__main__&#39;:
     #resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
     #print(&#34;Hello Response:&#34;, resp4[1])
 
-    cresp = hand.login(conf, &#34;admin&#34;, &#34;1234&#34;)
+    cresp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
     print (&#34;Login resp:&#34;, cresp)
 
     # Start a new session for the rest of the work
     resp3 = hand.start_session(conf)
     if resp3[0] != &#34;OK&#34;:
         print(&#34;Error on setting session:&#34;, resp3[1])
-        hand.client([&#34;quit&#34;])
-        hand.close();
         sys.exit(0)
 
     if conf.sess_key:
@@ -474,20 +429,6 @@ if __name__ == &#39;__main__&#39;:
 
     mainloop(conf, hand)
 
-    #ret2 = hand.getfile(&#34;zeros&#34;, &#34;zeros_local&#34;, conf.sess_key)
-    #print (&#34;Server  fget response:&#34;, ret2)
-    #bfile =&#34;bigfile&#34;
-    #print(&#34;Started bigfile ...&#34;, bfile)
-    #ttt = time.time()
-    #ret = hand.getfile(bfile, bfile + &#34;_local&#34;, conf.sess_key)
-    #filesize = support.fsize(bfile+ &#34;_local&#34;)/1024
-    #print(&#34;filesize&#34;, filesize)
-    #rate = filesize / (time.time() - ttt)
-    #print (&#34;Server fget response:&#34;, ret, &#34;time %.2f kbytes/sec&#34; % rate)
-
-    cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
-    print (&#34;Server quit response:&#34;, cresp)
-    hand.sock.shutdown(socket.SHUT_RDWR)
     sys.exit(0)</code></pre>
 </details>
 </dd>

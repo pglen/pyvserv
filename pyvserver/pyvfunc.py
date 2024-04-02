@@ -253,8 +253,12 @@ def get_ls_func(self, strx):
                 print( "Cannot stat ", aaa, str(sys.exc_info()[1]) )
 
     except:
-        support.put_exception("ls ")
-        response = [ERR, "No such directory.", strx[0]]
+        # Perhaps the user meant the file:
+        if os.path.isfile(dname2):
+            response = [OK, strx[1], strx[0]]
+        else:
+            support.put_exception("ls ")
+            response = [ERR, "No such directory.", strx[1]]
 
     #print("response", response)
     self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1071,7 +1075,8 @@ def get_id_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 1:
         print( "get_id_func()", strx)
     res = []
-    res.append(OK);    res.append("%s" % pyservsup.globals.siteid)
+    res.append(OK);   res.append("%s" % pyservsup.globals.siteid)
+    res.append("ID")
     if pyservsup.globals.conf.pgdebug > 2:
         print( "get_ver_func->output", res)
     self.resp.datahandler.putencode(res, self.resp.ekey)
@@ -1733,7 +1738,7 @@ def get_help_func(self, strx):
         if not ff:
                 harr.append(ERR)
                 harr.append("No such command")
-                harr.appnd(strx[0])
+                harr.append(strx[0])
 
     if pyservsup.globals.conf.pgdebug > 2:
         print( "get_help_func->output", harr)
@@ -1741,6 +1746,7 @@ def get_help_func(self, strx):
     self.resp.datahandler.putencode(harr, self.resp.ekey)
 
 if __name__ == '__main__':
+    print("This module was not meant to use as main")
     pass
 
 # EOF

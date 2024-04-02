@@ -11,7 +11,16 @@ if sys.version_info[0] < 3:
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat, datetime, uuid, atexit
 
-from pyvcli_utils import *
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, "."))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    from pyvcommon import support
 
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
@@ -60,7 +69,7 @@ conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def mainfunct():
 
     args = conf.comline(sys.argv[1:])
 
@@ -87,7 +96,7 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    atexit.register(atexit_func, hand, conf)
+    atexit.register(pyclisup.atexit_func, hand, conf)
 
     #resp3 = hand.client(["id",] , "", False)
     #print("ID Response:", resp3[1])
@@ -142,5 +151,8 @@ if __name__ == '__main__':
                 if aa:
                     ttt = pyservsup.uuid2date(uuid.UUID(aa))
                     print(aa, ":", ttt)
+
+if __name__ == '__main__':
+    mainfunct()
 
 # EOF

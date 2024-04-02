@@ -96,9 +96,8 @@ def randstr(lenx):
 # ------------------------------------------------------------------------
 
 test_dir = "test_data"
-
-if not os.path.isdir(test_dir):
-    os.mkdir(test_dir)
+#if not os.path.isdir(test_dir):
+#    os.mkdir(test_dir)
 
 tmpfile = ""
 
@@ -175,6 +174,8 @@ def randbin(lenx):
         strx += chr(ridx)
     return strx.encode("cp437", errors="ignore")
 
+# Re implemented just to show a different codebase. use: hand.session()
+
 def session(hand, org_sess_key):
 
     resp = hand.client(["akey"], org_sess_key)
@@ -220,12 +221,12 @@ def session(hand, org_sess_key):
 
     return sess_key
 
-def login(hand, sess_key):
+def login(hand, sess_key, userx = "admin", passx = "1234"):
 
-    resp = hand.client(["user", "admin"], sess_key)
+    resp = hand.client(["user", userx, ], sess_key)
     #print ("Server response:", resp)
     assert resp[0] == 'OK'
-    resp = hand.client(["pass", "1234"], sess_key)
+    resp = hand.client(["pass", passx, ], sess_key)
     #print ("Server response:", resp)
     assert resp[0] == 'OK'
 

@@ -110,40 +110,40 @@ if __name__ == &#39;__main__&#39;:
     print(&#34;Hello sess Response:&#34;, resp3[1])
 
     resp = hand.client([&#34;user&#34;, &#34;admin&#34;], conf.sess_key)
-    print(&#34;user Response:&#34;, resp[1])
-    if resp[1].split()[0] != &#34;OK&#34;:
+    print(&#34;user Response:&#34;, resp)
+    if resp[0] != &#34;OK&#34;:
+        hand.client([&#34;quit&#34;], conf.sess_key)
+        hand.close();
         raise ValueError(&#34;No user&#34;, resp[1])
 
     resp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
-    print(&#34;pass Response:&#34;, resp[1])
-    if resp[1].split()[0] != &#34;OK&#34;:
+    print(&#34;pass Response:&#34;, resp)
+    if resp[0] != &#34;OK&#34;:
+        hand.client([&#34;quit&#34;], conf.sess_key)
+        hand.close();
         raise ValueError(&#34;Not authorized&#34;, resp[1])
 
+    resp = hand.client([&#34;uadd&#34;, &#34;peter&#34;, &#34;1234&#34;], conf.sess_key)
+    print(&#34;uadd Response:&#34;, resp)
+
     resp = hand.client([&#34;uadd&#34;, &#34;peter2&#34;, &#34;1234&#34;], conf.sess_key)
-    print(&#34;uadd Response:&#34;, resp[1])
-    if resp[1].split()[0] != &#34;OK&#34;:
-        raise ValueError(&#34;add user error&#34;, resp[1])
+    print(&#34;uadd Response:&#34;, resp)
 
     resp = hand.client([&#34;uadd&#34;, &#34;peter3,comma&#34;, &#34;1234&#34;], conf.sess_key)
-    print(&#34;uadd Response:&#34;, resp[1])
-    if resp[1].split()[0] != &#34;OK&#34;:
-        raise ValueError(&#34;add user error&#34;, resp[1])
+    print(&#34;uadd Response:&#34;, resp)
 
     resp = hand.client([&#34;uadd&#34;, &#34;peter4 space&#34;, &#34;1234&#34;], conf.sess_key)
-    print(&#34;uadd Response:&#34;, resp[1])
-    if resp[1].split()[0] != &#34;OK&#34;:
-        raise ValueError(&#34;add user error&#34;, resp[1])
+    print(&#34;uadd Response:&#34;, resp)
 
-    resp = hand.client([&#34;aadd&#34;, &#34;admin&#34;, &#34;1234&#34;], conf.sess_key)
-    print(&#34;aadd Response:&#34;, resp[1])
-    if resp[1].split()[0] != &#34;OK&#34;:
-        raise ValueError(&#34;add user error&#34;, resp[1])
+    resp = hand.client([&#34;aadd&#34;, &#34;admin2&#34;, &#34;1234&#34;], conf.sess_key)
+    print(&#34;aadd Response:&#34;, resp)
 
     hand.client([&#34;quit&#34;], conf.sess_key)
-
     hand.close();
 
-    sys.exit(0)</code></pre>
+    sys.exit(0)
+
+# EOF</code></pre>
 </details>
 </section>
 <section>

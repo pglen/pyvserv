@@ -36,11 +36,19 @@ from __future__ import print_function
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  &#39;..&#39; + os.sep + &#39;pyvcommon&#39;))
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, &#34;.&#34;))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  &#39;..&#39;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
+    from pyvcommon import support
 
-import support, pycrypt, pyservsup, pyclisup
-import pysyslog, comline
+from pyvcommon import support, pycrypt, pyclisup
+from pyvcommon import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -54,7 +62,7 @@ conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
-if __name__ == &#39;__main__&#39;:
+def mainfunct():
 
     if sys.version_info[0] &lt; 3:
         print(&#34;Warning! This script was meant for python 3.x&#34;)
@@ -106,6 +114,9 @@ if __name__ == &#39;__main__&#39;:
 
     sys.exit(0)
 
+if __name__ == &#39;__main__&#39;:
+    mainfunct()
+
 # EOF</code></pre>
 </details>
 </section>
@@ -114,6 +125,71 @@ if __name__ == &#39;__main__&#39;:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="pyvcli_hello.mainfunct"><code class="name flex">
+<span>def <span class="ident">mainfunct</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mainfunct():
+
+    if sys.version_info[0] &lt; 3:
+        print(&#34;Warning! This script was meant for python 3.x&#34;)
+        time.sleep(1)
+
+    args = conf.comline(sys.argv[1:])
+
+    #for aa in vars(conf):
+    #    print(aa, getattr(conf, aa))
+
+    pyclisup.verbose = conf.verbose
+
+    if conf.verbose and conf.pgdebug:
+        print(&#34;Debug level&#34;, conf.pgdebug)
+
+    pyclisup.pgdebug = conf.pgdebug
+
+    if len(args) == 0:
+        ip = &#39;127.0.0.1&#39;
+    else:
+        ip = args[0]
+
+    hand = pyclisup.CliSup()
+    hand.verbose = conf.verbose
+    hand.pgdebug = conf.pgdebug
+
+    #print(&#34;dir&#34;.__doc__)
+
+    try:
+        resp2 = hand.connect(ip, conf.port)
+    except:
+        #support.put_exception(&#34;On connect&#34;)
+        print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
+        sys.exit(1)
+
+    if conf.quiet == False:
+        respini = hand.pb.decode_data(resp2[1])[0]
+        print (&#34;Server initial:&#34;, respini)
+
+    resp = hand.client([&#34;hello&#34;])
+    if conf.quiet == False:
+        print(&#34;resp&#34;, resp)
+
+    resp2 = hand.client([&#34;quit&#34;])
+    if conf.quiet == False:
+        print (&#34;Server quit response:&#34;, resp2)
+
+    hand.close();
+
+    sys.exit(0)</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -124,6 +200,11 @@ if __name__ == &#39;__main__&#39;:
 <ul></ul>
 </div>
 <ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="pyvcli_hello.mainfunct" href="#pyvcli_hello.mainfunct">mainfunct</a></code></li>
+</ul>
+</li>
 </ul>
 </nav>
 </main>

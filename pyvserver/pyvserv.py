@@ -14,6 +14,11 @@ import os, getopt, signal, select, string, time
 import tarfile, subprocess, struct, platform
 import socket, threading, tracemalloc, inspect
 
+try:
+    import fcntl
+except:
+    fcntl = None
+
 if sys.version_info[0] < 3:
     import SocketServer as socketserver
 else:
@@ -248,10 +253,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         #server.socket.close()
 
 # ------------------------------------------------------------------------
-# Override stock methods
+# Override stock methods. Windows has not ForkinMixin
 
-class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
-#class ThreadedTCPServer(socketserver.ForkingMixIn, socketserver.TCPServer):
+if not fcntl:
+    mixin = socketserver.ThreadingMixIn
+else:
+    mixin = socketserver.ForkingMixIn
+
+class ThreadedTCPServer(mixin, socketserver.TCPServer):
 
     ''' Overridden socket server '''
 
@@ -465,7 +474,6 @@ comline.setfoot("Use quotes for argument separations.")
 
 conf = comline.ConfigLong(optarr)
 #conf.printvars()
-
 
 def mainfunct():
 

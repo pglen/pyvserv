@@ -24,9 +24,34 @@ includex = ["*", "pyvgui/", "pyvgui/guilib/", "pyvclient/", "pyvserver/",
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+# The shortlist of starter applications
+
+test_root = [\
+"pyvcli_cli",
+"pyvcli_gethelp",
+"pyvcli_hello",
+"pyvcli_rget",
+"pyvcli_rlist",
+"pyvcli_rput",
+"pyvcli_uini",
+"pyvcli_uman",
+]
+
+# Generate script details
+
+test_scripts = []
+for aa in test_root:
+    test_scripts.append("pyvclient/" + aa + ".py")
+#print(test_scripts)
+
+test_exec = []
+for aa in test_root:
+    test_exec.append(aa+"="+aa+":mainfunct")
+#print(test_exec)
+
 setuptools.setup(
     name="pyvserv",
-    version="1.0.2",
+    version="1.0.3",
     author="Peter Glen",
     author_email="peterglen99@gmail.com",
     description="High power secure server with blockchain backend.",
@@ -43,10 +68,11 @@ setuptools.setup(
     #py_modules = ["pyvpacker", "pydbase", "pyvecc"],
     #py_modules = ["pyvpacker", "pydbase", "pyvecc"],
 
-    scripts = ["pyvserver/pyvserv.py", "pyvclient/pyvcli_cli.py",
+    scripts = ["pyvserver/pyvserv.py",
                 "pyvtools/pyvgenkey.py", "pyvtools/pyvgenkeys.py",
                 "pyvgui/pyvservui.py", "pyvgui/pyvcpanel.py",
                 "pyvserver/pyvreplic.py",
+                *test_scripts,
                 ],
 
     package_dir = {
@@ -68,7 +94,7 @@ setuptools.setup(
                              "pyvgenkeys=pyvgenkeys:mainfunct",
                              "pyvservui=pyvservui:mainfunct",
                              "pyvcpanel=pyvcpanel:mainfunct",
-                             "pyvcli_cli=pyvcli_cli:mainfunct",
+                             test_exec,
             ],
     },
 )

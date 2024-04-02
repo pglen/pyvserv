@@ -100,8 +100,8 @@ if __name__ == &#39;__main__&#39;:
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client([&#34;hello&#34;,] , &#34;&#34;, False)
-    print(&#34;Hello Response:&#34;, resp3)
+    #resp3 = hand.client([&#34;hello&#34;,] , &#34;&#34;, False)
+    #print(&#34;Hello Response:&#34;, resp3)
 
     resp3 = hand.start_session(conf)
     print(&#34;Sess Response:&#34;, resp3)
@@ -111,21 +111,42 @@ if __name__ == &#39;__main__&#39;:
 
     resp = hand.client([&#34;user&#34;, &#34;admin&#34;], conf.sess_key)
     print(&#34;user Response:&#34;, resp)
-    if resp[0] != &#34;OK&#34;:
-        raise ValueError(&#34;No user&#34;, resp[1])
 
     resp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
-    print(&#34;pass Response:&#34;, resp[1])
-    if resp[1].split()[0] != &#34;OK&#34;:
+    print(&#34;pass Response:&#34;, resp)
+    if resp[0] != &#34;OK&#34;:
         raise ValueError(&#34;Not authorized&#34;, resp[1])
 
     resp = hand.client([&#34;uena&#34;, &#34;peter2&#34;, &#34;enable&#34;], conf.sess_key)
-    print(&#34;uena Response:&#34;, resp[1])
-    if resp[1].split()[0] != &#34;OK&#34;:
-        raise ValueError(&#34;user enable&#34;, resp[1])
+    print(&#34;uena Response:&#34;, resp)
+
+    resp = hand.client([&#34;logout&#34;,], conf.sess_key)
+    print(&#34;logout Response:&#34;, resp)
+
+    resp = hand.client([&#34;uena&#34;, &#34;peter2&#34;, &#34;enable&#34;], conf.sess_key)
+    print(&#34;uena Response:&#34;, resp)
+
+    resp = hand.client([&#34;user&#34;, &#34;admin&#34;], conf.sess_key)
+    print(&#34;user Response:&#34;, resp)
+
+    resp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
+    print(&#34;pass Response:&#34;, resp)
+    if resp[0] != &#34;OK&#34;:
+        raise ValueError(&#34;Not authorized&#34;, resp[1])
+
+    resp = hand.client([&#34;uena&#34;, &#34;peter2&#34;, &#34;disable&#34;], conf.sess_key)
+    print(&#34;uena Response:&#34;, resp)
+
+    resp = hand.client([&#34;logout&#34;,], conf.sess_key)
+    print(&#34;logout Response:&#34;, resp)
+
+    resp = hand.client([&#34;user&#34;, &#34;peter2&#34;], conf.sess_key)
+    print(&#34;user Response:&#34;, resp)
+
+    resp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
+    print(&#34;pass Response:&#34;, resp)
 
     hand.client([&#34;quit&#34;], conf.sess_key)
-
     hand.close();
 
     sys.exit(0)</code></pre>

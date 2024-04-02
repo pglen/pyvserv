@@ -11,6 +11,26 @@ if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)
 
+# ------------------------------------------------------------------------
+# Test client for the pyserv project.
+
+import os, sys, getopt, signal, select, socket, time, struct
+import random, stat
+
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, "."))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    from pyvcommon import support
+
+from pyvcommon import support, pycrypt, pyclisup
+from pyvcommon import pysyslog, comline
+
 __doc__ = \
 ''' Test unit for pyvserv. Command line interpreter. This interface is similar
     to the FTP client interface. Some functions are sent through directly,
@@ -60,18 +80,6 @@ __doc__ = \
         ihost                           -- Add / delete replicator host
 
 '''
-
-# ------------------------------------------------------------------------
-# Test client for the pyserv project. Download file.
-
-import os, sys, getopt, signal, select, socket, time, struct
-import random, stat
-
-from pyvcli_utils import *
-
-from pyvcommon import support, pycrypt, pyclisup
-from pyvcommon import pysyslog, comline
-
 # ------------------------------------------------------------------------
 # Globals
 
@@ -88,8 +96,11 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 9999)")
+    print( "            -l login  - Login Name; default: 'user'")
+    print( "            -s lpass  - Login Pass; default: '1234'")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
+    print( "            -x comm   - Execute command and quit")
     print( "            -n        - No encryption (plain)")
     print( "            -h        - Help")
     print()
@@ -106,6 +117,9 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
     ["p:",  "port",     6666,   None],      \
+    ["l:",  "login",    "admin",    None],      \
+    ["s:",  "lpass",    "1234",    None],      \
+    ["x:",  "comm",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["V",   None,       None,   pversion],  \
@@ -141,10 +155,11 @@ def mainfunct():
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    atexit.register(atexit_func, hand, conf)
+    atexit.register(pyclisup.atexit_func, hand, conf)
 
-    #resp3 = hand.client(["id",] , "", False)
-    #print("ID Response:", resp3[1])
+    resp3 = hand.client(["id",] , "", False)
+    if not conf.quiet:
+        print("ID Response:", resp3[1])
 
     conf.sess_key = ""
     #ret = ["OK",];  conf.sess_key = ""
@@ -157,17 +172,19 @@ def mainfunct():
     #print("Sess Key ACCEPTED:",  resp3[1])
 
     if conf.sess_key:
-        print(" ------ Post session, session key:", conf.sess_key[:12], "...")
+        if not conf.quiet:
+            print(" ------ Post session, session key:", conf.sess_key[:12], "...")
 
     resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    print("Hello Resp:", resp3)
+    if not conf.quiet:
+        print("Hello Resp:", resp3)
 
-    # Session estabilished, try a simple command
-    #resp4 = hand.client(["hello",], conf.sess_key)
-    #print("Hello Response:", resp4[1])
-
-    cresp = hand.login("admin", "1234", conf)
-    print ("Login resp:", cresp)
+    cresp = hand.login(conf.login, conf.lpass, conf)
+    if not conf.quiet:
+        print ("Login resp:", cresp)
+    if cresp[0] != "OK":
+        print("Error on logging in, exiting.")
+        sys.exit(1)
 
     # Start a new session for the rest of the work
     resp3 = hand.start_session(conf)
@@ -176,17 +193,27 @@ def mainfunct():
         sys.exit(0)
 
     if conf.sess_key:
-        print(" ------ Post session, session key:", conf.sess_key[:12], "...")
+        if not conf.quiet:
+            print(" ------ Post session, session key:", conf.sess_key[:12], "...")
 
     resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    print("Hello2 Resp:", resp3)
+    if not conf.quiet:
+        print("Hello2 Resp:", resp3)
 
     # Interactive, need more time
     hand.client(["tout", "30",], conf.sess_key)
 
-    print ("Enter commands, Ctrl-C or 'done' to quit. Prefix local commands with '!'")
-
-    mainloop(conf, hand)
+    if conf.comm:
+        import shlex
+        #print("exec:", conf.comm)
+        commx = shlex.split(conf.comm)
+        if not conf.quiet:
+            print("Issue:", commx)
+        resp = hand.client([*commx], conf.sess_key)
+        print("resp:", resp)
+    else:
+        print ("Enter commands, Ctrl-C or 'done' to quit. Prefix local commands with '!'")
+        mainloop(conf, hand)
 
     sys.exit(0)
 
@@ -253,3 +280,5 @@ def mainloop(conf, hand):
 
 if __name__ == '__main__':
     mainfunct()
+
+# EOF

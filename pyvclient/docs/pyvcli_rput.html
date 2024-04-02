@@ -28,45 +28,52 @@
 </summary>
 <pre><code class="python">#!/usr/bin/env python3
 
-from __future__ import print_function
-
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
 
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat, uuid, atexit
 
-from Crypto.Hash import SHA512
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
+#from Crypto.Hash import SHA512
+#from Crypto.PublicKey import RSA
+#from Crypto.Cipher import PKCS1_v1_5
+#from Crypto.PublicKey import RSA
+#from Crypto.Hash import SHA
+
 from Crypto import Random
 
 # This repairs the path from local run to pip run.
 # Remove pip version for local tests
+
 try:
     from pyvcommon import support
-
+    #print(&#34;sf&#34;, sf)
     # Get Parent of module root
     sf = os.path.dirname(support.__file__)
     sf = os.path.dirname(sf)
-    print(&#34;sf&#34;, sf)
     sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
     sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
-    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
-    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
-
 except:
+    #print(&#34;pathching&#34;)
     base = os.path.dirname(os.path.realpath(__file__))
     sys.path.append(os.path.join(base,  &#39;..&#39;))
     sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
     sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
-    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;))
-    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
     from pyvcommon import support
 
-#print(&#34;Load:&#34;, sys.path[-1])
+def atexit_func(hand, conf):
+
+    &#39;&#39;&#39; Severe connection on exit &#39;&#39;&#39;
+
+    try:
+        print(&#34;Atexit&#34;)
+        cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
+        print (&#34;Server quit response:&#34;, cresp)
+        hand.close();
+    except:
+        pass
+
+#from pyvcli_utils import *
 
 from pyvcommon import support, pycrypt, pyservsup, pyclisup, pyvhash
 from pyvcommon import pysyslog, comline
@@ -113,17 +120,7 @@ optarr = \
 
 conf = comline.Config(optarr)
 
-def atexit_func(hand):
-
-    &#39;&#39;&#39; Severe connection on exit &#39;&#39;&#39;
-
-    #print(&#34;Atexit&#34;)
-    cresp = hand.client([&#34;quit&#34;,],conf.sess_key)
-    print (&#34;Server quit  response:&#34;, cresp)
-    hand.close();
-
 # ------------------------------------------------------------------------
-
 
 def mainfunct():
 
@@ -146,11 +143,14 @@ def mainfunct():
     hand.pgdebug = conf.pgdebug
     hand.comm  = conf.comm
 
-    atexit.register(atexit_func, hand)
+    actstr = [&#34;register&#34;, &#34;unregister&#34;, &#34;cast&#34;, &#34;uncast&#34;, ]
+    act = actstr[random.randint(0, len(actstr)-1)]
 
     ttt = time.time()
     pvh = pyvhash.BcData()
-    pvh.addpayload({&#34;Vote&#34;: &#39;0&#39;, &#34;UID&#34;:  str(uuid.uuid1()), })
+    pvh.addpayload({&#34;Vote&#34;: random.randint(0, 10), &#34;UID&#34;:  str(uuid.uuid1()), })
+    pvh.addpayload({&#34;SubVote&#34;: random.randint(0, 10), &#34;TUID&#34;:  str(uuid.uuid1()), })
+    pvh.addpayload({&#34;Action&#34;: act , &#34;RUID&#34;:  str(uuid.uuid1()), })
     #print(pvh.datax)
 
     if conf.putkey:
@@ -163,22 +163,6 @@ def mainfunct():
     elif not pvh.checkpow():
         print(&#34;Error on POW payload .. retrying ...&#34;)
 
-    #pvh.num_zeros = 3
-    #maxcnt = 20
-    #while True:
-    #    if maxcnt == 0:
-    #        print(&#34;Cannot produce hash&#34;)
-    #        sys.exit()
-    #    pvh.hasharr()
-    #    pvh.powarr()
-    #    if not pvh.checkhash():
-    #        print(&#34;Error on hashing payload .. retrying ...&#34;)
-    #    elif not pvh.checkpow():
-    #        print(&#34;Error on POW payload .. retrying ...&#34;)
-    #    else:
-    #        break
-    #    maxcnt -= 1
-    #
     if conf.verbose:
         print(pvh.datax)
 
@@ -190,6 +174,8 @@ def mainfunct():
     except:
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
+
+    atexit.register(atexit_func, hand, conf)
 
     resp3 = hand.client([&#34;hello&#34;, &#34;world&#34;] , &#34;&#34;, False)
     print(&#34;Hello Resp:&#34;, resp3)
@@ -219,12 +205,12 @@ def mainfunct():
         print(&#34;Server hello resp:&#34;, resp4[1])
         sys.exit()
 
-    ttt = time.time()
+    #ttt = time.time()
     cresp = hand.client([&#34;user&#34;, &#34;admin&#34;], conf.sess_key)
     #print(&#34;user %.3fms&#34; % ((time.time() - ttt) * 1000) )
     print (&#34;Server user respo:&#34;, cresp)
 
-    ttt = time.time()
+    #ttt = time.time()
     cresp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
     #print(&#34;pass %.3fms&#34; % ((time.time() - ttt) * 1000) )
     if cresp[0] != &#34;OK&#34;:
@@ -254,7 +240,7 @@ def mainfunct():
     if hand.verbose:
         print(&#34;Sending Data:&#34;, pvh.datax)
 
-    ttt = time.time()
+    #ttt = time.time()
     for aa in range(conf.numrec):
         cresp = hand.client([&#34;rput&#34;, &#34;vote&#34;, pvh.datax], conf.sess_key)
         print (&#34;Server rput response:&#34;, cresp)
@@ -276,7 +262,7 @@ if __name__ == &#39;__main__&#39;:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyvcli_rput.atexit_func"><code class="name flex">
-<span>def <span class="ident">atexit_func</span></span>(<span>hand)</span>
+<span>def <span class="ident">atexit_func</span></span>(<span>hand, conf)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Severe connection on exit</p></div>
@@ -284,14 +270,17 @@ if __name__ == &#39;__main__&#39;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def atexit_func(hand):
+<pre><code class="python">def atexit_func(hand, conf):
 
     &#39;&#39;&#39; Severe connection on exit &#39;&#39;&#39;
 
-    #print(&#34;Atexit&#34;)
-    cresp = hand.client([&#34;quit&#34;,],conf.sess_key)
-    print (&#34;Server quit  response:&#34;, cresp)
-    hand.close();</code></pre>
+    try:
+        print(&#34;Atexit&#34;)
+        cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
+        print (&#34;Server quit response:&#34;, cresp)
+        hand.close();
+    except:
+        pass</code></pre>
 </details>
 </dd>
 <dt id="pyvcli_rput.mainfunct"><code class="name flex">
@@ -324,11 +313,14 @@ if __name__ == &#39;__main__&#39;:
     hand.pgdebug = conf.pgdebug
     hand.comm  = conf.comm
 
-    atexit.register(atexit_func, hand)
+    actstr = [&#34;register&#34;, &#34;unregister&#34;, &#34;cast&#34;, &#34;uncast&#34;, ]
+    act = actstr[random.randint(0, len(actstr)-1)]
 
     ttt = time.time()
     pvh = pyvhash.BcData()
-    pvh.addpayload({&#34;Vote&#34;: &#39;0&#39;, &#34;UID&#34;:  str(uuid.uuid1()), })
+    pvh.addpayload({&#34;Vote&#34;: random.randint(0, 10), &#34;UID&#34;:  str(uuid.uuid1()), })
+    pvh.addpayload({&#34;SubVote&#34;: random.randint(0, 10), &#34;TUID&#34;:  str(uuid.uuid1()), })
+    pvh.addpayload({&#34;Action&#34;: act , &#34;RUID&#34;:  str(uuid.uuid1()), })
     #print(pvh.datax)
 
     if conf.putkey:
@@ -341,22 +333,6 @@ if __name__ == &#39;__main__&#39;:
     elif not pvh.checkpow():
         print(&#34;Error on POW payload .. retrying ...&#34;)
 
-    #pvh.num_zeros = 3
-    #maxcnt = 20
-    #while True:
-    #    if maxcnt == 0:
-    #        print(&#34;Cannot produce hash&#34;)
-    #        sys.exit()
-    #    pvh.hasharr()
-    #    pvh.powarr()
-    #    if not pvh.checkhash():
-    #        print(&#34;Error on hashing payload .. retrying ...&#34;)
-    #    elif not pvh.checkpow():
-    #        print(&#34;Error on POW payload .. retrying ...&#34;)
-    #    else:
-    #        break
-    #    maxcnt -= 1
-    #
     if conf.verbose:
         print(pvh.datax)
 
@@ -368,6 +344,8 @@ if __name__ == &#39;__main__&#39;:
     except:
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
+
+    atexit.register(atexit_func, hand, conf)
 
     resp3 = hand.client([&#34;hello&#34;, &#34;world&#34;] , &#34;&#34;, False)
     print(&#34;Hello Resp:&#34;, resp3)
@@ -397,12 +375,12 @@ if __name__ == &#39;__main__&#39;:
         print(&#34;Server hello resp:&#34;, resp4[1])
         sys.exit()
 
-    ttt = time.time()
+    #ttt = time.time()
     cresp = hand.client([&#34;user&#34;, &#34;admin&#34;], conf.sess_key)
     #print(&#34;user %.3fms&#34; % ((time.time() - ttt) * 1000) )
     print (&#34;Server user respo:&#34;, cresp)
 
-    ttt = time.time()
+    #ttt = time.time()
     cresp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
     #print(&#34;pass %.3fms&#34; % ((time.time() - ttt) * 1000) )
     if cresp[0] != &#34;OK&#34;:
@@ -432,7 +410,7 @@ if __name__ == &#39;__main__&#39;:
     if hand.verbose:
         print(&#34;Sending Data:&#34;, pvh.datax)
 
-    ttt = time.time()
+    #ttt = time.time()
     for aa in range(conf.numrec):
         cresp = hand.client([&#34;rput&#34;, &#34;vote&#34;, pvh.datax], conf.sess_key)
         print (&#34;Server rput response:&#34;, cresp)

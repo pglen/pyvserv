@@ -29,11 +29,13 @@ deb:  build build3
 	./build-deb.sh
 
 clean:
-	@make -C pyvclient clean
-	@make -C pyvserver clean
-	@make -C pyvcommon clean
+	@#make -C pyvclient clean
+	@#make -C pyvserver clean
+	@#make -C pyvcommon clean
 	@rm -f aa bb cc pyvserv.deb
-	@rm -rf ./build-tmp
+	@rm -rf build-tmp/*
+	@rm -rf  dist/*
+	@rm -rf  build/*
 
 freshdata:
 	@rm -rf ~/pyvserver/*

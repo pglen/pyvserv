@@ -9,9 +9,6 @@ hand = None
 fname = createname(__file__)
 iname = createidxname(__file__)
 
-fname = "test.txt"
-fname2 = "test.txt_local"
-
 # ------------------------------------------------------------------------
 
 def setup_module(module):
@@ -69,52 +66,11 @@ def test_func(capsys):
     #print("Hello encr:", resp5)
     assert resp5[0] ==  "OK"
 
-    fp = open(fname, "wb")
-    fp.write(b"Test Data" * 10)
-    fp.close()
 
-    resp = hand.client(["fput", fname], sess_key)
-    print ("fput response:", resp)
-    assert resp[0] ==  "OK"
-
-    fp = open(fname, "rb")
-    while 1:
-        try:
-            buf = fp.read(1024)
-            #print("sending", buf)
-            dstr = hand.wrapx(buf, sess_key)
-            hand.sendx(dstr)
-            if len(buf) == 0:
-                break
-        except:
-            resp =  ["ERR", "Cannot send", sys.exc_info()]
-            break
-
-    resp = hand.recvx(sess_key)
-    print ("fput transfer:", resp)
-
-def test_get(capsys):
-
-    # --------------------------------------------------------------------
-    # Get back the same file
-
-    ret2 = hand.getfile(fname, fname2, sess_key)
-    print ("fget transfer:", ret2)
-
-    buff1 = open(fname, 'rb').read()
-    buff2 = open(fname2, 'rb').read()
-    assert buff1 == buff2
-
-    try:
-        os.remove(fname); os.remove(fname2)
-    except:
-        pass
-
-    resp = hand.client(["hello"], sess_key)
-    print ("Hello encr:", resp);
-
-    hand.client(["quit"], sess_key)
+    resp = hand.client(["quit"], sess_key)
+    hand.close()
     assert resp[0] == 'OK'
+
 
 
 

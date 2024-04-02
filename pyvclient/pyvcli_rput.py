@@ -14,7 +14,24 @@ import  random, stat, uuid, atexit
 
 from Crypto import Random
 
-from pyvcli_utils import *
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+
+try:
+    from pyvcommon import support
+    #print("sf", sf)
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    sys.path.append(os.path.join(sf, "pyvcommon"))
+    sys.path.append(os.path.join(sf, "pyvserver"))
+except:
+    #print("pathching")
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    sys.path.append(os.path.join(base,  '..', "pyvserver"))
+    from pyvcommon import support
 
 from pyvcommon import support, pycrypt, pyservsup, pyclisup, pyvhash
 from pyvcommon import pysyslog, comline
@@ -84,12 +101,11 @@ def mainfunct():
     hand.pgdebug = conf.pgdebug
     hand.comm  = conf.comm
 
-    atexit.register(atexit_func, hand, conf)
-
     actstr = ["register", "unregister", "cast", "uncast", ]
     act = actstr[random.randint(0, len(actstr)-1)]
 
-    ttt = time.time()
+    print("Calculating hash ....", end = " "); sys.stdout.flush()
+    #ttt = time.time()
     pvh = pyvhash.BcData()
     pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
     pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
@@ -100,6 +116,8 @@ def mainfunct():
         pvh.datax['header'] = conf.putkey
 
     pvh.hasharr();    pvh.powarr()
+    print("OK")
+
 
     if not pvh.checkhash():
         print("Error on hashing payload .. retrying ...")
@@ -117,6 +135,8 @@ def mainfunct():
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
+
+    atexit.register(pyclisup.atexit_func, hand, conf)
 
     resp3 = hand.client(["hello", "world"] , "", False)
     print("Hello Resp:", resp3)

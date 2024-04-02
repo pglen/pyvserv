@@ -1,4 +1,5 @@
 #  PyvServer
+
 ## 	Fully encrypted TCP/IP server.
 
  &nbsp; &nbsp; PyvServ is an encrypting TCP/IP server written in Python. The
@@ -71,8 +72,6 @@ previous record. Utilities to verify the data are also provided.
  the replicated records are not replicated any further, assuming a flat
  structure of replication.
 
- Project is still in motion, but a lot of it is usable.
-
 #### Installation:
 
     pip install pyvserv
@@ -91,7 +90,8 @@ For example (assuming port 6666):
     sudo iptables -A INPUT -p tcp --dport 6666
     sudo iptables -A INPUT -p tcp --sport 6666
 
- Please note that this is not a recommendation, it is a port we used during development.
+ Please note that this is not a recommendation, it is a port we used during
+ development.
 
 #### Platform:
 
@@ -140,6 +140,23 @@ Quick rundown of the above test:
 
  The best way to learn about the operation of the server is to look at the
 sample client examples in the client source tree. (Files named pyvcli_*)
+
+## The pip install
+
+
+ Scripts are provided for the server, and some test clients. The
+  server can be started as
+
+    pyvserver -D
+
+ The -D option is for Developer mode, disabling 2FA authentication.
+
+ The command line client can be started as:
+
+    pyvcli_cli
+
+  The command line client starts, and the server functions can be excersized
+from it. See the pycli_* utils for examples of driving the server.
 
 ## Testing:
 

@@ -11,7 +11,38 @@ if sys.version_info[0] < 3:
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat, datetime, atexit
 
-from pyvcli_utils import *
+#from pyvcli_utils import *
+
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+
+try:
+    from pyvcommon import support
+    #print("sf", sf)
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    sys.path.append(os.path.join(sf, "pyvcommon"))
+    sys.path.append(os.path.join(sf, "pyvserver"))
+except:
+    #print("pathching")
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    sys.path.append(os.path.join(base,  '..', "pyvserver"))
+    from pyvcommon import support
+
+def atexit_func(hand, conf):
+
+    ''' Severe connection on exit '''
+
+    try:
+        print("Atexit")
+        cresp = hand.client(["quit", ], conf.sess_key)
+        print ("Server quit response:", cresp)
+        hand.close();
+    except:
+        pass
 
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
