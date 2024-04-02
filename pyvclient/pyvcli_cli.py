@@ -95,7 +95,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
+    print( "            -p        - Port to use (default: 6666)")
     print( "            -l login  - Login Name; default: 'user'")
     print( "            -s lpass  - Login Pass; default: '1234'")
     print( "            -v        - Verbose")

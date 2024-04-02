@@ -31,7 +31,7 @@ def phelp():
     print()
     print( "Options:    -d level   - Debug level 0-10")
     print( "            -c dirname - Directory to create. default: test_3")
-    print( "            -p         - Port to use (default: 9999)")
+    print( "            -p         - Port to use (default: 6666)")
     print( "            -v         - Verbose")
     print( "            -q         - Quiet")
     print( "            -n         - No encryption (plain)")

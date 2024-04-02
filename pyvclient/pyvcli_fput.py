@@ -25,7 +25,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
+    print( "            -p        - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -f fname  - Send file")
     print( "            -q        - Quiet")
@@ -87,15 +87,10 @@ if __name__ == '__main__':
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print("Sess Key ACCEPTED:",  resp3[1])
-    #print("Post session, all is encrypted")
-
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
     if conf.verbose:
         print("Hello (plain) Response:", resp4)
-        #print("Hello (encrypted) Response:", resp4[1])
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
     #print ("Server user response:", cresp[1])

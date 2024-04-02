@@ -8,14 +8,21 @@ if sys.version_info[0] < 3:
     sys.exit(1)
 
 # ------------------------------------------------------------------------
-# Test client for the pyserv project. Download file.
+# Test client for the pyserv project.
 
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join(base,  '../pyvcommon'))
-sys.path.append(os.path.join(base,  '..'))
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, "."))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    from pyvcommon import support
 
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
@@ -33,7 +40,8 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
+    print( "            -p        - Port to use (default: 6666)")
+    print( "            -f file   - Upload new QR image file")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -n        - No encryption (plain)")
@@ -49,7 +57,7 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
     ["p:",  "port",     6666,   None],      \
-    ["f:",  "file",     6666,   None],      \
+    ["f:",  "file",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
     ["n",   "plain",    0,      None],      \
@@ -61,12 +69,11 @@ conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
-def mainfunc():
+def mainfunct():
 
     args = conf.comline(sys.argv[1:])
 
     #print(vars(conf))
-
     #if conf.comm:
     #    print("Save to filename", conf.comm)
 
@@ -82,72 +89,41 @@ def mainfunc():
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #hand.comm  = conf.comm
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client(["qr",] , "", False)
-    #print("QR Response:", resp3[1])
-    fp = open("qr.png", 'wb')
-    fp.write(resp3[1])
-    fp.close()
+    conf.sess_key = ""
+    #ret = ["OK",];  conf.sess_key = ""
+    resp3 = hand.start_session(conf)
+    if resp3[0] != "OK":
+        print("Error on setting session:", resp3[1])
+        sys.exit(0)
 
-    hand.sock.shutdown(socket.SHUT_RDWR)
+    if conf.file:
+        fp = open(conf.file, "rb")
+        buff = fp.read()
+        fp.close()
+        #print("len:", len(buff))
+        resp3 = hand.client(["qr", buff], conf.sess_key, False)
+        print("QR UP Response:", resp3)
+    else:
+        resp3 = hand.client(["qr",], conf.sess_key, False)
+        #print("QR Response:", resp3)
+        fp = open("qr.png", 'wb')
+        if type(resp3[1]) != type(b""):
+            resp3[1] = resp3[1].encode()
+        fp.write(resp3[1])
+        fp.close()
+
+    hand.client(["quit"], conf.sess_key)
+    hand.close();
+
     sys.exit(0)
 
-def mainloop(conf, hand):
-
-    while(True):
-        try:
-            onecom = input(">> ")
-            #print ("'" + onecom.split() + "'")
-            ss = onecom.split()
-            if ss  != []:
-                # process commands that need additional data
-                if ss[0] == "done":
-                    break
-                elif ss[0] == "sess":
-                    cresp = hand.start_session(conf)
-                    if conf.sess_key:
-                        print("Post session, session key:", conf.sess_key[:12], "...")
-
-                elif ss[0] == "fget":
-                    if len(ss) < 2:
-                        print("Use: fget fname")
-                        continue
-                    ret2 = hand.getfile(ss[1], "", conf.sess_key)
-                    print ("Server fget response:", ret2)
-
-                elif ss[0] == "fput":
-                    if len(ss) < 2:
-                        print("Use: fput fname")
-                        continue
-                    ret2 = hand.putfile(ss[1], "", conf.sess_key)
-                    print ("Server fput response:", ret2)
-
-                elif ss[0] == "file":
-                    if not os.path.isfile(ss[1]):
-                        print("File must exist.")
-                        continue
-                    cresp = hand.start_session(conf)
-                    if conf.sess_key:
-                        print("Post session, session key:", conf.sess_key[:12], "...")
-                if ss[0][0] == "!":
-                    #print ("local command")
-                    os.system(ss[0][1:] + " " + " ".join(ss[1:]))
-                    continue
-                else:
-                    # No wrapper needed
-                    cresp = hand.client(ss, conf.sess_key)
-                print ("Server response:", cresp)
-
-        except:
-            print(sys.exc_info())
-            break
-
 if __name__ == '__main__':
-    mainfunc()
+    mainfunct()
+
+# EOF

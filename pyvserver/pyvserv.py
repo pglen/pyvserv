@@ -65,7 +65,8 @@ from pyvcommon import pydata, pysyslog, comline
 from pyvserver import pyvstate
 from pyvserver import pyvfunc
 
-version = "1.0"
+# Update it from setup
+version = "1.0.3"
 
 mydata = {}
 
@@ -439,7 +440,6 @@ class serve_one():
             print("ended thread", self.name)
 
 
-
 def simple_server(HOST, PORT):
 
     ''' This was a test server, left it in for future refernence.
@@ -465,8 +465,10 @@ optarr.append ( ["l:",  "loglevel",  "pglog",       1,       None, "Log level (0
 optarr.append ( ["n:",  "host",      "host",   "127.0.0.1",  None, "Set server hostname"] )
 optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
 optarr.append ( ["m",   "mem",       "mem",         0,       None, "Show memory trace."] )
-optarr.append ( ["D",   "dmode",     "dmode",       0,       None, "Dev mode (no twofa)"] )
+optarr.append ( ["D",   "dmode",     "dmode",       1,       None, "Dev mode (no twofa)"] )
 optarr.append ( ["N",   "norepl",    "norepl",      0,       None, "No replication (for test)"] )
+
+# Tue 02.Apr.2024 made devmode default
 
 #print (optarr)
 comline.setargs("")
@@ -490,20 +492,19 @@ def mainfunct():
     # Print comline args
     if conf.pgdebug > 7:
         for aa in vars(conf):
-            if aa != "optarr":
-                print(aa, "=", getattr(conf, aa), end = "   ")
+            if aa != "_optarr":
+                print(aa, "=", getattr(conf, aa), end = "    ")
         print()
 
-    if conf.verbose:
-        pass
-        #print("This script:     ", os.path.realpath(__file__))
-        #print("Full path argv:  ", os.path.abspath(sys.argv[0]))
-        #print("Script name:     ", __file__)
-        #print("Exec argv:       ", sys.argv[0])
+    if conf.pgdebug > 4:
+        print("This script:     ", os.path.realpath(__file__))
+        print("Full path argv:  ", os.path.abspath(sys.argv[0]))
+        print("Script name:     ", __file__)
+        print("Exec argv:       ", sys.argv[0])
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
-    pyservsup.globals.lockfname += "_" + str(conf.port)  # Lock file + port
+    pyservsup.globals.lockfname += "_" + str(conf.port) + "_" + str(conf.host)
     pyservsup.globals._softmkdir(pyservsup.globals.myhome)
 
     # Change directory to the data dir
@@ -538,7 +539,7 @@ def mainfunct():
                 #print("exc", sys.exc_info())
                 #support.put_exception("Generating keys")
         except:
-            print("Could not generate key. Keydir was", pyservsup.globals.keydir)
+            print("Could not generate key. Keydir was:", pyservsup.globals.keydir)
             sys.exit(1)
 
     iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
@@ -558,7 +559,7 @@ def mainfunct():
         signal.signal(signal.SIGUSR1, usersig)
         signal.signal(signal.SIGUSR2, usersig2)
     except:
-        print("User signal may not be available.")
+        print("User signals may not be available.")
 
     sys.stdout = support.Unbuffered(sys.stdout)
     sys.stderr = support.Unbuffered(sys.stderr)
@@ -576,9 +577,6 @@ def mainfunct():
             ("system", slogfile), ("replic", rlogfile))
     #pysyslog.syslog("Started Server")
 
-    # Port 0 would mean to select an arbitrary unused port
-    HOST, PORT = conf.host, conf.port
-
     if not conf.quiet:
         try:
             import distro
@@ -587,14 +585,21 @@ def mainfunct():
             strx = "Win or Unkn."
 
         print("MainSiteID:      ", pyservsup.globals.siteid)
-        print("Server running: ", "'"+HOST+"'", "Port:", PORT)
+        print("Server running: ", "'"+conf.host+"'", "Port:", conf.port)
         pyver = support.list2str(sys.version_info) #[0:3], ".")
         print("Running python", platform.python_version(), "on", platform.system(), strx)
 
-        pyvstate.init_state_table()
+    pyvstate.init_state_table()
+
+    # Parse multiple host (interace) options (disabled)
+    #hostarr = []
+    #import shlex
+    #hostarr = shlex.split(conf.host)
+    #print("hostarr", hostarr)
+
+    global server
     try:
-        global server
-        server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
+        server = ThreadedTCPServer((conf.host, conf.port), ThreadedTCPRequestHandler)
         server.allow_reuse_address = True
         ip, port = server.server_address
         server.allow_reuse_address = True
@@ -606,28 +611,26 @@ def mainfunct():
 
         # Exit the server thread when the main thread terminates
         server_thread.verbose = conf.verbose
-        #server_thread.setDaemon(True)
         server_thread.daemon = True
         #server_thread.paydir =  pyservsup.globals.paydir
         server_thread.start()
 
     except:
-        print( "Cannot start server. ", sys.exc_info()[1])
+        print( "Cannot start server. ", sys.exc_info())
         if conf.pglog > 0:
-            pysyslog.syslog("Cannot start server " + str(sys.exc_info()[1]) )
-
-        #print("Try again later.")
-        terminate(None, None)
-        #sys.exit(1)
+            pysyslog.syslog("Cannot start server ", sys.exc_info())
+            #print("Try again later.")
+            #terminate(None, None)
+            sys.exit(1)
 
     #if conf.pglog > 0:
-    #    pysyslog.syslog("Started Server")
+    #     pysyslog.syslog("Started Server")
 
     if conf.pglog > 0:
         pysyslog.syslog("Server started. Devmode %d" % conf.dmode)
 
-    # Block
     #simple_server(HOST, PORT)
+    # Block
     server.serve_forever()
 
 if __name__ == '__main__':

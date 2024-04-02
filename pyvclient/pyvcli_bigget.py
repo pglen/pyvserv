@@ -30,7 +30,7 @@ def phelp():
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
+    print( "            -p        - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -n        - No encryption (plain)")
@@ -102,45 +102,65 @@ if __name__ == '__main__':
     #print("Sess Key ACCEPTED:",  resp3[1])
 
     if conf.sess_key:
-        print("Post session, session key:", conf.sess_key[:12], "...")
+        if not conf.quiet:
+            print("Post session, session key:", conf.sess_key[:12], "...")
 
     resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    print("Hello Response:", resp3)
+    if not conf.quiet:
+        print("Hello Response:", resp3)
 
     # Session estabilished, try a simple command
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
     cresp = hand.login("admin", "1234", conf)
-    print ("Server login response:", cresp)
+    if not conf.quiet:
+        print ("Server login response:", cresp)
 
-    #cresp = hand.client(["ls", ], conf.sess_key)
-    #print ("Server  ls response:", cresp)
+    bigfname = "bigfile"    # Use this name for cleaning it
+    bigbuff = b"a" * 1024
+    # Create bigfile
+    fp = open(bigfname, "wb")
+    for aa in range(1024 * 20):
+        fp.write(bigbuff)
+    fp.close()
 
-    #cresp = hand.client(["buff", "10", ], conf.sess_key)
-    #print ("Server buff response:", cresp)
-    #if cresp[0] != "OK":
-    #    print("Error on buff command", cresp[1])
-    #    hand.client(["quit"], conf.sess_key)
-    #    hand.close();
-    #    sys.exit(0)
-
-    #zfile = "zeros"
-    #ret2 = hand.getfile(zfile, zfile+"_local", conf.sess_key)
-    #print ("Server  fget response:", ret2)
-
-    bfile ="bigfile"
-    print("Started bigfile ...", bfile)
+    # Put big file up
+    print("Started file UP ...", )
     ttt = time.time()
-    ret = hand.getfile(bfile, bfile + "_local", conf.sess_key)
-    filesize = support.fsize(bfile+ "_local")
-    print("filesize", filesize)
+    resp = hand.putfile(bigfname, "", conf.sess_key)
+    filesize = support.fsize(bigfname)
     rate = filesize / (time.time() - ttt)
-    print ("Server fget response:", ret, "time %.2f kbytes/sec" % (rate/1024))
+    if not conf.quiet:
+        print("filesize", filesize)
+    if resp[0] != "OK":
+        print ("fput resp:", resp)
+        cresp = hand.client(["quit", ], conf.sess_key)
+        print ("Server quit response:", cresp)
+        sys.exit()
+    print ("fput response:", resp, "time %.2f kbytes/sec" % (rate/1024))
+
+    print("Started bigfile DOWN")
+    ttt = time.time()
+    ret = hand.getfile(bigfname, bigfname + "_local", conf.sess_key)
+    filesize = support.fsize(bigfname + "_local")
+    if not conf.quiet:
+        print("filesize", filesize)
+    rate = filesize / (time.time() - ttt)
+    print ("fget response:", ret, "time %.2f kbytes/sec" % (rate/1024))
 
     cresp = hand.client(["quit", ], conf.sess_key)
-    print ("Server quit response:", cresp)
+    #print ("Server quit response:", cresp)
+
+    ret = os.system("diff " + bigfname + " " + bigfname + "_local")
+    if ret:
+        print("Error: Files Differ", ret)
+    else:
+        print("Files Compare OK")
+
+    os.remove(bigfname)
+    os.remove(bigfname + "_local")
 
     sys.exit(0)
 
-
+ # EOF

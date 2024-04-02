@@ -35,6 +35,7 @@ test_root = [\
 "pyvcli_rput",
 "pyvcli_uini",
 "pyvcli_uman",
+"pyvcli_qr",
 ]
 
 # Generate script details
@@ -49,9 +50,23 @@ for aa in test_root:
     test_exec.append(aa+"="+aa+":mainfunct")
 #print(test_exec)
 
+# Get it from main file:
+fp = open("pyvserver/pyvserv.py", "rt")
+vvv = fp.read(); fp.close()
+loc_vers =  '1.0.0'     # Default
+for aa in vvv.split("\n"):
+    idx = aa.find("version =")
+    if idx == 0:        # At th beginning of line
+        try:
+            loc_vers = aa.split()[2].replace('"', "")
+            break
+        except:
+            pass
+#print("loc_vers:", loc_vers)
+
 setuptools.setup(
     name="pyvserv",
-    version="1.0.3",
+    version=loc_vers,
     author="Peter Glen",
     author_email="peterglen99@gmail.com",
     description="High power secure server with blockchain backend.",

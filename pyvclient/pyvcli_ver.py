@@ -13,11 +13,19 @@ if sys.version_info[0] < 3:
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, "."))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    from pyvcommon import support
 
-import support, pycrypt, pyservsup, pyclisup
-import pysyslog, comline
+from pyvcommon import support, pycrypt, pyclisup
+from pyvcommon import pysyslog, comline
 
 version = "1,0"
 
@@ -59,12 +67,8 @@ if __name__ == '__main__':
 
     if sys.version_info[0] < 3:
         print("Warning! This script was meant for python 3.x")
-        time.sleep(1)
+        sys.exit()
 
-    #if  sys.version_info[0] < 3:
-    #    print("Needs python 3 or better.")
-    #    sys.exit(1)
-    #
     args = conf.comline(sys.argv[1:])
 
     if len(args) == 0:
@@ -79,12 +83,9 @@ if __name__ == '__main__':
     try:
         resp2 = hand.connect(ip, conf.port)
     except:
-        support.put_exception("On connect")
+        #support.put_exception("On connect")
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
-
-    #if conf.quiet == False:
-    #    print ("Server initial:", resp2)
 
     resp = hand.client(["ver"])
 

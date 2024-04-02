@@ -5,29 +5,42 @@ document. The implementation follows loosely the outline of the interaction
 outlined below.
 
     Client                          Server
+    ------                          ------
 
-    TCP connection estabilished.    Send signon str
+    TCP connection established.    Send sign on str
 
 Initial state:
 
-    query server                    send appropriate answer
-    akey requested                  send rendomly selected pub key
+    query server                    send commensurate answer
+    akey requested                  send randomly selected public key
 
-akey state:
+Akey state:
 
-    ready to estabilish session
+    ready to establish session
     session key generated,          session key stored
                                     encrypted, transmitted
-session state:
+Session state:
 
-    estabilish credencials          confirm transaction state
+    establish credentials           confirm session state
+                                    acknowledge established session
+    remember session ID
 
-transaction state:
+Transaction state, one transaction:
 
-    send rand str                   acknowledge estabilished session
-    with checksum                   seed with random amount of data
-
+    send rand str
+    send checksum                   seed with random amount of data
     Transactions start              respond with packer data
     send packer data
 
-... disconnect ...
+    repeat ....
+
+... Disconnect ...
+
+    send the Quit command           Server closes connection
+
+... Timeout ...
+
+    when inactivity for N seconds   mark the thread state with timeout
+    on the next transaction         send goodbye, close connection
+
+# EOF

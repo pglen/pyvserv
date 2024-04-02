@@ -1678,16 +1678,27 @@ def put_data_func(self, strx):
 
 def get_qr_func(self, strx):
 
-    #print("QRfunc called")
+    if pyservsup.globals.conf.pgdebug > 1:
+        print("QRfunc called", len(strx))
 
-    fp = open('qr.png', 'rb')
-    buff = fp.read()
-    fp.close()
-    self.resp.datahandler.putencode([OK, buff], self.resp.ekey)
+    #print("cwd:", self.resp.cwd)
+    if len(strx) == 1:
+        fp = open('qr.png', 'rb')
+        buff = fp.read()
+        fp.close()
+        self.resp.datahandler.putencode([OK, buff], self.resp.ekey)
+    else:
+        if type(strx[1]) != type(b""):
+            strx[1] = strx[1].encode()
+        fp = open('qr.png', 'wb')
+        fp.write(strx[1])
+        fp.close()
+        self.resp.datahandler.putencode([OK, "Written new QR image", len(strx[1])], self.resp.ekey)
 
 def get_twofa_func(self, strx):
 
-    #print("get_twofa_func called")
+    if pyservsup.globals.conf.pgdebug > 1:
+        print("get_twofa_func called")
 
     retval = True
     if len(strx) < 2:
