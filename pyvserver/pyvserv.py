@@ -57,7 +57,7 @@ except:
 #for aa in sys.path:
 #    print(aa)
 
-print("Load:", sys.path[-1])
+#print("Load:", sys.path[-1])
 
 from pyvcommon import support, pyservsup, pyclisup
 from pyvcommon import pydata, pysyslog, comline
@@ -482,7 +482,7 @@ def mainfunct():
     ''' Main entry point. The pip install will call this script. '''
 
     if sys.version_info[0] < 3:
-        print("Warning! This script was meant for python 3.x")
+        print("This script was meant for python 3.x")
         time.sleep(.1)
         sys.exit(0)
 
@@ -578,6 +578,9 @@ def mainfunct():
     #pysyslog.syslog("Started Server")
 
     if not conf.quiet:
+        if pyservsup.globals.conf.dmode:
+            print("Warning! Devmode ON. Use -D to allow 2FA auth")
+
         try:
             import distro
             strx = distro.name()
@@ -588,6 +591,7 @@ def mainfunct():
         print("Server running: ", "'"+conf.host+"'", "Port:", conf.port)
         pyver = support.list2str(sys.version_info) #[0:3], ".")
         print("Running python", platform.python_version(), "on", platform.system(), strx)
+
 
     pyvstate.init_state_table()
 

@@ -1,16 +1,27 @@
-# Use to build modules
+#
+# Use to build modules, generate service file, install sevice file
+#
 
 # These scripts work on the default installation
 
 .PHONY: tests clean docs
 
-#@echo Target \'init\' generates an initial key.
-#@echo Target \'cleankeys\' deletes all keys.
-#@echo Target \'freshdata\' deletes all data.
-
 all:
-	@echo Targets: git tests clean deb init cleankeys \
-            freshdata md5 genmd5 checkmd5 docs
+	@echo Targets: git tests clean deb -- for more targets see make help
+
+help:
+	@echo  "\tgit         --  checkin to git (for developers)      "
+	@echo  "\ttests       --  execute tests                        "
+	@echo  "\tclean       --  clean python temporaries             "
+	@echo  "\tcleankeys   --  clean keys                           "
+	@echo  "\tfreshdata   --  clean all data !!! Warning: !!!     "
+	@echo  "\tmd5         --  show md5 hashes                      "
+	@echo  "\tgenmd5      --  genetate md5 hashes                  "
+	@echo  "\tcheckmd5    --  check md5 hashes                     "
+	@echo  "\tdocs        --  generate documents                   "
+	@echo  "\tgensevice   --  generate sevice file                 "
+	@echo  "\tinstservice --  install service                      "
+	@echo  "\tstatservice --  see service status                   "
 
 init:
 	@python3 ./tools/genkey.py
@@ -68,9 +79,26 @@ md5:
 	@cat md5sum.txt
 
 checkmd5:
+	@echo The 'md5sum.txt' should fail, but no others
 	@md5sum -c --quiet md5sum.txt
 
 genmd5:
+	@#echo Started md5 gen ... please wait
 	./iterproj.py -m > md5sum.txt
+
+# Generate service file
+gensevice:
+	@./make_servfile.py > tmp
+	@# the secondline is executed if file is generated
+	@cp tmp pyvserv.service
+
+# Install sevice file; needs sudo
+instsevice:
+	sudo cp pyvserv.service /etc/systemd/system
+	sudo systemctl enable --now  pyvserv.service
+
+# Stat service
+statservice:
+	systemctl status pyvserv.service
 
 # EOF

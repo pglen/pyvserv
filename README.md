@@ -93,6 +93,13 @@ For example (assuming port 6666):
  Please note that this is not a recommendation, it is a port we used during
  development.
 
+#### Start server
+
+ The python server can be added to the system servers with the Makefile targets
+'make genservice' and 'make instservice'
+ The scripts will generate the service file to run under current user's
+ credentials, and install it onto the running system. (requires sudo)
+
 #### Platform:
 
     This project was developed on Ubuntu 22.x. Most linux distributions should work.

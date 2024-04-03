@@ -116,7 +116,6 @@ def init_state_table():
     #print("pystate init table")
     # This is to develop without entering auth code every time
     if pyservsup.globals.conf.dmode:
-        print("Warning! Devmode ON. Use -D to allow 2FA auth")
         minauth =  auth_pass
     else:
         minauth =  auth_twofa
