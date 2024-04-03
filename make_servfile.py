@@ -2,14 +2,17 @@
 
 import sys, os, site
 
-os.system("which pyvserv > tmpfile")
+progname="pyvserv"
+
+os.system("which " + progname +" > tmpfile")
 fp = open("tmpfile") ;
 execname  = fp.read().strip()
 fp.close()
 os.remove("tmpfile")
 
 if not execname:
-    print("pyvserv executable not found")
+    print(progname + " executable not found, possible missing (pip) install. ",
+                file=sys.stderr)
     sys.exit(1)
 
 base = '''\
@@ -32,3 +35,4 @@ WantedBy=multi-user.target
 
 print(base)
 
+# EOF

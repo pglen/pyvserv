@@ -87,15 +87,17 @@ genmd5:
 	./iterproj.py -m > md5sum.txt
 
 # Generate service file
-gensevice:
+genservice:
 	@./make_servfile.py > tmp
 	@# the secondline is executed if file is generated
 	@cp tmp pyvserv.service
+	@rm -f tmp
 
 # Install sevice file; needs sudo
-instsevice:
-	sudo cp pyvserv.service /etc/systemd/system
-	sudo systemctl enable --now  pyvserv.service
+instsevice: genservice
+	@sudo cp pyvserv.service /etc/systemd/system
+	@sudo systemctl enable --now  pyvserv.service
+	@echo "You may now use systemctl start/stop/disable pyvserv.servce"
 
 # Stat service
 statservice:

@@ -8,16 +8,15 @@ the 'session' command is issued, everything is transmitted / received encrypted.
 
     user logon_name                 -- Name of user to log in with
     akey                            -- Get asymmetric key
-    pass logon_pass                 -- Password
-    chpass newpass                  -- Change pass (not tested)
+    pass logon_pass                 -- Password logon
+    chpass newpass                  -- Change password.
     file fname                      -- Specify name for upload
     fget fname                      -- Download (get) file
     fput fname                      -- Upload (put) file
     del  fname                      -- Delete file
     uadd user_name user_pass        -- Create new user
     kadd key_name key_val           -- Add new encryption key
-    uini user_name user_pass        -- Create initial user. Must be from local net.
-    kini key_name key_pass          -- Create initial key.  Must be from local net.
+    uini user_name user_pass        -- Create initial user. Only from loopback.
     uena user_name  flag            -- Enable / disable user
     aadd user_name user_pass        -- Create admin user
     udel user_name                  -- Delete user
@@ -31,7 +30,7 @@ the 'session' command is issued, everything is transmitted / received encrypted.
     lsd [dir]                       -- List dirs in dir
     cd dir                          -- Change to dir. Capped to server root
     pwd                             -- Show current dir
-    stat fname                      -- Get file stat. See at the end of this table.
+    stat fname                      -- Get file stat. See more below.
     tout new_val                    -- Set / Reset timeout in seconds
     ekey encryption_key             -- Set encryption key
     sess session data               -- Start session
@@ -44,7 +43,7 @@ the 'session' command is issued, everything is transmitted / received encrypted.
     ihave                           -- The 'i have you have' protocol entry point
     ihost                           -- Add / delete replicator host
 
-    Stat format:
+## Stat format:
 
       1.  ST_MODE Inode protection mode.
       2.  ST_INO Inode number.
