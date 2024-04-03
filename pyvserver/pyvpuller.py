@@ -1,63 +1,43 @@
 #!/usr/bin/env python3
 
-import os, sys, threading, time
-
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..'))
-
-import sys
+import os, sys
 
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)
 
-import os, getopt, signal, select, string, time
+import getopt, signal, select, string, time
 import tarfile, subprocess, struct, platform
-import socket, threading, tracemalloc, inspect
-
-if sys.version_info[0] < 3:
-    import SocketServer as socketserver
-else:
-    import socketserver
+import socket, threading, tracemalloc, inspect, socketserver
 
 import pyvpacker
 
 # This repairs the path from local run to pip run.
-# Remove pip version for local tests
 try:
     from pyvcommon import support
-
     # Get Parent of module root
-    sf = os.path.dirname(support.__file__)
-    sf = os.path.dirname(sf)
-    #print("sf", sf)
-    sys.path.append(os.path.join(sf, "pyvcommon"))
-    sys.path.append(os.path.join(sf, "pyvserver"))
-    #sys.path.append(os.path.join(sf, "pyvgui"))
-    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
-
+    base = os.path.dirname(support.__file__)
+    #print("base:", base)
+    sys.path.append(os.path.join(base, "..", "pyvcommon"))
+    sys.path.append(os.path.join(base, "..", "pyvserver"))
 except:
     base = os.path.dirname(os.path.realpath(__file__))
+    print("local base", base)
     sys.path.append(os.path.join(base,  '..'))
     sys.path.append(os.path.join(base,  '..', "pyvcommon"))
     sys.path.append(os.path.join(base,  '..', "pyvserver"))
-    #sys.path.append(os.path.join(base, "..", "pyvgui"))
-    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
-#for aa in sys.path:
-#    print(aa)
-
-print("Load:", sys.path[-1])
+#print("Load:", sys.path[-1])
 
 from pyvcommon import support, pyservsup, pyclisup
 from pyvcommon import pydata, pysyslog, comline, pyvhash
 
 from pydbase import twincore, twinchain
 
-replicname = "replic.pydb"
-datafname = "initial.pydb"
-ihostfname = "ihosts.pydb"
+replicname  = "replic.pydb"
+datafname   = "initial.pydb"
+ihostfname  = "ihosts.pydb"
 
 MAX_DBSIZE = 20                 # Size of DB when vacuum
 
@@ -92,7 +72,7 @@ class Puller():
     #        dbarr.append((fname, xcore))
     #    return xcore
 
-    def rep_run(self):
+    def pull_run(self):
 
         ''' Main entry point for replication. '''
 
@@ -349,11 +329,9 @@ def mainfunct():
     pysyslog.init_loggers(
             ("system", slogfile), ("replic", rlogfile))
 
-
     pysyslog.repliclog("Puller started")
-
     print("Started puller")
-    repl = Replicator(conf.verbose, conf.pgdebug)
+    repl = Puller(conf.verbose, conf.pgdebug)
     repl.pull_run()
 
 if __name__ == '__main__':

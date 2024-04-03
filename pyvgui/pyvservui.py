@@ -22,9 +22,7 @@ try:
 
 except:
     #print("pip inc")
-    base = os.path.dirname(os.path.realpath(__file__))
-    base = os.path.dirname(base)
-    sys.path.append(os.path.join(base,  '.'))
+    base = os.path.dirname(__file__)
     sys.path.append(os.path.join(base,  '..'))
     sys.path.append(os.path.join(base,  '..', "pyvcommon"))
     sys.path.append(os.path.join(base,  '..', "pyvserver"))
@@ -32,22 +30,10 @@ except:
     sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
-try:
-    from pyvguicom import sutil
-    # Get Parent of module root
-    sf = os.path.dirname(sutil.__file__)
-    sf = os.path.dirname(sf)
-    sys.path.append(os.path.join(sf, "pyvguicom"))
-except:
-    #print(sys.exc_info())
-    #print("gui pip")
-    base = os.path.dirname(os.path.realpath(__file__))
-    base = os.path.dirname(base)
-
-    sys.path.append(os.path.join(base, "..", "pyvguicom"))
-    sys.path.append(os.path.join(base, "..", "pyvguicom", "pyvguicom"))
-    #print("Load:", sys.path)
-    from pyvguicom import sutil
+from pyvguicom import sutil
+# Get Parent of module root
+sf = os.path.dirname(sutil.__file__)
+sys.path.append(os.path.join(sf, "..", "pyvguicom"))
 
 from pyvcommon import support, comline, pywrap
 from pyvcommon import pydata, pyservsup,  crysupp

@@ -81,10 +81,13 @@ setuptools.setup(
     include_package_data=True,
     packages=setuptools.find_packages(include=includex),
 
-    scripts = ["pyvserver/pyvserv.py",
+    scripts = [
+                "pyvserver/pyvserv.py",
+                "pyvserver/pyvreplic.py",
+                "pyvserver/pyvpuller.py",
                 "pyvtools/pyvgenkey.py", "pyvtools/pyvgenkeys.py",
                 "pyvgui/pyvservui.py", "pyvgui/pyvcpanel.py",
-                "pyvserver/pyvreplic.py",
+                "pyvgui/pyvtally.py",
                 *test_scripts,
                 ],
 
@@ -107,6 +110,8 @@ setuptools.setup(
                              "pyvgenkeys=pyvgenkeys:mainfunct",
                              "pyvservui=pyvservui:mainfunct",
                              "pyvcpanel=pyvcpanel:mainfunct",
+                             "pyvtally=pyvtally:mainfunct",
+                             "pyvpuller=pyvpuller:mainfunct",
                              test_exec,
             ],
     },

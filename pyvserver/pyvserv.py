@@ -11,8 +11,10 @@ if sys.version_info[0] < 3:
     sys.exit(1)
 
 import os, getopt, signal, select, string, time
-import tarfile, subprocess, struct, platform
-import socket, threading, tracemalloc, inspect
+import subprocess,  platform, queue, ctypes
+import socket, threading, tracemalloc, copy, random
+
+import multiprocessing as mp
 
 try:
     import fcntl
@@ -26,7 +28,11 @@ else:
 
 import pyvpacker
 
-# Create a placeholder
+#import gi
+#gi.require_version("Gtk", "3.0")
+#from gi.repository import GLib
+
+# Create a placeholder for the main server var
 server = None
 
 progname = os.path.split(sys.argv[0])[1]
@@ -42,22 +48,12 @@ try:
     #print("sf", sf)
     sys.path.append(os.path.join(sf, "pyvcommon"))
     sys.path.append(os.path.join(sf, "pyvserver"))
-    #sys.path.append(os.path.join(sf, "pyvgui"))
-    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
-
 except:
     base = os.path.dirname(os.path.realpath(__file__))
     sys.path.append(os.path.join(base,  '..'))
     sys.path.append(os.path.join(base,  '..', "pyvcommon"))
     sys.path.append(os.path.join(base,  '..', "pyvserver"))
-    #sys.path.append(os.path.join(base, "..", "pyvgui"))
-    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
     from pyvcommon import support
-
-#for aa in sys.path:
-#    print(aa)
-
-#print("Load:", sys.path[-1])
 
 from pyvcommon import support, pyservsup, pyclisup
 from pyvcommon import pydata, pysyslog, comline
@@ -79,64 +75,114 @@ class InvalidArg(Exception):
     def __init__(self, message):
          self.message = message
 
+# Using globals here; class instances fooled by threading
+#gl_sem = threading.Semaphore()
+#gl_queue = queue.Queue()
+#global gl_queue
+#gl_queue.put((peer, now))
+#print("qsize", gl_queue.qsize)
+
 # ------------------------------------------------------------------------
 
-connlist = []
-sem = threading.Semaphore()
+class Throttle():
 
-def throttle(peer):
-
-    '''  Catch clients that are connecting too fast. This is a crude
-         implementation, will need serious uppdate on large volume production
+    '''  Catch clients that are connecting too fast. This needs a serious
+        upgrade if in large volume production.
     '''
+    def __init__(self):
 
-    global connlist, sem
-    #print("throttle", peer)
+        self.connlist = []
+        self.stime = 3.
 
-    # Throttle to 10 sec frequency
-    now = time.time()
-    sem.acquire()
-    sss = 0; slept = False
-    for aa in connlist:
-        if aa[0][0] == peer[0]:
-            if now - aa[1] <  pyservsup.globals.throttle:
-                sss += 1
-    if sss >  pyservsup.globals.instance:
-        for aa in range(len(connlist)-1, -1 ,-1):
-            if connlist[aa][0][0] == peer[0]:
-                if now - connlist[aa][1] > pyservsup.globals.throttle:
-                    del connlist[aa]
-        time.sleep(5.)
-        slept = True
+        self.sem     = threading.Semaphore()
 
-    # Clean throtle data periodically
-    if len(connlist) > pyservsup.globals.maxthdat:
-        for aa in range(len(connlist)-1, -1 ,-1):
-            if connlist[aa][0][0] == peer[0]:
-                if now - connlist[aa][1] > pyservsup.globals.throttle:
-                    del connlist[aa]
-    connlist.append((peer, now))
-    #print(connlist)
-    sem.release()
-    return slept
+        # Awaiting implementation
+        if fcntl:
+            pass
+
+        # This is for forkmixin
+        #self.sem    = mp.Semaphore()
+        #self.rlock  = mp.RLock()
+        #self.queue  = mp.Queue()
+        #self.array  = mp.Array(ctypes.c_char_p, 100)
+        #self.port   = mp.Value(ctypes.c_int)
+        #self.tttt   = mp.Value(ctypes.c_int)
+        #self.idx    = mp.Value(ctypes.c_int)
+
+    def throttle(self, peer):
+
+        '''
+            Catch clients that are connecting too fast.
+        '''
+
+        self.sem.acquire()
+
+        # Throttle to N sec frequency
+        now = time.time()
+
+        #with self.rlock:
+        #    print("throttle", peer)
+        #self.array[0] = peer[0].encode()
+        #self.tttt     = now
+        #self.idx      = 1
+        #print("array: ", self.array)
+        #print("tttt: ", self.tttt)
+        #print("idx: ",  self.idx)
+        #print("qsize", self.queue.qsize())
+        #while True:
+        #    aa =  self.queue.get_nowait()
+        #    print("qqq", aa, end = " ")
+        #    if not aa:
+        #        break
+
+        sss = 0; slept = False
+        for aa in self.connlist:
+            if aa[0][0] == peer[0]:
+                if now - aa[1] <  pyservsup.globals.throt_sec:
+                    sss += 1
+
+        if sss >  pyservsup.globals.throt_instance:
+            for aa in range(len(self.connlist)-1, -1 ,-1):
+                if self.connlist[aa][0][0] == peer[0]:
+                    if now - self.connlist[aa][1] > pyservsup.globals.throt_sec:
+                        del self.connlist[aa]
+            #time.sleep(self.stime)
+            slept = self.stime
+
+        # Clean throtle data periodically
+        if len(self.connlist) > pyservsup.globals.throt_maxdat:
+            #print("Cleaning throttle list", len(self.connlist))
+            for aa in range(len(self.connlist)-1, -1 ,-1):
+                if self.connlist[aa][0][0] == peer[0]:
+                    if now - self.connlist[aa][1] > pyservsup.globals.throt_sec:
+                        del self.connlist[aa]
+        self.connlist.append((peer, now))
+        self.sem.release()
+
+        return slept
+
+gl_throttle = Throttle()
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     ''' Request handler. '''
 
     def __init__(self, a1, a2, a3):
+
+        self.verbose = conf.verbose
         self.a2 = a2
         self.fname = ""
         self.user = ""
         self.cwd = os.getcwd()
         self.dir = ""
         self.ekey = ""
-        self.verbose = conf.verbose
+        self.a1 = a1
 
-        ttt = throttle(a1.getpeername())
-        if self.verbose:
-            if ttt > 0:
-                print ("Throttle sleep",  a1.getpeername())
+        ttt = gl_throttle.throttle(self.a1.getpeername())
+        if ttt > 0:
+            if self.verbose > 0:
+                print("Throttle sleep",  a1.getpeername())
+            time.sleep(ttt)
 
         socketserver.BaseRequestHandler.__init__(self, a1, a2, a3)
 
@@ -157,9 +203,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         #print( "Logoff '" + usr + "'", cli)
         if self.verbose:
             print( "Connection from ", self.a2, "as", self.name)
-
-        #if pgdebug > 1:
-        #    put_debug("Connection from %s" % self.a2)
 
         self.statehandler = pyvstate.StateHandler(self)
         self.statehandler.verbose = conf.verbose
@@ -260,6 +303,9 @@ if not fcntl:
     mixin = socketserver.ThreadingMixIn
 else:
     mixin = socketserver.ForkingMixIn
+
+# Overriding it for throttle
+mixin = socketserver.ThreadingMixIn
 
 class ThreadedTCPServer(mixin, socketserver.TCPServer):
 
@@ -591,7 +637,6 @@ def mainfunct():
         print("Server running: ", "'"+conf.host+"'", "Port:", conf.port)
         pyver = support.list2str(sys.version_info) #[0:3], ".")
         print("Running python", platform.python_version(), "on", platform.system(), strx)
-
 
     pyvstate.init_state_table()
 

@@ -106,9 +106,9 @@ class   Global_Vars:
         self.idfile = self.myhome + self._idfile
 
         self.siteid     =  None
-        self.throttle   =  10       # seconds
-        self.instance   =  15       # max instace from one IP/host
-        self.maxthdat   =  100      # max data in throttle var
+        self.throt_sec        =  5        # seconds
+        self.throt_instance   =  5        # max instace from one IP/host
+        self.throt_maxdat     =  10       # max data in throttle var
 
         #print("init globals");
         #global globals

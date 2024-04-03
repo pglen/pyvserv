@@ -22,32 +22,23 @@ try:
     #print("sf", sf)
     sys.path.append(os.path.join(sf, "pyvcommon"))
     sys.path.append(os.path.join(sf, "pyvserver"))
-    #sys.path.append(os.path.join(sf, "pydbase"))
     sys.path.append(os.path.join(sf, "pyvgui"))
     sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
 
 except:
-    base = os.path.dirname(os.path.realpath(__file__))
+    base = os.path.dirname(__file__)
+    #print("base:", base)
     sys.path.append(os.path.join(base,  '..'))
     sys.path.append(os.path.join(base,  '..', "pyvcommon"))
     sys.path.append(os.path.join(base,  '..', "pyvserver"))
-    #sys.path.append(os.path.join(base,  '..', "pydbase"))
     sys.path.append(os.path.join(base,  "..", "pyvgui"))
     sys.path.append(os.path.join(base,  "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
-try:
-    from pyvguicom import sutil
-    # Get Parent of module root
-    sf = os.path.dirname(sutil.__file__)
-    sf = os.path.dirname(sf)
-    sys.path.append(os.path.join(sf, "pyvguicom"))
-except:
-    #print("import", sys.exc_info())
-    base = os.path.dirname(os.path.realpath(__file__))
-    sys.path.append(os.path.join(base, "..", "..", "pyvguicom"))
-    sys.path.append(os.path.join(base, "..", "..", "pyvguicom", "pyvguicom"))
-    from pyvguicom import sutil
+from pyvguicom import sutil
+# Get Parent of module root
+sf = os.path.dirname(sutil.__file__)
+sys.path.append(os.path.join(sf, "..", "pyvguicom"))
 
 #print("Load:", sys.path[-1])
 
