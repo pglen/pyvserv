@@ -21,7 +21,10 @@ try:
     sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
 
 except:
+    #print("pip inc")
     base = os.path.dirname(os.path.realpath(__file__))
+    base = os.path.dirname(base)
+    sys.path.append(os.path.join(base,  '.'))
     sys.path.append(os.path.join(base,  '..'))
     sys.path.append(os.path.join(base,  '..', "pyvcommon"))
     sys.path.append(os.path.join(base,  '..', "pyvserver"))
@@ -37,13 +40,14 @@ try:
     sys.path.append(os.path.join(sf, "pyvguicom"))
 except:
     #print(sys.exc_info())
+    #print("gui pip")
     base = os.path.dirname(os.path.realpath(__file__))
-    sys.path.append(os.path.join(base, "..", "..", "pyvguicom"))
-    sys.path.append(os.path.join(base, "..", "..", "pyvguicom", "pyvguicom"))
+    base = os.path.dirname(base)
+
+    sys.path.append(os.path.join(base, "..", "pyvguicom"))
+    sys.path.append(os.path.join(base, "..", "pyvguicom", "pyvguicom"))
+    #print("Load:", sys.path)
     from pyvguicom import sutil
-
-
-#print("Load:", sys.path[-1])
 
 from pyvcommon import support, comline, pywrap
 from pyvcommon import pydata, pyservsup,  crysupp

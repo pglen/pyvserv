@@ -10,9 +10,9 @@ base = os.path.dirname(os.path.realpath(__file__))
 
 sys.path.append('../../')
 
-from pycommon.pgutils import  *
-from pycommon.pggui import  *
-from pycommon.pgsimp import  *
+from pyvguicom import pgutils # import  *
+from pyvguicom import pggui   #import  *
+from pyvguicom import pgsimp  #import  *
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -128,7 +128,7 @@ class MainWin(Gtk.Window):
 
 
         hbox3 = Gtk.HBox()
-        self.edit = SimpleEdit();
+        self.edit = pgsimp.SimpleEdit();
 
         scroll = Gtk.ScrolledWindow()
         scroll.add(self.edit)
@@ -137,7 +137,7 @@ class MainWin(Gtk.Window):
         vbox.pack_start(hbox3, True, True, 2)
 
         hbox3a = Gtk.HBox()
-        self.edita = SimpleEdit();
+        self.edita = pgsimp.SimpleEdit();
         scrolla = Gtk.ScrolledWindow()
         scrolla.add(self.edita)
         scrolla.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)

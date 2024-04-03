@@ -80,8 +80,6 @@ setuptools.setup(
     ],
     include_package_data=True,
     packages=setuptools.find_packages(include=includex),
-    #py_modules = ["pyvpacker", "pydbase", "pyvecc"],
-    #py_modules = ["pyvpacker", "pydbase", "pyvecc"],
 
     scripts = ["pyvserver/pyvserv.py",
                 "pyvtools/pyvgenkey.py", "pyvtools/pyvgenkeys.py",
@@ -101,7 +99,7 @@ setuptools.setup(
 
     python_requires='>=3',
     install_requires=["pyvpacker", "pydbase", "pycryptodome",
-                        "pyvecc", "readline"],
+                        "pyvecc", "readline", "pyvguicom"],
     entry_points={
         'console_scripts': [ "pyvserv=pyvserv:mainfunct",
                              "pyvreplic=pyvreplic:mainfunct",
