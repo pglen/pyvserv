@@ -46,6 +46,8 @@ logfname    = "pyvserver"
 lock_pgdebug = 0
 lock_locktout = 5
 
+# Configure the server by customizing this class
+
 class   Global_Vars:
 
     def __init__(self, scriptname, dataroot):
@@ -106,9 +108,13 @@ class   Global_Vars:
         self.idfile = self.myhome + self._idfile
 
         self.siteid     =  None
-        self.throt_sec        =  5        # seconds
-        self.throt_instance   =  5        # max instace from one IP/host
-        self.throt_maxdat     =  10       # max data in throttle var
+
+        # These are presets for testing, use larger values for production
+        self.throt_sec        =  5    # seconds for conn frequency
+        self.throt_maxsec     =  6    # seconds max life in cache
+        self.throt_instances  =  5    # max instaces from one IP/host
+        self.throt_maxdat     =  10   # max data length in throttle var
+        self.throt_time       =  3    # throttle by this many sec
 
         #print("init globals");
         #global globals

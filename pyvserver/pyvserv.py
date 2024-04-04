@@ -91,76 +91,57 @@ class Throttle():
     '''
     def __init__(self):
 
-        self.connlist = []
-        self.stime = 3.
-
-        self.sem     = threading.Semaphore()
-
-        # Awaiting implementation
         if fcntl:
-            pass
-
-        # This is for forkmixin
-        #self.sem    = mp.Semaphore()
-        #self.rlock  = mp.RLock()
-        #self.queue  = mp.Queue()
-        #self.array  = mp.Array(ctypes.c_char_p, 100)
-        #self.port   = mp.Value(ctypes.c_int)
-        #self.tttt   = mp.Value(ctypes.c_int)
-        #self.idx    = mp.Value(ctypes.c_int)
+            # This is for forkmixin
+            self.sem  = mp.Semaphore()
+            self.man  = mp.Manager()
+            self.connlist = self.man.list()
+        else:
+            self.sem     = threading.Semaphore()
+            self.connlist = []
 
     def throttle(self, peer):
 
         '''
             Catch clients that are connecting too fast.
+            Throttle to N sec frequency, if number of connections from
+            the same ip exceeds throt_instances.
         '''
 
+        wantsleep = 0; sss = 0;
+        now = time.time()
         self.sem.acquire()
 
-        # Throttle to N sec frequency
-        now = time.time()
-
-        #with self.rlock:
-        #    print("throttle", peer)
-        #self.array[0] = peer[0].encode()
-        #self.tttt     = now
-        #self.idx      = 1
-        #print("array: ", self.array)
-        #print("tttt: ", self.tttt)
-        #print("idx: ",  self.idx)
-        #print("qsize", self.queue.qsize())
-        #while True:
-        #    aa =  self.queue.get_nowait()
-        #    print("qqq", aa, end = " ")
-        #    if not aa:
-        #        break
-
-        sss = 0; slept = False
         for aa in self.connlist:
-            if aa[0][0] == peer[0]:
+            if aa[0] == peer[0]:
                 if now - aa[1] <  pyservsup.globals.throt_sec:
                     sss += 1
 
-        if sss >  pyservsup.globals.throt_instance:
+        if sss >  pyservsup.globals.throt_instances:
+            # Clean old entries fot this host
             for aa in range(len(self.connlist)-1, -1 ,-1):
-                if self.connlist[aa][0][0] == peer[0]:
+                if self.connlist[aa][0] == peer[0]:
                     if now - self.connlist[aa][1] > pyservsup.globals.throt_sec:
                         del self.connlist[aa]
-            #time.sleep(self.stime)
-            slept = self.stime
+            wantsleep = pyservsup.globals.throt_time
 
         # Clean throtle data periodically
         if len(self.connlist) > pyservsup.globals.throt_maxdat:
             #print("Cleaning throttle list", len(self.connlist))
             for aa in range(len(self.connlist)-1, -1 ,-1):
-                if self.connlist[aa][0][0] == peer[0]:
-                    if now - self.connlist[aa][1] > pyservsup.globals.throt_sec:
-                        del self.connlist[aa]
-        self.connlist.append((peer, now))
+                if now - self.connlist[aa][1] > pyservsup.globals.throt_maxsec:
+                    del self.connlist[aa]
+
+        # Flatten list for the multiprocessing context manager
+        self.connlist.append((peer[0], now))
+
+        #print("connlist", self.connlist)  # Make sure it cycles
+        #print()
+
         self.sem.release()
+        return wantsleep
 
-        return slept
-
+# The one and only instance
 gl_throttle = Throttle()
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
@@ -170,13 +151,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def __init__(self, a1, a2, a3):
 
         self.verbose = conf.verbose
+        self.a1 = a1
         self.a2 = a2
         self.fname = ""
         self.user = ""
         self.cwd = os.getcwd()
         self.dir = ""
         self.ekey = ""
-        self.a1 = a1
 
         ttt = gl_throttle.throttle(self.a1.getpeername())
         if ttt > 0:
@@ -297,15 +278,15 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         #server.socket.close()
 
 # ------------------------------------------------------------------------
-# Override stock methods. Windows has not ForkinMixin
+# Override stock methods. Windows has no ForkinMixin
 
 if not fcntl:
     mixin = socketserver.ThreadingMixIn
 else:
     mixin = socketserver.ForkingMixIn
 
-# Overriding it for throttle
-mixin = socketserver.ThreadingMixIn
+# Overriding it for throttle development
+#mixin = socketserver.ThreadingMixIn
 
 class ThreadedTCPServer(mixin, socketserver.TCPServer):
 
