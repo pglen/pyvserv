@@ -49,7 +49,7 @@ def DefHeader():
     return {Header : str(uuid.uuid1())}
 
 def DefNow():
-    dt = datetime.datetime.utcnow()
+    dt = datetime.datetime.now()
     fdt = dt.strftime('%a, %d %b %Y %H:%M:%S`')
     return {'now' : fdt}
 

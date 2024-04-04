@@ -34,23 +34,15 @@ try:
     #print("sf", sf)
     sys.path.append(os.path.join(sf, "pyvcommon"))
     sys.path.append(os.path.join(sf, "pyvserver"))
-    #sys.path.append(os.path.join(sf, "pyvgui"))
-    #sys.path.append(os.path.join(sf, "pyvgui", "guilib"))
 
 except:
     base = os.path.dirname(os.path.realpath(__file__))
     sys.path.append(os.path.join(base,  '..'))
     sys.path.append(os.path.join(base,  '..', "pyvcommon"))
     sys.path.append(os.path.join(base,  '..', "pyvserver"))
-    #sys.path.append(os.path.join(base, "..", "pyvgui"))
-    #sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
-#for aa in sys.path:
-#    print(aa)
-
-print("Load:", sys.path[-1])
-
+#print("Load:", sys.path[-1])
 
 from pyvcommon import pyservsup
 

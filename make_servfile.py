@@ -22,6 +22,8 @@ After=multi-user.target
 
 [Service]
 Type=simple
+ProtectHome=false
+
 # Run as installed user
 Environment="PYTHONPATH=%s"
 Environment="USER=%s"

@@ -103,4 +103,10 @@ instsevice: genservice
 statservice:
 	systemctl status pyvserv.service
 
+startservice:
+	sudo systemctl start pyvserv.service
+
+stopservice:
+	sudo systemctl stop pyvserv.service
+
 # EOF

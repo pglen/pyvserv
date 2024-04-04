@@ -67,8 +67,12 @@ for aa in vvv.split("\n"):
 # Dependency list, generate for windows
 try:
     import fcntl
+    #deplist = ["pyvpacker", "pydbase", "pycryptodome",
+    #                    "pyvecc", "pyvguicom", "readline"],
+
+    # Thu 04.Apr.2024 abandoned readline; may install by hand
     deplist = ["pyvpacker", "pydbase", "pycryptodome",
-                        "pyvecc", "pyvguicom", "readline"],
+                        "pyvecc", "pyvguicom", ],
 except:
     deplist = ["pyvpacker", "pydbase", "pycryptodome",
                         "pyvecc", "pyvguicom"],

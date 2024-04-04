@@ -1725,7 +1725,7 @@ def get_twofa_func(self, strx):
 
 def get_dmode_func(self, strx):
 
-    flag = pyservsup.globals.conf.dmode
+    flag = not pyservsup.globals.conf.pmode
     self.resp.datahandler.putencode(["OK", "%d" % flag],  self.resp.ekey)
 
 def get_help_func(self, strx):

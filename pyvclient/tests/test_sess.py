@@ -9,7 +9,7 @@ from Crypto import Random
 from mytest import *
 
 hand = None
-session_key = ""
+sess_key = ""
 fname = createname(__file__)
 iname = createidxname(__file__)
 
@@ -59,7 +59,6 @@ def test_func(capsys):
     except:
         #support.put_exception("On connect")
         print( "Cannot connect to:", ip + ":" , sys.exc_info()[1])
-        sys.exit(1)
         assert 0
 
     #print(hand)
@@ -70,7 +69,7 @@ def test_func(capsys):
     assert resp[0] == 'OK'
 
     global sess_key
-    sess_key = session(hand, session_key)
+    sess_key = session(hand, sess_key)
     print("Sess key", sess_key[:24], "...")
 
     resp5 = hand.client(["hello",], sess_key, False)

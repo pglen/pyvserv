@@ -486,14 +486,19 @@ def simple_server(HOST, PORT):
 
 # ------------------------------------------------------------------------
 
-optarr =  comline.optarrlong
-optarr.append ( ["e",   "detach=",   "detach",      0,       None, "Detach from terminal"] )
+optarr =  [] #comline.optarrlong
+#optarr.append ( ["e",   "detach=",   "detach",      0,       None, "Detach from terminal."] )
+optarr.append ( ["n:",  "host",      "host",   "127.0.0.1",  None, "Set server hostname / interface."] )
+optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Set data root for server. "] )
+optarr.append ( ["P",   "pmode",     "pmode",       0,       None, "Production mode ON. (allow 2FA)"] )
 optarr.append ( ["l:",  "loglevel",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
-optarr.append ( ["n:",  "host",      "host",   "127.0.0.1",  None, "Set server hostname"] )
-optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
 optarr.append ( ["m",   "mem",       "mem",         0,       None, "Show memory trace."] )
-optarr.append ( ["D",   "dmode",     "dmode",       1,       None, "Dev mode (no twofa)"] )
-optarr.append ( ["N",   "norepl",    "norepl",      0,       None, "No replication (for test)"] )
+optarr.append ( ["N",   "norepl",    "norepl",      0,       None, "No replication. (for testing)"] )
+
+for aa in comline.optarrlong:
+    optarr.append(aa)
+
+comline.optarrlong = optarr
 
 # Tue 02.Apr.2024 made devmode default
 
@@ -556,18 +561,25 @@ def mainfunct():
         exec = os.path.dirname(os.path.split(pyservsup.globals._script_home)[0]) + os.sep
         exec += "../pyvtools/pyvgenkey.py"
         print("Notice: Generating key in", "'" + pyservsup.globals.keydir + "'")
-        print("For added security please generate more keys with 'pyvgenkeys'");
-        if conf.pgdebug > 2:
-            print("Exec:  ", exec)
-
         try:
-            os.system("%s -q -m %s " % (exec, pyservsup.globals.myhome))
-            #if conf.verbose:
-                #print("exc", sys.exc_info())
-                #support.put_exception("Generating keys")
+            if conf.pgdebug > 2:
+                print("Generating keys", exec)
+            # Early out for no script
+            if not os.path.isfile(exec):
+                raise
+            ret = subprocess.Popen([exec, "-q", "-m", pyservsup.globals.myhome])
         except:
-            print("Could not generate key. Keydir was:", pyservsup.globals.keydir)
-            sys.exit(1)
+            try:
+                # Try with full install version
+                #print("Executing with installed version")
+                exec = "pyvgenkey"
+                ret = subprocess.Popen([exec, "-q", "-m", pyservsup.globals.myhome])
+            except:
+                print("Could not generate key. Keydir was:", pyservsup.globals.keydir)
+                print("Please try again manually with the 'pvgenkey' utility.")
+
+            print("For added security please generate more keys with 'pyvgenkeys'");
+            #sys.exit(1)
 
     iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
     if not iii:
@@ -605,9 +617,8 @@ def mainfunct():
     #pysyslog.syslog("Started Server")
 
     if not conf.quiet:
-        if pyservsup.globals.conf.dmode:
-            print("Warning! Devmode ON. Use -D to allow 2FA auth")
-
+        if not pyservsup.globals.conf.pmode:
+            print("Warning! Devmode ON. Use -P to allow 2FA auth")
         try:
             import distro
             strx = distro.name()
@@ -657,11 +668,15 @@ def mainfunct():
     #     pysyslog.syslog("Started Server")
 
     if conf.pglog > 0:
-        pysyslog.syslog("Server started. Devmode %d" % conf.dmode)
+        pysyslog.syslog("Server started. Prodmode %d" % conf.pmode)
 
     #simple_server(HOST, PORT)
     # Block
     server.serve_forever()
+
+    #if conf.detach:
+    #    print("Detach from terminal:)
+
 
 if __name__ == '__main__':
     mainfunct()

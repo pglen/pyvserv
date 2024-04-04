@@ -102,14 +102,20 @@ For example (assuming port 6666):
 
 #### Platform:
 
-    This project was developed on Ubuntu 22.x. Most linux distributions should work.
+ This project was developed on Ubuntu 22.x. Most linux distributions should work.
+It is ported to Windows MSYS2, with all major functions operating as expected.
 
-#### Working parts:
+ On Fedora, the service files need to be re-written to accomodate the
+quirk that the Fedora systectl does not allow user executables. Install
+the 'pip pyvserv' as root, and adjust the service file accordingly. If you want
+to use pyvserv with  particular data directory, use the -r option.
 
-    Server.     subdir: pyvserver       -- Server has most of the commands done
+#### Quick map:
+
+    Server.     subdir: pyvserver       -- Server has most all the commands done
     Client.     subdir: pyvclient       -- Exercise server commands / demo code
-    Tool Suite. subdir: pyvtools        -- Key generation etc ...
     Test Suite. subdir: pyvclient/tests -- official pytest tests
+    Tool Suite. subdir: pyvtools        -- Key generation etc ...
     GUI base    subdir: pyvgui          -- Monitoring / administering the server
     Studies.    subdir: study           -- testing/learning subsystems (ignore it)
 
@@ -121,14 +127,11 @@ installation from github, replicating directory structure on the local drive.
 
     open terminal window
     navigate to the server's pyvserver subdir
-    type ./pyvserv.py  -D
-
-    The -D option stands for development mode. The server will not ask for
-    2FA authentication.
+    type: ./pyvserv.py
 
     open another terminal window
     navigate to the pyvclient subdir
-    type ./pyvcli_hello.py
+    type: ./pyvcli_hello.py
 
 The following (and more) should be printed on the command line:
 
@@ -139,31 +142,73 @@ The following (and more) should be printed on the command line:
 
 Quick rundown of the above test:
 
-1.) Server responds to connection
-2.) Delivers OK status, hello message, server serial number, and a unique id
-3.) Server signs off. This interaction is typical of all the commands.
+    1.) Server responds to connection with signin message
+    2.) Delivers OK status, hello message, server serial number, and a unique id
+    3.) Server signs off. Repeats unique id / session number.
 
- The unique ID is the session's thread ID and it is not cryptographically secure;
+This interaction is typical of all the commands.
+
+The unique ID is the session's thread ID and it is not cryptographically secure;
+Mostly useful for identifying the session on the client side.
 
  The best way to learn about the operation of the server is to look at the
 sample client examples in the client source tree. (Files named pyvcli_*)
 
 ## The pip install
 
-
  Scripts are provided for the server, and some test clients. The
   server can be started as
 
-    pyvserver -D
+    pyvserver
 
- The -D option is for Developer mode, disabling 2FA authentication.
+ The -P option is for non Developer mode, enabling 2FA authentication.
+ (two factor authentication)
 
  The command line client can be started as:
 
     pyvcli_cli
 
-  The command line client starts, and the server functions can be excersized
-from it. See the pycli_* utils for examples of driving the server.
+  In the command line client most of the server functions can be exercised.
+See the pyvcli_* utils for more examples of driving the server.
+
+## Command line help
+
+    Usage: pyvserv.py [options]
+
+    Options:
+            -n   --host                 -  Set server hostname / interface.
+            -r   --dataroot  dataroot   -  Set data root for server.
+            -P   --pmode                -  Production mode ON. (allow 2FA)
+            -l   --loglevel             -  Log level (0 - 10) default = 1
+            -m   --mem                  -  Show memory trace.
+            -N   --norepl               -  No replication. (for testing)
+            -d   --debug     debug      -  Debug level 0-10
+            -p   --port      port       -  Listen on port
+            -v   --verbose              -  Verbose
+            -q   --quiet                -  Quiet
+            -V   --version              -  Print Version
+            -h   --help                 -  Show Help
+
+## Client command line help example:
+
+ While most command line clients have their own help screen, here as a typical
+client utility's help screen:
+
+    Usage: pyvcli_uman.py [options]
+
+    Options:    -d level  - Debug level 0-10
+                -p        - Port to use (default: 6666)
+                -l login  - Login Name; default: 'user'
+                -s lpass  - Login Pass; default: '1234'
+                -u user   - User Name; default: 'user'
+                -a        - Add user. Must be unique.
+                -r        - Remove user (one of add or remove needed.
+                -u user   - User Name; default: 'user'
+                -p pass   - User pssword; default: '1234' (!!! for tests only)
+                -m        - Add admin instead of regular user
+                -v        - Verbose
+                -q        - Quiet
+                -h        - Help
 
 ## Testing:
 
@@ -172,26 +217,31 @@ from it. See the pycli_* utils for examples of driving the server.
  The server --port and --dataroot option can ba used to start the server in an alternate
  universe. Please make sure it does not interfere with production.
 
-   More test coming soon ....
-
-    ============================= test session starts ==============================
+    ============================ test session starts ==============================
     platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.0.0
-    rootdir: /home/peterglen/pgpygtk/pyvserv
-    collected 9 items
+    rootdir: /home/<homedir>/pgpygtk/pyvserv
+    collected 15 items
 
-    test_afirst.py .                                                         [ 11%]
-    test_file.py .                                                           [ 22%]
+    test_afirst.py .                                                         [  6%]
+    test_file.py ..                                                          [ 20%]
+    test_hello.py .                                                          [ 26%]
     test_help.py .                                                           [ 33%]
-    test_id.py .                                                             [ 44%]
-    test_key.py .                                                            [ 55%]
-    test_login.py .                                                          [ 66%]
-    test_sess.py ..                                                          [ 88%]
+    test_id.py .                                                             [ 40%]
+    test_key.py .                                                            [ 46%]
+    test_login.py .                                                          [ 53%]
+    test_noadmn.py .                                                         [ 60%]
+    test_rget.py .                                                           [ 66%]
+    test_rput.py .                                                           [ 73%]
+    test_sess.py ..                                                          [ 86%]
+    test_user.py .                                                           [ 93%]
     test_ver.py .                                                            [100%]
 
-    ============================== 9 passed in 1.35s ===============================
+    ============================== 15 passed in 9.47s ==============================
 
-Additional tests can be found in the test directory. The pyvcli_* files may also
+Additional tests can be found in the tests/ directory. The pyvcli_* files may also
 serve as test cases.
+
+More test coming soon ....
 
 ## Screen shots:
 
@@ -209,6 +259,21 @@ originally formatted, without the blockchain and hash details.
   All views monitor the live files, on the default setup, without interfering
 with any of the operations.
 
+## Windows compatibility
+
+ Pyvserv now functions in the Windows MSYS2 subsystem. All the major
+functionalities are ported. The file locking mechanism works, and all the
+pytests pass. Naturally, logging and readline etc ... works with the usual
+windows caveat.
+
+  For the GUI functions install the PyGobject subsystem. Instructions can
+be found very easily for that. Below, a screenshot of the pyvserv control panel
+in MSYS2.
+
+![Screen Shot](winscreen.png)
+
+The project is functional in MSYS2, but for real deployment we recommend Linux.
+
 ## History:
 
  Recent history kept, for the full list of changes consult the github site.
@@ -218,6 +283,7 @@ with any of the operations.
     1.0.0   Wed 13.Mar.2024    rget rput and family (rget=BC record get)
     1.0.0   Thu 14.Mar.2024    Started GUI tools
     1.0.1   Fri 15.Mar.2024    Added LIC, verification, doc, tally
+    1.0.3   Wed 03.Apr.2024    Ported to MSYS2, throttle, for multiprocess
 
 ## Statistics
 

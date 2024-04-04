@@ -11,6 +11,7 @@ iname = createidxname(__file__)
 
 fname = "test.txt"
 fname2 = "test.txt_local"
+sess_key = ""
 
 # ------------------------------------------------------------------------
 
@@ -55,12 +56,16 @@ def test_func(capsys):
     except:
         #support.put_exception("On connect")
         print( "Cannot connect to:", ip + ":" , sys.exc_info()[1])
-        sys.exit(1)
         assert 0
 
     org_sess_key = ""
     global sess_key
     sess_key = session(hand, org_sess_key)
+
+    # Make sure admin is present
+    resp5 = hand.client(["uini", "admin", "1234"], sess_key, False)
+    print("uini:", resp5)
+    #assert resp5[0] ==  "OK"
 
     resp = login(hand, sess_key)
     assert resp[0] == 'OK'
@@ -95,6 +100,7 @@ def test_func(capsys):
 
 def test_get(capsys):
 
+    global sess_key
     # --------------------------------------------------------------------
     # Get back the same file
 
@@ -115,7 +121,6 @@ def test_get(capsys):
 
     hand.client(["quit"], sess_key)
     assert resp[0] == 'OK'
-
 
 
 # EOF

@@ -115,7 +115,7 @@ def init_state_table():
     global state_table
     #print("pystate init table")
     # This is to develop without entering auth code every time
-    if pyservsup.globals.conf.dmode:
+    if not pyservsup.globals.conf.pmode:
         minauth =  auth_pass
     else:
         minauth =  auth_twofa
