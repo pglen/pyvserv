@@ -3,7 +3,7 @@
 import os, sys, glob, string, time,  traceback, getopt, random
 import subprocess, fnmatch, shlex
 
-''' Iterate every python file in project '''
+''' Iterate every file in project '''
 
 sys.path.append('pyvcommon')
 
@@ -15,6 +15,17 @@ conf = []
 relarr = []
 rel = "."
 sumstr = ""
+
+def escape(fname):
+    ret = ""
+    for aa in fname:
+        if aa == "'":
+            ret += "\\" + aa
+        elif aa == " ":
+            ret += "\\" + aa
+        else:
+            ret += aa
+    return ret
 
 def gotfile(fname):
 
@@ -67,6 +78,15 @@ def gotfile(fname):
             print(ret)
         sumstr += ret.decode()  #+ b'\r\n'
 
+    elif conf.md5sum:
+        try:
+            ret = subprocess.check_output(["md5sum", fname])
+            #print("ret", ret, end="")
+        except:
+            ret = "Cannot sum file: %s\n", fname
+            print(ret)
+        sumstr += ret.decode()  #+ b'\r\n'
+
     elif conf.xexec != "":
         xxx = shlex.split(conf.xexec)
         xxx.append(fname)
@@ -83,12 +103,11 @@ def gotfile(fname):
         except:
             ret = "Cannot execute '%s' on: %s" % \
                         (conf.xexec, fname)
-            print("dd", ret.decode())
+            #print("dd", ret.decode())
     else:
+        # Default action:
+        fname = escape(fname)
         print (fname )
-
-    #if ret.returncode:
-    #    print ("camnnot exec", fname)
 
 def listit():
     global rel
@@ -106,10 +125,9 @@ def listit():
         bb = rel + "/" +  os.path.basename(aa)
         if os.path.isdir(bb):
             #print  ("got dir", bb)
-
             was = False
             for cc in conf.excdir:
-                #print("dirmtch", cc, os.path.basename(aa))
+                #print("dirmatch", cc, os.path.basename(aa))
                 if fnmatch.fnmatch(os.path.basename(aa), cc):
                     was = True
                     break
@@ -119,13 +137,11 @@ def listit():
             rel += "/" + os.path.basename(aa)
             listit();
             rel = relarr.pop()
-
         else:
+            # Already processed files
             #print  ("file", os.getcwd(), aa)
             #gotfile(rel + "/" + aa)
             pass
-
-    # option, var_name, initial_val, function
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -159,6 +175,8 @@ def pversion():
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
+#    option, var_name, initial_val, function
+
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
     ["e:",  "xexec",    "",     None],      \
@@ -170,6 +188,7 @@ optarr = \
     ["q",   "quiet",    0,      None],      \
     ["t",   "test",     "x",    None],      \
     ["m",   "sum",      0,      None],      \
+    ["5",   "md5sum",   0,      None],      \
     ["s",   "showkey",  "",     None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
@@ -192,17 +211,21 @@ def mainfunc():
     if len(args):
         os.chdir(args[0])
 
+    if conf.sum and conf.md5sum:
+        print("Conflicting options: one of -m or -5 required.")
+        sys.exit()
+
     if conf.exclude:
         conf.exclude = shlex.split(conf.exclude)
-        print("exclude", conf.exclude)
+        #print("exclude", conf.exclude)
 
     if conf.excdir:
         conf.excdir = shlex.split(conf.excdir)
-        print("excdir", conf.excdir)
+        #print("excdir", conf.excdir)
 
     listit()
 
-    if conf.sum:
+    if conf.sum or conf.md5sum:
         print (sumstr, end="")
 
     #if conf.xexec != "":

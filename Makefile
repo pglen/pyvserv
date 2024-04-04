@@ -79,12 +79,12 @@ docs:
 	@PYTHONPATH=${XPATH2} pdoc --force --html -o docs pyvgui/guilib/mainwintally.py
 
 checksum:
-	@echo The 'shasum.txt' should fail, but no others
+	@echo Checking SHA256 sums
 	@sha256sum -c --quiet shasum.txt
 
 gensum:
 	@#echo Started SHA256 gen ... please wait
-	./iterproj.py -m > shasum.txt
+	./iterproj.py -x shasum.txt -m > shasum.txt
 
 # Generate service file
 genservice:
