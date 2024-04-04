@@ -100,7 +100,7 @@ For example (assuming port 6666):
  The scripts will generate the service file to run under current user's
  credentials, and install it onto the running system. (requires sudo)
 
-#### Platform:
+#### Platforms:
 
  This project was developed on Ubuntu 22.x. Most linux distributions should work.
 It is ported to Windows MSYS2, with all major functions operating as expected.
@@ -110,8 +110,8 @@ quirk that the Fedora systectl does not allow user executables. Install
 the 'pip pyvserv' as root, and adjust the service file accordingly. If you want
 to use pyvserv with  particular data directory, use the -r option.
 
- On Cebian the system needs the --break-system-packages on pip. (unless one
- creates a venv for it)
+ On Debian and newer (23+) Ubuntu the system needs the --break-system-packages
+ on pip. (unless one creates a venv for it)
 
     pip install pyvserv --break-system-packages
 
@@ -119,6 +119,14 @@ Also the scripts are installed in ~/.local/bin, so add the following line
   to the end of ~/.bashrc:
 
     PATH=$PATH:~/.local/bin
+
+ This workaround is not needed if one installs a python virtual environment.
+
+    python3 -m venv pip_pyvserv
+    cd pip_pyvserv
+    source ./bin/avtivate
+    pip install pyvserv
+    ... continue as needed.
 
 #### Quick map:
 
