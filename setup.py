@@ -64,6 +64,15 @@ for aa in vvv.split("\n"):
             pass
 #print("loc_vers:", loc_vers)
 
+# Dependency list, generate for windows
+try:
+    import fcntl
+    deplist = ["pyvpacker", "pydbase", "pycryptodome",
+                        "pyvecc", "pyvguicom", "readline"],
+except:
+    deplist = ["pyvpacker", "pydbase", "pycryptodome",
+                        "pyvecc", "pyvguicom"],
+
 setuptools.setup(
     name="pyvserv",
     version=loc_vers,
@@ -101,8 +110,7 @@ setuptools.setup(
                    },
 
     python_requires='>=3',
-    install_requires=["pyvpacker", "pydbase", "pycryptodome",
-                        "pyvecc", "readline", "pyvguicom"],
+    install_requires=deplist,
     entry_points={
         'console_scripts': [ "pyvserv=pyvserv:mainfunct",
                              "pyvreplic=pyvreplic:mainfunct",
