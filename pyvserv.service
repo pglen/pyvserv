@@ -7,7 +7,7 @@ Type=simple
 ProtectHome=false
 
 # Run as installed user
-Environment="PYTHONPATH=/home/peterglen/.local/lib/python3.12/site-packages"
+Environment="PYTHONPATH=/home/peterglen/.local/lib/python3.11/site-packages"
 Environment="USER=peterglen"
 Environment="HOME=/home/peterglen"
 ExecStart=/home/peterglen/.local/bin/pyvserv

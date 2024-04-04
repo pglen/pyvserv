@@ -47,8 +47,12 @@ clean:
 	@rm -rf build-tmp/*
 	@rm -rf  dist/*
 	@rm -rf  build/*
+	@rm -f pyvserv.service
 
 freshdata:
+	@rm -rf ~/pyvserver/*
+
+cleanall:
 	@rm -rf ~/pyvserver/*
 
 cleankeys:
@@ -94,7 +98,7 @@ genservice:
 	@rm -f tmp
 
 # Install sevice file; needs sudo
-instsevice: genservice
+instservice: genservice
 	@sudo cp pyvserv.service /etc/systemd/system
 	@sudo systemctl enable --now  pyvserv.service
 	@echo "You may now use systemctl start/stop/disable pyvserv.servce"

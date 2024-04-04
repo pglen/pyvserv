@@ -110,6 +110,16 @@ quirk that the Fedora systectl does not allow user executables. Install
 the 'pip pyvserv' as root, and adjust the service file accordingly. If you want
 to use pyvserv with  particular data directory, use the -r option.
 
+ On Cebian the system needs the --break-system-packages on pip. (unless one
+ creates a venv for it)
+
+    pip install pyvserv --break-system-packages
+
+Also the scripts are installed in ~/.local/bin, so add the following line
+  to the end of ~/.bashrc:
+
+    PATH=$PATH:~/.local/bin
+
 #### Quick map:
 
     Server.     subdir: pyvserver       -- Server has most all the commands done
@@ -169,7 +179,12 @@ sample client examples in the client source tree. (Files named pyvcli_*)
     pyvcli_cli
 
   In the command line client most of the server functions can be exercised.
-See the pyvcli_* utils for more examples of driving the server.
+See the pyvcli_* utils for more examples of driving the server. On a
+fresh install, one may need to execute the pyvcli_uini to create an initial
+admin user, with password 1234. The command 'help' will deliver information
+on the available commands.
+
+!!! IMPORTANT !!! Make sure you change this when testing / learning is over.
 
 ## Command line help
 
