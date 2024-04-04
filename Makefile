@@ -14,10 +14,9 @@ help:
 	@echo  "\ttests       --  execute tests                        "
 	@echo  "\tclean       --  clean python temporaries             "
 	@echo  "\tcleankeys   --  clean keys                           "
-	@echo  "\tfreshdata   --  clean all data !!! Warning: !!!     "
-	@echo  "\tmd5         --  show md5 hashes                      "
-	@echo  "\tgenmd5      --  genetate md5 hashes                  "
-	@echo  "\tcheckmd5    --  check md5 hashes                     "
+	@echo  "\tfreshdata   --  clean all data !!! Warning: !!!      "
+	@echo  "\tgensun      --  genetrate SHA256 hashes              "
+	@echo  "\tchecsum     --  check hashes                         "
 	@echo  "\tdocs        --  generate documents                   "
 	@echo  "\tgensevice   --  generate sevice file                 "
 	@echo  "\tinstservice --  install service                      "
@@ -60,7 +59,7 @@ cleankeys:
 	@rm -rf ~/pyvserver/private/*
 
 tests:
-	echo No tests
+	echo No tests, look at pyvclient directory
 
 XPATH="pyvcommon,../pyvguicom,pyvgui/guilib "
 XPATH2="pyvcommon:../pyvguicom:../pyvguicom/pyvguicom:pyvgui/guilib"
@@ -79,16 +78,13 @@ docs:
 	@PYTHONPATH=${XPATH2} pdoc --force --html -o docs pyvgui/guilib/mainwinserv.py
 	@PYTHONPATH=${XPATH2} pdoc --force --html -o docs pyvgui/guilib/mainwintally.py
 
-md5:
-	@cat md5sum.txt
+checksum:
+	@echo The 'shasum.txt' should fail, but no others
+	@sha256sum -c --quiet shasum.txt
 
-checkmd5:
-	@echo The 'md5sum.txt' should fail, but no others
-	@md5sum -c --quiet md5sum.txt
-
-genmd5:
-	@#echo Started md5 gen ... please wait
-	./iterproj.py -m > md5sum.txt
+gensum:
+	@#echo Started SHA256 gen ... please wait
+	./iterproj.py -m > shasum.txt
 
 # Generate service file
 genservice:
