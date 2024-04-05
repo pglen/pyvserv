@@ -47,11 +47,8 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
     ["p:",  "port",     6666,   None],      \
-    ["c:",  "comm",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
-    ["s",   "showkey",  "",     None],      \
-    ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -64,9 +61,6 @@ if __name__ == '__main__':
     args = conf.comline(sys.argv[1:])
     #print(vars(conf))
 
-    if conf.comm:
-        print("Save to filename", conf.comm)
-
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
 
@@ -78,7 +72,6 @@ if __name__ == '__main__':
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
-    hand.comm  = conf.comm
 
     try:
         respc = hand.connect(ip, conf.port)
@@ -172,11 +165,11 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Make a note of the session key
-    print("Session key:", conf.sess_key[:24] , "..." )
+    print("Session key:", conf.sess_key)
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
-    print("Encrypted Resp:", resp4)
+    print("Hello Resp:", resp4)
 
     # --------------------------------------------------------------------
     # Generate communication key, second session and second run
@@ -207,11 +200,11 @@ if __name__ == '__main__':
 
     conf.sess_key = conf.sess_key2
     # Make a note of the session key
-    print("Session key:", conf.sess_key[:24] , "..." )
+    print("Session key2:", conf.sess_key)
 
     # Session estabilished, try a simple command
     resp5 = hand.client(["hello",], conf.sess_key)
-    print("Hello2 Response:", resp5)
+    print("Hello2 Resp:", resp5)
 
     hand.client(["quit",],conf.sess_key)
     hand.close();

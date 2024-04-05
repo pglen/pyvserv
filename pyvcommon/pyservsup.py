@@ -5,6 +5,8 @@ from __future__ import print_function
 import os, sys, string, time, traceback, random, uuid
 import datetime, base64
 
+import multiprocessing as mp
+
 try:
     import fcntl
 except:
@@ -839,6 +841,102 @@ def uuid2timestamp(uuu):
     dd = datetime.datetime.fromtimestamp(\
                     (uuu.time - UUID_EPOCH)*100/1e9)
     return dd.timestamp()
+
+# ------------------------------------------------------------------------
+
+class Throttle():
+
+    '''  Catch clients that are connecting too fast. This needs a serious
+        upgrade if in large volume production.
+    '''
+    def __init__(self):
+
+        if fcntl:
+            # This is for forkmixin
+            self.sem  = mp.Semaphore()
+            self.man  = mp.Manager()
+            self.connlist = self.man.list()
+            #self.enabled = self.man.list()
+            #self.enabled.append(1)
+            self.enabled = self.man.Value("i", 1)
+        else:
+            self.sem     = threading.Semaphore()
+            self.connlist = []
+            self.enabled = True
+
+    def throttle(self, peer):
+
+        '''
+            Catch clients that are connecting too fast.
+            Throttle to N sec frequency, if number of connections from
+            the same ip exceeds throt_instances.
+        '''
+
+        wantsleep = 0; sss = 0;
+        now = time.time()
+
+        self.sem.acquire()
+        # Throttle disabled, return zero delay
+        if not self.enabled.value:
+        #if not self.enabled[0]:
+            self.sem.release()
+            return 0
+
+        # Calculate recents
+        for aa in self.connlist:
+            if aa[0] == peer[0]:
+                if now - aa[1] <  globals.throt_sec:
+                    sss += 1
+
+        if sss >  globals.throt_instances:
+            # Clean old entries for this host
+            for aa in range(len(self.connlist)-1, -1 ,-1):
+                if self.connlist[aa][0] == peer[0]:
+                    if now - self.connlist[aa][1] > globals.throt_sec:
+                        del self.connlist[aa]
+            wantsleep = globals.throt_time
+
+        # Clean throtle data periodically
+        if len(self.connlist) > globals.throt_maxdat:
+            #print("Cleaning throttle list", len(self.connlist))
+            for aa in range(len(self.connlist)-1, -1 ,-1):
+                if now - self.connlist[aa][1] > globals.throt_maxsec:
+                    del self.connlist[aa]
+
+        # Flatten list for the multiprocessing context manager
+        self.connlist.append((peer[0], now))
+
+        #print("connlist", self.connlist)  # Make sure it cycles
+        #print()
+
+        self.sem.release()
+        return wantsleep
+
+    def setflag(self, flag):
+
+        ''' Enable / disable throttleing '''
+
+        #print("setting flag", flag)
+
+        self.sem.acquire()
+        #self.enabled[0] = flag
+        self.enabled.value = flag
+        self.sem.release()
+
+# The one and only instance
+gl_throttle = Throttle()
+
+def str2bool(strx):
+
+    ''' turn a string into a boolean value '''
+
+    boolx = False
+    strx = strx.lower()
+    sss = [ "on", "yes", "true", "enabled" ]
+    for aa in sss:
+        if strx == aa:
+            boolx = True
+    return boolx
 
 if __name__ == '__main__':
     print( "This module was not meant to be used directly.")

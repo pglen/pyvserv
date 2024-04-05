@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # ------------------------------------------------------------------------
-# Test client for the pyserv project. User add.
+# Test client for the pyserv project. User change pass.
 
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
@@ -40,7 +40,6 @@ optarr = \
     ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -73,72 +72,114 @@ if __name__ == '__main__':
         sys.exit(1)
 
     resp3 = hand.client(["hello",] , "", False)
-    print("Hello Response:", resp3)
+    if not conf.quiet:
+        print("Hello Response:", resp3)
 
     resp3 = hand.start_session(conf)
-    print("Sess Response:", resp3)
-
-    #resp3 = hand.client(["hello",] , conf.sess_key, False)
-    #print("Hello Response:", resp3[1])
+    if not conf.quiet:
+        print("Sess Response:", resp3)
 
     resp = hand.client(["user", "admin"], conf.sess_key)
-    print("user Response:", resp)
+    if not conf.quiet:
+        print("user Response:", resp)
+
     if resp[0] != "OK":
         hand.client(["quit"], conf.sess_key)
         hand.close();
         raise ValueError("No user", resp[1])
 
     resp = hand.client(["pass", "1234"], conf.sess_key)
-    print("pass Response:", resp)
+    if not conf.quiet:
+        print("pass Response:", resp)
+
     if resp[0] != "OK":
         hand.client(["quit"], conf.sess_key)
         hand.close();
         raise ValueError("Not authorized", resp[1])
 
-    resp = hand.client(["udel", "admin2", "1234"], conf.sess_key)
-    print("udel Response:", resp)
+    resp = hand.client(["udel", "test_admin", "1234"], conf.sess_key)
+    if not conf.quiet:
+        print("udel Response:", resp)
+    pyclisup.expect(resp[0], "ERR", context = "udel test_admin")
 
-    resp = hand.client(["aadd", "admin2", "1234"], conf.sess_key)
-    print("aadd Response:", resp)
+    resp = hand.client(["aadd", "test_admin", "1234"], conf.sess_key)
+    if not conf.quiet:
+       print("aadd Response:", resp)
+    pyclisup.expect(resp[0], "OK", context = "aadd test_admin")
 
-    resp = hand.client(["udel", "peter", "1234"], conf.sess_key)
-    print("udel Response:", resp)
+    resp = hand.client(["udel", "test_user", "1234"], conf.sess_key)
+    if not conf.quiet:
+        print("udel Response:", resp)
+    pyclisup.expect(resp[0], "ERR", context = "udel test_user")
 
-    resp = hand.client(["uadd", "peter", "1234"], conf.sess_key)
-    print("uadd Response:", resp)
-
-    resp = hand.client(["logout",], conf.sess_key)
-    print("logout Response:", resp)
-
-    resp = hand.login("peter", "1234", conf)
-    print("login Response:", resp)
-
-    resp = hand.client(["chpass", "1234", "12345"], conf.sess_key)
-    print("chpass Response:", resp)
+    resp = hand.client(["uadd", "test_user", "1234"], conf.sess_key)
+    if not conf.quiet:
+        print("uadd Response:", resp)
 
     resp = hand.client(["logout",], conf.sess_key)
-    print("logout Response:", resp)
+    if not conf.quiet:
+        print("logout Response:", resp)
 
-    resp = hand.login("peter", "12345", conf)
-    print("login Response:", resp)
+    resp = hand.login("test_user", "1234", conf)
+    if not conf.quiet:
+        print("login Response:", resp)
+    pyclisup.expect(resp[0], "OK", context = "login test_user")
+
+    resp = hand.client(["chpass", "test_user", "1234", "12345"], conf.sess_key)
+    if not conf.quiet:
+        print("chpass Response:", resp)
+    pyclisup.expect(resp[0], "OK", context = "chpass test_user")
+
+    # Login with the newly modified user
+    resp = hand.client(["logout",], conf.sess_key)
+    if not conf.quiet:
+        print("logout Response:", resp)
+
+    resp = hand.login("test_user", "12345", conf)
+    if not conf.quiet:
+        print("login Response:", resp)
+    pyclisup.expect(resp[0], "OK", context = "login test_user")
+
 
     resp3 = hand.client(["hello",] , conf.sess_key, False)
-    print("Hello Response:", resp3)
+    if not conf.quiet:
+        print("Hello Response:", resp3)
 
     resp = hand.client(["logout",], conf.sess_key)
-    print("logout Response:", resp)
+    if not conf.quiet:
+        print("logout Response:", resp)
 
-    resp = hand.login("admin2", "1234", conf)
-    print("login Response:", resp)
+    resp = hand.login("test_admin", "1234", conf)
+    if not conf.quiet:
+        print("login Response:", resp)
+    pyclisup.expect(resp[0], "OK", context = "login test_admin")
 
-    resp = hand.client(["chpass", "1234", "12345"], conf.sess_key)
-    print("chpass Response:", resp)
+    resp = hand.client(["chpass", "test_admin", "1234", "12345"], conf.sess_key)
+    if not conf.quiet:
+        print("chpass Response:", resp)
+    pyclisup.expect(resp[0], "OK", context = "chpass test_admin")
 
     resp = hand.client(["logout",], conf.sess_key)
-    print("logout Response:", resp)
+    if not conf.quiet:
+        print("logout Response:", resp)
+    pyclisup.expect(resp[0], "OK", context = "logout test_admin")
 
-    resp = hand.login("admin2", "12345", conf)
-    print("login Response:", resp)
+    resp = hand.login("test_admin", "12345", conf)
+    if not conf.quiet:
+        print("login test_admin Response:", resp)
+    pyclisup.expect(resp[0], "OK", context = "login test_admin")
+
+    resp = hand.client(["udel", "test_user", "1234"], conf.sess_key)
+    if not conf.quiet:
+        print("udel Response:", resp)
+    pyclisup.expect(resp[0], "OK")
+
+    resp = hand.client(["udel", "test_admin", "1234"], conf.sess_key)
+    if not conf.quiet:
+        print("udel Response:", resp)
+    pyclisup.expect(resp[0], "OK")
+
+
 
     hand.client(["quit"], conf.sess_key)
     hand.close();

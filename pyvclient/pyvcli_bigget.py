@@ -118,15 +118,16 @@ if __name__ == '__main__':
         print ("Server login response:", cresp)
 
     bigfname = "bigfile"    # Use this name for cleaning it
-    bigbuff = b"a" * 1024
+    bigbuff = b"abcdef" * 1024
     # Create bigfile
     fp = open(bigfname, "wb")
-    for aa in range(1024 * 20):
+    for aa in range(1024 * 10):
         fp.write(bigbuff)
     fp.close()
 
     # Put big file up
-    print("Started file UP ...", )
+    if not conf.quiet:
+        print("Started file UP ...", )
     ttt = time.time()
     resp = hand.putfile(bigfname, "", conf.sess_key)
     filesize = support.fsize(bigfname)
@@ -140,7 +141,8 @@ if __name__ == '__main__':
         sys.exit()
     print ("fput response:", resp, "time %.2f kbytes/sec" % (rate/1024))
 
-    print("Started bigfile DOWN")
+    if not conf.quiet:
+        print("Started bigfile DOWN")
     ttt = time.time()
     ret = hand.getfile(bigfname, bigfname + "_local", conf.sess_key)
     filesize = support.fsize(bigfname + "_local")
@@ -158,8 +160,8 @@ if __name__ == '__main__':
     else:
         print("Files Compare OK")
 
-    os.remove(bigfname)
-    os.remove(bigfname + "_local")
+    #os.remove(bigfname)
+    #os.remove(bigfname + "_local")
 
     sys.exit(0)
 

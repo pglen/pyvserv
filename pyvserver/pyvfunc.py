@@ -143,7 +143,6 @@ def get_tout_func(self, strx):
 
     self.resp.datahandler.putencode(resp, self.resp.ekey)
 
-
 def get_mkdir_func(self, strx):
     #print("make dir", strx[1])
 
@@ -167,13 +166,62 @@ def get_mkdir_func(self, strx):
         return
 
     try:
-        response = [OK, "Made directory:", strx[1]]
         os.mkdir(dname)
+        response = [OK, "Made directory:", strx[1]]
     except:
         response = [ERR, "Cannot make directory.", strx[1]]
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
+def get_rmdir_func(self, strx):
+    #print("make dir", strx[1])
+
+    if len(strx) == 1:
+        response = [ERR, "Must specify directory name.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    dname = contain_path(self, strx[1])
+
+    if not dname:
+        response = [ERR, "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print("remove dir", dname)
+
+    if not os.path.isdir(dname):
+        response = [ERR, "Directory does not exist.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    try:
+        os.rmdir(dname)
+        response = [OK, "Deleted directory:", strx[1]]
+    except:
+        response = [ERR, "Cannot delete directory.", str(sys.exc_info()[1]), strx[1]]
+
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+def get_throt_func(self, strx):
+
+    ret = pyservsup.passwd.perms(self.resp.user)
+    #print("pass 2 %.3f" % ((time.time() - ttt) * 1000) )
+
+    if not int(ret[2]) & pyservsup.PERM_ADMIN:
+        rrr = [ERR, "Only admin can control throttle"]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
+        return
+
+    if pyservsup.str2bool(strx[1]):
+        #print("trottle off")
+        pyservsup.gl_throttle.setflag(True)
+    else:
+        #print("trottle on")
+        pyservsup.gl_throttle.setflag(False)
+
+    rrr = [OK, "Throttle turned %s" %  strx[1]]
+    self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
 def get_buff_func(self, strx):
     #print("buffer str", strx[1])
@@ -1124,7 +1172,7 @@ def get_stat_func(self, strx):
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
-def get_logout_func(self, strx):
+def get_lout_func(self, strx):
 
     if not self.resp.user:
         response = [ERR, "Not logged in.", strx[0], ]

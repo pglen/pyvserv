@@ -380,7 +380,7 @@ class CliSup():
 
         resp = self.client(["akey"], conf.sess_key2)
 
-        if conf.verbose:
+        if self.pgdebug > 2:
             print("Got akey:", resp)
 
         if resp[0] != "OK":
@@ -389,7 +389,7 @@ class CliSup():
             self.close();
             sys.exit(0)
 
-        if conf.verbose:
+        if self.pgdebug > 2:
             print("Got hash:", "'" + resp[1] + "'")
 
         #hhh = SHA512.new(); hhh.update(bytes(resp[2], "cp437"))
@@ -492,5 +492,16 @@ def atexit_func(hand, conf):
         hand.close();
     except:
         pass
+
+def expect(val, expx, ifyes = "", context = "", ifno = "" ):
+
+    if val == expx:
+        #print(ifyes)   # silent if OK
+        pass
+    else:
+        if not ifno:
+            ifno = "Unexpected result:",
+        print(ifno, "'" + val + "'"  , "!=",  "'" + expx + "'",
+                        "Context:", context)
 
 # EOF

@@ -21,16 +21,6 @@ sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
 
-'''
-# test encrypt with large keys
-rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
-        "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
-sss = bluepy.encrypt(rrr, conf.sess_key)
-ttt = bluepy.decrypt(sss, conf.sess_key)
-print (rrr)
-print (ttt)
-'''
-
 # ------------------------------------------------------------------------
 # Functions from command line
 
@@ -41,9 +31,6 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p port   - Port to use (default: 6666)")
-    print( "            -l level  - Log level (default: 0)")
-    print( "            -c file   - Save comm to file")
-    print( "            -s        - Showkey")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -59,11 +46,8 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,      None],      \
     ["p:",  "port",     6666,   None],      \
-    ["c:",  "comm",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
-    ["s",   "showkey",  "",     None],      \
-    ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -74,9 +58,6 @@ conf = comline.Config(optarr)
 if __name__ == '__main__':
 
     args = conf.comline(sys.argv[1:])
-
-    if conf.comm:
-        print("Save to filename", conf.comm)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -89,7 +70,6 @@ if __name__ == '__main__':
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
-    hand.comm  = conf.comm
 
     try:
         respc = hand.connect(ip, conf.port)
@@ -117,17 +97,16 @@ if __name__ == '__main__':
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
-    print("Hello Response:", resp4[1])
+    if not conf.quiet:
+        print("Hello Response:", resp4[1])
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
-    print ("Server user response:", cresp[1])
+    if not conf.quiet:
+        print ("Server user response:", cresp[1])
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    print ("Server pass response:", cresp[1])
-
-    # Error responses
-    #cresp = hand.client(["pwd",], conf.sess_key)
-    #print ("Server pwd response:", cresp)
+    if not conf.quiet:
+        print ("Server pass response:", cresp[1])
 
     cresp = hand.client(["lsd",], conf.sess_key)
     print ("Server lsd response:", cresp)

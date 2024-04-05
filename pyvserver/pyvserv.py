@@ -14,8 +14,6 @@ import os, getopt, signal, select, string, time
 import subprocess,  platform, queue, ctypes
 import socket, threading, tracemalloc, copy, random
 
-import multiprocessing as mp
-
 try:
     import fcntl
 except:
@@ -82,68 +80,6 @@ class InvalidArg(Exception):
 #gl_queue.put((peer, now))
 #print("qsize", gl_queue.qsize)
 
-# ------------------------------------------------------------------------
-
-class Throttle():
-
-    '''  Catch clients that are connecting too fast. This needs a serious
-        upgrade if in large volume production.
-    '''
-    def __init__(self):
-
-        if fcntl:
-            # This is for forkmixin
-            self.sem  = mp.Semaphore()
-            self.man  = mp.Manager()
-            self.connlist = self.man.list()
-        else:
-            self.sem     = threading.Semaphore()
-            self.connlist = []
-
-    def throttle(self, peer):
-
-        '''
-            Catch clients that are connecting too fast.
-            Throttle to N sec frequency, if number of connections from
-            the same ip exceeds throt_instances.
-        '''
-
-        wantsleep = 0; sss = 0;
-        now = time.time()
-        self.sem.acquire()
-
-        for aa in self.connlist:
-            if aa[0] == peer[0]:
-                if now - aa[1] <  pyservsup.globals.throt_sec:
-                    sss += 1
-
-        if sss >  pyservsup.globals.throt_instances:
-            # Clean old entries fot this host
-            for aa in range(len(self.connlist)-1, -1 ,-1):
-                if self.connlist[aa][0] == peer[0]:
-                    if now - self.connlist[aa][1] > pyservsup.globals.throt_sec:
-                        del self.connlist[aa]
-            wantsleep = pyservsup.globals.throt_time
-
-        # Clean throtle data periodically
-        if len(self.connlist) > pyservsup.globals.throt_maxdat:
-            #print("Cleaning throttle list", len(self.connlist))
-            for aa in range(len(self.connlist)-1, -1 ,-1):
-                if now - self.connlist[aa][1] > pyservsup.globals.throt_maxsec:
-                    del self.connlist[aa]
-
-        # Flatten list for the multiprocessing context manager
-        self.connlist.append((peer[0], now))
-
-        #print("connlist", self.connlist)  # Make sure it cycles
-        #print()
-
-        self.sem.release()
-        return wantsleep
-
-# The one and only instance
-gl_throttle = Throttle()
-
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     ''' Request handler. '''
@@ -159,7 +95,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.dir = ""
         self.ekey = ""
 
-        ttt = gl_throttle.throttle(self.a1.getpeername())
+        ttt = pyservsup.gl_throttle.throttle(self.a1.getpeername())
+
         if ttt > 0:
             if self.verbose > 0:
                 print("Throttle sleep",  a1.getpeername())

@@ -93,7 +93,8 @@ if __name__ == '__main__':
         sys.exit(1)
 
     resp3 = hand.client(["hello",] , conf.sess_key, False)
-    print("Hello Response:", resp3)
+    if not conf.quiet:
+        print("Hello Response:", resp3)
 
     ret = hand.start_session(conf)
     if ret[0] != "OK":
@@ -104,11 +105,13 @@ if __name__ == '__main__':
 
     # Make a note of the session key
     #print("Session Key ACCEPTED:",  ret, )
-    print("Session, with key:", conf.sess_key[:12], "...")
+    if not conf.quiet:
+        print("Session, with key:", conf.sess_key[:12], "...")
 
     # Session estabilished, try a simple command
-    #resp4 = hand.client(["hello",], conf.sess_key)
-    #print("Hello Response:", resp4[1])
+    resp4 = hand.client(["hello",], conf.sess_key)
+    if not conf.quiet:
+        print("Sess Response:", resp4)
 
     ret =  hand.login("admin", "1234", conf)
     if ret[0] != "OK":

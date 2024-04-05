@@ -29,12 +29,12 @@ def phelp():
     print()
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -n        - No encryption (plain)")
-    print( "            -h        - Help")
+    print( "Options:    -d level   - Debug level 0-10")
+    print( "            -c dirname - Directory to remove. default: test_3")
+    print( "            -p         - Port to use (default: 6666)")
+    print( "            -v         - Verbose")
+    print( "            -q         - Quiet")
+    print( "            -h         - Help")
     print()
     sys.exit(0)
 
@@ -45,12 +45,10 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,          None],      \
+    ["c:",  "fname",    "test_dir", None],    \
     ["p:",  "port",     6666,       None],      \
-    ["f:",  "fname",    "test.txt", None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
-    ["n",   "plain",    0,          None],      \
-    ["t",   "test",     "x",        None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
 
@@ -87,19 +85,12 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    #resp3 = hand.client(["id",] , "", False)
-    #print("ID Response:", resp3[1])
-
-    #ret = ["OK",];  conf.sess_key = ""
     ret = hand.start_session(conf)
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
         hand.client(["quit"])
         hand.close();
         sys.exit(0)
-
-    # Make a note of the session key
-    #print("Sess Key ACCEPTED:",  resp3[1])
 
     if not conf.quiet:
         print("Session key:", conf.sess_key[:12], "...")
@@ -112,13 +103,20 @@ if __name__ == '__main__':
     if not conf.quiet:
         print ("Server login response:", cresp)
 
-    cresp = hand.client(["throt", "off"], conf.sess_key)
-    print ("Server throttle:", cresp)
+    #cresp = hand.client(["buff", "10", ], conf.sess_key)
+    #print ("Server buff response:", cresp)
+    #if cresp[0] != "OK":
+    #    print("Error on buff command", cresp[1])
+    #    hand.client(["quit"], conf.sess_key)
+    #    hand.close();
+    #    sys.exit(0)
 
-    ret2 = hand.getfile(conf.fname, conf.fname + "_local", conf.sess_key)
-    print ("Server fget response:", ret2)
+    ret2 = hand.client(["rmdir", conf.fname], conf.sess_key)
+    print ("Server rmdir response:", ret2)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     #print ("Server quit response:", cresp)
+
+    sys.exit(0)
 
 # EOF
