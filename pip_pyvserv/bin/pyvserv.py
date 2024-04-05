@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/peterglen/pgpygtk/pyvserv/pip_pyvserv/bin/python3
 
 __doc__ = \
 '''
@@ -13,6 +13,8 @@ if sys.version_info[0] < 3:
 import os, getopt, signal, select, string, time
 import subprocess,  platform, queue, ctypes
 import socket, threading, tracemalloc, copy, random
+
+import multiprocessing as mp
 
 try:
     import fcntl
@@ -80,6 +82,68 @@ class InvalidArg(Exception):
 #gl_queue.put((peer, now))
 #print("qsize", gl_queue.qsize)
 
+# ------------------------------------------------------------------------
+
+class Throttle():
+
+    '''  Catch clients that are connecting too fast. This needs a serious
+        upgrade if in large volume production.
+    '''
+    def __init__(self):
+
+        if fcntl:
+            # This is for forkmixin
+            self.sem  = mp.Semaphore()
+            self.man  = mp.Manager()
+            self.connlist = self.man.list()
+        else:
+            self.sem     = threading.Semaphore()
+            self.connlist = []
+
+    def throttle(self, peer):
+
+        '''
+            Catch clients that are connecting too fast.
+            Throttle to N sec frequency, if number of connections from
+            the same ip exceeds throt_instances.
+        '''
+
+        wantsleep = 0; sss = 0;
+        now = time.time()
+        self.sem.acquire()
+
+        for aa in self.connlist:
+            if aa[0] == peer[0]:
+                if now - aa[1] <  pyservsup.globals.throt_sec:
+                    sss += 1
+
+        if sss >  pyservsup.globals.throt_instances:
+            # Clean old entries fot this host
+            for aa in range(len(self.connlist)-1, -1 ,-1):
+                if self.connlist[aa][0] == peer[0]:
+                    if now - self.connlist[aa][1] > pyservsup.globals.throt_sec:
+                        del self.connlist[aa]
+            wantsleep = pyservsup.globals.throt_time
+
+        # Clean throtle data periodically
+        if len(self.connlist) > pyservsup.globals.throt_maxdat:
+            #print("Cleaning throttle list", len(self.connlist))
+            for aa in range(len(self.connlist)-1, -1 ,-1):
+                if now - self.connlist[aa][1] > pyservsup.globals.throt_maxsec:
+                    del self.connlist[aa]
+
+        # Flatten list for the multiprocessing context manager
+        self.connlist.append((peer[0], now))
+
+        #print("connlist", self.connlist)  # Make sure it cycles
+        #print()
+
+        self.sem.release()
+        return wantsleep
+
+# The one and only instance
+gl_throttle = Throttle()
+
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
     ''' Request handler. '''
@@ -95,10 +159,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.dir = ""
         self.ekey = ""
 
-        # Throttle for multiple connectiond from one host
-        ttt = pyservsup.gl_throttle.throttle(self.a1.getpeername())
+        ttt = gl_throttle.throttle(self.a1.getpeername())
         if ttt > 0:
-            if self.pgdebug > 2:
+            if self.verbose > 0:
                 print("Throttle sleep",  a1.getpeername())
             time.sleep(ttt)
 
@@ -471,7 +534,6 @@ def mainfunct():
         print("Script name:     ", __file__)
         print("Exec argv:       ", sys.argv[0])
 
-    pyservsup.pgdebug = conf.pgdebug
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
     pyservsup.globals.lockfname += "_" + str(conf.port) + "_" + str(conf.host)
@@ -484,19 +546,21 @@ def mainfunct():
     pyservsup.globals.config(pyservsup.globals.myhome, conf)
 
     if conf.verbose:
+        #print("Script Dir:      ", pyservsup.globals._script_home)
         print("Pass Dir:        ", pyservsup.globals.passdir)
         print("Key Dir:         ", pyservsup.globals.keydir)
         print("Payload Dir:     ", pyservsup.globals.paydir)
         print("Lockfile:        ", pyservsup.globals.lockfname)
         print("Passfile:        ", pyservsup.globals.passfile)
         print("IDfile:          ", pyservsup.globals.idfile)
+        #print("Keyfile:         ", pyservsup.globals .keyfile)
     try:
         keyfroot = pyservsup.pickkey(pyservsup.globals.keydir)
     except:
         #print("No keys generated yet. Please run pyvgenkey.py first.")
-        print("Notice: Generating key in", "'" + pyservsup.globals.keydir + "'")
         exec = os.path.dirname(os.path.split(pyservsup.globals._script_home)[0]) + os.sep
         exec += "../pyvtools/pyvgenkey.py"
+        print("Notice: Generating key in", "'" + pyservsup.globals.keydir + "'")
         try:
             if conf.pgdebug > 2:
                 print("Generating keys", exec)
@@ -612,6 +676,7 @@ def mainfunct():
 
     #if conf.detach:
     #    print("Detach from terminal:)
+
 
 if __name__ == '__main__':
     mainfunct()

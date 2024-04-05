@@ -65,7 +65,6 @@ class DataHandler():
                 break
 
     def handler_timeout(self):
-
         try:
             #self.tout.cancel()
             if self.pgdebug > 0:

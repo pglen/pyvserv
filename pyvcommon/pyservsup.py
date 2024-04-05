@@ -45,7 +45,6 @@ chainfname  = "initial"
 repfname    = "pyvreplic"
 logfname    = "pyvserver"
 
-lock_pgdebug = 0
 lock_locktout = 5
 
 # Configure the server by customizing this class
@@ -207,62 +206,130 @@ def  create_read_idfile(fname):
 
     return uuuu
 
-# ------------------------------------------------------------------------
-
 class   FileLock():
 
-    ''' A working file lock in Linux '''
+    ''' A working file lock in Linux and Windows '''
 
-    def __init__(self):
+    def __init__(self, lockname = ""):
 
-        ''' Create the lock file '''
-        self.lockname = None
+        ''' Create the lock file, else just remember the name '''
+
+        #if not lockname:
+        #    raise ValuError("Must specify lockfile")
+
+        self.lockname = lockname
+
+        if pgdebug:
+            print("lockname init", self.lockname)
+
+        if fcntl:
+            if self.lockname:
+                try:
+                    self.fpx = open(lockname, "wb")
+                except:
+                    if pgdebug > 1:
+                        print("Cannot create lock file")
+                    raise ValueError("Cannot create lock file")
 
     def waitlock(self):
 
+        # If no lockfilename specified, grab one
         if not self.lockname:
             self.lockname = globals.passfile + ".lock"
-            #print("lockname", self.lockname)
+
+            if pgdebug > 5:
+                print("lockname", self.lockname)
 
             try:
-                self.fpx = open(self.lockname, "rb+")
+                self.fpx = open(self.lockname, "wb")
             except:
-                try:
-                    self.fpx = open(self.lockname, "wb+")
-                except:
-                    if lock_pgdebug > 1:
-                        print("Cannot create lock file")
-                    raise
+                if pgdebug > 1:
+                    print("Cannot create lock file")
 
-        if lock_pgdebug > 1:
+        if pgdebug > 5:
             print("Waitlock", self.lockname)
 
-        cnt = 0
-        while True:
-            try:
-                buff = self.fpx.read()
-                self.fpx.seek(0, os.SEEK_SET)
-                self.fpx.write(buff)
-                break;
-            except:
-                if lock_pgdebug > 1:
-                    print("waiting", sys.exc_info())
-
-            if cnt > lock_locktout :
-                # Taking too long; break in
-                if 1: #lock_pgdebug > 1:
-                    print("Lock held too long pid =", os.getpid(), cnt)
-                self.unlock()
-                break
-            cnt += 1
-            time.sleep(1)
-        # Lock NOW
         if fcntl:
-            fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+            cnt2 = 0
+            while True:
+                try:
+                    fcntl.flock(self.fpx, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except:
+                    pass
+                    if pgdebug > 1:
+                        print("waiting in fcntl", self.lockname,
+                                            os.getpid()) #sys.exc_info())
+                cnt2 += 1
+                time.sleep(1)
+                if cnt2 > lock_locktout:
+                    # Taking too long; break in
+                    if pgdebug > 1:
+                        print("Lock held too long",
+                                            os.getpid(), self.lockname)
+                    self.unlock()
+                    break
+        else:
+            cnt = 0
+            while True:
+                try:
+                    if os.path.exists(self.lockname):
+                        if pgdebug:
+                           print("Waiting ... ", self.lockname)
+                        pass
+                    else:
+                        fp = open(self.lockname, "wb")
+                        fp.write(str(os.getpid()).encode())
+                        fp.close()
+                        break
+                except:
+                    if pgdebug:
+                        print("locked",  self.lockname, cnt, sys.exc_info())
+                    pass
+                time.sleep(1)
+                cnt += 1
+                if cnt > lock_locktout:
+                    if pgdebug:
+                        print("breaking lock", self.lockname)
+                    break
 
     def unlock(self):
+
+        if pgdebug > 5:
+            print("Unlock", self.lockname)
+
         if fcntl:
-            fcntl.lockf(self.fpx, fcntl.LOCK_UN)
+            try:
+                fcntl.flock(self.fpx, fcntl.LOCK_UN | fcntl.LOCK_NB)
+            except:
+                pass
+        else:
+            try:
+                os.remove(self.lockname)
+            except:
+                pass
+                if pgdebug:
+                    print("unlock", self.lockname, sys.exc_info())
+
+    def __del__(self):
+
+        #print("__del__ lock", self.lockname)
+        try:
+            if fcntl:
+                # Do not remove, others may have locked it
+                if hasattr(self, "fpx"):
+                    fcntl.flock(self.fpx, fcntl.LOCK_UN | fcntl.LOCK_NB)
+                pass
+
+            # Always remove file
+            try:
+                os.remove(self.lockname)
+            except:
+                pass
+                #print("cannot delete lock", self.lockname, sys.exc_info())
+        except:
+            print("exc on del (ignored)", self.lockname, sys.exc_info())
+            pass
 
 # ------------------------------------------------------------------------
 # This class will maintain a passwd database, similar to
@@ -273,8 +340,6 @@ class Passwd():
     def __init__(self):
         self.pgdebug = 0
         self.verbose = 0
-        global lock_pgdebug
-        lock_pgdebug = 0
         self.lock = FileLock()
 
     def     _xjoin(self, iterx, charx):
@@ -761,70 +826,6 @@ def pickkey(keydir):
     return eee[0]
 
 # ------------------------------------------------------------------------
-# Simple file system based locking system
-# !!!!! does not work on Linux !!!!!
-# Linux can access the filesystem differently than windosw, however the
-# file based locking system work well
-
-#def _createlock(fname, raisex = True):
-#
-#    ''' Open for read / write. Create if needed. '''
-#
-#    fp = None
-#    try:
-#        fp = open(fname, "wb")
-#    except:
-#        print("Cannot open / create ", fname, sys.exc_info())
-#        if raisex:
-#            raise
-#    return fp
-#
-#def dellock(lockname):
-#
-#    ''' Lock removal;
-#        Test for stale lock;
-#    '''
-#
-#    try:
-#        if os.path.isfile(lockname):
-#            os.unlink(lockname)
-#    except:
-#        if pgdebug > 1:
-#            print("Del lock failed", sys.exc_info())
-#
-#def waitlock(lockname, locktout = 30):
-#
-#    ''' Wait for lock file to become available. '''
-#
-#    cnt = 0
-#    while True:
-#        if os.path.isfile(lockname):
-#            if pgdebug > 1:
-#                print("Waiting on", lockname)
-#            #if cnt == 0:
-#            #    try:
-#            #        fpx = open(lockname)
-#            #        pid = int(fpx.read())
-#            #        fpx.close()
-#            #    except:
-#            #        print("Exc in pid test", sys.exc_info())
-#            cnt += 1
-#            time.sleep(0.3)
-#            if cnt > locktout:
-#                # Taking too long; break in
-#                if pgdebug > 1:
-#                    print("Warn: main Lock held too long ... pid =", os.getpid(), cnt)
-#                dellock(lockname)
-#                break
-#        else:
-#            break
-#
-#    # Finally, create lock
-#    xfp = _createlock(lockname)
-#    xfp.write(str(os.getpid()).encode())
-#    xfp.close()
-
-# ------------------------------------------------------------------------
 # Get date out of UUID
 
 def uuid2date(uuu):
@@ -926,16 +927,30 @@ class Throttle():
 # The one and only instance
 gl_throttle = Throttle()
 
-def str2bool(strx):
+bool_yes = [ "on", "yes", "true", "enable" ]
+bool_no = [ "off", "no", "false", "disable" ]
 
-    ''' turn a string into a boolean value '''
+def str2bool(strx, default = False):
 
-    boolx = False
+    ''' Turn a string into a boolean value.
+        If value is recognized, turn it. Otherwise assume passed default.
+    '''
+
+    boolx = -1
     strx = strx.lower()
-    sss = [ "on", "yes", "true", "enabled" ]
-    for aa in sss:
+    for aa in bool_yes:
         if strx == aa:
             boolx = True
+            break
+    if boolx == -1:
+        for aa in bool_no:
+            if strx == aa:
+                boolx = False
+                break
+    # Response not found, default it
+    if boolx == -1:
+        boolx = default
+
     return boolx
 
 if __name__ == '__main__':

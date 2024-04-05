@@ -213,14 +213,16 @@ def get_throt_func(self, strx):
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
-    if pyservsup.str2bool(strx[1]):
-        #print("trottle off")
+    boolx = pyservsup.str2bool(strx[1], True)
+    #print("boolx:", boolx, strx[1], hex(id(strx[1])))
+    if  boolx:
+        boolstr = "ON"
         pyservsup.gl_throttle.setflag(True)
     else:
-        #print("trottle on")
+        boolstr = "OFF"
         pyservsup.gl_throttle.setflag(False)
 
-    rrr = [OK, "Throttle turned %s" %  strx[1]]
+    rrr = [OK, "Throttle turned %s" %  boolstr]
     self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
 def get_buff_func(self, strx):

@@ -1,11 +1,6 @@
-#!/usr/bin/env python3
+#!/home/peterglen/pgpygtk/pyvserv/pip_pyvserv/bin/python3
 
 from __future__ import print_function
-
-import sys
-if sys.version_info[0] < 3:
-    print("Python 2 is not supported as of 1/1/2020")
-    sys.exit(1)
 
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. Encrypt test.
@@ -31,7 +26,7 @@ from pyvcommon import pysyslog, comline
 # Functions from command line
 
 optarr =  comline.optarr
-optarr.append ( ["p:",  "port",  6666,   None, "Port to use (default: 6666)"] )
+optarr.append ( ["p:",  "port",     6666,   None, "Port to use (default: 6666)"] )
 
 #print (optarr)
 
@@ -79,7 +74,7 @@ def mainfunct():
         respini = hand.pb.decode_data(resp2[1])[0]
         print ("Server initial:", respini)
 
-    resp = hand.client(["id"])
+    resp = hand.client(["hello"])
     if conf.quiet == False:
         print("resp", resp)
 

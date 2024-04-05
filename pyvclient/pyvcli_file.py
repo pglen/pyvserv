@@ -6,11 +6,19 @@
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, "."))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    from pyvcommon import support
 
-import support, pycrypt, pyservsup, pyclisup
-import pysyslog, comline
+from pyvcommon import support, pycrypt, pyclisup
+from pyvcommon import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Globals
@@ -42,7 +50,6 @@ optarr = \
     ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -76,7 +83,6 @@ if __name__ == '__main__':
         resp3 = hand.client(["hello",] , "", False)
         print("Hello Response:", resp3[1])
 
-    #conf.sess_key = ""    #ret = ["OK",]
     ret = hand.start_session(conf)
 
     if ret[0] != "OK":
@@ -85,35 +91,31 @@ if __name__ == '__main__':
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print("Sess Key ACCEPTED:",  resp3[1])
-    #print("Post session, all is encrypted")
-
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
-    if conf.verbose:
-        print("Hello (plain) Response:", resp4)
-        #print("Hello (encrypted) Response:", resp4[1])
+    if not conf.quiet:
+        print("Hello (plain) Resp:", resp4)
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
-    #print ("Server user response:", cresp[1])
+    if not conf.quiet:
+        print ("Server user response:", cresp[1])
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    #print ("Server pass response:", cresp[1])
+    if not conf.quiet:
+        print ("Server pass response:", cresp[1])
 
-    if conf.verbose:
-        cresp = hand.client(["ls", ], conf.sess_key)
-        print ("Server  ls response:", cresp)
+    cresp = hand.client(["ls", ], conf.sess_key)
+    if not conf.quiet:
+        print ("Server ls response:", cresp)
 
-    cresp = hand.client(["file", "zeros"], conf.sess_key)
+    cresp = hand.client(["file", "test.txt"], conf.sess_key)
     print ("Server file response:", cresp)
     if cresp[0] != "OK":
-        #print("Err: ", cresp)
         cresp = hand.client(["quit", ], conf.sess_key)
-        print ("Server quit response:", cresp)
+        #print ("Server quit response:", cresp)
         sys.exit(0)
 
-    fp = open("zeros_local", "rb")
+    fp = open("test.txt_local", "rb")
     offs = 0
     while 1:
         buf = fp.read(1024)
@@ -135,9 +137,4 @@ if __name__ == '__main__':
 
     sys.exit(0)
 
-
-
-
-
-
-
+# EOF

@@ -34,7 +34,7 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
-    print( "            -f fname  - Delete file")
+    print( "            -t flag   - Throttle on / off")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -49,7 +49,7 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,       None],      \
-    ["f:",  "fname",    "test.txt", None],      \
+    ["t:",   "throt",   "off",      None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
     ["V",   None,       None,       pversion],  \
@@ -112,7 +112,7 @@ if __name__ == '__main__':
         cresp = hand.client(["ls", ], conf.sess_key)
         print ("Server  ls response:", cresp)
 
-    cresp = hand.client(["del", conf.fname], conf.sess_key)
+    cresp = hand.client(["throt", conf.throt,], conf.sess_key)
     print ("Server del response:", cresp)
 
     if cresp[0] != "OK":
@@ -126,9 +126,4 @@ if __name__ == '__main__':
 
     sys.exit(0)
 
-
-
-
-
-
-
+# EOF
