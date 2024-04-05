@@ -28,25 +28,27 @@ version = 1.0
 def phelp():
 
     print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [host]")
+    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [hostname]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
     print( "            -l login  - Login Name; default: 'user'")
     print( "            -s lpass  - Login Pass; default: '1234'")
-    print( "            -u user   - User Name; default: 'user'")
     print( "            -t        - prompt for login pass")
-    print( "            -a        - Add user. Must be unique.")
-    print( "            -r        - Remove user (one of add or remove needed.")
-    print( "            -u user   - User Name; default: 'user'")
-    print( "            -p pass   - User pssword; default: '1234' (!!! for tests only)")
-    print( "            -T        - prompt for new pass")
+    print( "            -a        - Add user. Must be a unique user name.")
     print( "            -m        - Add admin instead of regular user")
+    print( "            -r        - Remove user")
+    print( "            -c        - Change pass")
+    print( "            -i kind   - List users (user / admin / disabled / inittial")
     print( "            -e enflag - Enable / Disable user. ")
-    print( "            -i kind   - List users (user or admin")
+    print( "            -u user   - User Name; default: 'user'")
+    print( "            -x npass  - User password; default: '1234' (!!for tests only!!)")
+    print( "            -T        - prompt for new user pass / change pass")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
+    print()
+    print( " One of Add / Remove / Enable / List option is needed.")
     print()
     sys.exit(0)
 
@@ -66,8 +68,10 @@ optarr = \
     ["m",   "admin",        0,          None],      \
     ["a",   "add",          0,          None],      \
     ["r",   "remove",       0,          None],      \
+    ["c",   "change",       "",         None],      \
     ["u:",  "userx",        "user",     None],      \
-    ["p:",  "passx",        "1234",     None],      \
+    ["x:",  "passx",        "1234",     None],      \
+    ["X:",  "chpass",       "",         None],      \
     ["T",   "prompt",       0,          None],      \
     ["e:",  "encomm",       "",         None],      \
     ["i:",  "listx",        "",         None],  \
@@ -87,9 +91,10 @@ def    mainfunct():
 
     args = conf.comline(sys.argv[1:])
 
-    if not conf.add and not conf.remove and not conf.encomm and not conf.listx:
-        print("One of Add / Remove / Enable / List option should be specified.")
-        # [ -a | -r | -e  | -i]
+    if not conf.add and not conf.remove and not conf.encomm \
+                and not conf.listx and not conf.change:
+        print("One of: Add / Remove / Change / Enable / List option should be specified.")
+        print("Use [ -a | -r | -p | -e  | -i ] options or the -h option for help.")
         sys.exit()
 
     if len(args) == 0:
@@ -105,7 +110,7 @@ def    mainfunct():
         import getpass
         strx = getpass.getpass("Pass for login %s: " % conf.login)
         if not strx:
-            print("Aborting ...")
+            print("Cnnot login with empty pass, aborting ...")
             sys.exit(0)
         conf.lpass = strx
 
@@ -143,7 +148,7 @@ def    mainfunct():
         import getpass
         strx = getpass.getpass("Pass for new user %s: " % conf.userx)
         if not strx:
-            print("Aborting ...")
+            print("Empty pass, aborting ...")
             sys.exit(0)
         conf.passx = strx
 
@@ -162,6 +167,16 @@ def    mainfunct():
     elif conf.listx:
         resp = hand.client(["ulist", conf.listx], conf.sess_key)
         print("ulist Response:", resp)
+    elif conf.change:
+        if not conf.chpass:
+            import getpass
+            strx = getpass.getpass("Pass for change pass %s: " % conf.userx)
+            if not strx:
+                print("Empty pass, aborting ...")
+                sys.exit(0)
+            conf.chpass = strx
+        resp = hand.client(["chpass", conf.userx, conf.passx, conf.chpass, ], conf.sess_key)
+        print("uchpass Response:", resp)
 
     hand.client(["quit"], conf.sess_key)
     hand.close();

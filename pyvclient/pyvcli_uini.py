@@ -39,17 +39,18 @@ version = 1.0
 def phelp():
 
     print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
+    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [hostname]")
     print()
     print( "Options:    -d level  - Debug level 0-10 default: 0")
     print( "            -p        - Port to use (default: 6666)")
     print( "            -v        - Verbose. Present more info.")
     print( "            -q        - Quiet. Present less info.")
     print( "            -u user   - User Name; default: 'admin'")
-    print( "            -p pass   - Password; default: '1234' (!!! for tests only)")
+    print( "            -p pass   - Password; default: '1234' (!! for tests only !!)")
     print( "            -t        - Prompt for password.")
     print( "            -h        - Help (this screen)")
     print()
+    print( "The user will be prompted for confirmation if demosystem is created.")
     sys.exit(0)
 
 def pversion():
@@ -86,9 +87,18 @@ def    mainfunct():
         import getpass
         strx = getpass.getpass("Enter Pass for initial user: ")
         if not strx:
-            print("Aborting ...")
+            print("Empty pass, aborting ...")
             sys.exit(0)
-        strx = conf.passx
+        conf.passx =  strx
+
+    if conf.passx == "1234":
+        print("This creates credentials for a demo / test system.")
+        print("Are you sure? (y/N) ", end = ""); sys.stdout.flush()
+        sss = input().strip().lower()
+        #print(sss)
+        if sss != "y" and sss != "yes":
+            print("You may use the -t option for password prompt. Exiting ...")
+            sys.exit()
 
     if len(args) == 0:
         ip = '127.0.0.1'

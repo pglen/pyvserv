@@ -1353,50 +1353,60 @@ def get_pass_func(self, strx):
 
 def get_chpass_func(self, strx):
 
-    if len(strx) < 1:
+    if len(strx) < 2:
+        response = [ERR, "Must specify user to change.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 3:
         response = [ERR, "Must specify old_pass.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    if len(strx) < 2:
+    if len(strx) < 4:
         response = [ERR, "Must specify new_pass.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-
-    #print("chpass", strx[1], strx[2])
-
+    #print("chpass", strx)
     # Make sure there is a trace of the attempt
     stry = "chpass  '" + self.resp.user + "' " + str(self.resp.client_address)
     pysyslog.syslog(stry)
 
-    # Authenticate
-    xret = pyservsup.passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
-    if xret[0] != 1:
-        response = [ERR, "Old pass must match", strx[0]]
-        self.resp.datahandler.putencode(response, self.resp.ekey )
-        return
+    # Are we allowed to change pass?
+    ret = pyservsup.passwd.perms(self.resp.user)
+    if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
+        # Authenticate
+        if strx[1] !=  self.resp.user:
+            response = [ERR, "Non admins can only change their own password.", strx[0]]
+            self.resp.datahandler.putencode(response, self.resp.ekey )
+            return
 
+        xret = pyservsup.passwd.auth(strx[1], strx[2], 0, pyservsup.USER_AUTH)
+        if xret[0] != 1:
+            response = [ERR, "Old pass must match", strx[0]]
+            self.resp.datahandler.putencode(response, self.resp.ekey )
+            return
     # Change
-    xret = pyservsup.passwd.auth(self.resp.user, strx[2], 0, pyservsup.USER_CHPASS)
+    xret = pyservsup.passwd.auth(strx[1], strx[3], 0, pyservsup.USER_CHPASS)
 
     ret = ""
     if xret[0] == 5:
         stry = "Pass changed '" + self.resp.user + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        ret = [OK, "Pass changed", self.resp.user]
+        ret = [OK, "Pass changed", strx[1]]
     elif xret[0] == 3:
-        stry = "No such user  '" + self.resp.user + "' " + \
+        stry = "No such user  '" + strx[1] + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
-        ret = [ERR, "No such user.", self.resp.user]
+        ret = [ERR, "No such user.", strx[1]]
     elif xret[0] == 1:
-        pysyslog.syslog("Successful logon", self.resp.user,
+        pysyslog.syslog("Successful logon", strx[1],
                                             str(self.resp.client_address))
         ret = ["OK ", self.resp.user, " Authenticated."]
         retval = False
     else:
-        stry = "Error on logon  '" + self.resp.user + "' " + \
+        stry = "Error on logon  '" + strx[1] + "' " + \
                 str(self.resp.client_address)
         pysyslog.syslog(stry)
         ret = [ERR, xret[1], strx[0]]
@@ -1560,53 +1570,6 @@ def get_uini_func(self, strx):
             response = [ERR, ret[1], strx[0]]
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
-
-#def get_kini_func(self, strx):
-#
-#    # Test for local client
-#    if str(self.resp.client_address[0]) != "127.0.0.1":
-#        response = ERR, "Must connect from loopback.", strx[0]
-#    elif len(strx) < 3:
-#        response = ERR, "Must specify key_name and key_value.", strx[0]
-#    else:
-#        # See if there is a key file
-#        if os.path.isfile(pyservsup.keyfile):
-#            response = ERR, "Initial key already exists", strx[0]
-#        else:
-#            #tmp2 = bluepy.bluepy.decrypt(self.resp.passwd, "1234")
-#            #tmp = bluepy.bluepy.encrypt(strx[2], tmp2)
-#            #ret = pyservsup.kauth(strx[1], tmp, 1)
-#            ret = pyservsup.kauth(strx[1], strx[2], 1)
-#            #bluepy.bluepy.destroy(tmp)
-#
-#            if ret[0] == 0:
-#                response = OK, "Added key",  strx[1]
-#            else:
-#                response = ERR, ret[1], strx[0]
-#    self.resp.datahandler.putencode(response, self.resp.ekey)
-#
-#def get_kadd_func(self, strx):
-#
-#    response = ERR, "Not Implemented", strx[0]
-#    self.resp.datahandler.putencode(response, self.resp.ekey)
-#    return
-#
-#    if not os.path.isfile(pyservsup.keyfile):
-#        response = ERR, "No initial keys yet. Please add some.", strx[0]
-#    if len(strx) < 3:
-#        response = ERR, "Must specify key_name and key_value.", strx[0]
-#    else:
-#        # See if there is a key by this name
-#        ret = pyservsup.kauth(strx[1], strx[2], 1)
-#        if ret[0]  < 0:
-#            response = ERR, ret[1], strx[0]
-#        elif ret[0] == 2:
-#            response = ERR, "Key already exists, no keys are changed ", strx[0]
-#        elif ret[0] == 0:
-#            response = "OK added key '" + strx[1] + "'"
-#        else:
-#            response = ERR, "Invalid return code from auth.", strx[0]
-#    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_udel_func(self, strx):
 

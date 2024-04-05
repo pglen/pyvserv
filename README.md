@@ -120,13 +120,16 @@ Also the scripts are installed in ~/.local/bin, so add the following line
 
     PATH=$PATH:~/.local/bin
 
- This workaround is not needed if one installs a python virtual environment.
+This workaround is not needed if one installs a python virtual environment.
 
     python3 -m venv pip_pyvserv
     cd pip_pyvserv
     source ./bin/avtivate
     pip install pyvserv
     ... continue as needed.
+
+Running pyvserv as a system daemon from virtual environment needs
+extra configuration steps. Please see the relevant systemctl manuals.
 
 #### Quick map:
 
@@ -188,9 +191,11 @@ sample client examples in the client source tree. (Files named pyvcli_*)
 
   In the command line client most of the server functions can be exercised.
 See the pyvcli_* utils for more examples of driving the server. On a
-fresh install, one may need to execute the pyvcli_uini to create an initial
-admin user, with password 1234. The command 'help' will deliver information
-on the available commands.
+fresh install, one may need to execute the pyvcli_uini.py to create an initial
+admin user, with password 1234. The uini command will prompt if this is
+what was intended.
+
+ The cli utility command 'help' will deliver information on the available commands.
 
 !!! IMPORTANT !!! Make sure you change this when testing / learning is over.
 
@@ -217,21 +222,27 @@ on the available commands.
  While most command line clients have their own help screen, here as a typical
 client utility's help screen:
 
-    Usage: pyvcli_uman.py [options]
+    Usage: pyvcli_uman.py [options] [hostname]
 
     Options:    -d level  - Debug level 0-10
                 -p        - Port to use (default: 6666)
                 -l login  - Login Name; default: 'user'
                 -s lpass  - Login Pass; default: '1234'
                 -u user   - User Name; default: 'user'
-                -a        - Add user. Must be unique.
-                -r        - Remove user (one of add or remove needed.
+                -t        - prompt for login pass
+                -a        - Add user. Must be a unique user name.
+                -r        - Remove user
                 -u user   - User Name; default: 'user'
-                -p pass   - User pssword; default: '1234' (!!! for tests only)
+                -p pass   - User password; default: '1234' (!!for tests only!!)
+                -T        - prompt for new pass
                 -m        - Add admin instead of regular user
+                -e enflag - Enable / Disable user.
+                -i kind   - List users (user or admin
                 -v        - Verbose
                 -q        - Quiet
                 -h        - Help
+
+     One of Add / Remove / Enable / List option is needed.
 
 ## Testing:
 
@@ -265,6 +276,18 @@ Additional tests can be found in the tests/ directory. The pyvcli_* files may al
 serve as test cases.
 
 More test coming soon ....
+
+## Production:
+
+Once the testing phase is complete, deploying it for production needs a
+complete wipe of the data. There are Makefile targets that do that
+(make cleanall). Restarting the server will create the new environment without
+any users. To allow operation one may create the initial user with the uini
+functions and / or scripts.
+The uini can only operate successfully if there are no users present in the
+pyvserv system, and it is executed from the loopback interface. For example,
+the command line utility ./pyvcli_uini.py can be executed with the -t option
+to prompt for a password.
 
 ## Screen shots:
 

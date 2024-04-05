@@ -639,7 +639,7 @@ class Passwd():
         for line in passdb:
             fields = line.split(",")
             fff = int(fields[1])
-            print(fields[:2])
+            #print(fields[:2])
             if umode == 0 and fff == 0:
                 userlist.append(fields[0])
             elif fff & umode:

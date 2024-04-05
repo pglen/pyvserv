@@ -1,5 +1,5 @@
 #
-# Use to build modules, generate service file, install sevice file
+# Used to build modules, generate service file, install sevice file
 #
 
 # These scripts work on the default installation
@@ -35,6 +35,7 @@ git:
 hello:
 	@make -C client hello
 
+# untested
 deb:  build build3
 	./build-deb.sh
 
