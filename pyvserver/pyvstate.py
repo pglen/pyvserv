@@ -61,6 +61,7 @@ uini_help   = "Usage: uini user_name user_pass -- Create initial user. "\
 #kini_help  = "Usage: kini key_name key_pass -- Create initial key. " \
 #                "Must be from local net."
 uena_help  = "Usage: uena user_name  flag --  enable / disable user"
+ulist_help = "Usage: ulist flag  --  list users / admins"
 aadd_help  = "Usage: aadd user_name user_pass -- create admin user"
 udel_help  = "Usage: udel user_name -- Delete user"
 data_help  = "Usage: data datalen -- Specify length of file to follow"
@@ -149,9 +150,10 @@ def init_state_table():
         ("fput",    all_in,  none_in,    auth_pass, get_fput_func,  fput_help),
         ("del",     all_in,  none_in,    auth_pass, get_del_func,   del_help),
         ("uadd",    all_in,  none_in,    auth_pass, get_uadd_func,  uadd_help),
-        ("uena",    all_in,  none_in,    auth_pass, get_uena_func,  uena_help),
-        ("aadd",    all_in,  none_in,    auth_pass, get_aadd_func,  aadd_help),
         ("udel",    all_in,  none_in,    auth_pass, get_udel_func,  udel_help),
+        ("uena",    all_in,  none_in,    auth_pass, get_uena_func,  uena_help),
+        ("ulist",   all_in,  none_in,    auth_pass, get_ulist_func, ulist_help),
+        ("aadd",    all_in,  none_in,    auth_pass, get_aadd_func,  aadd_help),
         ("ls",      all_in,  none_in,    auth_pass, get_ls_func,    lsls_help),
         ("lsd",     all_in,  none_in,    auth_pass, get_lsd_func,   lsld_help),
         ("cd",      all_in,  none_in,    auth_pass, get_cd_func,    cdcd_help),

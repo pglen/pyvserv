@@ -28,18 +28,22 @@ version = 1.0
 def phelp():
 
     print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
+    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [host]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
     print( "            -l login  - Login Name; default: 'user'")
     print( "            -s lpass  - Login Pass; default: '1234'")
     print( "            -u user   - User Name; default: 'user'")
+    print( "            -t        - prompt for login pass")
     print( "            -a        - Add user. Must be unique.")
     print( "            -r        - Remove user (one of add or remove needed.")
     print( "            -u user   - User Name; default: 'user'")
     print( "            -p pass   - User pssword; default: '1234' (!!! for tests only)")
+    print( "            -T        - prompt for new pass")
     print( "            -m        - Add admin instead of regular user")
+    print( "            -e enflag - Enable / Disable user. ")
+    print( "            -i kind   - List users (user or admin")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -52,20 +56,23 @@ def pversion():
 
     # option, var_name, initial_val, function
 optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["l:",  "login",    "admin",    None],      \
-    ["s:",  "lpass",    "1234",    None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["m",   "admin",    0,          None],      \
-    ["a",   "add",      0,          None],      \
-    ["r",   "remove",    0,         None],      \
-    ["u:",  "userx",    "user",     None],      \
-    ["p:",  "passx",    "1234",     None],      \
-    ["t",   "prompt",    0,         None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
+    ["d:",  "pgdebug",      0,          None],      \
+    ["p:",  "port",         6666,       None],      \
+    ["l:",  "login",        "admin",    None],      \
+    ["s:",  "lpass",        "1234",     None],      \
+    ["t",   "lprompt",      0,          None],      \
+    ["v",   "verbose",      0,          None],      \
+    ["q",   "quiet",        0,          None],      \
+    ["m",   "admin",        0,          None],      \
+    ["a",   "add",          0,          None],      \
+    ["r",   "remove",       0,          None],      \
+    ["u:",  "userx",        "user",     None],      \
+    ["p:",  "passx",        "1234",     None],      \
+    ["T",   "prompt",       0,          None],      \
+    ["e:",  "encomm",       "",         None],      \
+    ["i:",  "listx",        "",         None],  \
+    ["V",   None,           None,       pversion],  \
+    ["h",   None,           None,       phelp]      \
 
 conf = comline.Config(optarr)
 conf.sess_key = ""
@@ -80,8 +87,9 @@ def    mainfunct():
 
     args = conf.comline(sys.argv[1:])
 
-    if not conf.add and not conf.remove:
-        print("One of Add / Remove [ -a | -r ] should be specified.")
+    if not conf.add and not conf.remove and not conf.encomm and not conf.listx:
+        print("One of Add / Remove / Enable / List option should be specified.")
+        # [ -a | -r | -e  | -i]
         sys.exit()
 
     if len(args) == 0:
@@ -93,6 +101,14 @@ def    mainfunct():
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
+    if conf.lprompt:
+        import getpass
+        strx = getpass.getpass("Pass for login %s: " % conf.login)
+        if not strx:
+            print("Aborting ...")
+            sys.exit(0)
+        conf.lpass = strx
+
     try:
         respc = hand.connect(ip, conf.port)
     except:
@@ -100,19 +116,23 @@ def    mainfunct():
         sys.exit(1)
 
     resp3 = hand.start_session(conf)
-    print("Sess Response:", resp3)
+    if not conf.quiet:
+        print("Sess Response:", resp3)
 
-    resp3 = hand.client(["hello",] , conf.sess_key, False)
-    print("Hello sess Response:", resp3[1])
+    #resp3 = hand.client(["hello",] , conf.sess_key, False)
+    #if not conf.quiet:
+    #    print("Hello sess Response:", resp3[1])
 
     resp = hand.client(["user", conf.login], conf.sess_key)
-    print("user Response:", resp)
+    if not conf.quiet:
+        print("user Response:", resp)
     if resp[0] != "OK":
         hand.client(["quit"], conf.sess_key)
         hand.close();
 
     resp = hand.client(["pass", conf.lpass], conf.sess_key)
-    print("pass Response:", resp)
+    if not conf.quiet:
+        print("pass Response:", resp)
     if resp[0] != "OK":
         hand.client(["quit"], conf.sess_key)
         hand.close();
@@ -121,15 +141,16 @@ def    mainfunct():
 
     if conf.prompt:
         import getpass
-        #print("Pass for new user %s:" % conf.userx, end = " ");
-        #sys.stdout.flush()
-        #strx = input()
         strx = getpass.getpass("Pass for new user %s: " % conf.userx)
         if not strx:
             print("Aborting ...")
             sys.exit(0)
         conf.passx = strx
-    if conf.add:
+
+    if conf.encomm:
+        resp = hand.client(["uena", conf.userx, conf.encomm, ], conf.sess_key)
+        print("uen Response:", resp)
+    elif conf.add:
         if conf.admin:
             resp = hand.client(["aadd", conf.userx, conf.passx], conf.sess_key)
         else:
@@ -138,6 +159,9 @@ def    mainfunct():
     elif conf.remove:
         resp = hand.client(["udel", conf.userx, conf.passx], conf.sess_key)
         print("udel Response:", resp)
+    elif conf.listx:
+        resp = hand.client(["ulist", conf.listx], conf.sess_key)
+        print("ulist Response:", resp)
 
     hand.client(["quit"], conf.sess_key)
     hand.close();

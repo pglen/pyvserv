@@ -98,6 +98,7 @@ def phelp():
     print( "            -p        - Port to use (default: 6666)")
     print( "            -l login  - Login Name; default: 'user'")
     print( "            -s lpass  - Login Pass; default: '1234'")
+    print( "            -t        - Prompt for pass")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -x comm   - Execute command and quit")
@@ -115,15 +116,16 @@ def pversion():
 
     # option, var_name, initial_val, function
 optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
+    ["d:",  "pgdebug",  0,          None],      \
+    ["p:",  "port",     6666,       None],      \
     ["l:",  "login",    "admin",    None],      \
-    ["s:",  "lpass",    "1234",    None],      \
-    ["x:",  "comm",     "",     None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
+    ["s:",  "lpass",    "1234",     None],      \
+    ["t",   "prompt",   0,          None],      \
+    ["x:",  "comm",     "",         None],      \
+    ["v",   "verbose",  0,          None],      \
+    ["q",   "quiet",    0,          None],      \
+    ["V",   None,       None,       pversion],  \
+    ["h",   None,       None,       phelp]      \
 
 conf = comline.Config(optarr)
 
@@ -139,6 +141,13 @@ def mainfunct():
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
+
+    if conf.prompt:
+        import getpass
+        strx = getpass.getpass("Enter Pass: ")
+        if not strx:
+            print("Aborting ...")
+            sys.exit(0)
 
     if len(args) == 0:
         ip = '127.0.0.1'

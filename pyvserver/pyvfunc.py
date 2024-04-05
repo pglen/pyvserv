@@ -1483,7 +1483,7 @@ def get_uena_func(self, strx):
     elif strx[2] == "disable":
         mode = pyservsup.PERM_DIS
     else:
-        response = [ERR, "Must specify 'enable' or 'disable'.", strx[0]]
+        response = [ERR, "Must specify 'enable' or 'disable'", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
@@ -1496,6 +1496,40 @@ def get_uena_func(self, strx):
         response = OK,  strx[1], strx[2] + "d"
     else:
         response = ERR, ret[1], strx[1]
+
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+
+def get_ulist_func(self, strx):
+
+    retval = 0
+
+    # Are we allowed to add users?
+    ret = pyservsup.passwd.perms(self.resp.user)
+    if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
+        response = ERR, "only admin can view users.", strx[0]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return retval
+
+    if len(strx) < 2:
+        response = ERR, "Must specify user / admin flag", strx[0]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return retval
+
+    if strx[1] == "user":
+        mode = pyservsup.PERM_NONE
+    elif strx[1] == "admin":
+        mode = pyservsup.PERM_ADMIN
+    elif strx[1] == "initial":
+        mode = pyservsup.PERM_INI
+    elif strx[1] == "disabled":
+        mode = pyservsup.PERM_DIS
+    else:
+        response = [ERR, "Must specify 'user' or 'admin' or 'disabled' or 'initial'", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return retval
+
+    response = pyservsup.passwd.listusers(mode)
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 

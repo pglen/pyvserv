@@ -616,6 +616,38 @@ class Passwd():
 
         return ret
 
+    def listusers(self, umode):
+
+        self.lock.waitlock()
+        fields = ""; haveusr = False
+        try:
+            fh = open(globals.passfile, "r")
+        except:
+            try:
+                fh = open(globals.passfile, "w+")
+            except:
+                #self._unlock()
+                return -1, "Cannot open / create pass file " + globals.passfile
+
+        passdb = fh.readlines()
+        fh.close()
+        userlist = []
+        if not passdb:
+            self.lock.unlock()
+            return userlist
+
+        for line in passdb:
+            fields = line.split(",")
+            fff = int(fields[1])
+            print(fields[:2])
+            if umode == 0 and fff == 0:
+                userlist.append(fields[0])
+            elif fff & umode:
+                userlist.append(fields[0])
+
+        self.lock.unlock()
+        return userlist
+
 passwd = Passwd()
 
 # ------------------------------------------------------------------------
@@ -813,5 +845,3 @@ if __name__ == '__main__':
 
 
 # EOF
-
-

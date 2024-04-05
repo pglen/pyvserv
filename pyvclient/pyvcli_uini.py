@@ -43,10 +43,11 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10 default: 0")
     print( "            -p        - Port to use (default: 6666)")
-    print( "            -v        - Verbose. Present more info")
+    print( "            -v        - Verbose. Present more info.")
+    print( "            -q        - Quiet. Present less info.")
     print( "            -u user   - User Name; default: 'admin'")
     print( "            -p pass   - Password; default: '1234' (!!! for tests only)")
-    print( "            -q        - Quiet. Prrsent less info")
+    print( "            -t        - Prompt for password.")
     print( "            -h        - Help (this screen)")
     print()
     sys.exit(0)
@@ -63,7 +64,7 @@ optarr = \
     ["q",   "quiet",    0,          None],      \
     ["u:",  "userx",    "admin",    None],      \
     ["p:",  "passx",    "1234",     None],      \
-    ["t",   "test",     "x",        None],      \
+    ["t",   "prompt",    0,         None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
 
@@ -75,10 +76,19 @@ conf.sess_key = ""
 def    mainfunct():
 
     ''' Initialize test user 'admin' with password '1234'
-    Naturally, this is for testing. '''
-
+        Naturally, this is for testing.
+        On production server, add a real password.
+    '''
 
     args = conf.comline(sys.argv[1:])
+
+    if conf.prompt:
+        import getpass
+        strx = getpass.getpass("Enter Pass for initial user: ")
+        if not strx:
+            print("Aborting ...")
+            sys.exit(0)
+        strx = conf.passx
 
     if len(args) == 0:
         ip = '127.0.0.1'
@@ -98,7 +108,8 @@ def    mainfunct():
     #print("Connect Response:", respc)
 
     resp3 = hand.start_session(conf)
-    print("Sess Response:", resp3)
+    if not conf.quiet:
+        print("Sess Response:", resp3)
 
     resp3 = hand.client(["hello",] , conf.sess_key, False)
     #print("Hello sess Response:", resp3[1])
