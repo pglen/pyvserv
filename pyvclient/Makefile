@@ -44,6 +44,7 @@ clean:
 	@rm -f *_local
 	@rm -rf __pycache__
 	@rm -f bigfile*
+	@rm -f test.txt*
 
 docs:
 	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_qr.py

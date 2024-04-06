@@ -48,6 +48,7 @@ clean:
 	@rm -rf  dist/*
 	@rm -rf  build/*
 	@rm -f pyvserv.service
+	@rm -rf pip_pyvserv/*
 
 freshdata:
 	@rm -rf ~/pyvserver/*
