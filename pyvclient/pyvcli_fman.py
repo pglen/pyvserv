@@ -4,7 +4,7 @@
 # Test client for the pyserv project. File Manipulation.
 
 import os, sys, getopt, signal, select, socket, time, struct
-import random, stat
+import random, stat, datetime
 
 # This repairs the path from local run to pip run.
 try:
@@ -33,20 +33,22 @@ def phelp():
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
     print( "            -l login  - Login Name; default: 'admin'")
-    print( "            -s lpass  - Login Pass; default: '1234'")
+    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
     print( "            -t        - prompt for login pass")
-    print( "            -u fname  - Upload file")
-    print( "            -n fname  - Download file")
     print( "            -m dname  - Make directory")
     print( "            -r dname  - Remove directory")
+    print( "            -u fname  - Upload file")
+    print( "            -n fname  - Download file")
+    print( "            -e fname  - Delete file")
     print( "            -a fname  - Stat file")
-    print( "            -i        - List (dir) files")
-    print( "            -I        - List (dir) directories")
+    print( "            -i        - List files")
+    print( "            -I        - List directories")
+    print( "            -g        - Long listings")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
     print()
-    print( " If no action is specified, it defauts to ls (dir).")
+    print( " If no action is specified, command defauts to list files.")
     print()
     sys.exit(0)
 
@@ -61,10 +63,15 @@ optarr = \
     ["l:",  "login",        "admin",    None],      \
     ["s:",  "lpass",        "1234",     None],      \
     ["u:",  "fname",        "",         None],      \
+    ["m:",  "mdname",       "",         None],      \
+    ["r:",  "rdname",       "",         None],      \
     ["n:",  "dname",        "",         None],      \
+    ["e:",  "delname",      "",         None],      \
+    ["a:",  "stname",       "",         None],      \
     ["t",   "lprompt",      0,          None],      \
     ["i",   "list",         0,          None],      \
     ["I",   "dlist",        0,          None],      \
+    ["g",   "long",         0,          None],      \
     ["v",   "verbose",      0,          None],      \
     ["q",   "quiet",        0,          None],      \
     ["V",   None,           None,       pversion],  \
@@ -83,13 +90,6 @@ def    mainfunct():
 
     args = conf.comline(sys.argv[1:])
 
-    #if not conf.add and not conf.remove and not conf.encomm \
-    #            and not conf.listx and not conf.change:
-    #if not conf.list and not conf.dlist and not conf.fname:
-    #    print( " One of Upload / Download / Mkdir / Rmdir / List option is needed.")
-    #    #print("Use [ -a | -r | -p | -e  | -i ] options or the -h option for help.")
-    #    sys.exit()
-
     if len(args) == 0:
         ip = '127.0.0.1'
     else:
@@ -103,10 +103,9 @@ def    mainfunct():
         import getpass
         strx = getpass.getpass("Pass for login %s: " % conf.login)
         if not strx:
-            print("Cnnot login with empty pass, aborting ...")
+            print("Cannot login with empty pass, aborting ...")
             sys.exit(0)
         conf.lpass = strx
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
@@ -133,13 +132,36 @@ def    mainfunct():
     elif conf.fname:
         resp = hand.putfile(conf.fname, "", conf.sess_key)
         print("upload Response:", resp)
+    elif conf.delname:
+        resp = hand.client(["del", conf.delname], conf.sess_key)
+        print ("del response:", resp)
+    elif conf.stname:
+        resp = hand.client(["stat", conf.stname], conf.sess_key)
+        #print ("stat response:", resp)
+        print(pyclisup.formatstat(resp))
+    elif conf.mdname:
+        resp = hand.client(["mkdir", conf.mdname], conf.sess_key)
+        print ("mkdir response:", resp)
+    elif conf.rdname:
+        resp = hand.client(["rmdir", conf.rdname], conf.sess_key)
+        print ("rdmdir response:", resp)
     elif conf.dlist:
         resp = hand.client(["lsd", ], conf.sess_key)
-        print("lsd Response:", resp)
+        if conf.long:
+            for aa in resp[1:]:
+                resp2 = hand.client(["stat", aa], conf.sess_key)
+                print(pyclisup.formatstat(resp2))
+        else:
+            print("lsd Response:", resp)
     else:
         #if conf.list:
         resp = hand.client(["ls", ], conf.sess_key)
-        print("ls Response:", resp)
+        if conf.long:
+            for aa in resp[1:]:
+                resp2 = hand.client(["stat", aa], conf.sess_key)
+                print(pyclisup.formatstat(resp2))
+        else:
+            print("ls Response:", resp)
 
     hand.client(["quit"], conf.sess_key)
     hand.close();
@@ -148,6 +170,5 @@ def    mainfunct():
 
 if __name__ == '__main__':
     mainfunct()
-
 
 # EOF

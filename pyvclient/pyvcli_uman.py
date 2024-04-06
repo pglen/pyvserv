@@ -32,24 +32,24 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
-    print( "            -l login  - Login Name; default: 'user'")
-    print( "            -s lpass  - Login Pass; default: '1234'")
+    print( "            -l login  - Login Name; default: 'admin'")
+    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
     print( "            -t        - prompt for login pass")
     print( "            -a        - Add user. Must be a unique user name.")
     print( "            -m        - Add admin instead of regular user")
     print( "            -r        - Remove user")
     print( "            -c        - Change pass")
-    print( "            -i kind   - List users (user / admin / disabled / inittial")
-    print( "            -e enflag - Enable / Disable user. ")
-    print( "            -u user   - User Name; default: 'user'")
+    print( "            -i kind   - List users (user / admin / disabled / initial")
+    print( "            -e enflag - Enable / Disable user")
+    print( "            -u user   - User Name; default: 'test_user'")
     print( "            -x npass  - User password; default: '1234' (!!for tests only!!)")
     print( "            -T        - prompt for new user pass / change pass")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
     print()
-    print( " If no action is specified, it defauts to lits users.")
-    #print()
+    print( " If no action is specified, it defaults to list users.")
+    print()
     sys.exit(0)
 
 def pversion():
@@ -58,25 +58,25 @@ def pversion():
 
     # option, var_name, initial_val, function
 optarr = \
-    ["d:",  "pgdebug",      0,          None],      \
-    ["p:",  "port",         6666,       None],      \
-    ["l:",  "login",        "admin",    None],      \
-    ["s:",  "lpass",        "1234",     None],      \
-    ["t",   "lprompt",      0,          None],      \
-    ["v",   "verbose",      0,          None],      \
-    ["q",   "quiet",        0,          None],      \
-    ["m",   "admin",        0,          None],      \
-    ["a",   "add",          0,          None],      \
-    ["r",   "remove",       0,          None],      \
-    ["c",   "change",       "",         None],      \
-    ["u:",  "userx",        "user",     None],      \
-    ["x:",  "passx",        "1234",     None],      \
-    ["X:",  "chpass",       "",         None],      \
-    ["T",   "prompt",       0,          None],      \
-    ["e:",  "encomm",       "",         None],      \
-    ["i:",  "listx",        "",         None],  \
-    ["V",   None,           None,       pversion],  \
-    ["h",   None,           None,       phelp]      \
+    ["d:",  "pgdebug",      0,              None],      \
+    ["p:",  "port",         6666,           None],      \
+    ["l:",  "login",        "admin",        None],      \
+    ["s:",  "lpass",        "1234",         None],      \
+    ["t",   "lprompt",      0,              None],      \
+    ["v",   "verbose",      0,              None],      \
+    ["q",   "quiet",        0,              None],      \
+    ["m",   "admin",        0,              None],      \
+    ["a",   "add",          0,              None],      \
+    ["r",   "remove",       0,              None],      \
+    ["c",   "change",       "",             None],      \
+    ["u:",  "userx",        "test_user",    None],      \
+    ["x:",  "passx",        "1234",         None],      \
+    ["X:",  "chpass",       "",             None],      \
+    ["T",   "prompt",       0,              None],      \
+    ["e:",  "encomm",       "",             None],      \
+    ["i:",  "listx",        "",             None],  \
+    ["V",   None,           None,           pversion],  \
+    ["h",   None,           None,           phelp]      \
 
 conf = comline.Config(optarr)
 conf.sess_key = ""
@@ -110,7 +110,7 @@ def    mainfunct():
         import getpass
         strx = getpass.getpass("Pass for login %s: " % conf.login)
         if not strx:
-            print("Cnnot login with empty pass, aborting ...")
+            print("Cannot login with empty pass, aborting ...")
             sys.exit(0)
         conf.lpass = strx
 

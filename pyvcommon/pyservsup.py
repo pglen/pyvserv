@@ -924,6 +924,16 @@ class Throttle():
         self.enabled.value = flag
         self.sem.release()
 
+    def getflag(self):
+
+        ''' report throttling status '''
+
+        self.sem.acquire()
+        #self.enabled[0] = flag
+        ret = self.enabled.value
+        self.sem.release()
+        return ret
+
 # The one and only instance
 gl_throttle = Throttle()
 

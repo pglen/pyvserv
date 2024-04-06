@@ -30,7 +30,7 @@ version = 1.0
 def phelp():
 
     print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
+    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [hostname]")
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
@@ -49,7 +49,7 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,       None],      \
-    ["t:",   "throt",   "off",      None],      \
+    ["t:",   "throt",   "",         None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
     ["V",   None,       None,       pversion],  \
@@ -81,13 +81,7 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    if conf.verbose:
-        resp3 = hand.client(["hello",] , "", False)
-        print("Hello Response:", resp3[1])
-
-    #conf.sess_key = ""    #ret = ["OK",]
     ret = hand.start_session(conf)
-
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
         hand.client(["quit"])
@@ -97,8 +91,7 @@ if __name__ == '__main__':
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
     if conf.verbose:
-        print("Hello (plain) Response:", resp4)
-        #print("Hello (encrypted) Response:", resp4[1])
+        print("Hello Resp:", resp4)
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
     #if not conf.quiet:
@@ -106,14 +99,14 @@ if __name__ == '__main__':
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
     if not conf.quiet:
-        print ("Server pass response:", cresp[1])
+        print ("Server pass response:", cresp)
 
-    if conf.verbose:
-        cresp = hand.client(["ls", ], conf.sess_key)
-        print ("Server  ls response:", cresp)
+    if not conf.throt:
+        cresp = hand.client(["throt", ], conf.sess_key)
+    else:
+        cresp = hand.client(["throt", conf.throt,], conf.sess_key)
 
-    cresp = hand.client(["throt", conf.throt,], conf.sess_key)
-    print ("Server del response:", cresp)
+    print ("Server throt response:", cresp)
 
     if cresp[0] != "OK":
         #print("Err: ", cresp)

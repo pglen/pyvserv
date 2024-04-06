@@ -214,6 +214,15 @@ def get_throt_func(self, strx):
     ret = pyservsup.gl_passwd.perms(self.resp.user)
     #print("pass 2 %.3f" % ((time.time() - ttt) * 1000) )
 
+    if len(strx) < 2:
+        if pyservsup.gl_throttle.getflag():
+            boolstr = "ON"
+        else:
+            boolstr = "OFF"
+        rrr = [OK, "Throttle is", boolstr]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
+        return
+
     if not int(ret[2]) & pyservsup.PERM_ADMIN:
         rrr = [ERR, "Only admin can control throttle"]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)

@@ -214,8 +214,8 @@ class CliSup():
             response = self.myhandler.handle_one(self.mydathand)
             if self.pgdebug > 2:
                 print("getfile resp", response[:12])
-           # possibly EOF
-           if not response:
+            # possibly EOF
+            if not response:
                 break
             response = cipher.encrypt(response)
             try:
@@ -513,5 +513,13 @@ def expect(val, expx, ifyes = "", context = "", ifno = "" ):
             ifno = "Unexpected result:",
         print(ifno, "'" + val + "'"  , "!=",  "'" + expx + "'",
                         "Context:", context)
+
+def formatstat(resp, dateidx = 0):
+    #print(resp)
+    ddd = datetime.datetime.fromtimestamp(int(resp[10 + dateidx]))
+    retx = ("%s %-24s %-8d %s" % (
+        support.mode2str(int(resp[2])), support.unescape(resp[1]),
+                int(resp[8]), ddd) )
+    return retx
 
 # EOF
