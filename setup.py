@@ -29,6 +29,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 test_root = [\
 "pyvcli_cli",
 "pyvcli_gethelp",
+"pyvcli_ver",
 "pyvcli_hello",
 "pyvcli_rget",
 "pyvcli_rlist",

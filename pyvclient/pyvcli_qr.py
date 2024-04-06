@@ -44,7 +44,6 @@ def phelp():
     print( "            -f file   - Upload new QR image file")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
-    print( "            -n        - No encryption (plain)")
     print( "            -h        - Help")
     print()
     sys.exit(0)
@@ -60,8 +59,6 @@ optarr = \
     ["f:",  "file",     "",     None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
-    ["n",   "plain",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -95,14 +92,17 @@ def mainfunct():
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    conf.sess_key = ""
-    #ret = ["OK",];  conf.sess_key = ""
     resp3 = hand.start_session(conf)
     if resp3[0] != "OK":
         print("Error on setting session:", resp3[1])
         sys.exit(0)
 
     if conf.file:
+        resp = hand.login("admin", "1234", conf)
+        if resp[0] != "OK":
+            print("Login Response:", resp)
+            sys.exit()
+
         fp = open(conf.file, "rb")
         buff = fp.read()
         fp.close()
@@ -111,7 +111,11 @@ def mainfunct():
         print("QR UP Response:", resp3)
     else:
         resp3 = hand.client(["qr",], conf.sess_key, False)
-        #print("QR Response:", resp3)
+        if resp3[0] != "OK":
+            print("QR Response:", resp3)
+            sys.exit()
+
+        # Save
         fp = open("qr.png", 'wb')
         if type(resp3[1]) != type(b""):
             resp3[1] = resp3[1].encode()

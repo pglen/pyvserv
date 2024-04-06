@@ -39,7 +39,9 @@ __doc__ = \
     The command that starts with the exclamation point is executed
     in the local shell.
 
-## The following commands (and more) may be issued.
+    ## The following commands (and more) may be issued.
+
+    ### Type 'help' for a complete list
 
         user logon_name                 -- Name of user to log in with
         akey                            -- Get asymmetric key
@@ -97,12 +99,11 @@ def phelp():
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
     print( "            -l login  - Login Name; default: 'user'")
-    print( "            -s lpass  - Login Pass; default: '1234'")
+    print( "            -s lpass  - Login Pass; default: '1234' !!For tests Only!!")
     print( "            -t        - Prompt for pass")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -x comm   - Execute command and quit")
-    print( "            -n        - No encryption (plain)")
     print( "            -h        - Help")
     print()
     sys.exit(0)
@@ -115,6 +116,7 @@ def pversion():
     sys.exit(0)
 
     # option, var_name, initial_val, function
+
 optarr = \
     ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,       None],      \

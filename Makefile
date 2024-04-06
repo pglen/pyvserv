@@ -94,9 +94,18 @@ genservice:
 	@cp tmp pyvserv.service
 	@rm -f tmp
 
+# Generate service file
+genservice_virt:
+	@./make_servfile_virt.py > tmp
+	@# the secondline is executed if file is generated
+	@cp tmp pyvserv.service
+	@rm -f tmp
+
 # Install sevice file; needs sudo
-instservice: genservice
+instservice:
+	@sudo systemctl stop pyvserv.service
 	@sudo cp pyvserv.service /etc/systemd/system
+	@sudo systemctl daemon-reload
 	@sudo systemctl enable --now  pyvserv.service
 	@echo "You may now use systemctl start/stop/disable pyvserv.servce"
 
@@ -109,5 +118,12 @@ startservice:
 
 stopservice:
 	sudo systemctl stop pyvserv.service
+
+installvirt:
+	./pyvserv_venv_install.sh
+
+startvirt:
+	./pyvserv_venv.sh
+
 
 # EOF

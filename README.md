@@ -111,7 +111,8 @@ the 'pip pyvserv' as root, and adjust the service file accordingly. If you want
 to use pyvserv with  particular data directory, use the -r option.
 
  On Debian and newer (23+) Ubuntu the system needs the --break-system-packages
- on pip. (unless one creates a venv for it)
+ on pip. (unless one creates a venv for it) This is a cutionary arrangement
+ for the OS, pyvserv does not break anything.
 
     pip install pyvserv --break-system-packages
 
@@ -120,7 +121,7 @@ Also the scripts are installed in ~/.local/bin, so add the following line
 
     PATH=$PATH:~/.local/bin
 
-This workaround is not needed if one installs a python virtual environment.
+This workaround is not needed if one installs pyvserv in a virtual environment.
 
     python3 -m venv pip_pyvserv
     cd pip_pyvserv
@@ -128,8 +129,13 @@ This workaround is not needed if one installs a python virtual environment.
     pip install pyvserv
     ... continue as needed.
 
-Running pyvserv as a system daemon from virtual environment needs
-extra configuration steps. Please see the relevant systemctl manuals.
+The makefile target 'make installvirt' will install pyvserv in a virtual
+environment.
+
+ Running pyvserv as a system daemon from virtual environment needs extra
+configuration steps. You may use the make target: 'make genservice_virt'
+and activate with 'make instservice'
+Please see the relevant systemctl manuals.
 
 #### Quick map:
 
@@ -144,7 +150,8 @@ extra configuration steps. Please see the relevant systemctl manuals.
 
  One can mimic global connectivity on a single machine. This would allow the study
 of the client / server interaction before live deployment. This chapter assumes
-installation from github, replicating directory structure on the local drive.
+installation / clone from github, replicating directory structure on the
+local drive.
 
     open terminal window
     navigate to the server's pyvserver subdir
@@ -157,9 +164,10 @@ installation from github, replicating directory structure on the local drive.
 The following (and more) should be printed on the command line:
 
     ./pyvcli_hello.py
-    Server initial: ['OK', 'pyvserv 1.0 ready']
-    resp ['OK', 'Hello', '6ccdaaf1-a22d-4140-9608-8fb93a8845af', '11812']
-    Server quit response: ['OK', 'Bye', '11812']
+
+    Server initial: ['OK', 'pyvserv 1.0.4 ready']
+    resp ['OK', 'Hello', '4814b46a-9489-4720-af7d-aa14ba19f2be', '11367']
+    Server quit response: ['OK', 'Bye', '11367']
 
 Quick rundown of the above test:
 

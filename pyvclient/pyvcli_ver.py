@@ -80,10 +80,15 @@ def mainfunct():
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp = hand.client(["ver"])
-    print ("Server response:", resp)
+    if conf.quiet == False:
+        respini = hand.pb.decode_data(resp2[1])[0]
+        print ("Server initial:", respini)
 
-    hand.client(["quit"])
+    resp = hand.client(["ver"])
+    print ("Version resp:", resp)
+
+    resp = hand.client(["quit"])
+    print ("Server quit resp:", resp)
     hand.close()
 
     sys.exit(0)

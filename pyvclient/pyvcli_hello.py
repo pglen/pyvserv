@@ -70,7 +70,7 @@ def mainfunct():
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    if conf.quiet == False:
+    if not conf.quiet:
         respini = hand.pb.decode_data(resp2[1])[0]
         print ("Server initial:", respini)
 
@@ -81,10 +81,7 @@ def mainfunct():
     resp2 = hand.client(["quit"])
     if conf.quiet == False:
         print ("Server quit response:", resp2)
-
     hand.close();
-
-    sys.exit(0)
 
 if __name__ == '__main__':
     mainfunct()

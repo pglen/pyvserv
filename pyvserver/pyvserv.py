@@ -141,7 +141,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if conf.pglog > 0:
             pysyslog.syslog("Connected " + " " + str(self.client_address))
 
-        response =  ["OK", "pyvserv %s ready" % pyservsup.version]
+        response =  ["OK", "pyvserv %s ready" % pyservsup.version, self.name]
 
         # Connected, acknowledge it
         self.datahandler.putencode(response, "")

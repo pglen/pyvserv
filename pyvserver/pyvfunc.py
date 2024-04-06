@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-#from __future__ import print_function
-#from __future__ import absolute_import
-
 try:
     import pyotp
 except:
@@ -13,11 +10,8 @@ import datetime,  time, stat, base64, uuid
 
 from pyvecc.Key import Key
 
-#from Crypto.Cipher import PKCS1_v1_5
-#from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Cipher import AES
-#from Crypto.Hash import SHA
 #from Crypto.Hash import SHA512
 from Crypto.Hash import SHA256
 
@@ -115,7 +109,9 @@ def contain_path(self, strp):
 # State transition and action functions
 
 def get_exit_func(self, strx):
-    #print( "get_exit_func", strx)
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_exit_func()", strx)
     self.resp.datahandler.putencode([OK, "Bye", self.name], self.resp.ekey)
     #self.resp.datahandler.par.shutdown(socket.SHUT_RDWR)
 
@@ -129,6 +125,9 @@ def get_exit_func(self, strx):
 # Also stop timeouts
 
 def get_tout_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_tout_func()", strx)
 
     tout = self.resp.datahandler.timeout
     if len(strx) > 1:
@@ -144,7 +143,9 @@ def get_tout_func(self, strx):
     self.resp.datahandler.putencode(resp, self.resp.ekey)
 
 def get_mkdir_func(self, strx):
-    #print("make dir", strx[1])
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_mkdir_func()", strx)
 
     if len(strx) == 1:
         response = [ERR, "Must specify directory name.", strx[0]]
@@ -174,7 +175,9 @@ def get_mkdir_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rmdir_func(self, strx):
-    #print("make dir", strx[1])
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_rmdir_func()", strx)
 
     if len(strx) == 1:
         response = [ERR, "Must specify directory name.", strx[0]]
@@ -205,6 +208,9 @@ def get_rmdir_func(self, strx):
 
 def get_throt_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_throt_func()", strx)
+
     ret = pyservsup.gl_passwd.perms(self.resp.user)
     #print("pass 2 %.3f" % ((time.time() - ttt) * 1000) )
 
@@ -226,7 +232,9 @@ def get_throt_func(self, strx):
     self.resp.datahandler.putencode(rrr, self.resp.ekey)
 
 def get_buff_func(self, strx):
-    #print("buffer str", strx[1])
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_buff_func()", strx)
 
     if len(strx) < 2:
         response = [ERR, "Must specify buffer size.", strx[0]]
@@ -249,11 +257,14 @@ def get_buff_func(self, strx):
 
 def get_lsd_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_lsd_func()", strx)
+
     sss = ""
     dname2 = self.resp.cwd + os.sep + self.resp.dir + os.sep
     dname2 = support.dirclean(dname2)
 
-    if pyservsup.globals.conf.pgdebug > 1:
+    if pyservsup.globals.conf.pgdebug > 3:
         print("get_lsd_func", dname2)
 
     response = [ OK, ]
@@ -275,6 +286,9 @@ def get_lsd_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_ls_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_ls_func()", strx)
 
     dname = ""; sss = ""
     if len(strx) < 2:
@@ -316,7 +330,7 @@ def get_ls_func(self, strx):
 def get_fget_func(self, strx):
 
     if pyservsup.globals.conf.pgdebug > 1:
-        print("fget strx", strx)
+        print("get_fget_func()", strx)
 
     dname = ""
     if len(strx) == 1:
@@ -402,7 +416,9 @@ def get_fget_func(self, strx):
     pysyslog.syslog(xstr)
 
 def get_fput_func(self, strx):
-    #print("fput strx", strx)
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_fput_func()", strx)
 
     if len(strx) < 2:
         response = [ERR, "Must specify file name.", strx[0]]
@@ -471,6 +487,9 @@ def get_fput_func(self, strx):
 
 def get_ekey_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_ekey_func()", strx)
+
     oldkey = self.resp.ekey[:]
     response = ERR ,  "Not implemented."
     self.resp.datahandler.putencode(response, oldkey)
@@ -487,6 +506,10 @@ def get_ekey_func(self, strx):
     self.resp.datahandler.putencode(response, oldkey)
 
 def get_xkey_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_xkey_func()", strx)
+
     oldkey = self.resp.ekey[:]
 
     oldkey = self.resp.ekey[:]
@@ -511,6 +534,10 @@ def get_xkey_func(self, strx):
     self.resp.datahandler.putencode(response, oldkey)
 
 def get_pwd_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_pwd_func()", strx)
+
     dname2 = self.resp.dir
     dname2 = support.dirclean(dname2)
     if dname2 == "": dname2 = os.sep
@@ -518,6 +545,9 @@ def get_pwd_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rcheck_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_rcheck_func()", strx)
 
     if len(strx) < 2:
         response = [ERR, "Must specify blockchain kind", strx[0]]
@@ -568,6 +598,9 @@ def get_rcheck_func(self, strx):
 
 def get_rsize_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_rsize_func()", strx)
+
     if len(strx) < 2:
         response = [ERR, "Must specify blockchain kind.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -596,6 +629,9 @@ def get_rsize_func(self, strx):
 
 
 def get_rcount_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_rcount_func()", strx)
 
     if len(strx) < 2:
         response = [ERR, "Must specify blockchain kind.", strx[0]]
@@ -654,6 +690,9 @@ def get_rcount_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rlist_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_rlisr_func()", strx)
 
     if len(strx) < 2:
         response = [ERR, "Must specify blockchain kind.", strx[0]]
@@ -719,6 +758,9 @@ def get_rlist_func(self, strx):
 
 def get_rhave_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_rhave_func()", strx)
+
     if len(strx) < 2:
         response = [ERR, "Must specify blockchain kind.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -737,14 +779,13 @@ def get_rhave_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    #print("dname", dname)
+    if pyservsup.globals.conf.pgdebug > 3:
+        print("dname", dname)
+
     if not os.path.isdir(dname):
         response = [ERR, "Blockchain 'kind' directory does not exist.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-
-    if pyservsup.globals.conf.pgdebug > 2:
-        print("rget", strx[1], strx[2])
 
     core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
@@ -759,10 +800,12 @@ def get_rhave_func(self, strx):
         response = [OK, "Data found", strx[2],]
 
     #_print_handles(self)
-
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rget_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_rget_func()", strx)
 
     if len(strx) < 2:
         response = [ERR, "Must specify blockchain kind.", strx[0]]
@@ -843,6 +886,9 @@ def get_rget_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rput_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_rput_func()")
 
     if len(strx) < 3:
         response = [ERR, "Must specify blockchain kind and data.", strx[0]]
@@ -979,6 +1025,9 @@ def get_rput_func(self, strx):
 
 def get_ihost_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_ihost_func()", strx)
+
     if len(strx) < 2:
         response = [ERR, "Must specify operation (add / remove).", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1033,6 +1082,9 @@ def get_ihost_func(self, strx):
 
 def get_ihave_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_ihave_func()", strx)
+
     if len(strx) < 2:
         response = [ERR, "Must specify blockchain kind.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1050,6 +1102,9 @@ def get_ihave_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_cd_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_cd_func()", strx)
 
     if len(strx) < 2:
         response = [ERR, "Directory name cannot be empty.", strx[0]]
@@ -1078,6 +1133,9 @@ def get_cd_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_del_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_del_func()", strx)
 
     if len(strx) == 1:
         response = [ERR, "Must specify file name to delete.", strx[0]]
@@ -1109,23 +1167,23 @@ def get_del_func(self, strx):
 # ------------------------------------------------------------------------
 
 def get_ver_func(self, strx):
+
     if pyservsup.globals.conf.pgdebug > 1:
         print( "get_ver_func()", strx)
-    res = [OK, "%s" % pyservsup.version,
-                        "%s" % pyservsup.globals.siteid]
-    if pyservsup.globals.conf.pgdebug > 2:
-        print( "get_ver_func->output", res)
-    self.resp.datahandler.putencode(res, self.resp.ekey)
 
+    res = [OK, "%s" % pyservsup.version,
+                        "%s" % pyservsup.globals.siteid, self.name]
+
+    if pyservsup.globals.conf.pgdebug > 4:
+        print( "get_ver_func->output", res)
+
+    self.resp.datahandler.putencode(res, self.resp.ekey)
 
 def get_id_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 1:
         print( "get_id_func()", strx)
-    res = []
-    res.append(OK);   res.append("%s" % pyservsup.globals.siteid)
-    res.append("ID")
-    if pyservsup.globals.conf.pgdebug > 2:
-        print( "get_ver_func->output", res)
+
+    res = [OK, str(pyservsup.globals.siteid), str(self.name)]
     self.resp.datahandler.putencode(res, self.resp.ekey)
 
 #@support.timeit
@@ -1133,11 +1191,12 @@ def get_hello_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 3:
         print( "get_hello_func()", strx)
     strres = [OK, "Hello", str(pyservsup.globals.siteid), self.name]
-    if pyservsup.globals.conf.pgdebug > 4:
-        print( "get_hello_func->output", "'" + str(strres) + "'")
     self.resp.datahandler.putencode(strres, self.resp.ekey)
 
 def get_stat_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_stat_func()", strx)
 
     if len(strx) < 2:
         response = [ERR, "Must specify file name.", strx[0]]
@@ -1173,6 +1232,9 @@ def get_stat_func(self, strx):
 
 def get_lout_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_lout_func()", strx)
+
     if not self.resp.user:
         response = [ERR, "Not logged in.", strx[0], ]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1187,6 +1249,10 @@ def get_lout_func(self, strx):
 
 #@support.timeit
 def get_user_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_user_func()", strx)
+
     if len(strx) < 2:
         self.resp.datahandler.putencode(
                 [ERR, "Must specify user name.", strx[0]], self.resp.ekey)
@@ -1197,6 +1263,9 @@ def get_user_func(self, strx):
 # ------------------------------------------------------------------------
 
 def get_sess_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_sess_func()")
 
     if len(strx) < 4:
         response = [ERR, "Not enough arguments for session."]
@@ -1241,6 +1310,9 @@ def get_sess_func(self, strx):
 
 #@support.timeit
 def get_akey_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_akey_func()", strx)
 
     ttt = time.time()
 
@@ -1336,6 +1408,9 @@ def get_akey_func(self, strx):
 #@support.timeit
 def get_pass_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_pass_func()")
+
     ret = "";  retval = True
 
     #ttt = time.time()
@@ -1400,6 +1475,9 @@ def get_pass_func(self, strx):
 
 def get_chpass_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_chpass_func()")
+
     if len(strx) < 2:
         response = [ERR, "Must specify user to change.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1463,6 +1541,9 @@ def get_chpass_func(self, strx):
 
 def get_uadd_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_uadd_func()", strx)
+
     if len(strx) < 3:
         response = ERR, "Must specify user name and pass.", strx[0]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1494,6 +1575,9 @@ def get_uadd_func(self, strx):
 
 def get_aadd_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_aadd_func()", strx)
+
     # Are we allowed to add users?
     ret = pyservsup.gl_passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
@@ -1520,6 +1604,9 @@ def get_aadd_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_uena_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_uena_func()", strx)
 
     retval = 0
 
@@ -1559,6 +1646,9 @@ def get_uena_func(self, strx):
 
 def get_ulist_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_ulist_func()", strx)
+
     retval = 0
 
     # Are we allowed to add users?
@@ -1593,6 +1683,9 @@ def get_ulist_func(self, strx):
 
 def get_uini_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_uini_func()")
+
     # Test for local client
     if str(self.resp.client_address[0]) != "127.0.0.1":
         response = [ERR,  "Must connect from loopback interface.", strx[0]]
@@ -1620,6 +1713,9 @@ def get_uini_func(self, strx):
 
 def get_udel_func(self, strx):
 
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_udel_func()", strx)
+
     retval = 0
      # Are we allowed to add users?
     ret = pyservsup.gl_passwd.perms(self.resp.user)
@@ -1644,6 +1740,9 @@ def get_udel_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def put_file_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "put_file_func()", strx)
 
     if len(strx) == 1:
         response = [ERR, "Must specify file name.", strx[0]]
@@ -1680,6 +1779,9 @@ def put_file_func(self, strx):
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def put_data_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "put_data_func()", strx)
 
     #print("fname", self.resp.fname, "data:", strx)
 
@@ -1723,21 +1825,32 @@ def put_data_func(self, strx):
 def get_qr_func(self, strx):
 
     if pyservsup.globals.conf.pgdebug > 1:
-        print("QRfunc called", len(strx))
+        print("get_qr_func()", len(strx))
 
     #print("cwd:", self.resp.cwd)
     if len(strx) == 1:
-        fp = open('qr.png', 'rb')
-        buff = fp.read()
-        fp.close()
-        self.resp.datahandler.putencode([OK, buff], self.resp.ekey)
+        try:
+            fp = open('qr.png', 'rb')
+            buff = fp.read()
+            fp.close()
+            self.resp.datahandler.putencode([OK, buff], self.resp.ekey)
+        except:
+            self.resp.datahandler.putencode([ERR, "No QR image on server"], self.resp.ekey)
     else:
+        ret = pyservsup.gl_passwd.perms(self.resp.user)
+        if not int(ret[2]) & pyservsup.PERM_ADMIN:
+            rrr = [ERR, "Only admin can upload QR image", self.name]
+            self.resp.datahandler.putencode(rrr, self.resp.ekey)
+
         if type(strx[1]) != type(b""):
             strx[1] = strx[1].encode()
-        fp = open('qr.png', 'wb')
-        fp.write(strx[1])
-        fp.close()
-        self.resp.datahandler.putencode([OK, "Written new QR image", len(strx[1])], self.resp.ekey)
+        try:
+            fp = open('qr.png', 'wb')
+            fp.write(strx[1])
+            fp.close()
+            self.resp.datahandler.putencode([OK, "Written new QR image", len(strx[1])], self.resp.ekey)
+        except:
+            self.resp.datahandler.putencode([ERR, "Cannot save QR image"], self.resp.ekey)
 
 def get_twofa_func(self, strx):
 
@@ -1768,6 +1881,9 @@ def get_twofa_func(self, strx):
     return retval
 
 def get_dmode_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "getdmode_func()", strx)
 
     flag = not pyservsup.globals.conf.pmode
     self.resp.datahandler.putencode(["OK", "%d" % flag],  self.resp.ekey)
