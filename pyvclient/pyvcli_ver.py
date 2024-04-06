@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
-import sys
-if sys.version_info[0] < 3:
-    print("Python 2 is not supported as of 1/1/2020")
-    sys.exit(1)
-
 # ------------------------------------------------------------------------
-# Test client for the pyserv project. Encrypt test.
+# Test client for the pyserv project.
 
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
@@ -27,6 +20,7 @@ except:
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
 
+# For this file
 version = "1,0"
 
 # ------------------------------------------------------------------------
@@ -55,7 +49,6 @@ optarr = \
     ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -63,7 +56,7 @@ conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def mainfunct():
 
     if sys.version_info[0] < 3:
         print("Warning! This script was meant for python 3.x")
@@ -88,25 +81,14 @@ if __name__ == '__main__':
         sys.exit(1)
 
     resp = hand.client(["ver"])
-
-    if conf.quiet == False:
-        print ("Server response:", resp)
+    print ("Server response:", resp)
 
     hand.client(["quit"])
     hand.close()
 
     sys.exit(0)
 
+if __name__ == '__main__':
+    mainfunct()
+
 # EOF
-
-
-
-
-
-
-
-
-
-
-
-

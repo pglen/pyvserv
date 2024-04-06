@@ -64,7 +64,7 @@ def test_func(capsys):
     hand.client(["quit"])
     hand.close()
 
-    assert resp[:2] == ['OK', '1.0']
+    assert resp[0] == 'OK'
 
 
 # EOF

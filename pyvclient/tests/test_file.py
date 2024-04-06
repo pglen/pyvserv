@@ -74,6 +74,9 @@ def test_func(capsys):
     #print("Hello encr:", resp5)
     assert resp5[0] ==  "OK"
 
+    resp5 = hand.client(["throt", "off"], sess_key, False)
+    assert resp5[0] ==  "OK"
+
     fp = open(fname, "wb")
     fp.write(b"Test Data" * 10)
     fp.close()

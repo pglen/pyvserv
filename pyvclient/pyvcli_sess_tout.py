@@ -6,30 +6,26 @@ from __future__ import print_function
 # Test client for the pyserv project. Encrypt test.
 
 import  os, sys, getopt, signal, select, socket, time, struct
-import  random, stat
+import  random, stat, base64
 
-from Crypto.Hash import SHA512
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
+from Crypto.Hash import SHA256
 from Crypto import Random
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
+from pyvecc.Key import Key
 
-import support, pycrypt, pyservsup, pyclisup
-import pysyslog, comline
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, "."))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    from pyvcommon import support
 
-'''
-# test encrypt with large keys
-rrr =  "mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd" \
-        "/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ=="
-sss = bluepy.encrypt(rrr, conf.sess_key)
-ttt = bluepy.decrypt(sss, conf.sess_key)
-print (rrr)
-print (ttt)
-'''
+from pyvcommon import support, pycrypt, pyclisup
+from pyvcommon import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -116,8 +112,8 @@ if __name__ == '__main__':
     #if conf.pgdebug > 4:
     #    print ("Server response2:\n" +  "'" + resp[1].decode("cp437") +  "'\n")
 
-    hhh = SHA512.new();
-    hhh.update(resp[2])
+    hhh = SHA256.new();
+    hhh.update(resp[2].encode())
     #hhh.update(bytes(resp[2], "cp437"))
 
     if conf.pgdebug > 3:
@@ -147,7 +143,9 @@ if __name__ == '__main__':
         print(hand.pkey)
 
     try:
-        hand.pubkey = RSA.importKey(hand.pkey)
+        #hand.pubkey = RSA.importKey(hand.pkey)
+        hand.pubkey = Key.import_pub(hand.pkey)
+
         if conf.pgdebug > 4:
             print (hand.pubkey)
     except:
@@ -164,17 +162,14 @@ if __name__ == '__main__':
     #    print("Got pub key", hand.pubkey, "size =", hand.pubkey.size_in_bits())
 
     # Generate communication key
-    conf.sess_key = Random.new().read(512)
-    sss = SHA512.new(); sss.update(conf.sess_key)
-
-    cipher = PKCS1_v1_5.new(hand.pubkey)
-    #print ("cipher", cipher.can_encrypt())
+    conf.sess_key = base64.b64encode(Random.new().read(128))
+    sss = SHA256.new(); sss.update(conf.sess_key)
 
     if conf.pgdebug > 2:
         support.shortdump("conf.sess_key", conf.sess_key )
 
-    sess_keyx = cipher.encrypt(conf.sess_key)
-    ttt = SHA512.new(); ttt.update(sess_keyx)
+    sess_keyx  = hand.pubkey.encrypt(conf.sess_key)
+    ttt = SHA256.new(); ttt.update(sess_keyx.encode())
 
     if conf.pgdebug > 2:
         support.shortdump("sess_keyx", sess_keyx )
@@ -194,22 +189,19 @@ if __name__ == '__main__':
 
     # Session estabilished, try a simple command
     resp4 = hand.client(["hello",], conf.sess_key)
-    print("Hello (encrypted) Response:", resp4[1])
+    print("Hello (encrypted) Response:", resp4[:2])
 
     # --------------------------------------------------------------------
     # Generate communication key, second session and second run
 
-    conf.sess_key2 = Random.new().read(512)
-    sss2 = SHA512.new(); sss2.update(conf.sess_key2)
-
-    #cipher = PKCS1_v1_5.new(hand.pubkey)
-    #print ("cipher", cipher.can_encrypt())
+    conf.sess_key2 = base64.b64encode(Random.new().read(128))
+    sss2 = SHA256.new(); sss2.update(conf.sess_key2)
 
     if conf.pgdebug > 2:
         support.shortdump("conf.sess_key2", conf.sess_key2 )
 
-    sess_keyx2 = cipher.encrypt(conf.sess_key2)
-    ttt2 = SHA512.new(); ttt2.update(sess_keyx2)
+    sess_keyx2  = hand.pubkey.encrypt(conf.sess_key2)
+    ttt2 = SHA256.new(); ttt2.update(sess_keyx2.encode())
 
     if conf.pgdebug > 2:
         support.shortdump("sess_keyx", sess_keyx )
@@ -231,12 +223,19 @@ if __name__ == '__main__':
 
     # Session estabilished, try a simple command
     resp5 = hand.client(["hello",], conf.sess_key2)
-    print("Hello (encrypted2) Response:", resp5)
+    print("Hello (encrypted2) Response:", resp5[:2])
 
-    time.sleep(10)
+    print("Waiting for timeout ...    ", end="")
+    for aa in range(22, -1, -1):
+        print("\b\b\b%2d " % aa, end = "" )
+        sys.stdout.flush()
+        time.sleep(1)
+    print()
 
-    resp5 = hand.client(["hello",], conf.sess_key2)
-    print("Hello (encrypted2) Response:", resp5)
+    resp5 = hand.client(["hello", ], conf.sess_key2)
+    print("Hello (encrypted2) Response:", resp5[:2])
+    if resp5[0] != "OK":
+        sys.exit()
 
     hand.client(["quit",],conf.sess_key2)
     hand.close();

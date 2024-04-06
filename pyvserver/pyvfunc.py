@@ -205,7 +205,7 @@ def get_rmdir_func(self, strx):
 
 def get_throt_func(self, strx):
 
-    ret = pyservsup.passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     #print("pass 2 %.3f" % ((time.time() - ttt) * 1000) )
 
     if not int(ret[2]) & pyservsup.PERM_ADMIN:
@@ -1111,13 +1111,10 @@ def get_del_func(self, strx):
 def get_ver_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 1:
         print( "get_ver_func()", strx)
-
     res = [OK, "%s" % pyservsup.version,
                         "%s" % pyservsup.globals.siteid]
-
     if pyservsup.globals.conf.pgdebug > 2:
         print( "get_ver_func->output", res)
-
     self.resp.datahandler.putencode(res, self.resp.ekey)
 
 
@@ -1354,7 +1351,7 @@ def get_pass_func(self, strx):
 
     #print("pass 1 %.3f" % ((time.time() - ttt) * 1000) )
 
-    ret = pyservsup.passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     #print("pass 2 %.3f" % ((time.time() - ttt) * 1000) )
 
     if int(ret[2]) & pyservsup.PERM_DIS:
@@ -1362,7 +1359,7 @@ def get_pass_func(self, strx):
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return retval
 
-    xret = pyservsup.passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
+    xret = pyservsup.gl_passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
     #print("pass 3 %.3f" % ((time.time() - ttt) * 1000) )
 
     rrr = []
@@ -1423,7 +1420,7 @@ def get_chpass_func(self, strx):
     pysyslog.syslog(stry)
 
     # Are we allowed to change pass?
-    ret = pyservsup.passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
         # Authenticate
         if strx[1] !=  self.resp.user:
@@ -1431,13 +1428,13 @@ def get_chpass_func(self, strx):
             self.resp.datahandler.putencode(response, self.resp.ekey )
             return
 
-        xret = pyservsup.passwd.auth(strx[1], strx[2], 0, pyservsup.USER_AUTH)
+        xret = pyservsup.gl_passwd.auth(strx[1], strx[2], 0, pyservsup.USER_AUTH)
         if xret[0] != 1:
             response = [ERR, "Old pass must match", strx[0]]
             self.resp.datahandler.putencode(response, self.resp.ekey )
             return
     # Change
-    xret = pyservsup.passwd.auth(strx[1], strx[3], 0, pyservsup.USER_CHPASS)
+    xret = pyservsup.gl_passwd.auth(strx[1], strx[3], 0, pyservsup.USER_CHPASS)
 
     ret = ""
     if xret[0] == 5:
@@ -1474,14 +1471,14 @@ def get_uadd_func(self, strx):
     #print("uadd", strx)
 
     # Are we allowed to add users?
-    ret = pyservsup.passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
         response = [ERR, "Only admin can add/delete users", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     # Add this user if not exist
-    ret = pyservsup.passwd.auth(strx[1], strx[2], 0, pyservsup.USER_ADD)
+    ret = pyservsup.gl_passwd.auth(strx[1], strx[2], 0, pyservsup.USER_ADD)
     if ret[0] <= 0:
         response = [ERR, ret[1], strx[1]]
     elif ret[0] == 1:
@@ -1498,7 +1495,7 @@ def get_uadd_func(self, strx):
 def get_aadd_func(self, strx):
 
     # Are we allowed to add users?
-    ret = pyservsup.passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
         response = [ERR, "only admin can add/delete users.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1510,7 +1507,7 @@ def get_aadd_func(self, strx):
         return
 
     # Add this admin in not exist
-    ret = pyservsup.passwd.auth(strx[1], strx[2], pyservsup.PERM_ADMIN, pyservsup.USER_ADD)
+    ret = pyservsup.gl_passwd.auth(strx[1], strx[2], pyservsup.PERM_ADMIN, pyservsup.USER_ADD)
     if ret[0] <= 0:
         response = [ERR, ret[1], strx[0]]
     elif ret[0] == 1:
@@ -1527,7 +1524,7 @@ def get_uena_func(self, strx):
     retval = 0
 
     # Are we allowed to add users?
-    ret = pyservsup.passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
         response = ERR, "only admin can modify users.", strx[0]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1548,7 +1545,7 @@ def get_uena_func(self, strx):
         return retval
 
     # Add this user in not exist
-    ret = pyservsup.passwd.auth(strx[1], strx[2], mode, pyservsup.USER_CHMOD)
+    ret = pyservsup.gl_passwd.auth(strx[1], strx[2], mode, pyservsup.USER_CHMOD)
 
     if ret[0] == 0:
         response = ERR, ret[1], strx[1]
@@ -1565,7 +1562,7 @@ def get_ulist_func(self, strx):
     retval = 0
 
     # Are we allowed to add users?
-    ret = pyservsup.passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
         response = ERR, "only admin can view users.", strx[0]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1589,7 +1586,7 @@ def get_ulist_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
 
-    response = pyservsup.passwd.listusers(mode)
+    response = pyservsup.gl_passwd.listusers(mode)
 
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -1600,13 +1597,13 @@ def get_uini_func(self, strx):
     if str(self.resp.client_address[0]) != "127.0.0.1":
         response = [ERR,  "Must connect from loopback interface.", strx[0]]
 
-    elif  pyservsup.passwd.count() != 0:
+    elif  pyservsup.gl_passwd.count() != 0:
         response = [ERR, "Already has initial user", strx[0]]
 
     elif len(strx) < 3:
         response = [ERR, "Must specify user name and pass.", strx[0]]
     else:
-        ret = pyservsup.passwd.auth(strx[1], strx[2],
+        ret = pyservsup.gl_passwd.auth(strx[1], strx[2],
                     pyservsup.PERM_INI | pyservsup.PERM_ADMIN,
                         pyservsup.USER_ADD)
         if ret[0] == 0:
@@ -1625,7 +1622,7 @@ def get_udel_func(self, strx):
 
     retval = 0
      # Are we allowed to add users?
-    ret = pyservsup.passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
         response = ERR, "Only admin can add/delete users", strx[0]
         self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1635,7 +1632,7 @@ def get_udel_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return retval
     # Delete user
-    ret = pyservsup.passwd.auth(strx[1], "",
+    ret = pyservsup.gl_passwd.auth(strx[1], "",
                     pyservsup.PERM_NONE, pyservsup.USER_DEL)
     #print("udel ret", ret)
     if ret[0] == 0:

@@ -95,7 +95,7 @@ if __name__ == '__main__':
         hand.close();
         raise ValueError("Not authorized", resp[1])
 
-    resp = hand.client(["uadd", "peter", "1234"], conf.sess_key)
+    resp = hand.client(["uadd", "peter3", "1234"], conf.sess_key)
     print("uadd Response:", resp)
 
     resp = hand.client(["uadd", "peter2", "1234"], conf.sess_key)

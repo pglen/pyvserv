@@ -59,9 +59,6 @@ from pyvcommon import pydata, pysyslog, comline
 from pyvserver import pyvstate
 from pyvserver import pyvfunc
 
-# Update it from setup
-version = "1.0.3"
-
 mydata = {}
 
 # ------------------------------------------------------------------------
@@ -87,16 +84,18 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def __init__(self, a1, a2, a3):
 
         self.verbose = conf.verbose
-        self.a1 = a1
-        self.a2 = a2
+        self.pgdebug = conf.pgdebug
+        self.peer = a2
         self.fname = ""
         self.user = ""
         self.cwd = os.getcwd()
         self.dir = ""
         self.ekey = ""
 
+        #print("a1", a1, "a2", a2, "a3", a3)
+
         # Throttle for multiple connectiond from one host
-        ttt = pyservsup.gl_throttle.throttle(self.a1.getpeername())
+        ttt = pyservsup.gl_throttle.throttle(a1.getpeername())
         if ttt > 0:
             if self.pgdebug > 2:
                 print("Throttle sleep",  a1.getpeername())
@@ -119,22 +118,17 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.name  = str(cur_thread._native_id) #name #getName()
         #self.name  = cur_thread.name #getName()
         #print( "Logoff '" + usr + "'", cli)
+
         if self.verbose:
-            print( "Connection from ", self.a2, "as", self.name)
+            print( "Connection from ", self.peer, "as", self.name)
 
         self.statehandler = pyvstate.StateHandler(self)
-        self.statehandler.verbose = conf.verbose
-        self.statehandler.pglog = conf.pglog
-        self.statehandler.pgdebug = conf.pgdebug
-        self.statehandler.name    = self.name
+        self.statehandler.verbose   = conf.verbose
+        self.statehandler.pglog     = conf.pglog
+        self.statehandler.pgdebug   = conf.pgdebug
+        self.statehandler.name      = self.name
 
-        #print(self.request)
         mydata[self.name] = self
-
-        #print(dir(self))
-        #print(self.name)
-        #if conf.verbose:
-        #    print("Connected " + " " + str(self.client_address))
 
         self.datahandler            =  pydata.DataHandler(self.request)
         self.datahandler.pgdebug    = conf.pgdebug
@@ -147,7 +141,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if conf.pglog > 0:
             pysyslog.syslog("Connected " + " " + str(self.client_address))
 
-        response =  ["OK", "pyvserv %s ready" % version]
+        response =  ["OK", "pyvserv %s ready" % pyservsup.version]
+
         # Connected, acknowledge it
         self.datahandler.putencode(response, "")
 
@@ -180,7 +175,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             support.put_exception("state handler")
 
         if self.verbose:
-            print( "Connection closed on", self.name)
+            print( "Connection closed on", self.peer)
 
         if conf.mem:
             #print( "Memory trace")
@@ -205,8 +200,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         #print( "Logoff '" + usr + "'", cli)
         del mydata[self.name]
 
-        if conf.verbose:
-            print( "Closed socket on", self.name)
+        #if conf.verbose:
+        #    print( "Closed socket on", self.name)
 
         if conf.pglog > 0:
             pysyslog.syslog("Logoff '" + usr + "' " + cli)
@@ -374,7 +369,7 @@ class serve_one():
         if conf.pglog > 0:
             pysyslog.syslog("Connected " + " " + str(self.client_address))
 
-        response =  ["OK", "pyvserv %s ready" % version]
+        response =  ["OK", "pyvserv %s ready" % pyservsup.version]
         # Connected, acknowledge it
         self.datahandler.putencode(response, "")
 
@@ -391,9 +386,6 @@ class serve_one():
         except:
             #print( sys.exc_info())
             support.put_exception("state handler")
-
-        if self.verbose:
-            print( "Connection closed on", self.name)
 
         if conf.mem:
             #print( "Memory trace")
@@ -479,9 +471,12 @@ def mainfunct():
 
     # Change directory to the data dir
     os.chdir(pyservsup.globals.myhome)
-    #print("cwd", os.getcwd())
+    if conf.verbose:
+        print("cwd", os.getcwd())
 
+    # Create support objects
     pyservsup.globals.config(pyservsup.globals.myhome, conf)
+    pyservsup.gl_passwd = pyservsup.Passwd()
 
     if conf.verbose:
         print("Pass Dir:        ", pyservsup.globals.passdir)

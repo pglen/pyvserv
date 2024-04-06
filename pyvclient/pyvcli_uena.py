@@ -76,13 +76,16 @@ if __name__ == '__main__':
     #print("Hello Response:", resp3)
 
     resp3 = hand.start_session(conf)
-    print("Sess Response:", resp3)
+    if not conf.quiet:
+        print("Sess Response:", resp3)
 
     resp3 = hand.client(["hello",] , conf.sess_key, False)
-    print("Hello Response:", resp3)
+    if not conf.quiet:
+        print("Hello Response:", resp3)
 
     resp = hand.client(["user", "admin"], conf.sess_key)
-    print("user Response:", resp)
+    if not conf.quiet:
+        print("user Response:", resp)
 
     resp = hand.client(["pass", "1234"], conf.sess_key)
     print("pass Response:", resp)
@@ -90,16 +93,20 @@ if __name__ == '__main__':
         raise ValueError("Not authorized", resp[1])
 
     resp = hand.client(["uena", "peter2", "enable"], conf.sess_key)
-    print("uena Response:", resp)
+    if not conf.quiet:
+        print("uena Response:", resp)
 
     resp = hand.client(["logout",], conf.sess_key)
-    print("logout Response:", resp)
+    if not conf.quiet:
+        print("logout Response:", resp)
 
     resp = hand.client(["uena", "peter2", "enable"], conf.sess_key)
-    print("uena Response:", resp)
+    if not conf.quiet:
+        print("uena Response:", resp)
 
     resp = hand.client(["user", "admin"], conf.sess_key)
-    print("user Response:", resp)
+    if not conf.quiet:
+        print("user Response:", resp)
 
     resp = hand.client(["pass", "1234"], conf.sess_key)
     print("pass Response:", resp)
@@ -107,16 +114,20 @@ if __name__ == '__main__':
         raise ValueError("Not authorized", resp[1])
 
     resp = hand.client(["uena", "peter2", "disable"], conf.sess_key)
-    print("uena Response:", resp)
+    if not conf.quiet:
+        print("uena Response:", resp)
 
     resp = hand.client(["logout",], conf.sess_key)
-    print("logout Response:", resp)
+    if not conf.quiet:
+        print("logout Response:", resp)
 
     resp = hand.client(["user", "peter2"], conf.sess_key)
-    print("user Response:", resp)
+    if not conf.quiet:
+        print("user Response:", resp)
 
     resp = hand.client(["pass", "1234"], conf.sess_key)
-    print("pass Response:", resp)
+    if not conf.quiet:
+        print("pass Response:", resp)
 
     hand.client(["quit"], conf.sess_key)
     hand.close();

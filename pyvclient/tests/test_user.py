@@ -98,6 +98,9 @@ def test_func(capsys):
     print("udel Response:", resp)
     assert resp[0] ==  "OK"
 
+    resp5 = hand.client(["throt", "on"], sess_key, False)
+    assert resp5[0] ==  "OK"
+
     #assert 0
     resp = hand.client(["quit"], sess_key)
     hand.close()

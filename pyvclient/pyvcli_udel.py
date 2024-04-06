@@ -91,7 +91,7 @@ if __name__ == '__main__':
     if resp[0] != "OK":
         raise ValueError("Not authorized", resp[1])
 
-    resp = hand.client(["udel", "peter",], conf.sess_key)
+    resp = hand.client(["udel", "peter3",], conf.sess_key)
     print("udel Response:", resp)
 
     resp = hand.client(["udel", "peter2",], conf.sess_key)

@@ -50,8 +50,8 @@ for aa in test_root:
     test_exec.append(aa+"="+aa+":mainfunct")
 #print(test_exec)
 
-# Get it from main file:
-fp = open("pyvserver/pyvserv.py", "rt")
+# Get it from server support file:
+fp = open("pyvcommon/pyservsup.py", "rt")
 vvv = fp.read(); fp.close()
 loc_vers =  '1.0.0'     # Default
 for aa in vvv.split("\n"):

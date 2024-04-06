@@ -23,7 +23,8 @@ from Crypto import Random
 
 # Globals and configurables
 
-version = "1.0"
+# Update it here from setup
+version = "1.0.4"
 
 # Actions
 USER_AUTH  = 0;  USER_ADD = 1;   USER_DEL = 2;   USER_CHPASS = 3;
@@ -63,6 +64,7 @@ class   Global_Vars:
         self._keyfile   =  "keys.secret"
         self._idfile    =  "pyservid.init"
 
+        # Force relative to home
         if self._dataroot[0] != os.sep:
             self.myhome     =  os.path.expanduser(
                                 "~" + os.sep + self._dataroot + os.sep)
@@ -219,7 +221,7 @@ class   FileLock():
 
         self.lockname = lockname
 
-        if pgdebug:
+        if pgdebug > 0:
             print("lockname init", self.lockname)
 
         if fcntl:
@@ -340,7 +342,7 @@ class Passwd():
     def __init__(self):
         self.pgdebug = 0
         self.verbose = 0
-        self.lock = FileLock()
+        self.lock = FileLock(globals.passfile + ".lock")
 
     def     _xjoin(self, iterx, charx):
         sss = ""
@@ -714,8 +716,6 @@ class Passwd():
 
         self.lock.unlock()
         return userlist
-
-passwd = Passwd()
 
 # ------------------------------------------------------------------------
 # Save key to local file. Return err code and cause.
