@@ -402,17 +402,11 @@ def get_fget_func(self, strx):
         if blen == 0:
             break
 
-    response = [OK, "Sent File", strx[1]]
+    response = [OK, "Server sent file", strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
-    #ret = self.resp.datahandler.wfile.write(b" ")
-    #self.resp.datahandler.wfile.flush()
-
     # Lof and set state to IDLE
-    xstr = "Sent file: '" + dname + \
-                "' " + str(flen) + " bytes"
-
-    #print(xstr)
+    xstr = "Server sent file: '" + dname + "' " + str(flen) + " bytes"
     pysyslog.syslog(xstr)
 
 def get_fput_func(self, strx):
@@ -481,57 +475,8 @@ def get_fput_func(self, strx):
         fh.write(dstr[1])
 
     fh.close()
-    response = [OK, "File received.", strx[1]]
+    response = [OK, "Server received file.", strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
-
-
-def get_ekey_func(self, strx):
-
-    if pyservsup.globals.conf.pgdebug > 1:
-        print( "get_ekey_func()", strx)
-
-    oldkey = self.resp.ekey[:]
-    response = ERR ,  "Not implemented."
-    self.resp.datahandler.putencode(response, oldkey)
-    return
-
-    if len(strx) < 2:
-        self.resp.ekey = ""
-        response = OK ,  "Key reset (no encryption)"
-    else:
-        self.resp.ekey = strx[1]
-        response = OK ,  "Key Set"
-
-    # Encrypt reply to ekey with old the key
-    self.resp.datahandler.putencode(response, oldkey)
-
-def get_xkey_func(self, strx):
-
-    if pyservsup.globals.conf.pgdebug > 1:
-        print( "get_xkey_func()", strx)
-
-    oldkey = self.resp.ekey[:]
-
-    oldkey = self.resp.ekey[:]
-    response = ERR ,  "Not implemented."
-    self.resp.datahandler.putencode(response, oldkey)
-    return
-
-    if len(strx) < 2:
-        self.resp.ekey = ""
-        response = OK ,  "Key reset (no encryption)"
-    else:
-        # Lookup if it is a named key:
-        retx = pyservsup.kauth(strx[1], "", 0)
-        if retx[0] == 1:
-            print( "key set", "'" + retx[1] + "'")
-            self.resp.ekey = retx[1]
-            response = OK,  "Key Set"
-        else:
-            response = ERR, strx[1], strx[0]
-
-    # Encrypt reply to xkey with old the key
-    self.resp.datahandler.putencode(response, oldkey)
 
 def get_pwd_func(self, strx):
 

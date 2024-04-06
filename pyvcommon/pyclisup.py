@@ -179,31 +179,43 @@ class CliSup():
 
     def getfile(self, fname, toname, key = ""):
 
+        if not fname:
+            cresp = ["ERR", "Must specify file name."]
+            return cresp
+
+        if not toname:
+            toname = fname  #+ "_local"
+
         if self.verbose:
             print( "getting ", fname, "to", toname)
 
         try:
             fh = open(toname, "wb+")
         except:
-            cresp = [ERR, "Cannot create local file: '" + toname + "'", ]
+            cresp = ["ERR", "Cannot create local file: '" + toname + "'", ]
             return cresp
 
         cresp = self.client(["fget", fname], key)
         if self.verbose:
-            print ("fget  response:", cresp)
+            print ("fget response:", cresp)
 
         if cresp[0] != "OK":
+            #print("remove:", toname)
+            try:
+                os.remove(toname)
+            except:
+                print(sys.exc_info())
             return cresp
 
         fsize = int(cresp[1])
-
         cipher = AES.new(key[:32], AES.MODE_CTR,
                         use_aesni=True, nonce = key[-8:])
         while(True):
             response = self.myhandler.handle_one(self.mydathand)
             if self.pgdebug > 2:
                 print("getfile resp", response[:12])
-            if not response:
+           # possibly EOF
+           if not response:
                 break
             response = cipher.encrypt(response)
             try:
@@ -212,26 +224,24 @@ class CliSup():
                 #if self.verbose:
                 print( "Cannot write to local file: '" + toname + "'", sys.exc_info())
                 fh.close()
-                cresp = [ERR,"Cannot write local file",]
+                cresp = ["ERR" ,"Cannot write local file",]
                 return cresp
             fsize -= len(response)
+            # Detect the end of file bythe empty packet
             #if fsize <= 0:
             #   break
             #if not response:
             #    break
-
         fh.close()
-
         resp = self.recvx(key)
         return  resp
 
     def  getreply(self, key = "", rand = True):
-        response = self.myhandler.handle_one(self.mydathand)
 
+        response = self.myhandler.handle_one(self.mydathand)
         if self.pgdebug > 3:
             print( "Got reply:")
             print (crysupp.hexdump(response, len(response)))
-
         dstr = self.wr.unwrap_data(key, response)
         return dstr
 

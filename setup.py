@@ -36,28 +36,25 @@ test_root = [\
 "pyvcli_rput",
 "pyvcli_uini",
 "pyvcli_uman",
+"pyvcli_fman",
 "pyvcli_qr",
 ]
 
-# Generate script details
-
-test_scripts = []
+# Generate script and loadable details
+test_scripts = []; test_exec = []
 for aa in test_root:
     test_scripts.append("pyvclient/" + aa + ".py")
-#print(test_scripts)
-
-test_exec = []
-for aa in test_root:
     test_exec.append(aa+"="+aa+":mainfunct")
-#print(test_exec)
 
-# Get it from server support file:
+#print(test_scripts); #print(test_exec)
+
+# Get version number  from the server support file:
 fp = open("pyvcommon/pyservsup.py", "rt")
 vvv = fp.read(); fp.close()
 loc_vers =  '1.0.0'     # Default
 for aa in vvv.split("\n"):
     idx = aa.find("version =")
-    if idx == 0:        # At th beginning of line
+    if idx == 0:        # At the beginning of line
         try:
             loc_vers = aa.split()[2].replace('"', "")
             break
@@ -65,7 +62,8 @@ for aa in vvv.split("\n"):
             pass
 #print("loc_vers:", loc_vers)
 
-# Dependency list, generate for windows
+# Dependency list, generate separate for windows
+# Sat 06.Apr.2024 same for all
 try:
     import fcntl
     #deplist = ["pyvpacker", "pydbase", "pycryptodome",
@@ -75,6 +73,7 @@ try:
     deplist = ["pyvpacker", "pydbase", "pycryptodome",
                         "pyvecc", "pyvguicom", ],
 except:
+    # No fnctl, windows
     deplist = ["pyvpacker", "pydbase", "pycryptodome",
                         "pyvecc", "pyvguicom"],
 

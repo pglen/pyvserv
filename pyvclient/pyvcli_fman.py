@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # ------------------------------------------------------------------------
-# Test client for the pyserv project. User add.
+# Test client for the pyserv project. File Manipulation.
 
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
@@ -32,24 +32,22 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
-    print( "            -l login  - Login Name; default: 'user'")
+    print( "            -l login  - Login Name; default: 'admin'")
     print( "            -s lpass  - Login Pass; default: '1234'")
     print( "            -t        - prompt for login pass")
-    print( "            -a        - Add user. Must be a unique user name.")
-    print( "            -m        - Add admin instead of regular user")
-    print( "            -r        - Remove user")
-    print( "            -c        - Change pass")
-    print( "            -i kind   - List users (user / admin / disabled / inittial")
-    print( "            -e enflag - Enable / Disable user. ")
-    print( "            -u user   - User Name; default: 'user'")
-    print( "            -x npass  - User password; default: '1234' (!!for tests only!!)")
-    print( "            -T        - prompt for new user pass / change pass")
+    print( "            -u fname  - Upload file")
+    print( "            -n fname  - Download file")
+    print( "            -m dname  - Make directory")
+    print( "            -r dname  - Remove directory")
+    print( "            -a fname  - Stat file")
+    print( "            -i        - List (dir) files")
+    print( "            -I        - List (dir) directories")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
     print()
-    print( " If no action is specified, it defauts to lits users.")
-    #print()
+    print( " If no action is specified, it defauts to ls (dir).")
+    print()
     sys.exit(0)
 
 def pversion():
@@ -62,19 +60,13 @@ optarr = \
     ["p:",  "port",         6666,       None],      \
     ["l:",  "login",        "admin",    None],      \
     ["s:",  "lpass",        "1234",     None],      \
+    ["u:",  "fname",        "",         None],      \
+    ["n:",  "dname",        "",         None],      \
     ["t",   "lprompt",      0,          None],      \
+    ["i",   "list",         0,          None],      \
+    ["I",   "dlist",        0,          None],      \
     ["v",   "verbose",      0,          None],      \
     ["q",   "quiet",        0,          None],      \
-    ["m",   "admin",        0,          None],      \
-    ["a",   "add",          0,          None],      \
-    ["r",   "remove",       0,          None],      \
-    ["c",   "change",       "",         None],      \
-    ["u:",  "userx",        "user",     None],      \
-    ["x:",  "passx",        "1234",     None],      \
-    ["X:",  "chpass",       "",         None],      \
-    ["T",   "prompt",       0,          None],      \
-    ["e:",  "encomm",       "",         None],      \
-    ["i:",  "listx",        "",         None],  \
     ["V",   None,           None,       pversion],  \
     ["h",   None,           None,       phelp]      \
 
@@ -93,8 +85,9 @@ def    mainfunct():
 
     #if not conf.add and not conf.remove and not conf.encomm \
     #            and not conf.listx and not conf.change:
-    #    print("One of: Add / Remove / Change / Enable / List option should be specified.")
-    #    print("Use [ -a | -r | -p | -e  | -i ] options or the -h option for help.")
+    #if not conf.list and not conf.dlist and not conf.fname:
+    #    print( " One of Upload / Download / Mkdir / Rmdir / List option is needed.")
+    #    #print("Use [ -a | -r | -p | -e  | -i ] options or the -h option for help.")
     #    sys.exit()
 
     if len(args) == 0:
@@ -123,62 +116,30 @@ def    mainfunct():
     resp3 = hand.start_session(conf)
     if not conf.quiet:
         print("Sess Response:", resp3)
-
-    #resp3 = hand.client(["hello",] , conf.sess_key, False)
-    #if not conf.quiet:
-    #    print("Hello sess Response:", resp3[1])
-
-    resp = hand.client(["user", conf.login], conf.sess_key)
+    resp = hand.login(conf.login, conf.lpass, conf)
     if not conf.quiet:
-        print("user Response:", resp)
-    if resp[0] != "OK":
-        hand.client(["quit"], conf.sess_key)
-        hand.close();
-
-    resp = hand.client(["pass", conf.lpass], conf.sess_key)
-    if not conf.quiet:
-        print("pass Response:", resp)
+        print("login Response:", resp)
     if resp[0] != "OK":
         hand.client(["quit"], conf.sess_key)
         hand.close();
         print("Error on authentication, exiting.")
         sys.exit(1)
 
-    if conf.prompt:
-        import getpass
-        strx = getpass.getpass("Pass for new user %s: " % conf.userx)
-        if not strx:
-            print("Empty pass, aborting ...")
-            sys.exit(0)
-        conf.passx = strx
+    # Execute commands
 
-    if conf.encomm:
-        resp = hand.client(["uena", conf.userx, conf.encomm, ], conf.sess_key)
-        print("uen Response:", resp)
-    elif conf.add:
-        if conf.admin:
-            resp = hand.client(["aadd", conf.userx, conf.passx], conf.sess_key)
-        else:
-            resp = hand.client(["uadd", conf.userx, conf.passx], conf.sess_key)
-        print("uadd Response:", resp)
-    elif conf.remove:
-        resp = hand.client(["udel", conf.userx, conf.passx], conf.sess_key)
-        print("udel Response:", resp)
-    elif conf.change:
-        if not conf.chpass:
-            import getpass
-            strx = getpass.getpass("Pass for change pass %s: " % conf.userx)
-            if not strx:
-                print("Empty pass, aborting ...")
-                sys.exit(0)
-            conf.chpass = strx
-        resp = hand.client(["chpass", conf.userx, conf.passx, conf.chpass, ], conf.sess_key)
-        print("uchpass Response:", resp)
+    if conf.dname:
+        resp = hand.getfile(conf.dname, "", conf.sess_key)
+        print("download Response:", resp)
+    elif conf.fname:
+        resp = hand.putfile(conf.fname, "", conf.sess_key)
+        print("upload Response:", resp)
+    elif conf.dlist:
+        resp = hand.client(["lsd", ], conf.sess_key)
+        print("lsd Response:", resp)
     else:
-        if not conf.listx:
-            conf.listx = "user"
-        resp = hand.client(["ulist", conf.listx], conf.sess_key)
-        print("ulist Response:", resp)
+        #if conf.list:
+        resp = hand.client(["ls", ], conf.sess_key)
+        print("ls Response:", resp)
 
     hand.client(["quit"], conf.sess_key)
     hand.close();

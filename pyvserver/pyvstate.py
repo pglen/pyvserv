@@ -57,36 +57,21 @@ fget_help   = "Usage: fget fname -- Download (get) file"
 fput_help   = "Usage: fput fname -- Upload (put) file"
 del_help    = "Usage: del  fname -- Delete file"
 uadd_help   = "Usage: uadd user_name user_pass -- Create new user"
-#kadd_help   = "Usage: kadd key_name key_val -- Add new encryption key"
-uini_help   = "Usage: uini user_name user_pass -- Create initial user. "\
-                "Must be from local net."
-#kini_help  = "Usage: kini key_name key_pass -- Create initial key. " \
-#                "Must be from local net."
-uena_help  = "Usage: uena user_name  flag --  enable / disable user"
-ulist_help = "Usage: ulist flag  --  list users / admins"
-aadd_help  = "Usage: aadd user_name user_pass -- create admin user"
-udel_help  = "Usage: udel user_name -- Delete user"
-data_help  = "Usage: data datalen -- Specify length of file to follow"
-vers_help  = "Usage: ver -- Get protocol version. alias: vers"
-id_help    = "Usage: id -- Get site id string"
-hello_help = "Usage: hello -- Say Hello - test connectivity."
-quit_help  = "Usage: quit -- Terminate connection. alias: exit"
-help_help  = "Usage: help [command] -- Offer help on command"
-lsls_help  = "Usage: ls [dir] -- List files in dir"
-lsld_help  = "Usage: lsd [dir] -- List dirs in dir"
-cdcd_help  = "Usage: cd dir -- Change to dir. Capped to server root"
-pwdd_help  = "Usage: pwd -- Show current dir"
-stat_help  = "Usage: stat fname  -- Get file stat. Field list:\n"\
-    "   1.  ST_MODE Inode protection mode.\n"\
-    "   2.  ST_INO Inode number.\n"\
-    "   3.  ST_DEV Device inode resides on.\n"\
-    "   4.  ST_NLINK  Number of links to the inode.\n"\
-    "   5.  ST_UID User id of the owner.\n"\
-    "   6.  ST_GID Group id of the owner.\n"\
-    "   7.  ST_SIZE Size in bytes of a plain file.\n"\
-    "   8.  ST_ATIME Time of last access.\n"\
-    "   9.  ST_MTIME Time of last modification.\n"\
-    "   10. ST_CTIME Time of last metadata change."
+uini_help   = "Usage: uini user_name user_pass -- Create initial user. Loopback only."
+uena_help   = "Usage: uena user_name  flag -- enable / disable user"
+ulist_help  = "Usage: ulist flag  -- list users. Flag: user / admin / initial / disabled"
+aadd_help   = "Usage: aadd user_name user_pass -- create admin user"
+udel_help   = "Usage: udel user_name -- Delete user"
+data_help   = "Usage: data datalen -- Specify length of file to follow"
+vers_help   = "Usage: ver -- Get protocol version. alias: vers"
+id_help     = "Usage: id -- Get site id string"
+hello_help  = "Usage: hello -- Say Hello - test connectivity."
+quit_help   = "Usage: quit -- Terminate connection. alias: exit"
+help_help   = "Usage: help [command] -- Offer help on command"
+lsls_help   = "Usage: ls [dir] -- List files in dir"
+lsld_help   = "Usage: lsd [dir] -- List dirs in dir"
+cdcd_help   = "Usage: cd dir -- Change to dir. Capped to server root"
+pwdd_help   = "Usage: pwd -- Show current dir"
 tout_help   = "Usage: tout new_val -- Set / Reset timeout in seconds"
 ekey_help   = "Usage: ekey encryption_key -- Set encryption key "
 sess_help   = "Usage: sess session data -- Start session "
@@ -107,6 +92,17 @@ dmode_help  = "Usage: dmode -- get dmode (Developer Mode) flag"
 ihave_help  = "Usage: ihave -- 'i have you have' protocol entry point"
 ihost_help  = "Usage: ihost -- add / delete replicator host"
 xxxx_help   = "Usage: no data -- Template for new halp"
+stat_help   = "Usage: stat fname  -- Get file stat. Field list:\n"\
+    "   1.  ST_MODE Inode protection mode.\n"\
+    "   2.  ST_INO Inode number.\n"\
+    "   3.  ST_DEV Device inode resides on.\n"\
+    "   4.  ST_NLINK  Number of links to the inode.\n"\
+    "   5.  ST_UID User id of the owner.\n"\
+    "   6.  ST_GID Group id of the owner.\n"\
+    "   7.  ST_SIZE Size in bytes of a plain file.\n"\
+    "   8.  ST_ATIME Time of last access.\n"\
+    "   9.  ST_MTIME Time of last modification.\n"\
+    "   10. ST_CTIME Time of last metadata change."
 
 # ------------------------------------------------------------------------
 # Table driven server state machine.
@@ -155,6 +151,7 @@ def init_state_table():
         ("ulist",   all_in,  none_in,    auth_pass, get_ulist_func,   ulist_help),
         ("aadd",    all_in,  none_in,    auth_pass, get_aadd_func,    aadd_help),
         ("ls",      all_in,  none_in,    auth_pass, get_ls_func,      lsls_help),
+        ("dir",     all_in,  none_in,    auth_pass, get_ls_func,      lsls_help),
         ("lsd",     all_in,  none_in,    auth_pass, get_lsd_func,     lsld_help),
         ("cd",      all_in,  none_in,    auth_pass, get_cd_func,      cdcd_help),
         ("pwd",     all_in,  none_in,    auth_pass, get_pwd_func,     pwdd_help),
