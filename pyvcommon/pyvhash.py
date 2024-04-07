@@ -38,7 +38,7 @@ PrevHash = "_PrevHash"
 PowRand  = "_PowRand"
 Proof    = "_Proof"
 Repli    = "Replicated"
-PayLoad  = "payload"
+PayLoad  = "PayLoad"
 Header   = "header"
 Now      = "now"
 

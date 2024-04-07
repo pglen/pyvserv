@@ -39,10 +39,12 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
+    print( "            -l login  - Login Name; default: 'admin'")
+    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
+    print( "            -t        - prompt for login pass")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
-    print( "            -r        - Record ID to get")
-    print( "            -s        - Start time. Format: 'Y-m-d H:M' Default: now")
+    print( "            -r        - Record offset (absolute position) to get")
     print( "            -i        - Interval in minutes. (Default: 1 day)")
     print( "            -h        - Help")
     print()
@@ -57,10 +59,13 @@ optarr = \
     ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,       None],      \
     ["f:",  "fname",    "test.txt", None],      \
+    ["l:",  "login",    "admin",    None],      \
+    ["s:",  "lpass",    "1234",     None],      \
+    ["t",   "lprompt",  0,          None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
     ["n",   "plain",    0,          None],      \
-    ["r:",  "rget",     "",         None],      \
+    ["r:",  "rabs",     "",         None],      \
     ["s:",  "start",     "",        None],      \
     ["i:",  "inter",    0,          None],      \
     ["V",   None,       None,       pversion],  \
@@ -91,6 +96,14 @@ def    mainfunct():
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
+    if conf.lprompt:
+        import getpass
+        strx = getpass.getpass("Pass for login %s: " % conf.login)
+        if not strx:
+            print("Cannot login with empty pass, aborting ...")
+            sys.exit(0)
+        conf.lpass = strx
+
     try:
         respc = hand.connect(ip, conf.port)
     except:
@@ -108,75 +121,46 @@ def    mainfunct():
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print("Sess Key ACCEPTED:",  resp3[1])
-
-    #if conf.sess_key:
-    #    print("Post session, session key:", conf.sess_key[:12], "...")
-
-    resp3 = hand.client(["hello", ],  conf.sess_key, False)
+    #resp3 = hand.client(["hello", ],  conf.sess_key, False)
     #print("Hello Response:", resp3)
 
-    cresp = hand.login("admin", "1234", conf)
+    cresp = hand.login(conf.login, conf.lpass, conf)
     #print ("Server login response:", cresp)
+    if cresp[0] != "OK":
+        print("Error on logging in:", cresp)
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        sys.exit(0)
 
-    if conf.start:
-        dd = datetime.datetime.now()
-        #print(dd)
-        try:
-            dd = dd.strptime(conf.start, "%Y-%m-%d %H:%M")
-        except:
-            try:
-                dd = dd.strptime(conf.start, "%Y-%m-%d")
-            except:
-                raise
-        print("date from comline:", dd)
-    else:
-        # Beginning of today
-        dd = datetime.datetime.now()
-        dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
-
-    dd_beg = dd + datetime.timedelta(0)
-
-    if conf.inter:
-        dd_end = dd_beg + datetime.timedelta(0, conf.inter * 60)
-    else:
-        dd_end = dd_beg + datetime.timedelta(1)
-
-    print("from:", dd_beg, "to:", dd_end);
-    if conf.rget:
-        rgetarr = conf.rget.split()
-        #print("rgetarr:", rgetarr)
-        cresp = hand.client(["rget", "vote", rgetarr], conf.sess_key)
-        if cresp[0] == "OK":
-            #print("rget resp:", cresp)
-            for aa in cresp[3]:
-                dec = hand.pb.decode_data(aa[1])[0]
-                if conf.verbose:
-                    print("dec:", dec)
-                pay = hand.pb.decode_data(dec['payload'])[0]
-                print("pay:", pay['payload'])
-    else:
-        cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
-                         dd_end.timestamp()], conf.sess_key)
-        #print ("Server  rlist response:", cresp)
-        if cresp[0] != "OK":
-            print("Cannot get rlist", cresp)
+    if conf.rabs:
+        arrx = conf.rabs.split()
+        #print("getting", arrx)
+        cresp2 = hand.client(["rabs", "vote", *arrx], conf.sess_key)
+        #print("rabs got:", cresp2)
+        if cresp2[0] != "OK":
+            print("Cannot get rabs:", cresp2)
             cresp = hand.client(["quit", ], conf.sess_key)
-            sys.exit(0)
-        print("rlist got", len(cresp[1]), "records")
-        for aaa in cresp[1]:
-            cresp2 = hand.client(["rget", "vote", [aaa]], conf.sess_key)
-            if cresp2[0] != "OK":
-                print("Cannot get record", cresp2)
-                continue
-            #print("cresp2:", cresp2)
-            for aa in cresp2[3]:
-                dec = hand.pb.decode_data(aa[1])[0]
-                if conf.verbose:
-                    print("dec:", dec)
-                pay = hand.pb.decode_data(dec['payload'])[0]
-                print("pay:", pay['PayLoad'])
+            sys.exit()
+        for aa in cresp2[3]:
+            #print("aa", aa)
+            dec = hand.pb.decode_data(aa[1])[0]
+            if conf.verbose:
+                print("dec:", dec)
+            pay = hand.pb.decode_data(dec['payload'])[0]
+            print("pay:", pay['PayLoad'])
+    else:
+        # Get last record
+        cresp = hand.client(["rsize", "vote"], conf.sess_key)
+        if not conf.quiet:
+            print ("Server rsize response:", cresp)
+        # Offset is one less than count
+        cresp2 = hand.client(["rabs", "vote", cresp[1] - 1], conf.sess_key)
+        #print ("Server rabs response:", cresp2)
+        dec = hand.pb.decode_data(cresp2[3][0][1])[0]
+        if conf.verbose:
+            print("dec:", dec)
+        pay = hand.pb.decode_data(dec['payload'])[0]
+        print("pay:", pay['PayLoad'])
 
     cresp = hand.client(["quit", ], conf.sess_key)
     #print ("Server quit response:", cresp)

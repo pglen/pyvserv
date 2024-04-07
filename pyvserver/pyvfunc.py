@@ -531,7 +531,6 @@ def get_rcheck_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-
     core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
 
     errx = False; cnt = -1; arrx = []
@@ -552,9 +551,9 @@ def get_rcheck_func(self, strx):
         return
 
     if len(arrx):
-        response = [ERR,  arrx, len(arrx), "errors", strx[2], sss, "records checked"]
+        response = [ERR,  arrx, len(arrx), "errors", strx[2], sss, "total"]
     else:
-        response = [OK,  "No errors.", strx[2], sss, "records checked."]
+        response = [OK,  "No errors.", strx[2], sss, "total"]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rtest_func(self, strx):
@@ -835,6 +834,72 @@ def get_rhave_func(self, strx):
     #_print_handles(self)
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
+def get_rabs_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_rabs_func()", strx)
+
+    if len(strx) < 2:
+        response = [ERR, "Must specify blockchain kind.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 3:
+        response = [ERR, "Must specify absolute position.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    #print("dname", dname)
+    if not os.path.isdir(dname):
+        response = [ERR, "Blockchain 'kind' directory does not exist.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if pyservsup.globals.conf.pgdebug > 2:
+        print("rabs", strx[1], strx[2])
+
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
+    #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
+    datax = []
+    for aa in strx[2:]:
+        aa = int(aa)
+        #print("aa", aa)
+        if not core.checkdata(aa):
+            data = [ERR, "Invalid Record, bad checksum.", aa]
+            self.resp.datahandler.putencode(data, self.resp.ekey)
+            return
+
+        if not core.linkintegrity(aa):
+            data = [ERR, "Invalid Record, link damaged.", aa]
+            self.resp.datahandler.putencode(data, self.resp.ekey)
+            return
+        try:
+            data = core.get_rec(aa)
+        except:
+            data = ""
+            print(str(sys.exc_info()))
+
+        if self.pgdebug > 4:
+            print("rec data", data)
+        if not data:
+            response = [ERR, "Record not found.", aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+        datax.append(data)
+        #print("data:", data)
+
+    response = [OK, len(datax), "records", datax]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
 def get_rget_func(self, strx):
 
     if pyservsup.globals.conf.pgdebug > 1:
@@ -871,7 +936,7 @@ def get_rget_func(self, strx):
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     datax = []
     for aa in strx[2]:
-        print("aa", aa)
+        #print("aa", aa)
         data = []; ddd = []
         try:
             ddd = core.get_payoffs_bykey(aa)
@@ -898,7 +963,7 @@ def get_rget_func(self, strx):
 
         if not core.checkdata(ddd[0]):
             data = [ERR, "Invalid Record, bad checksum.", aa]
-            self.resp.datahandler.putencode(response, self.resp.ekey)
+            self.resp.datahandler.putencode(data, self.resp.ekey)
             return
 
         if not core.linkintegrity(ddd[0]):
@@ -907,7 +972,7 @@ def get_rget_func(self, strx):
             return
 
         try:
-            data = core.get_payload(ddd[0])
+            data = core.get_rec(ddd[0])
         except:
             data = ""
             print(str(sys.exc_info()))
@@ -921,7 +986,7 @@ def get_rget_func(self, strx):
 
         datax.append(data)
 
-    response = [OK, datax, datax, len(datax), "records"]
+    response = [OK, len(datax), "records", datax,]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_rput_func(self, strx):

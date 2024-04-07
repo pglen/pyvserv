@@ -35,6 +35,8 @@ import pyvpacker
 # ------------------------------------------------------------------------
 # Functions from command line
 
+#print( "            -n        - Number of records to put")
+
 def phelp():
 
     print()
@@ -42,14 +44,10 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p port   - Port to use (default: 6666)")
-    print( "            -l level  - Log level (default: 0)")
-    print( "            -c file   - Save comm to file")
     print( "            -k keyval - Put this key")
-    print( "            -n        - Number of records to put")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
-    #print( " Needs debug level or verbose to have any output.")
     print()
     sys.exit(0)
 
@@ -79,9 +77,6 @@ def mainfunct():
     args = conf.comline(sys.argv[1:])
     #print(vars(conf))
 
-    if conf.comm:
-        print("Save to filename", conf.comm)
-
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
 
@@ -104,7 +99,9 @@ def mainfunct():
     pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
     pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
     pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
-    #print(pvh.datax)
+
+    #if conf.verbose:
+    #    print(pvh.datax)
 
     if conf.putkey:
         pvh.datax['header'] = conf.putkey
@@ -112,15 +109,13 @@ def mainfunct():
     pvh.hasharr();    pvh.powarr()
     print("OK")
 
-
     if not pvh.checkhash():
         print("Error on hashing payload .. retrying ...")
     elif not pvh.checkpow():
         print("Error on POW payload .. retrying ...")
 
-    if conf.verbose:
-        print(pvh.datax)
-
+    #if conf.verbose:
+    #    print(pvh.datax)
     #print("Chain cnt", pvh.cnt)
     #print("chain %.3fms" % ((time.time() - ttt) * 1000) )
 
@@ -132,46 +127,34 @@ def mainfunct():
 
     atexit.register(pyclisup.atexit_func, hand, conf)
 
-    resp3 = hand.client(["hello", "world"] , "", False)
-    print("Hello Resp:", resp3)
+    #resp3 = hand.client(["hello", "world"] , "", False)
+    #print("Hello Resp:", resp3)
 
     ret = hand.start_session(conf)
-
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
         sys.exit(0)
 
-    # Make a note of the session key
-    if conf.verbose:
-        print("Sess Key ACCEPTED:",  conf.sess_key[:12], '...' )
-
-    #print(" ----- Post session, all is encrypted ----- ")
-
-    #resp4 = hand.client(["tout", "30",], conf.sess_key)
-    #if resp4[0] != "OK":
-    #    print("Server tout Response:", resp4)
-    #    sys.exit()
-
     #ttt = time.time()
     # Session estabilished, try a simple command
-    resp4 = hand.client(["hello",], conf.sess_key)
+    #resp4 = hand.client(["hello",], conf.sess_key)
     #print("hello %.3fms" % ((time.time() - ttt) * 1000) )
-    if resp4[0] != "OK":
-        print("Server hello resp:", resp4[1])
-        sys.exit()
+    #if resp4[0] != "OK":
+    #    print("Server hello resp:", resp4[1])
+    #    sys.exit()
 
     #ttt = time.time()
     cresp = hand.client(["user", "admin"], conf.sess_key)
     #print("user %.3fms" % ((time.time() - ttt) * 1000) )
-    print ("Server user respo:", cresp)
-
+    #print ("Server user respo:", cresp)
     #ttt = time.time()
     cresp = hand.client(["pass", "1234"], conf.sess_key)
     #print("pass %.3fms" % ((time.time() - ttt) * 1000) )
     if cresp[0] != "OK":
         print("Cannot log on")
         sys.exit(1)
-    print ("Server pass resp:", cresp)
+    if not conf.quiet:
+        print ("Server pass resp:", cresp)
 
     cresp = hand.client(["dmode",], conf.sess_key)
     #print("dmode", cresp)
@@ -185,10 +168,6 @@ def mainfunct():
                 print ("Server twofa failed")
                 sys.exit(0)
 
-    # Interactive, need more time
-    #tout = hand.client(["tout", "200",], conf.sess_key)
-    #print (tout)
-
     if conf.pgdebug > 2:
         print(pvh.datax)
 
@@ -198,7 +177,7 @@ def mainfunct():
     #ttt = time.time()
     for aa in range(conf.numrec):
         cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
-        print ("Server rput response:", cresp)
+        print ("rput resp:", cresp)
     #print("rput %.3fms" % ((time.time() - ttt) * 1000) )
 
     sys.exit(0)
