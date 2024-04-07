@@ -74,7 +74,7 @@ def shahex(val):
     hhh = hh.hexdigest()
     return hhh
 
-# Enable the bigger one for production
+# Enable the bigger one if needed.
 #USEHASH = SHA512
 USEHASH = SHA256
 

@@ -9,6 +9,9 @@ sys.path.append(os.path.join(base,  '..'))
 
 import pyservsup
 
+from testx import *
+
+pyservsup.globals  = pyservsup.Global_Vars(__file__, "hello")
 
 pwd = pyservsup.Passwd()
 
@@ -17,4 +20,6 @@ hhh = pwd._dblsalt("hello")
 print(hhh)
 yyy = pwd._unsalt("hello", hhh)
 print(yyy)
+
+print("Hash compare: [True]",  hhh == yyy, end = " "); diff(True, hhh == yyy)
 

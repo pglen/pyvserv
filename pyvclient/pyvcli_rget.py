@@ -167,7 +167,7 @@ def    mainfunct():
             print("Cannot get rlist", cresp)
             cresp = hand.client(["quit", ], conf.sess_key)
             sys.exit(0)
-        print("rlist got", cresp[1], "records")
+        print("rlist got", len(cresp[1]), "records")
         for aa in cresp[1]:
             cresp2 = hand.client(["rget", "vote", [aa]], conf.sess_key)
             if cresp2[0] != "OK":
