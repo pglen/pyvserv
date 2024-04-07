@@ -9,7 +9,7 @@ if sys.version_info[0] < 3:
 # Test client for the pyserv project. Download file.
 
 import os, sys, getopt, signal, select, socket, time, struct
-import random, stat, datetime
+import random, stat, datetime, uuid, atexit
 
 # This repairs the path from local run to pip run.
 try:
@@ -22,8 +22,8 @@ except:
     sys.path.append(os.path.join(base,  '..', "pyvcommon"))
     from pyvcommon import support
 
-from pyvcommon import support, pycrypt, pyclisup
-from pyvcommon import pysyslog, comline
+import support, pycrypt, pyservsup, pyclisup
+import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Globals
@@ -41,9 +41,9 @@ def phelp():
     print( "            -p        - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
-    print( "            -r        - Record ID to get")
     print( "            -s        - Start time. Format: 'Y-m-d H:M'")
     print( "            -i        - Interval in minutes. (Default: 1 day)")
+    print( "            -n        - No encryption (plain)")
     print( "            -h        - Help")
     print()
     sys.exit(0)
@@ -56,13 +56,12 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,       None],      \
-    ["f:",  "fname",    "test.txt", None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
     ["n",   "plain",    0,          None],      \
-    ["r:",  "rget",     "",         None],      \
-    ["s:",  "start",     "",        None],      \
+    ["t",   "test",     "x",        None],      \
     ["i:",  "inter",    0,          None],      \
+    ["s:",  "start",    "",         None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
 
@@ -70,7 +69,7 @@ conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
-def    mainfunct():
+def mainfunct():
 
     args = conf.comline(sys.argv[1:])
 
@@ -97,6 +96,8 @@ def    mainfunct():
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
+    atexit.register(pyclisup.atexit_func, hand, conf)
+
     #resp3 = hand.client(["id",] , "", False)
     #print("ID Response:", resp3[1])
 
@@ -108,84 +109,37 @@ def    mainfunct():
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print("Sess Key ACCEPTED:",  resp3[1])
-
     #if conf.sess_key:
     #    print("Post session, session key:", conf.sess_key[:12], "...")
-
-    resp3 = hand.client(["hello", ],  conf.sess_key, False)
+    #resp3 = hand.client(["hello", ],  conf.sess_key, False)
     #print("Hello Response:", resp3)
 
     cresp = hand.login("admin", "1234", conf)
-    #print ("Server login response:", cresp)
+    print ("Server login response:", cresp)
 
-    if conf.start:
-        dd = datetime.datetime.now()
-        #print(dd)
-        try:
-            dd = dd.strptime(conf.start, "%Y-%m-%d %H:%M")
-        except:
-            try:
-                dd = dd.strptime(conf.start, "%Y-%m-%d")
-            except:
-                raise
-        print("date from comline:", dd)
-    else:
-        # Beginning of today
-        dd = datetime.datetime.now()
-        dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
+    # Set date range
+    #if conf.start:
+    #    dd = datetime.datetime.now()
+    #    dd = dd.strptime(conf.start, "%Y-%m-%d %H:%M")
+    #else:
+    #    dd = datetime.datetime.now()
+    #    dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
+    #print(dd)
+    #dd_beg = dd + datetime.timedelta(0)
+    #if conf.inter:
+    #    dd_end = dd_beg + datetime.timedelta(0, conf.inter * 60)
+    #else:
+    #    dd_end = dd_beg + datetime.timedelta(1)
 
-    dd_beg = dd + datetime.timedelta(0)
+    cresp = hand.client(["rcheck", "vote", "sum"], conf.sess_key)
+    print ("rcheck response:", cresp)
+    if cresp[0] != "OK":
+        sys.exit()
 
-    if conf.inter:
-        dd_end = dd_beg + datetime.timedelta(0, conf.inter * 60)
-    else:
-        dd_end = dd_beg + datetime.timedelta(1)
-
-    print("from:", dd_beg, "to:", dd_end);
-    if conf.rget:
-        rgetarr = conf.rget.split()
-        #print("rgetarr:", rgetarr)
-        cresp = hand.client(["rget", "vote", rgetarr], conf.sess_key)
-        if cresp[0] == "OK":
-            #print("rget resp:", cresp[1])
-            for bb in cresp[1]:
-                #print("rget bb:", bb)
-                if type(bb[1]) == type({}):
-                    print("Initial record. Skipping.")
-                    continue
-                #print("bb", bb)
-                dec = hand.pb.decode_data(bb[1])[0]
-                #print("dec", dec)
-                print(dec['header'], dec['payload'])
-    else:
-        cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
-                         dd_end.timestamp()], conf.sess_key)
-        #print ("Server  rlist response:", cresp)
-        if cresp[0] != "OK":
-            print("Cannot get rlist", cresp)
-            cresp = hand.client(["quit", ], conf.sess_key)
-            sys.exit(0)
-        print("rlist got", len(cresp[1]), "records")
-        for aa in cresp[1]:
-            cresp2 = hand.client(["rget", "vote", [aa]], conf.sess_key)
-            if cresp2[0] != "OK":
-                print("Cannot get record", cresp)
-                #break
-
-            #print("cresp2:", cresp2)
-            for aa in cresp2[1]:
-                if type(aa[1]) == type({}):
-                    print("Initial record. Skipping.", aa)
-                    continue
-                #print("aa", aa)
-                dec = hand.pb.decode_data(aa[1])
-                #print("dec:", dec[0]['header'], dec[0]['now'], dec[0]['payload'])
-                print("dec:", dec)
-
-    cresp = hand.client(["quit", ], conf.sess_key)
-    print ("Server quit response:", cresp)
+    cresp = hand.client(["rcheck", "vote", "link"], conf.sess_key)
+    print ("rcheck response:", cresp)
+    if cresp[0] != "OK":
+        sys.exit()
 
 if __name__ == '__main__':
     mainfunct()

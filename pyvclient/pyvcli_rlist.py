@@ -140,6 +140,8 @@ def mainfunct():
     cresp = hand.client(["rcount", "vote", dd_beg.timestamp(),
                                     dd_end.timestamp()], conf.sess_key)
     print ("Server  rcount response:", cresp)
+    if cresp[0] != "OK":
+        sys.exit()
 
     if cresp[1] < 100:
         cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),

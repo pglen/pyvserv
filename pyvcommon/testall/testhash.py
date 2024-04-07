@@ -27,7 +27,7 @@ if __name__ == '__main__':
     arrx2 =  [123, "hello", ]
 
     thd = pyvhash.BcData()
-    #print(thd.datax)
+    print(thd.datax)
 
     ret = thd.checkhash()
     print("1 unhash match: [False]", ret, end = " "); diff(False, ret)

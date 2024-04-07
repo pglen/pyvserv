@@ -529,26 +529,26 @@ def get_rcheck_func(self, strx):
 
     errx = False; cnt = -1; arrx = []
     sss = core.getdbsize()
-    for aa in range(sss-1, 0, -1):
-        if  strx[2] == "sum":
+    if  strx[2] == "sum":
+        for aa in range(sss-1, -1, -1):
             ppp = core.checkdata(aa)
             if not ppp:
                 arrx.append(aa)
-        elif strx[2] == "link":
-            ppp = core.linkintegrity(aa)
-            if not ppp:
+    elif strx[2] == "link":
+        for aa in range(sss-1, -1, -1):
+            ppp2 = core.linkintegrity(aa)
+            if not ppp2:
                 arrx.append(aa)
-        else:
-            response = [ERR, "One of 'link' or 'sum' is required.", strx[0]]
-            self.resp.datahandler.putencode(response, self.resp.ekey)
-            return
+    else:
+        response = [ERR, "One of 'link' or 'sum' is required.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
 
     if len(arrx):
         response = [ERR,  arrx, len(arrx), "errors", strx[2]]
     else:
-        response = [OK,  "No errors.", strx[2]]
+        response = [OK,  "No errors.", strx[2], sss, "records checked."]
     self.resp.datahandler.putencode(response, self.resp.ekey)
-
 
 def get_rsize_func(self, strx):
 
