@@ -136,6 +136,9 @@ def mainfunct():
     else:
         dd_end = dd_beg + datetime.timedelta(1)
 
+    cresp = hand.client(["rsize", "vote"], conf.sess_key)
+    print ("Server rsize response:", cresp)
+
     print("from:", dd_beg, "to:", dd_end);
     cresp = hand.client(["rcount", "vote", dd_beg.timestamp(),
                                     dd_end.timestamp()], conf.sess_key)

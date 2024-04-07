@@ -513,6 +513,12 @@ def get_rcheck_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
+    if int(ret[2]) & pyservsup.PERM_ADMIN != pyservsup.PERM_ADMIN:
+        response = [ERR, "Only admin can check integrity", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
     tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
     dname = check_chain_path(self, tmpname)
 
@@ -521,9 +527,10 @@ def get_rcheck_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
     if not os.path.isdir(dname):
-        response = [ERR, "Directory does not exis.t", strx[1]]
+        response = [ERR, "Directory does not exist.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
+
 
     core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
 
@@ -543,6 +550,78 @@ def get_rcheck_func(self, strx):
         response = [ERR, "One of 'link' or 'sum' is required.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
+
+    if len(arrx):
+        response = [ERR,  arrx, len(arrx), "errors", strx[2], sss, "records checked"]
+    else:
+        response = [OK,  "No errors.", strx[2], sss, "records checked."]
+    self.resp.datahandler.putencode(response, self.resp.ekey)
+
+def get_rtest_func(self, strx):
+
+    if pyservsup.globals.conf.pgdebug > 1:
+        print( "get_rtest_func()", strx[:4])
+
+    if len(strx) < 2:
+        response = [ERR, "Must specify blockchain kind", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 3:
+        response = [ERR, "Must specify link or sum", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if len(strx) < 4:
+        response = [ERR, "Must specify record id or ids", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    tmpname = os.path.join(pyservsup.globals.chaindir, strx[1])
+    dname = check_chain_path(self, tmpname)
+
+    if not dname:
+        response = [ERR, "No Access to directory.", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+    if not os.path.isdir(dname):
+        response = [ERR, "Directory does not exis.t", strx[1]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
+
+    if  strx[2] == "sum":
+        funcx = core.checkdata
+    elif strx[2] == "link":
+        funcx = core.linkintegrity
+    else:
+        response = [ERR, "One of 'link' or 'sum' is required.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    errx = False; cnt = -1; arrx = []
+    sss = len(strx[3:])
+    for aa in strx[3:]:
+        #print("test:", aa)
+        try:
+            ddd = core.get_payoffs_bykey(aa)
+        except:
+            pass
+        if len(ddd) == 0:
+            response = [ERR, "Data not found.", aa,]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        if self.pgdebug > 4:
+            try:
+                rec = core.get_rec(ddd[0])
+                print("rec:", rec)
+            except:
+                print("exc: get_header", sys.exc_info())
+                raise
+        ppp = funcx(ddd[0])
+        if not ppp:
+            arrx.append(aa)
 
     if len(arrx):
         response = [ERR,  arrx, len(arrx), "errors", strx[2]]
@@ -792,9 +871,12 @@ def get_rget_func(self, strx):
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     datax = []
     for aa in strx[2]:
+        print("aa", aa)
         data = []; ddd = []
         try:
             ddd = core.get_payoffs_bykey(aa)
+            if pyservsup.globals.conf.pgdebug > 2:
+                    print("ddd", ddd)
         except:
             pass
         if len(ddd) == 0:
@@ -821,19 +903,22 @@ def get_rget_func(self, strx):
 
         if not core.linkintegrity(ddd[0]):
             data = [ERR, "Invalid Record, link damaged.", aa]
-            self.resp.datahandler.putencode(response, self.resp.ekey)
+            self.resp.datahandler.putencode(data, self.resp.ekey)
             return
-        else:
-            try:
-                data = core.get_payload(ddd[0])
-            except:
-                data = "error on get data.", str(sys.exc_info())
-            if self.pgdebug > 4:
-                print("rec data", data)
+
+        try:
+            data = core.get_payload(ddd[0])
+        except:
+            data = ""
+            print(str(sys.exc_info()))
+
+        if self.pgdebug > 4:
+            print("rec data", data)
         if not data:
             response = [ERR, "Record not found.", aa,]
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
+
         datax.append(data)
 
     response = [OK, datax, datax, len(datax), "records"]

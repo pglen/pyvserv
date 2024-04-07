@@ -39,11 +39,13 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
+    print( "            -l login  - Login Name; default: 'admin'")
+    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
+    print( "            -r header - Test item")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -s        - Start time. Format: 'Y-m-d H:M'")
     print( "            -i        - Interval in minutes. (Default: 1 day)")
-    print( "            -n        - No encryption (plain)")
     print( "            -h        - Help")
     print()
     sys.exit(0)
@@ -59,9 +61,10 @@ optarr = \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
     ["n",   "plain",    0,          None],      \
-    ["t",   "test",     "x",        None],      \
     ["i:",  "inter",    0,          None],      \
-    ["s:",  "start",    "",         None],      \
+    ["l:",  "login",    "admin",    None],      \
+    ["s:",  "lpass",    "1234",     None],      \
+    ["r:",  "rtest",    "",         None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
 
@@ -104,18 +107,21 @@ def mainfunct():
     #ret = ["OK",];  conf.sess_key = ""
     ret = hand.start_session(conf)
     if ret[0] != "OK":
-        print("Error on setting session:", resp3[1])
-        hand.client(["quit"])
+        print("Error on setting session:", ret)
+        hand.client(["quit"], conf.sess_key)
         hand.close();
         sys.exit(0)
 
-    #if conf.sess_key:
-    #    print("Post session, session key:", conf.sess_key[:12], "...")
-    #resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    #print("Hello Response:", resp3)
+    cresp = hand.login(conf.login, conf.lpass, conf)
 
-    cresp = hand.login("admin", "1234", conf)
-    print ("Server login response:", cresp)
+    if cresp[0] != "OK":
+        print("Error on logging in:", cresp)
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        sys.exit(0)
+
+    if not conf.quiet:
+        print ("Server login response:", cresp)
 
     # Set date range
     #if conf.start:
@@ -131,15 +137,20 @@ def mainfunct():
     #else:
     #    dd_end = dd_beg + datetime.timedelta(1)
 
-    cresp = hand.client(["rcheck", "vote", "sum"], conf.sess_key)
-    print ("rcheck response:", cresp)
-    if cresp[0] != "OK":
-        sys.exit()
+    if conf.rtest:
+        import shlex
+        zzz = shlex.split(conf.rtest)
+        #print("zzz", zzz)
+        cresp = hand.client(["rtest", "vote", "sum", *zzz], conf.sess_key)
+        print ("rtest response:", cresp)
+    else:
+        cresp = hand.client(["rcheck", "vote", "sum"], conf.sess_key)
+        print ("rcheck sum response:", cresp)
 
-    cresp = hand.client(["rcheck", "vote", "link"], conf.sess_key)
-    print ("rcheck response:", cresp)
-    if cresp[0] != "OK":
-        sys.exit()
+        cresp = hand.client(["rcheck", "vote", "link"], conf.sess_key)
+        print ("rcheck link response:", cresp)
+        if cresp[0] != "OK":
+            sys.exit()
 
 if __name__ == '__main__':
     mainfunct()

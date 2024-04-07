@@ -171,14 +171,11 @@ def    mainfunct():
         for aa in cresp[1]:
             cresp2 = hand.client(["rget", "vote", [aa]], conf.sess_key)
             if cresp2[0] != "OK":
-                print("Cannot get record", cresp)
-                #break
+                print("Cannot get record", cresp2)
+                continue
 
             #print("cresp2:", cresp2)
             for aa in cresp2[1]:
-                if type(aa[1]) == type({}):
-                    print("Initial record. Skipping.", aa)
-                    continue
                 #print("aa", aa)
                 dec = hand.pb.decode_data(aa[1])
                 #print("dec:", dec[0]['header'], dec[0]['now'], dec[0]['payload'])

@@ -79,6 +79,7 @@ logout_help = "Usage: logout -- log out user"
 buff_help   = "Usage: buff buff_size -- limited to 64k"
 throt_help  = "Usage: throt flag -- turn on or off throtleing"
 rput_help   = "Usage: rcheck kind link | sum -- check records. Link check or sum check"
+rtest_help  = "Usage: rtest link | sum recids -- check a list of records. Link check or sum check"
 rcheck_help = "Usage: rput kind header, [field1, field2] ... -- put record in blockcain."
 rlist_help  = "Usage: rlist kind beg_date end_date -- get records from blockcain."
 rcount_help = "Usage: rcount kind beg_date end_date -- get record count from blockcain."
@@ -167,6 +168,7 @@ def init_state_table():
         ("rsize",    all_in,  none_in,   auth_pass, get_rsize_func,   rsize_help),
         ("rget",     all_in,  none_in,   auth_pass, get_rget_func,    rget_help),
         ("rhave",    all_in,  none_in,   auth_pass, get_rhave_func,   rhave_help),
+        ("rtest",    all_in,  none_in,   auth_pass, get_rtest_func, rtest_help),
 
         # The two factor auth commands. 2FA not required during development
         ("rput",     all_in,  none_in,   minauth,   get_rput_func,   rput_help),
