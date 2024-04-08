@@ -1045,22 +1045,12 @@ def get_rput_func(self, strx):
 
     # Do we have it already?:
     #ttt = time.time()
-    #rethas = savecore.get_data_bykey(strx[2]['header'])
-    #print("db get data  %.3f" % ((time.time() - ttt) * 1000) )
-    #if rethas:
-    #    if self.pgdebug > 1:
-    #        print("Duplicate block, rethas", rethas[0][0])
-    #    response = [ERR, "Duplicate block, not saved.", strx[0]]
-    #    self.resp.datahandler.putencode(response, self.resp.ekey)
-    #    return
-
-    #ttt = time.time()
     retoffs = savecore.get_payoffs_bykey(strx[2]['header'])
     #print("db get offs  %.3f" % ((time.time() - ttt) * 1000) )
     if retoffs:
         if self.pgdebug > 2:
-            print("Duplicate block, retoffs", retoffs)
-        response = [ERR, "Duplicate block, not saved.", strx[2]['header']]
+            print("Duplicate block, retoffs", retoffs[0])
+        response = [ERR, "Duplicate block, not saved.", strx[2]['header'], retoffs[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -1083,14 +1073,14 @@ def get_rput_func(self, strx):
         return
     del savecore
 
-    # if it no replicated, replicate
+    # if it is not replicated already, add replicate request
     if not strx[2]["Replicated"]:
         # Prepare data. Do strings so it can be re-written in place
         rrr = {'count1': "00000", 'count2' : "00000",
                         'count3' : "00000",  'header' : strx[2]['header'],
                             'now' : strx[2]['now'],}
-        if self.pgdebug > 2:
-            print("replic", rrr)
+        if self.pgdebug > 3:
+            print("replic req", rrr)
 
         undec2 = self.pb.encode_data("", rrr)
         frname = os.path.join(dname, repfname + ".pydb")
@@ -1110,7 +1100,7 @@ def get_rput_func(self, strx):
 
         del repcore
     else:
-        if self.pgdebug > 2:
+        if self.pgdebug > 3:
             print("Not replicating", strx[2]['header'])
         pass
 

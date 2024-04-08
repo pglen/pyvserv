@@ -42,7 +42,7 @@ def phelp():
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -r        - Record ID to get")
-    print( "            -s        - Start time. Format: 'Y-m-d H:M' Default: now")
+    print( "            -b        - Start / Begin time. Format: 'Y-m-d H:M' Default: now")
     print( "            -i        - Interval in minutes. (Default: 1 day)")
     print( "            -h        - Help")
     print()
@@ -61,7 +61,7 @@ optarr = \
     ["q",   "quiet",    0,          None],      \
     ["n",   "plain",    0,          None],      \
     ["r:",  "rget",     "",         None],      \
-    ["s:",  "start",     "",        None],      \
+    ["b:",  "start",     "",        None],      \
     ["i:",  "inter",    0,          None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \

@@ -85,7 +85,7 @@ class CliSup():
 
     def sendx(self, message):
 
-        if self.pgdebug > 5:
+        if self.pgdebug > 7:
             print("sending message:", message  )
 
         if sys.version_info[0] < 3:
@@ -105,10 +105,10 @@ class CliSup():
 
     def recvx(self, key):
         resp = self.getreply(key)
-        if self.pgdebug > 3:
+        if self.pgdebug > 5:
             print("resp:", resp[:24])
         response = self.pb.decode_data(resp[1])
-        if self.pgdebug > 2:
+        if self.pgdebug > 7:
             print( "    recvx: '%s'" % response[:24])
         return response[0]
 
@@ -212,7 +212,7 @@ class CliSup():
                         use_aesni=True, nonce = key[-8:])
         while(True):
             response = self.myhandler.handle_one(self.mydathand)
-            if self.pgdebug > 2:
+            if self.pgdebug > 8:
                 print("getfile resp", response[:12])
             # possibly EOF
             if not response:
@@ -239,7 +239,7 @@ class CliSup():
     def  getreply(self, key = "", rand = True):
 
         response = self.myhandler.handle_one(self.mydathand)
-        if self.pgdebug > 3:
+        if self.pgdebug > 6:
             print( "Got reply:")
             print (crysupp.hexdump(response, len(response)))
         dstr = self.wr.unwrap_data(key, response)
@@ -300,7 +300,7 @@ class CliSup():
         if type(message) != type([]):
             raise TypeError("Argument one to client() must be list")
 
-        if self.pgdebug > 0:
+        if self.pgdebug > 5:
             cnt = 0
             for aa in message:
                 try:
@@ -326,7 +326,7 @@ class CliSup():
 
         response =  self.recvx(key)
 
-        if self.pgdebug > 0:
+        if self.pgdebug > 5:
             cnt = 0
             for aa in response:
 
@@ -341,10 +341,10 @@ class CliSup():
             print()
 
         '''resp = self.getreply(key)
-        if self.pgdebug > 1:
+        if self.pgdebug > 5:
             print("resp:", resp)
         response = self.pb.decode_data(resp[1])
-        if self.pgdebug > 0:
+        if self.pgdebug > 5:
             print( "    get: '%s'" % response)
         '''
         return response
@@ -390,7 +390,7 @@ class CliSup():
 
         resp = self.client(["akey"], conf.sess_key2)
 
-        if self.pgdebug > 2:
+        if self.pgdebug > 5:
             print("Got akey:", resp)
 
         if resp[0] != "OK":
@@ -399,13 +399,13 @@ class CliSup():
             self.close();
             sys.exit(0)
 
-        if self.pgdebug > 2:
+        if self.pgdebug > 5:
             print("Got hash:", "'" + resp[1] + "'")
 
         #hhh = SHA512.new(); hhh.update(bytes(resp[2], "cp437"))
         hhh = SHA256.new(); hhh.update(resp[2].encode())
 
-        if self.pgdebug > 1:
+        if self.pgdebug > 16:
             print("Hash1:  '" + resp[1] + "'")
             print("Hash2:  '" + hhh.hexdigest() + "'")
 
@@ -420,10 +420,10 @@ class CliSup():
 
         #print("Key response:", resp[0], resp[2][:32], "...")
 
-        if self.pgdebug > 4:
+        if self.pgdebug > 5:
              print(self.pkey)
 
-        if self.pgdebug > 2:
+        if self.pgdebug > 5:
             print ("Server response:", "'" + hhh.hexdigest() + "'")
 
         try:
@@ -434,7 +434,7 @@ class CliSup():
             #print("finger", self.pubkey.fingerprint())
             #print("validate", self.pubkey.validate())
 
-            if conf.pgdebug > 4:
+            if conf.pgdebug > 6:
                 print (self.pubkey)
         except:
             print("Cannot import public key.", sys.exc_info())
@@ -457,7 +457,7 @@ class CliSup():
         #print(dir(cipher))
         #print ("cipher", cipher.can_encrypt())
 
-        if conf.pgdebug > 2:
+        if conf.pgdebug > 3:
             support.shortdump("conf.sess_key", conf.sess_key )
 
         if conf.sess_key:
@@ -472,7 +472,7 @@ class CliSup():
 
             ttt = SHA256.new(); ttt.update(sess_keyx.encode())
 
-            if conf.pgdebug > 2:
+            if conf.pgdebug > 5:
                 print("sess_keyx", crysupp.hexdump(sess_keyx.encode(), 24))
         else:
             sess_keyx = ""

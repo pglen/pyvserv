@@ -46,7 +46,7 @@ def phelp():
     print( "            -v        - Verbose. Present more info.")
     print( "            -q        - Quiet. Present less info.")
     print( "            -u user   - User Name; default: 'admin'")
-    print( "            -p pass   - Password; default: '1234' (!! for tests only !!)")
+    print( "            -l pass   - Password; default: '1234' (!! for tests only !!)")
     print( "            -t        - Prompt for password.")
     print( "            -h        - Help (this screen)")
     print()
@@ -64,7 +64,7 @@ optarr = \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
     ["u:",  "userx",    "admin",    None],      \
-    ["p:",  "passx",    "1234",     None],      \
+    ["l:",  "passx",    "1234",     None],      \
     ["t",   "prompt",    0,         None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \

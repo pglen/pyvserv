@@ -66,7 +66,7 @@ optarr = \
     ["q",   "quiet",    0,          None],      \
     ["n",   "plain",    0,          None],      \
     ["r:",  "rabs",     "",         None],      \
-    ["s:",  "start",     "",        None],      \
+    ["b:",  "start",     "",        None],      \
     ["i:",  "inter",    0,          None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
