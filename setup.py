@@ -82,6 +82,16 @@ doclistx = os.listdir(droot)
 for aa in doclistx:
     doclist.append("docs/" + aa)
 
+cdoclist = []; droot2 = "pyvclient/docs/"
+cdoclistx = os.listdir(droot2)
+for aa in cdoclistx:
+    cdoclist.append("docs/" + aa)
+
+tdoclist = []; droot3 = "pyvtools/docs/"
+tdoclistx = os.listdir(droot3)
+for aa in tdoclistx:
+    cdoclist.append("docs/" + aa)
+
 # This was needed to verify lists ...
 #print("includex:", includex)
 #print("find packages:", setuptools.find_packages(include=includex))
@@ -123,7 +133,10 @@ setuptools.setup(
                     'pyvtools':         'pyvtools',
                    },
 
-    package_data = {"pyvserver" :  doclist},
+    package_data = {    "pyvserver" :  doclist,
+                        "pyvclient" : cdoclist,
+                        "pyvtools"  : tdoclist,
+                   },
     python_requires='>=3',
     install_requires=deplist,
     entry_points={

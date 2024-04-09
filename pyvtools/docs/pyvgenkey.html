@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>pyvgenkey API documentation</title>
+<meta name="description" content="Small ECC keys have the equivalent strength of larger RSA keys because of
+the algorithm used to generate them. For example, a 256-bit ECC key is
+…" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>pyvgenkey</code></h1>
+</header>
+<section id="section-intro">
+<p>Small ECC keys have the equivalent strength of larger RSA keys because of
+the algorithm used to generate them. For example, a 256-bit ECC key is
+equivalent to a 3072-bit RSA key and a 384-bit ECC key is equivalent to a
+7680-bit RSA key.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/usr/bin/env python
+
+#from __future__ import print_function
+
+&#39;&#39;&#39;
+    Small ECC keys have the equivalent strength of larger RSA keys because of
+    the algorithm used to generate them. For example, a 256-bit ECC key is
+    equivalent to a 3072-bit RSA key and a 384-bit ECC key is equivalent to a
+    7680-bit RSA key.
+&#39;&#39;&#39;
+
+import os, sys, getopt, signal, select, string, time
+import struct, stat, base64, random, threading
+
+if sys.version_info[0] &lt; 3:
+    print(&#34;needs py 3&#34;)
+    sys.exit(0)
+
+base = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(base,  &#39;pyvecc&#39;))
+
+from pyvecc.Key import Key
+
+from Crypto import Random
+
+# This repairs the path from local run to pip run.
+# Remove pip version for local tests
+try:
+    from pyvcommon import support
+
+    # Get Parent of module root
+    sf = os.path.dirname(support.__file__)
+    sf = os.path.dirname(sf)
+    #print(&#34;sf&#34;, sf)
+    sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
+    sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
+
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  &#39;..&#39;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
+    from pyvcommon import support
+
+#print(&#34;Load:&#34;, sys.path[-1])
+
+from pyvcommon import pyservsup
+
+import argparse
+
+parser = argparse.ArgumentParser(description=&#39;Genetrate ECC keypair for pyvserv&#39;)
+
+parser.add_argument(&#34;-v&#34;, &#39;--verbose&#39;, dest=&#39;verbose&#39;,
+                    default=0,  action=&#39;count&#39;,
+                    help=&#39;verbocity on (default: off)&#39;)
+
+#parser.add_argument(&#34;-b:&#34;, &#39;--bits&#39;, dest=&#39;bits&#39;,
+#                    default=4096,  action=&#39;store&#39;, type=int,
+#                    help=&#39;Key to generate (default: 4096)&#39;)
+#
+#parser.add_argument(&#34;-r:&#34;, &#39;--rsa&#39;, dest=&#39;use_rsa&#39;,
+#                    default=False,  action=&#39;store_true&#39;,
+#                    help=&#39;Key to generate (default: 4096)&#39;)
+
+parser.add_argument(&#34;-m:&#34;, &#39;--homedir&#39;, dest=&#39;homedir&#39;,
+                    default=&#34;pyvserver&#34;,  action=&#39;store&#39;,
+                    help=&#39;pyvserv home directory (default: ~/pyvserver)&#39;)
+
+parser.add_argument(&#34;-q:&#34;, &#39;--quiet&#39;, dest=&#39;quiet&#39;,
+                    default=0,  action=&#39;store_true&#39;,
+                    help=&#39;Display less information. Default: off&#39;)
+
+# Deprecated, pad it
+time.clock = time.process_time
+
+# ------------------------------------------------------------------------
+
+def is_power_of_two(n):
+    return (n != 0) and (n &amp; (n-1) == 0)
+
+def genfname():
+
+    rsize = 2; sss = &#34;&#34;
+    rrr = Random.new().read(rsize)
+    for aa in rrr:
+        sss += &#34;%x&#34; % ord(str(aa)[0])
+    sss += &#34;%x&#34; % int(time.time()) # % 1000000)
+    rrr = Random.new().read(rsize)
+    for aa in rrr:
+        sss += &#34;%x&#34; % ord(str(aa)[0])
+    #print(&#34;fname&#34;, sss)
+    return sss
+
+stopthread = 0
+gl_keylen = 8
+gl_key = None
+
+def genkey_thread():
+
+    global stopthread, gl_keylen, gl_key
+
+    gl_key = Key.generate(256)
+
+    stopthread = True
+    time.sleep(.1)
+
+def genkey():
+
+    &#39;&#39;&#39; Generate key, give optional feedback &#39;&#39;&#39;
+
+    global stopthread, gl_keylen, gl_key
+
+    fff  = genfname()
+    #gl_keylen = keylen
+
+    genkey_thread()
+    #print (&#34;Generated:&#34;, key, key.size())
+
+    # Private key
+    privname = privdir + fff + &#39;.pem&#39;
+    f2 = open(privname,&#39;w&#39;)
+    f2.write(gl_key.export_priv())
+    f2.close()
+
+    # Public Key
+    pubname = keydir + fff + &#39;.pub&#39;
+    f3 = open(pubname,&#39;w&#39;)
+    f3.write(gl_key.export_pub())
+    f3.close()
+
+    return privname, pubname
+
+keydir = &#39;./keys/&#39;
+privdir = &#39;./private/&#39;
+
+def position(args):
+
+    global_vars = pyservsup.Global_Vars(__file__, args.homedir)
+    global_vars._softmkdir(global_vars.myhome)
+
+    if args.verbose:
+        print(&#34;dir&#34;, global_vars.myhome)
+
+    os.chdir(global_vars.myhome)
+    if not os.path.isdir(global_vars.keydir):
+        os.mkdir(global_vars.keydir)
+    if not os.path.isdir(global_vars.privdir):
+        os.mkdir(global_vars.privdir)
+
+#rstr = Random.new().read(random.randint(14, 24))
+
+def mainfunct():
+
+    #global args
+    args = parser.parse_args()
+
+    #if not is_power_of_two(args.bits):
+    #    print(&#34;Bitness must be a power of 2&#34;)
+    #    sys.exit(1)
+
+    position(args)
+
+    #print(&#34;Current dir:     &#34;, os.getcwd())
+    if not args.quiet:
+        print (&#34;Started pyvserv keygen, ECC 384&#34;); sys.stdout.flush()
+    fnames = genkey()
+    if not args.quiet:
+        print(&#34;Generated files:&#34;)
+        print(&#34;&#39;&#34; + fnames[0] + &#34;&#39;&#34;,  &#34;&#39;&#34; + fnames[1] + &#34;&#39;&#34;)
+    sys.exit(0)
+
+if __name__ == &#39;__main__&#39;:
+    mainfunct()
+
+# EOF</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="pyvgenkey.genfname"><code class="name flex">
+<span>def <span class="ident">genfname</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def genfname():
+
+    rsize = 2; sss = &#34;&#34;
+    rrr = Random.new().read(rsize)
+    for aa in rrr:
+        sss += &#34;%x&#34; % ord(str(aa)[0])
+    sss += &#34;%x&#34; % int(time.time()) # % 1000000)
+    rrr = Random.new().read(rsize)
+    for aa in rrr:
+        sss += &#34;%x&#34; % ord(str(aa)[0])
+    #print(&#34;fname&#34;, sss)
+    return sss</code></pre>
+</details>
+</dd>
+<dt id="pyvgenkey.genkey"><code class="name flex">
+<span>def <span class="ident">genkey</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate key, give optional feedback</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def genkey():
+
+    &#39;&#39;&#39; Generate key, give optional feedback &#39;&#39;&#39;
+
+    global stopthread, gl_keylen, gl_key
+
+    fff  = genfname()
+    #gl_keylen = keylen
+
+    genkey_thread()
+    #print (&#34;Generated:&#34;, key, key.size())
+
+    # Private key
+    privname = privdir + fff + &#39;.pem&#39;
+    f2 = open(privname,&#39;w&#39;)
+    f2.write(gl_key.export_priv())
+    f2.close()
+
+    # Public Key
+    pubname = keydir + fff + &#39;.pub&#39;
+    f3 = open(pubname,&#39;w&#39;)
+    f3.write(gl_key.export_pub())
+    f3.close()
+
+    return privname, pubname</code></pre>
+</details>
+</dd>
+<dt id="pyvgenkey.genkey_thread"><code class="name flex">
+<span>def <span class="ident">genkey_thread</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def genkey_thread():
+
+    global stopthread, gl_keylen, gl_key
+
+    gl_key = Key.generate(256)
+
+    stopthread = True
+    time.sleep(.1)</code></pre>
+</details>
+</dd>
+<dt id="pyvgenkey.is_power_of_two"><code class="name flex">
+<span>def <span class="ident">is_power_of_two</span></span>(<span>n)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_power_of_two(n):
+    return (n != 0) and (n &amp; (n-1) == 0)</code></pre>
+</details>
+</dd>
+<dt id="pyvgenkey.mainfunct"><code class="name flex">
+<span>def <span class="ident">mainfunct</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mainfunct():
+
+    #global args
+    args = parser.parse_args()
+
+    #if not is_power_of_two(args.bits):
+    #    print(&#34;Bitness must be a power of 2&#34;)
+    #    sys.exit(1)
+
+    position(args)
+
+    #print(&#34;Current dir:     &#34;, os.getcwd())
+    if not args.quiet:
+        print (&#34;Started pyvserv keygen, ECC 384&#34;); sys.stdout.flush()
+    fnames = genkey()
+    if not args.quiet:
+        print(&#34;Generated files:&#34;)
+        print(&#34;&#39;&#34; + fnames[0] + &#34;&#39;&#34;,  &#34;&#39;&#34; + fnames[1] + &#34;&#39;&#34;)
+    sys.exit(0)</code></pre>
+</details>
+</dd>
+<dt id="pyvgenkey.position"><code class="name flex">
+<span>def <span class="ident">position</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def position(args):
+
+    global_vars = pyservsup.Global_Vars(__file__, args.homedir)
+    global_vars._softmkdir(global_vars.myhome)
+
+    if args.verbose:
+        print(&#34;dir&#34;, global_vars.myhome)
+
+    os.chdir(global_vars.myhome)
+    if not os.path.isdir(global_vars.keydir):
+        os.mkdir(global_vars.keydir)
+    if not os.path.isdir(global_vars.privdir):
+        os.mkdir(global_vars.privdir)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="pyvgenkey.genfname" href="#pyvgenkey.genfname">genfname</a></code></li>
+<li><code><a title="pyvgenkey.genkey" href="#pyvgenkey.genkey">genkey</a></code></li>
+<li><code><a title="pyvgenkey.genkey_thread" href="#pyvgenkey.genkey_thread">genkey_thread</a></code></li>
+<li><code><a title="pyvgenkey.is_power_of_two" href="#pyvgenkey.is_power_of_two">is_power_of_two</a></code></li>
+<li><code><a title="pyvgenkey.mainfunct" href="#pyvgenkey.mainfunct">mainfunct</a></code></li>
+<li><code><a title="pyvgenkey.position" href="#pyvgenkey.position">position</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

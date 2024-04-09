@@ -49,8 +49,6 @@ optarr = \
     ["f:",  "file",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
-    ["n",   "plain",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -61,11 +59,6 @@ conf = comline.Config(optarr)
 if __name__ == '__main__':
 
     args = conf.comline(sys.argv[1:])
-
-    #print(dir(conf))
-
-    #if conf.comm:
-    #    print("Save to filename", conf.comm)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -101,19 +94,23 @@ if __name__ == '__main__':
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  resp3[1])
 
-    if conf.sess_key:
-        if not conf.quiet:
-            print("Post session, session key:", conf.sess_key[:12], "...")
+    #if conf.sess_key:
+    #    if not conf.quiet:
+    #        print("Post session, session key:", conf.sess_key[:12], "...")
 
-    resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    if not conf.quiet:
-        print("Hello Response:", resp3)
+    #resp3 = hand.client(["hello", ],  conf.sess_key, False)
+    #if not conf.quiet:
+    #    print("Hello Response:", resp3)
 
     # Session estabilished, try a simple command
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
     cresp = hand.login("admin", "1234", conf)
+    if not cresp[0] == "OK":
+        print("Cannot login", cresp)
+        sys.exit()
+
     if not conf.quiet:
         print ("Server login response:", cresp)
 

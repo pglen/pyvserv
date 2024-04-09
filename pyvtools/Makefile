@@ -7,6 +7,8 @@
 #  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+.PHONY: docs
+
 all:
 	@echo "Type 'make help' for a list of targets"
 
@@ -34,11 +36,9 @@ git:
 	git commit -m "$(AUTOCHECK)"
 	git push
 
+XPATH=PYTHONPATH=pyvcommon:../pyvguicom/pyvguicom: pdoc --force --html
+docs:
+	@${XPATH} -o docs pyvgenkey.py
+	@${XPATH} -o docs pyvgenkeys.py
 
 # End of Makefile
-
-
-
-
-
-

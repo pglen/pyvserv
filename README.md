@@ -259,7 +259,7 @@ client utility's help screen:
 
  | Client name  | Description               |        Purpose                |
  | -----------  |  -----------              |  ------------------------     |
- | pyvcli_cli   | Command line interface    | All aspects of pyvserve       |
+ | pyvcli_cli   | Command line interface    | All aspects of pyvserv        |
  | pyvcli_uini  | Create initial user       | Create initial admin user     |
  | pyvcli_fman  | File manager              | Upload / Download files       |
  | pyvcli_uman  | User manager              | Add remove users / admins     |
@@ -320,7 +320,7 @@ complete wipe of the data. There are Makefile targets that do that
 (make cleanall). Restarting the server will create the new environment without
 any users. To allow operation one may create the initial user with the uini
 functions and / or scripts.
-The uini can only operate successfully if there are no users present in the
+The uini command can only operate successfully if there are no users present in the
 pyvserv system, and it is executed from the loopback interface. For example,
 the command line utility ./pyvcli_uini.py can be used;
 For production, it can executed with the -t option to prompt for a password.
@@ -367,6 +367,7 @@ The project is functional in MSYS2, but for real deployment we recommend Linux.
     1.0.0   Thu 14.Mar.2024    Started GUI tools
     1.0.1   Fri 15.Mar.2024    Added LIC, verification, doc, tally
     1.0.3   Wed 03.Apr.2024    Ported to MSYS2, throttle, for multiprocess
+    1.0.4   Tue 09.Apr.2024    Cleanup, uman fman rman completed
 
 ## Statistics
 
