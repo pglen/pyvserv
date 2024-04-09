@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>pyvservui API documentation</title>
+<title>pyvtally API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,20 +19,25 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pyvservui</code></h1>
+<h1 class="title">Module <code>pyvtally</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">#!/usr/bin/env python
+<pre><code class="python">#!/usr/bin/env python3
 
-from __future__ import absolute_import
-from __future__ import print_function
+import os, sys
 
-import os, sys, getopt, signal, select, socket, time, struct
-import random, stat
+if  sys.version_info[0] &lt; 3:
+        print(&#34;Needs python 3 or better.&#34;)
+        sys.exit(1)
+
+import getopt, signal, select, socket, time, struct
+import random, string, stat, base64, random, datetime
+
+import pyvpacker
 
 # This repairs the path from local run to pip run.
 # Remove pip version for local tests
@@ -41,7 +46,7 @@ try:
 
     # Get Parent of module root
     sf = os.path.dirname(support.__file__)
-    sf = os.path.dirname(sf)
+    sf = os.path.dirname(sf )
     #print(&#34;sf&#34;, sf)
     sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
     sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
@@ -49,39 +54,31 @@ try:
     sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
 
 except:
-    base = os.path.dirname(os.path.realpath(__file__))
+    base = os.path.dirname(__file__)
     sys.path.append(os.path.join(base,  &#39;..&#39;))
     sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
     sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
-    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;))
-    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
+    sys.path.append(os.path.join(base,  &#34;..&#34;, &#34;pyvgui&#34;))
+    sys.path.append(os.path.join(base,  &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
     from pyvcommon import support
 
-try:
-    from pyvguicom import sutil
-    # Get Parent of module root
-    sf = os.path.dirname(sutil.__file__)
-    sf = os.path.dirname(sf)
-    sys.path.append(os.path.join(sf, &#34;pyvguicom&#34;))
-except:
-    #print(sys.exc_info())
-    base = os.path.dirname(os.path.realpath(__file__))
-    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;..&#34;, &#34;pyvguicom&#34;))
-    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;..&#34;, &#34;pyvguicom&#34;, &#34;pyvguicom&#34;))
-    from pyvguicom import sutil
-
+from pyvguicom import sutil
+# Get Parent of module root
+sf = os.path.dirname(sutil.__file__)
+sys.path.append(os.path.join(sf, &#34;..&#34;, &#34;pyvguicom&#34;))
 
 #print(&#34;Load:&#34;, sys.path[-1])
 
 from pyvcommon import support, comline, pywrap
 from pyvcommon import pydata, pyservsup,  crysupp
+from pyvserver import pyvstate
+from pyvserver import pyvfunc
+from guilib import mainwintally
 
-from guilib import mainwinserv
-
-# ------------------------------------------------------------------------
+# -----------------------------------------------------------------------
 # Globals
 
-version = &#34;0.00&#34;
+version = &#34;1.00&#34;
 
 # ------------------------------------------------------------------------
 
@@ -106,24 +103,30 @@ def pversion():
 
     # option, var_name, initial_val, function
 optarr = \
-    [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,      None],      \
-    [&#34;p:&#34;,  &#34;port&#34;,     9999,   None],      \
-    [&#34;v&#34;,   &#34;verbose&#34;,  0,      None],      \
-    [&#34;q&#34;,   &#34;quiet&#34;,    0,      None],      \
-    [&#34;t&#34;,   &#34;test&#34;,     &#34;x&#34;,    None],      \
-    [&#34;V&#34;,   None,       None,   pversion],  \
-    [&#34;h&#34;,   None,       None,   phelp]      \
+    [&#34;d:&#34;,  &#34;debug=&#34;,   &#34;pgdebug&#34;,  0,      None],      \
+    [&#34;p:&#34;,  &#34;port=&#34;,    &#34;port&#34;,     9999,   None],      \
+    [&#34;v&#34;,   &#34;verbose&#34;,  &#34;verbose&#34;,  0,      None],      \
+    [&#34;q&#34;,   &#34;quiet&#34;,    &#34;quiet&#34;,    0,      None],      \
+    [&#34;r:&#34;,  &#34;dataroot=&#34;, &#34;droot&#34;,   &#34;pyvserver&#34;,     None],      \
+    [&#34;V&#34;,   &#34;version&#34;,  None,       None,   pversion],  \
+    [&#34;h&#34;,   &#34;help&#34;,     None,       None,   phelp]      \
 
 conf = comline.ConfigLong(optarr)
 
 def mainfunct():
-
+    #print(&#34;pyvcpanel started ...&#34;)
     args = conf.comline(sys.argv[1:])
-    mw = mainwinserv.MainWin()
+    #print(&#34;args&#34;, args)
+
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+    pyservsup.globals.conf = conf
+
+    mw = mainwintally.MainWin()
     mw.main()
     sys.exit(0)
 
 if __name__ == &#39;__main__&#39;:
+
     mainfunct()
 
 # EOF</code></pre>
@@ -136,7 +139,7 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="pyvservui.mainfunct"><code class="name flex">
+<dt id="pyvtally.mainfunct"><code class="name flex">
 <span>def <span class="ident">mainfunct</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -146,14 +149,19 @@ if __name__ == &#39;__main__&#39;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def mainfunct():
-
+    #print(&#34;pyvcpanel started ...&#34;)
     args = conf.comline(sys.argv[1:])
-    mw = mainwinserv.MainWin()
+    #print(&#34;args&#34;, args)
+
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+    pyservsup.globals.conf = conf
+
+    mw = mainwintally.MainWin()
     mw.main()
     sys.exit(0)</code></pre>
 </details>
 </dd>
-<dt id="pyvservui.phelp"><code class="name flex">
+<dt id="pyvtally.phelp"><code class="name flex">
 <span>def <span class="ident">phelp</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -177,7 +185,7 @@ if __name__ == &#39;__main__&#39;:
     sys.exit(0)</code></pre>
 </details>
 </dd>
-<dt id="pyvservui.pversion"><code class="name flex">
+<dt id="pyvtally.pversion"><code class="name flex">
 <span>def <span class="ident">pversion</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -206,9 +214,9 @@ if __name__ == &#39;__main__&#39;:
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="pyvservui.mainfunct" href="#pyvservui.mainfunct">mainfunct</a></code></li>
-<li><code><a title="pyvservui.phelp" href="#pyvservui.phelp">phelp</a></code></li>
-<li><code><a title="pyvservui.pversion" href="#pyvservui.pversion">pversion</a></code></li>
+<li><code><a title="pyvtally.mainfunct" href="#pyvtally.mainfunct">mainfunct</a></code></li>
+<li><code><a title="pyvtally.phelp" href="#pyvtally.phelp">phelp</a></code></li>
+<li><code><a title="pyvtally.pversion" href="#pyvtally.pversion">pversion</a></code></li>
 </ul>
 </li>
 </ul>

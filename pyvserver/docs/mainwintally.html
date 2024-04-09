@@ -59,6 +59,15 @@ class MainWin(Gtk.Window):
 
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
+        try:
+            pixbuf = Gtk.IconTheme.get_default().load_icon(&#34;weather-storm&#34;, 32, 0)
+            self.set_icon(pixbuf)
+        except:
+
+            icon = os.path.join(os.path.dirname(__file__), &#34;weather-storm.png&#34;)
+            ic = Gtk.Image(); ic.set_from_file(icon)
+            self.set_icon(ic.get_pixbuf())
+
         self.start_anal = False
         self.core = None
         self.in_timer = False
@@ -203,18 +212,18 @@ class MainWin(Gtk.Window):
                 self.core = twinchain.TwinChain(dbname)
                 #print(&#34;opened&#34;, self.core)
             sss = self.core.getdbsize()
-            #sss = 3 # test
+            sss = 3 # test
             if sss != self.old_sss:
                 cnt = 0
                 # Start from one
-                for aa in range(self.old_sss, sss):
+                for aa in range(self.old_sss+1, sss):
                     rec = self.core.get_rec(aa)
                     if not rec:
                         continue
-                    #print(&#34;Datamon&#34;, rec)
+                    print(&#34;Datamon&#34;, rec[1])
                     pb = pyvpacker.packbin()
                     dec = pb.decode_data(rec[1])[0]
-                    #print(&#34;dec&#34;, dec)
+                    print(&#34;dec&#34;, dec)
                     decpay   = pb.decode_data(dec[&#39;payload&#39;])[0]
 
                     actstr = [&#34;register&#34;, &#34;unregister&#34;, &#34;cast&#34;, &#34;uncast&#34;, ]
@@ -350,6 +359,15 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
+        try:
+            pixbuf = Gtk.IconTheme.get_default().load_icon(&#34;weather-storm&#34;, 32, 0)
+            self.set_icon(pixbuf)
+        except:
+
+            icon = os.path.join(os.path.dirname(__file__), &#34;weather-storm.png&#34;)
+            ic = Gtk.Image(); ic.set_from_file(icon)
+            self.set_icon(ic.get_pixbuf())
+
         self.start_anal = False
         self.core = None
         self.in_timer = False
@@ -494,18 +512,18 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
                 self.core = twinchain.TwinChain(dbname)
                 #print(&#34;opened&#34;, self.core)
             sss = self.core.getdbsize()
-            #sss = 3 # test
+            sss = 3 # test
             if sss != self.old_sss:
                 cnt = 0
                 # Start from one
-                for aa in range(self.old_sss, sss):
+                for aa in range(self.old_sss+1, sss):
                     rec = self.core.get_rec(aa)
                     if not rec:
                         continue
-                    #print(&#34;Datamon&#34;, rec)
+                    print(&#34;Datamon&#34;, rec[1])
                     pb = pyvpacker.packbin()
                     dec = pb.decode_data(rec[1])[0]
-                    #print(&#34;dec&#34;, dec)
+                    print(&#34;dec&#34;, dec)
                     decpay   = pb.decode_data(dec[&#39;payload&#39;])[0]
 
                     actstr = [&#34;register&#34;, &#34;unregister&#34;, &#34;cast&#34;, &#34;uncast&#34;, ]
@@ -807,18 +825,18 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
             self.core = twinchain.TwinChain(dbname)
             #print(&#34;opened&#34;, self.core)
         sss = self.core.getdbsize()
-        #sss = 3 # test
+        sss = 3 # test
         if sss != self.old_sss:
             cnt = 0
             # Start from one
-            for aa in range(self.old_sss, sss):
+            for aa in range(self.old_sss+1, sss):
                 rec = self.core.get_rec(aa)
                 if not rec:
                     continue
-                #print(&#34;Datamon&#34;, rec)
+                print(&#34;Datamon&#34;, rec[1])
                 pb = pyvpacker.packbin()
                 dec = pb.decode_data(rec[1])[0]
-                #print(&#34;dec&#34;, dec)
+                print(&#34;dec&#34;, dec)
                 decpay   = pb.decode_data(dec[&#39;payload&#39;])[0]
 
                 actstr = [&#34;register&#34;, &#34;unregister&#34;, &#34;cast&#34;, &#34;uncast&#34;, ]

@@ -61,27 +61,29 @@ cleankeys:
 	@rm -rf ~/pyvserver/private/*
 
 tests:
-	echo No tests, look at pyvclient directory
+	@echo "Executing tests in the pyvclient directory"
+	cd pyvclient/tests; pytest; cd ..
+	@echo "Warning: On empty database this test created demo credentials."
+	@echo "It is recommended to delete all test generated data"
 
-XPATH="pyvcommon,../pyvguicom,pyvgui/guilib "
-XPATH2="pyvcommon:../pyvguicom:../pyvguicom/pyvguicom:pyvgui/guilib"
-
+XPATH=PYTHONPATH=pyvcommon:../pyvguicom/pyvguicom: pdoc --force --html
 docs:
-	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvserver/pyvserv.py
-	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvserver/pyvfunc.py
-	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvserver/pyvreplic.py
-	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvserver/pyvstate.py
-	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvtools/pyvgenkeys.py
-	@#PYTHONPATH=pyvcommon pdoc --force --html -o docs pyvtools/pyvgenkey.py
-	@PYTHONPATH=${XPATH} pdoc --force --html -o docs pyvgui/pyvcpanel.py
-	@PYTHONPATH=${XPATH} pdoc --force --html -o docs pyvgui/pyvservui.py
-	@PYTHONPATH=${XPATH} pdoc --force --html -o docs pyvgui/pyvtally.py
-	@PYTHONPATH=${XPATH2} pdoc --force --html -o docs pyvgui/guilib/mainwin.py
-	@PYTHONPATH=${XPATH2} pdoc --force --html -o docs pyvgui/guilib/mainwinserv.py
-	@PYTHONPATH=${XPATH2} pdoc --force --html -o docs pyvgui/guilib/mainwintally.py
+	@${XPATH} -o pyvserver/docs pyvserver/pyvserv.py
+	@${XPATH} -o pyvserver/docs pyvserver/pyvfunc.py
+	@${XPATH} -o pyvserver/docs pyvserver/pyvreplic.py
+	@${XPATH} -o pyvserver/docs pyvserver/pyvstate.py
+	@${XPATH} -o pyvserver/docs pyvtools/pyvgenkeys.py
+	@${XPATH} -o pyvserver/docs pyvtools/pyvgenkey.py
+	@${XPATH} -o pyvserver/docs pyvgui/pyvcpanel.py
+	@${XPATH} -o pyvserver/docs pyvgui/pyvservui.py
+	@${XPATH} -o pyvserver/docs pyvgui/pyvtally.py
+	@${XPATH} -o pyvserver/docs pyvgui/pyvtally.py
+	@${XPATH} -o pyvserver/docs pyvgui/guilib/mainwin.py
+	@${XPATH} -o pyvserver/docs pyvgui/guilib/mainwinserv.py
+	@${XPATH} -o pyvserver/docs pyvgui/guilib/mainwintally.py
 
 checksum:
-	@echo Checking SHA256 sums
+	@echo "Checking SHA256 sums; No output if OK."
 	@sha256sum -c --quiet shasum.txt
 
 gensum:
@@ -119,6 +121,9 @@ startservice:
 
 stopservice:
 	sudo systemctl stop pyvserv.service
+
+# The pyvserv may be installed in a virtual environment.
+# Control it froom here
 
 installvirt:
 	./pyvserv_venv_install.sh

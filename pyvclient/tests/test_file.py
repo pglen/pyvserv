@@ -62,7 +62,7 @@ def test_func(capsys):
     global sess_key
     sess_key = session(hand, org_sess_key)
 
-    # Make sure admin is present
+    # Make sure admin is present; WARNING: will create DEMO credentials
     resp5 = hand.client(["uini", "admin", "1234"], sess_key, False)
     print("uini:", resp5)
     #assert resp5[0] ==  "OK"

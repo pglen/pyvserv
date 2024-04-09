@@ -478,6 +478,11 @@ def mainfunct():
     pyservsup.globals.config(pyservsup.globals.myhome, conf)
     pyservsup.gl_passwd = pyservsup.Passwd()
 
+    # This is out of process, but create a 'vote' chain directory
+    # As testing will create it ... no harm
+    vd = os.path.join(pyservsup.globals.chaindir, "vote")
+    pyservsup.globals._softmkdir(vd)
+
     if conf.verbose:
         print("Pass Dir:        ", pyservsup.globals.passdir)
         print("Key Dir:         ", pyservsup.globals.keydir)

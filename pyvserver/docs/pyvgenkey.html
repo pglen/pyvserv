@@ -68,23 +68,15 @@ try:
     #print(&#34;sf&#34;, sf)
     sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
     sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
-    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
-    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
 
 except:
     base = os.path.dirname(os.path.realpath(__file__))
     sys.path.append(os.path.join(base,  &#39;..&#39;))
     sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
     sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
-    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;))
-    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
     from pyvcommon import support
 
-#for aa in sys.path:
-#    print(aa)
-
-print(&#34;Load:&#34;, sys.path[-1])
-
+#print(&#34;Load:&#34;, sys.path[-1])
 
 from pyvcommon import pyservsup
 

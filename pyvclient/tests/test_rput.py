@@ -54,6 +54,7 @@ def test_func(capsys):
     pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
     pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
     pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
+    pvh.addpayload({"TEST": "Do NOT use", })
     pvh.hasharr();  pvh.powarr()
 
     #print(pvh.datax)

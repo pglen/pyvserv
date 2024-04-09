@@ -1,3 +1,4 @@
+import sys, os
 import setuptools
 
 descx = '''
@@ -76,6 +77,18 @@ except:
     deplist = ["pyvpacker", "pydbase", "pycryptodome",
                         "pyvecc", "pyvguicom"],
 
+doclist = []; droot = "pyvserver/docs/"
+doclistx = os.listdir(droot)
+for aa in doclistx:
+    doclist.append("docs/" + aa)
+
+# This was needed to verify lists ...
+#print("includex:", includex)
+#print("find packages:", setuptools.find_packages(include=includex))
+#print("deplist:", deplist)
+#print("doclist:", doclist)
+#sys.exit(1)
+
 setuptools.setup(
     name="pyvserv",
     version=loc_vers,
@@ -90,9 +103,8 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    include_package_data=True,
     packages=setuptools.find_packages(include=includex),
-
+    include_package_data = True,
     scripts = [
                 "pyvserver/pyvserv.py",
                 "pyvserver/pyvreplic.py",
@@ -102,7 +114,6 @@ setuptools.setup(
                 "pyvgui/pyvtally.py",
                 *test_scripts,
                 ],
-
     package_dir = {
                     'pyvgui':           'pyvgui',
                     'pyvgui/guilib':    'pyvgui/guilib',
@@ -112,6 +123,7 @@ setuptools.setup(
                     'pyvtools':         'pyvtools',
                    },
 
+    package_data = {"pyvserver" :  doclist},
     python_requires='>=3',
     install_requires=deplist,
     entry_points={

@@ -33,7 +33,7 @@ except:
 #for aa in sys.path:
 #    print(aa)
 
-print("Load:", sys.path[-1])
+#print("Load:", sys.path[-1])
 
 import pyvgenkey
 import argparse

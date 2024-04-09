@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>pyvgenkeys API documentation</title>
+<title>pyvcpanel API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,21 +19,25 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pyvgenkeys</code></h1>
+<h1 class="title">Module <code>pyvcpanel</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">#!/usr/bin/env python
+<pre><code class="python">#!/usr/bin/env python3
 
-from __future__ import print_function
+import os, sys
 
-import os, sys, getopt, signal, select, string, time
-import struct, stat, base64, random
+if  sys.version_info[0] &lt; 3:
+        print(&#34;Needs python 3 or better.&#34;)
+        sys.exit(1)
 
-from Crypto import Random
+import getopt, signal, select, socket, time, struct
+import random, string, stat, base64, random, datetime
+
+import pyvpacker
 
 # This repairs the path from local run to pip run.
 # Remove pip version for local tests
@@ -46,69 +50,84 @@ try:
     #print(&#34;sf&#34;, sf)
     sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
     sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
-    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
-    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
+    sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
+    sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
 
 except:
-    base = os.path.dirname(os.path.realpath(__file__))
+    base = os.path.dirname(__file__)
+    #print(&#34;base:&#34;, base)
     sys.path.append(os.path.join(base,  &#39;..&#39;))
     sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
     sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
-    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;))
-    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
+    sys.path.append(os.path.join(base,  &#34;..&#34;, &#34;pyvgui&#34;))
+    sys.path.append(os.path.join(base,  &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
     from pyvcommon import support
 
-#for aa in sys.path:
-#    print(aa)
+from pyvguicom import sutil
+# Get Parent of module root
+sf = os.path.dirname(sutil.__file__)
+sys.path.append(os.path.join(sf, &#34;..&#34;, &#34;pyvguicom&#34;))
 
-print(&#34;Load:&#34;, sys.path[-1])
+#print(&#34;Load:&#34;, sys.path[-1])
 
-import pyvgenkey
-import argparse
+from pyvcommon import support, comline, pywrap
+from pyvcommon import pydata, pyservsup,  crysupp
+from pyvserver import pyvstate
+from pyvserver import pyvfunc
+from guilib import mainwin
 
-parser = argparse.ArgumentParser(description=&#39;Genetrate ECC keypair for pyvserv.&#39;)
+# -----------------------------------------------------------------------
+# Globals
 
-parser.add_argument(&#34;-v&#34;, &#39;--verbose&#39;, dest=&#39;verbose&#39;,
-                    default=0,  action=&#39;count&#39;,
-                    help=&#39;verbocity on (default: off)&#39;)
+version = &#34;1.00&#34;
 
-parser.add_argument(&#34;-x:&#34;, &#39;--max&#39;, dest=&#39;mxcount&#39;,
-                    default=25, type=int,
-                    help=&#39;Max mumber of keys. Default 25&#39;)
+# ------------------------------------------------------------------------
 
-parser.add_argument(&#34;-m:&#34;, &#39;--homedir&#39;, dest=&#39;homedir&#39;,
-                    default=&#34;pyvserver&#34;,  action=&#39;store&#39;,
-                    help=&#39;pyvserv home directory (default: ~/pyvserver)&#39;)
+def phelp():
+
+    print()
+    print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
+    print()
+    print( &#34;Options:    -d level  - Debug level 0-10&#34;)
+    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -v        - Verbose&#34;)
+    print( &#34;            -V        - Version&#34;)
+    print( &#34;            -q        - Quiet&#34;)
+    print( &#34;            -h        - Help&#34;)
+    print()
+    sys.exit(0)
+
+# ------------------------------------------------------------------------
+def pversion():
+    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
+    sys.exit(0)
+
+    # option, var_name, initial_val, function
+optarr = \
+    [&#34;d:&#34;,  &#34;debug=&#34;,   &#34;pgdebug&#34;,  0,      None],      \
+    [&#34;p:&#34;,  &#34;port=&#34;,    &#34;port&#34;,     9999,   None],      \
+    [&#34;v&#34;,   &#34;verbose&#34;,  &#34;verbose&#34;,  0,      None],      \
+    [&#34;q&#34;,   &#34;quiet&#34;,    &#34;quiet&#34;,    0,      None],      \
+    [&#34;r:&#34;,  &#34;dataroot=&#34;, &#34;droot&#34;,   &#34;pyvserver&#34;,     None],      \
+    [&#34;V&#34;,   &#34;version&#34;,  None,       None,   pversion],  \
+    [&#34;h&#34;,   &#34;help&#34;,     None,       None,   phelp]      \
+
+conf = comline.ConfigLong(optarr)
 
 def mainfunct():
+    #print(&#34;pyvcpanel started ...&#34;)
+    args = conf.comline(sys.argv[1:])
+    #print(&#34;args&#34;, args)
 
-    args = parser.parse_args()
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+    pyservsup.globals.conf = conf
 
-    #if not pyvgenkey.is_power_of_two(args.bits):
-    #    print(&#34;Bitness must be a power of 2&#34;)
-    #    sys.exit(1)
-
-    pyvgenkey.position(args)
-    #print(&#34;Current dir:     &#34;, os.getcwd())
-    print (&#34;Started pyvserv continuous keygen. Press Ctrl-C to abort.&#34;)
-    cnt = 0
-    while(True):
-        if cnt &gt;= args.mxcount:
-            break
-        cnt += 1;
-        sys.stdout.flush()
-        files = pyvgenkey.genkey()
-        print (&#34;\rKey %-4d %s %s &#34; % (cnt, files[0], files[1]), end=&#34;&#34;);
-        # Ease on hogging the system
-        sleepy  = 0.2
-        if cnt &gt; 100:
-            sleepy = 1
-        elif cnt &gt; 10:
-            sleepy = .5
-        time.sleep(sleepy)
-    print()
+    mw = mainwin.MainWin()
+    mw.main()
+    sys.exit(0)
 
 if __name__ == &#39;__main__&#39;:
+
     mainfunct()
 
 # EOF</code></pre>
@@ -121,7 +140,7 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="pyvgenkeys.mainfunct"><code class="name flex">
+<dt id="pyvcpanel.mainfunct"><code class="name flex">
 <span>def <span class="ident">mainfunct</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -131,32 +150,56 @@ if __name__ == &#39;__main__&#39;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def mainfunct():
+    #print(&#34;pyvcpanel started ...&#34;)
+    args = conf.comline(sys.argv[1:])
+    #print(&#34;args&#34;, args)
 
-    args = parser.parse_args()
+    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+    pyservsup.globals.conf = conf
 
-    #if not pyvgenkey.is_power_of_two(args.bits):
-    #    print(&#34;Bitness must be a power of 2&#34;)
-    #    sys.exit(1)
+    mw = mainwin.MainWin()
+    mw.main()
+    sys.exit(0)</code></pre>
+</details>
+</dd>
+<dt id="pyvcpanel.phelp"><code class="name flex">
+<span>def <span class="ident">phelp</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def phelp():
 
-    pyvgenkey.position(args)
-    #print(&#34;Current dir:     &#34;, os.getcwd())
-    print (&#34;Started pyvserv continuous keygen. Press Ctrl-C to abort.&#34;)
-    cnt = 0
-    while(True):
-        if cnt &gt;= args.mxcount:
-            break
-        cnt += 1;
-        sys.stdout.flush()
-        files = pyvgenkey.genkey()
-        print (&#34;\rKey %-4d %s %s &#34; % (cnt, files[0], files[1]), end=&#34;&#34;);
-        # Ease on hogging the system
-        sleepy  = 0.2
-        if cnt &gt; 100:
-            sleepy = 1
-        elif cnt &gt; 10:
-            sleepy = .5
-        time.sleep(sleepy)
-    print()</code></pre>
+    print()
+    print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
+    print()
+    print( &#34;Options:    -d level  - Debug level 0-10&#34;)
+    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -v        - Verbose&#34;)
+    print( &#34;            -V        - Version&#34;)
+    print( &#34;            -q        - Quiet&#34;)
+    print( &#34;            -h        - Help&#34;)
+    print()
+    sys.exit(0)</code></pre>
+</details>
+</dd>
+<dt id="pyvcpanel.pversion"><code class="name flex">
+<span>def <span class="ident">pversion</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pversion():
+    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
+    sys.exit(0)
+
+    # option, var_name, initial_val, function</code></pre>
 </details>
 </dd>
 </dl>
@@ -172,7 +215,9 @@ if __name__ == &#39;__main__&#39;:
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="pyvgenkeys.mainfunct" href="#pyvgenkeys.mainfunct">mainfunct</a></code></li>
+<li><code><a title="pyvcpanel.mainfunct" href="#pyvcpanel.mainfunct">mainfunct</a></code></li>
+<li><code><a title="pyvcpanel.phelp" href="#pyvcpanel.phelp">phelp</a></code></li>
+<li><code><a title="pyvcpanel.pversion" href="#pyvcpanel.pversion">pversion</a></code></li>
 </ul>
 </li>
 </ul>

@@ -32,7 +32,12 @@ from __future__ import print_function
 
 from Crypto.Hash import SHA512
 import os, sys, getopt, signal, select, string, time, stat, base64
-import inspect, fcntl, multiprocessing
+import inspect, multiprocessing
+
+try:
+    import fcntl
+except:
+    fcntl = None
 
 import pyvpacker
 
@@ -69,63 +74,57 @@ none_in      = 120
 # ------------------------------------------------------------------------
 # Help stings
 
-user_help   = &#34;Usage: user logon_name -- set session user name&#34;
-akey_help   = &#34;Usage: akey -- get asymmetric key&#34;
-pass_help   = &#34;Usage: pass logon_pass -- password&#34;
-chpass_help = &#34;Usage: chpass newpass&#34;
-file_help   = &#34;Usage: file fname -- Specify name for upload&#34;
-fget_help   = &#34;Usage: fget fname -- Download (get) file&#34;
-fput_help   = &#34;Usage: fput fname -- Upload (put) file&#34;
-del_help    = &#34;Usage: del  fname -- Delete file&#34;
-uadd_help   = &#34;Usage: uadd user_name user_pass -- Create new user&#34;
-kadd_help   = &#34;Usage: kadd key_name key_val -- Add new encryption key&#34;
-uini_help   = &#34;Usage: uini user_name user_pass -- Create initial user. &#34;\
-                &#34;Must be from local net.&#34;
-kini_help  = &#34;Usage: kini key_name key_pass -- Create initial key. &#34; \
-                &#34;Must be from local net.&#34;
-uena_help  = &#34;Usage: uena user_name  flag --  enable / disable user&#34;
-aadd_help  = &#34;Usage: aadd user_name user_pass -- create admin user&#34;
-udel_help  = &#34;Usage: udel user_name -- Delete user&#34;
-data_help  = &#34;Usage: data datalen -- Specify length of file to follow&#34;
-vers_help  = &#34;Usage: ver -- Get protocol version. alias: vers&#34;
-id_help    = &#34;Usage: id -- Get site id string&#34;
-hello_help = &#34;Usage: hello -- Say Hello - test connectivity.&#34;
-quit_help  = &#34;Usage: quit -- Terminate connection. alias: exit&#34;
-help_help  = &#34;Usage: help [command] -- Offer help on command&#34;
-lsls_help  = &#34;Usage: ls [dir] -- List files in dir&#34;
-lsld_help  = &#34;Usage: lsd [dir] -- List dirs in dir&#34;
-cdcd_help  = &#34;Usage: cd dir -- Change to dir. Capped to server root&#34;
-pwdd_help  = &#34;Usage: pwd -- Show current dir&#34;
-stat_help  = &#34;Usage: stat fname  -- Get file stat. Field list:\n&#34;\
-    &#34;   1.  ST_MODE Inode protection mode.\n&#34;\
-    &#34;   2.  ST_INO Inode number.\n&#34;\
-    &#34;   3.  ST_DEV Device inode resides on.\n&#34;\
-    &#34;   4.  ST_NLINK  Number of links to the inode.\n&#34;\
-    &#34;   5.  ST_UID User id of the owner.\n&#34;\
-    &#34;   6.  ST_GID Group id of the owner.\n&#34;\
-    &#34;   7.  ST_SIZE Size in bytes of a plain file.\n&#34;\
-    &#34;   8.  ST_ATIME Time of last access.\n&#34;\
-    &#34;   9.  ST_MTIME Time of last modification.\n&#34;\
-    &#34;   10. ST_CTIME Time of last metadata change.&#34;
-tout_help  = &#34;Usage: tout new_val -- Set / Reset timeout in seconds&#34;
-ekey_help  = &#34;Usage: ekey encryption_key -- Set encryption key &#34;
-sess_help  = &#34;Usage: sess session data -- Start session &#34;
-buff_help  = &#34;Usage: buff buff_size -- limited to 64k&#34;
+usage = &#34;Usage:&#34;
+user_help   = usage + &#34; user logon_name -- set session user name&#34;
+akey_help   = usage + &#34; akey -- get asymmetric key&#34;
+pass_help   = usage + &#34; pass logon_pass -- password&#34;
+chpass_help = usage + &#34; chpass user  oldpass, newpass&#34;
+file_help   = usage + &#34; file fname -- Specify name for upload&#34;
+mkdir_help  = usage + &#34; mkdir dirname -- Specify name for new dir&#34;
+rmdir_help  = usage + &#34; rmdir dirname -- Specify dir name to delete&#34;
+fget_help   = usage + &#34; fget fname -- Download (get) file&#34;
+fput_help   = usage + &#34; fput fname -- Upload (put) file&#34;
+del_help    = usage + &#34; del  fname -- Delete file&#34;
+uadd_help   = usage + &#34; uadd user_name user_pass -- Create new user&#34;
+uini_help   = usage + &#34; uini user_name user_pass -- Create initial user. Loopback only.&#34;
+uena_help   = usage + &#34; uena user_name  flag -- enable / disable user&#34;
+ulist_help  = usage + &#34; ulist flag  -- list users. Flag: user / admin / initial / disabled&#34;
+aadd_help   = usage + &#34; aadd user_name user_pass -- create admin user&#34;
+udel_help   = usage + &#34; udel user_name -- Delete user&#34;
+data_help   = usage + &#34; data datalen -- Specify length of file to follow&#34;
+vers_help   = usage + &#34; ver -- Get server version.&#34;
+id_help     = usage + &#34; id -- Get site id string&#34;
+hello_help  = usage + &#34; hello -- Say Hello - test connectivity.&#34;
+quit_help   = usage + &#34; quit -- Terminate connection. alias: exit&#34;
+exit_help   = usage + &#34; exit -- Terminate connection. alias: quit&#34;
+help_help   = usage + &#34; help [command] -- Offer help on command&#34;
+lsls_help   = usage + &#34; ls [dir] -- List files in dir&#34;
+lsld_help   = usage + &#34; lsd [dir] -- List dirs in dir&#34;
+cdcd_help   = usage + &#34; cd dir -- Change to dir. Capped to server root&#34;
+pwdd_help   = usage + &#34; pwd -- Show current dir&#34;
+tout_help   = usage + &#34; tout [val] -- Get / Set timeout value. (seconds)&#34;
+ekey_help   = usage + &#34; ekey encryption_key -- Set encryption key &#34;
+sess_help   = usage + &#34; sess session data -- Start session &#34;
+logout_help = usage + &#34; logout -- log out user&#34;
+buff_help   = usage + &#34; buff buff_size -- limited to 64k&#34;
+throt_help  = usage + &#34; throt flag -- turn on or off throttling&#34;
+rput_help   = usage + &#34; rcheck kind link | sum -- check records. Link check or sum check&#34;
+rtest_help  = usage + &#34; rtest link | sum recids -- check a list of records. Link check or sum check&#34;
+rcheck_help = usage + &#34; rput kind header, [field1, field2] ... -- put record in blockchain.&#34;
+rlist_help  = usage + &#34; rlist kind beg_date end_date -- get records from blockchain.&#34;
+rcount_help = usage + &#34; rcount kind beg_date end_date -- get record count from blockchain.&#34;
+rsize_help  = usage + &#34; rsize kind -- get total record count from blockchain.&#34;
+rget_help   = usage + &#34; rget kind header -- get record from blockchain.&#34;
+rabs_help   = usage + &#34; rabs kind pos -- get record by absolute position from blockchain.&#34;
+rhave_help  = usage + &#34; rhave kind header -- is record in blockchain.&#34;
 
-rput_help  =  &#34;Usage: rcheck kind link | sum -- check records. Link check or sum check&#34;
-rcheck_help = &#34;Usage: rput kind header, [field1, field2] ... -- put record in blockcain.&#34;
-rlist_help =  &#34;Usage: rlist kind beg_date end_date -- get records from blockcain.&#34;
-rcount_help=  &#34;Usage: rcount kind beg_date end_date -- get record count from blockcain.&#34;
-rsize_help =  &#34;Usage: rsize kind -- get total record count from blockcain.&#34;
-rget_help  =  &#34;Usage: rget kind header -- get record from blockcain.&#34;
-rhave_help =  &#34;Usage: rhave kind header -- is record in blockcain.&#34;
-
-qr_help    = &#34;Usage: qr -- get qrcode image for 2fa&#34;
-twofa_help = &#34;Usage: twofa -- two factor authentication&#34;
-dmode_help = &#34;Usage: dmode -- get dmode (Developer Mode) flag&#34;
-ihave_help = &#34;Usage: ihave -- &#39;i have you have&#39; protocol entry point&#34;
-ihost_help = &#34;Usage: ihost -- add / delete replicator host&#34;
-xxxx_help  = &#34;Usage: no data -- Template for new halp&#34;
+qr_help     = usage + &#34; qr -- get QR code image for 2fa&#34;
+twofa_help  = usage + &#34; twofa pass -- two factor authentication credentials&#34;
+dmode_help  = usage + &#34; dmode -- get current dmode (Developer Mode) flag&#34;
+ihave_help  = usage + &#34; ihave -- &#39;i have you have&#39; protocol entry point&#34;
+ihost_help  = usage + &#34; ihost -- add / delete replicator host:port target&#34;
+stat_help   = usage + &#34; stat fname  -- Get file stat&#34;
+xxxx_help   = usage + &#34; no data -- Template for new help&#34;
 
 # ------------------------------------------------------------------------
 # Table driven server state machine.
@@ -137,63 +136,65 @@ def init_state_table():
     global state_table
     #print(&#34;pystate init table&#34;)
     # This is to develop without entering auth code every time
-    if pyservsup.globals.conf.dmode:
-        print(&#34;Warning! devmode ON&#34;)
+    if not pyservsup.globals.conf.pmode:
         minauth =  auth_pass
     else:
         minauth =  auth_twofa
 
     state_table = \
     [
-    # Command; start_state; end_state; min_auth; action func;   help func
-    (&#34;ver&#34;,     all_in,     none_in,    initial,  get_ver_func,   vers_help),
-    (&#34;id&#34;,      all_in,     none_in,    initial,  get_id_func,    id_help),
-    (&#34;hello&#34;,   all_in,     none_in,    initial,  get_hello_func, hello_help),
-    (&#34;helo&#34;,    all_in,     none_in,    initial,  get_hello_func, hello_help),
-    (&#34;quit&#34;,    all_in,     none_in,    initial,  get_exit_func,  quit_help),
-    (&#34;exit&#34;,    all_in,     none_in,    initial,  get_exit_func,  quit_help),
-    (&#34;help&#34;,    all_in,     none_in,    initial,  get_help_func,  help_help),
-    (&#34;xkey&#34;,    all_in,     none_in,    initial,  get_xkey_func,  ekey_help),
-    (&#34;ekey&#34;,    all_in,     none_in,    initial,  get_ekey_func,  ekey_help),
-    (&#34;akey&#34;,    all_in,     none_in,    initial,  get_akey_func,  akey_help),
-    (&#34;uini&#34;,    all_in,     none_in,    initial,  get_uini_func,  uini_help),
-    (&#34;kadd&#34;,    all_in,     none_in,    initial,  get_kadd_func,  kadd_help),
-    (&#34;user&#34;,    all_in,     none_in,    initial,  get_user_func,  user_help),
-    (&#34;pass&#34;,    all_in,     auth_pass,  initial,  get_pass_func,  pass_help),
-    (&#34;sess&#34;,    all_in,     none_in,    initial,  get_sess_func,  sess_help),
-    (&#34;tout&#34;,    all_in,     none_in,    initial,  get_tout_func,  tout_help),
-    (&#34;qr&#34;,      all_in,     none_in,    initial,  get_qr_func,    qr_help),
-    (&#34;chpass&#34;,  all_in,  none_in,    auth_pass, get_chpass_func,  chpass_help),
-    (&#34;file&#34;,    all_in,  none_in,    auth_pass, put_file_func, file_help),
-    (&#34;mkdir&#34;,   all_in,  none_in,    auth_pass, get_mkdir_func, file_help),
-    (&#34;data&#34;,    all_in,  none_in,    auth_pass, put_data_func,  data_help),
-    (&#34;fget&#34;,    all_in,  none_in,    auth_pass, get_fget_func,  fget_help),
-    (&#34;fput&#34;,    all_in,  none_in,    auth_pass, get_fput_func,  fput_help),
-    (&#34;del&#34;,     all_in,  none_in,    auth_pass, get_del_func,   del_help),
-    (&#34;uadd&#34;,    all_in,  none_in,    auth_pass, get_uadd_func,  uadd_help),
-    (&#34;uena&#34;,    all_in,  none_in,    auth_pass, get_uena_func,  uena_help),
-    (&#34;aadd&#34;,    all_in,  none_in,    auth_pass, get_aadd_func,  aadd_help),
-    (&#34;udel&#34;,    all_in,  none_in,    auth_pass, get_udel_func,  udel_help),
-    (&#34;ls&#34;,      all_in,  none_in,    auth_pass, get_ls_func,    lsls_help),
-    (&#34;lsd&#34;,     all_in,  none_in,    auth_pass, get_lsd_func,   lsld_help),
-    (&#34;cd&#34;,      all_in,  none_in,    auth_pass, get_cd_func,    cdcd_help),
-    (&#34;pwd&#34;,     all_in,  none_in,    auth_pass, get_pwd_func,   pwdd_help),
-    (&#34;stat&#34;,    all_in,  none_in,    auth_pass, get_stat_func,  stat_help),
-    (&#34;buff&#34;,    all_in,  none_in,    auth_pass, get_buff_func,  buff_help),
-    (&#34;twofa&#34;,   all_in,  auth_twofa, auth_pass, get_twofa_func,  twofa_help),
+        # Command; start_state; end_state; min_auth; action func;  help func
+        (&#34;ver&#34;,     all_in,  none_in,    initial,   get_ver_func,     vers_help),
+        (&#34;id&#34;,      all_in,  none_in,    initial,   get_id_func,      id_help),
+        (&#34;hello&#34;,   all_in,  none_in,    initial,   get_hello_func,   hello_help),
+        (&#34;helo&#34;,    all_in,  none_in,    initial,   get_hello_func,   hello_help),
+        (&#34;quit&#34;,    all_in,  none_in,    initial,   get_exit_func,    quit_help),
+        (&#34;exit&#34;,    all_in,  none_in,    initial,   get_exit_func,    exit_help),
+        (&#34;help&#34;,    all_in,  none_in,    initial,   get_help_func,    help_help),
+        (&#34;akey&#34;,    all_in,  none_in,    initial,   get_akey_func,    akey_help),
+        (&#34;uini&#34;,    all_in,  none_in,    initial,   get_uini_func,    uini_help),
+        (&#34;user&#34;,    all_in,  none_in,    initial,   get_user_func,    user_help),
+        (&#34;pass&#34;,    all_in,  auth_pass,  initial,   get_pass_func,    pass_help),
+        (&#34;logout&#34;,  all_in,  initial,    auth_pass, get_lout_func,    logout_help),
+        (&#34;sess&#34;,    all_in,  none_in,    initial,   get_sess_func,    sess_help),
+        (&#34;tout&#34;,    all_in,  none_in,    initial,   get_tout_func,    tout_help),
+        (&#34;qr&#34;,      all_in,  none_in,    initial,   get_qr_func,      qr_help),
+        (&#34;chpass&#34;,  all_in,  none_in,    auth_pass, get_chpass_func,  chpass_help),
+        (&#34;file&#34;,    all_in,  none_in,    auth_pass, put_file_func,    file_help),
+        (&#34;mkdir&#34;,   all_in,  none_in,    auth_pass, get_mkdir_func,   mkdir_help),
+        (&#34;rmdir&#34;,   all_in,  none_in,    auth_pass, get_rmdir_func,   rmdir_help),
+        (&#34;data&#34;,    all_in,  none_in,    auth_pass, put_data_func,    data_help),
+        (&#34;fget&#34;,    all_in,  none_in,    auth_pass, get_fget_func,    fget_help),
+        (&#34;fput&#34;,    all_in,  none_in,    auth_pass, get_fput_func,    fput_help),
+        (&#34;del&#34;,     all_in,  none_in,    auth_pass, get_del_func,     del_help),
+        (&#34;uadd&#34;,    all_in,  none_in,    auth_pass, get_uadd_func,    uadd_help),
+        (&#34;udel&#34;,    all_in,  none_in,    auth_pass, get_udel_func,    udel_help),
+        (&#34;uena&#34;,    all_in,  none_in,    auth_pass, get_uena_func,    uena_help),
+        (&#34;ulist&#34;,   all_in,  none_in,    auth_pass, get_ulist_func,   ulist_help),
+        (&#34;aadd&#34;,    all_in,  none_in,    auth_pass, get_aadd_func,    aadd_help),
+        (&#34;ls&#34;,      all_in,  none_in,    auth_pass, get_ls_func,      lsls_help),
+        (&#34;dir&#34;,     all_in,  none_in,    auth_pass, get_ls_func,      lsls_help),
+        (&#34;lsd&#34;,     all_in,  none_in,    auth_pass, get_lsd_func,     lsld_help),
+        (&#34;cd&#34;,      all_in,  none_in,    auth_pass, get_cd_func,      cdcd_help),
+        (&#34;pwd&#34;,     all_in,  none_in,    auth_pass, get_pwd_func,     pwdd_help),
+        (&#34;stat&#34;,    all_in,  none_in,    auth_pass, get_stat_func,    stat_help),
+        (&#34;buff&#34;,    all_in,  none_in,    auth_pass, get_buff_func,    buff_help),
+        (&#34;throt&#34;,   all_in,  none_in,    auth_pass, get_throt_func,   throt_help),
+        (&#34;twofa&#34;,   all_in,  auth_twofa, auth_pass, get_twofa_func,   twofa_help),
+        (&#34;dmode&#34;,   all_in,  none_in,    initial,   get_dmode_func,   dmode_help),
+        (&#34;ihave&#34;,   all_in,  none_in,    initial,   get_ihave_func,   ihave_help),
+        (&#34;ihost&#34;,   all_in,  none_in,    initial,   get_ihost_func,   ihost_help),
+        (&#34;rlist&#34;,    all_in,  none_in,   auth_pass, get_rlist_func,   rlist_help),
+        (&#34;rcount&#34;,   all_in,  none_in,   auth_pass, get_rcount_func,  rcount_help),
+        (&#34;rsize&#34;,    all_in,  none_in,   auth_pass, get_rsize_func,   rsize_help),
+        (&#34;rget&#34;,     all_in,  none_in,   auth_pass, get_rget_func,    rget_help),
+        (&#34;rabs&#34;,     all_in,  none_in,   auth_pass, get_rabs_func,    rabs_help),
+        (&#34;rhave&#34;,    all_in,  none_in,   auth_pass, get_rhave_func,   rhave_help),
+        (&#34;rtest&#34;,    all_in,  none_in,   auth_pass, get_rtest_func, rtest_help),
 
-    (&#34;dmode&#34;,   all_in,  none_in,    initial, get_dmode_func,  dmode_help),
-    (&#34;ihave&#34;,   all_in,  none_in,    initial, get_ihave_func,  ihave_help),
-    (&#34;ihost&#34;,   all_in,  none_in,    initial, get_ihost_func,  ihost_help),
-
-    # Following the two factor auth commands. Disabled during development
-    (&#34;rput&#34;,     all_in,  none_in,    minauth,   get_rput_func,   rput_help),
-    (&#34;rcheck&#34;,   all_in,  none_in,    minauth,   get_rcheck_func,  rcheck_help),
-    (&#34;rlist&#34;,    all_in,  none_in,    auth_pass, get_rlist_func,  rlist_help),
-    (&#34;rcount&#34;,   all_in,  none_in,    auth_pass, get_rcount_func, rcount_help),
-    (&#34;rsize&#34;,    all_in,  none_in,    auth_pass, get_rsize_func,  rsize_help),
-    (&#34;rget&#34;,     all_in,  none_in,    auth_pass, get_rget_func,   rget_help),
-    (&#34;rhave&#34;,    all_in,  none_in,    auth_pass, get_rhave_func,   rhave_help),
+        # The two factor auth commands. 2FA not required during development
+        (&#34;rput&#34;,     all_in,  none_in,   minauth,   get_rput_func,   rput_help),
+        (&#34;rcheck&#34;,   all_in,  none_in,   minauth,   get_rcheck_func, rcheck_help),
     ]
 # ------------------------------------------------------------------------
 
@@ -221,13 +222,15 @@ class StateHandler():
                 break
         try:
             self.fpx = open(self.lockname, &#34;wb&#34;)
-            fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+            if fcntl:
+                fcntl.lockf(self.fpx, fcntl.LOCK_EX)
         except:
             print(sys.exc_info())
             pass
 
     def dellock(self):
-        fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+        if fcntl:
+            fcntl.lockf(self.fpx, fcntl.LOCK_EX)
         try:
             self.fpx.close()
             os.unlink(self.lockname)
@@ -334,7 +337,6 @@ class StateHandler():
                 sss =  [&#34;ERR&#34;, &#34;Invalid command issued&#34;,  comx[0]]
             else:
                 sss =  [&#34;ERR&#34;, &#34;Out of Sequence command issued&#34;, comx[0]]
-            #self.resp.datahandler.putdata(sss.encode(&#34;cp437&#34;), self.resp.ekey)
             self.resp.datahandler.putencode(sss, self.resp.ekey)
             # Do not quit, just signal the error
             ret = False
@@ -366,63 +368,65 @@ class StateHandler():
     global state_table
     #print(&#34;pystate init table&#34;)
     # This is to develop without entering auth code every time
-    if pyservsup.globals.conf.dmode:
-        print(&#34;Warning! devmode ON&#34;)
+    if not pyservsup.globals.conf.pmode:
         minauth =  auth_pass
     else:
         minauth =  auth_twofa
 
     state_table = \
     [
-    # Command; start_state; end_state; min_auth; action func;   help func
-    (&#34;ver&#34;,     all_in,     none_in,    initial,  get_ver_func,   vers_help),
-    (&#34;id&#34;,      all_in,     none_in,    initial,  get_id_func,    id_help),
-    (&#34;hello&#34;,   all_in,     none_in,    initial,  get_hello_func, hello_help),
-    (&#34;helo&#34;,    all_in,     none_in,    initial,  get_hello_func, hello_help),
-    (&#34;quit&#34;,    all_in,     none_in,    initial,  get_exit_func,  quit_help),
-    (&#34;exit&#34;,    all_in,     none_in,    initial,  get_exit_func,  quit_help),
-    (&#34;help&#34;,    all_in,     none_in,    initial,  get_help_func,  help_help),
-    (&#34;xkey&#34;,    all_in,     none_in,    initial,  get_xkey_func,  ekey_help),
-    (&#34;ekey&#34;,    all_in,     none_in,    initial,  get_ekey_func,  ekey_help),
-    (&#34;akey&#34;,    all_in,     none_in,    initial,  get_akey_func,  akey_help),
-    (&#34;uini&#34;,    all_in,     none_in,    initial,  get_uini_func,  uini_help),
-    (&#34;kadd&#34;,    all_in,     none_in,    initial,  get_kadd_func,  kadd_help),
-    (&#34;user&#34;,    all_in,     none_in,    initial,  get_user_func,  user_help),
-    (&#34;pass&#34;,    all_in,     auth_pass,  initial,  get_pass_func,  pass_help),
-    (&#34;sess&#34;,    all_in,     none_in,    initial,  get_sess_func,  sess_help),
-    (&#34;tout&#34;,    all_in,     none_in,    initial,  get_tout_func,  tout_help),
-    (&#34;qr&#34;,      all_in,     none_in,    initial,  get_qr_func,    qr_help),
-    (&#34;chpass&#34;,  all_in,  none_in,    auth_pass, get_chpass_func,  chpass_help),
-    (&#34;file&#34;,    all_in,  none_in,    auth_pass, put_file_func, file_help),
-    (&#34;mkdir&#34;,   all_in,  none_in,    auth_pass, get_mkdir_func, file_help),
-    (&#34;data&#34;,    all_in,  none_in,    auth_pass, put_data_func,  data_help),
-    (&#34;fget&#34;,    all_in,  none_in,    auth_pass, get_fget_func,  fget_help),
-    (&#34;fput&#34;,    all_in,  none_in,    auth_pass, get_fput_func,  fput_help),
-    (&#34;del&#34;,     all_in,  none_in,    auth_pass, get_del_func,   del_help),
-    (&#34;uadd&#34;,    all_in,  none_in,    auth_pass, get_uadd_func,  uadd_help),
-    (&#34;uena&#34;,    all_in,  none_in,    auth_pass, get_uena_func,  uena_help),
-    (&#34;aadd&#34;,    all_in,  none_in,    auth_pass, get_aadd_func,  aadd_help),
-    (&#34;udel&#34;,    all_in,  none_in,    auth_pass, get_udel_func,  udel_help),
-    (&#34;ls&#34;,      all_in,  none_in,    auth_pass, get_ls_func,    lsls_help),
-    (&#34;lsd&#34;,     all_in,  none_in,    auth_pass, get_lsd_func,   lsld_help),
-    (&#34;cd&#34;,      all_in,  none_in,    auth_pass, get_cd_func,    cdcd_help),
-    (&#34;pwd&#34;,     all_in,  none_in,    auth_pass, get_pwd_func,   pwdd_help),
-    (&#34;stat&#34;,    all_in,  none_in,    auth_pass, get_stat_func,  stat_help),
-    (&#34;buff&#34;,    all_in,  none_in,    auth_pass, get_buff_func,  buff_help),
-    (&#34;twofa&#34;,   all_in,  auth_twofa, auth_pass, get_twofa_func,  twofa_help),
+        # Command; start_state; end_state; min_auth; action func;  help func
+        (&#34;ver&#34;,     all_in,  none_in,    initial,   get_ver_func,     vers_help),
+        (&#34;id&#34;,      all_in,  none_in,    initial,   get_id_func,      id_help),
+        (&#34;hello&#34;,   all_in,  none_in,    initial,   get_hello_func,   hello_help),
+        (&#34;helo&#34;,    all_in,  none_in,    initial,   get_hello_func,   hello_help),
+        (&#34;quit&#34;,    all_in,  none_in,    initial,   get_exit_func,    quit_help),
+        (&#34;exit&#34;,    all_in,  none_in,    initial,   get_exit_func,    exit_help),
+        (&#34;help&#34;,    all_in,  none_in,    initial,   get_help_func,    help_help),
+        (&#34;akey&#34;,    all_in,  none_in,    initial,   get_akey_func,    akey_help),
+        (&#34;uini&#34;,    all_in,  none_in,    initial,   get_uini_func,    uini_help),
+        (&#34;user&#34;,    all_in,  none_in,    initial,   get_user_func,    user_help),
+        (&#34;pass&#34;,    all_in,  auth_pass,  initial,   get_pass_func,    pass_help),
+        (&#34;logout&#34;,  all_in,  initial,    auth_pass, get_lout_func,    logout_help),
+        (&#34;sess&#34;,    all_in,  none_in,    initial,   get_sess_func,    sess_help),
+        (&#34;tout&#34;,    all_in,  none_in,    initial,   get_tout_func,    tout_help),
+        (&#34;qr&#34;,      all_in,  none_in,    initial,   get_qr_func,      qr_help),
+        (&#34;chpass&#34;,  all_in,  none_in,    auth_pass, get_chpass_func,  chpass_help),
+        (&#34;file&#34;,    all_in,  none_in,    auth_pass, put_file_func,    file_help),
+        (&#34;mkdir&#34;,   all_in,  none_in,    auth_pass, get_mkdir_func,   mkdir_help),
+        (&#34;rmdir&#34;,   all_in,  none_in,    auth_pass, get_rmdir_func,   rmdir_help),
+        (&#34;data&#34;,    all_in,  none_in,    auth_pass, put_data_func,    data_help),
+        (&#34;fget&#34;,    all_in,  none_in,    auth_pass, get_fget_func,    fget_help),
+        (&#34;fput&#34;,    all_in,  none_in,    auth_pass, get_fput_func,    fput_help),
+        (&#34;del&#34;,     all_in,  none_in,    auth_pass, get_del_func,     del_help),
+        (&#34;uadd&#34;,    all_in,  none_in,    auth_pass, get_uadd_func,    uadd_help),
+        (&#34;udel&#34;,    all_in,  none_in,    auth_pass, get_udel_func,    udel_help),
+        (&#34;uena&#34;,    all_in,  none_in,    auth_pass, get_uena_func,    uena_help),
+        (&#34;ulist&#34;,   all_in,  none_in,    auth_pass, get_ulist_func,   ulist_help),
+        (&#34;aadd&#34;,    all_in,  none_in,    auth_pass, get_aadd_func,    aadd_help),
+        (&#34;ls&#34;,      all_in,  none_in,    auth_pass, get_ls_func,      lsls_help),
+        (&#34;dir&#34;,     all_in,  none_in,    auth_pass, get_ls_func,      lsls_help),
+        (&#34;lsd&#34;,     all_in,  none_in,    auth_pass, get_lsd_func,     lsld_help),
+        (&#34;cd&#34;,      all_in,  none_in,    auth_pass, get_cd_func,      cdcd_help),
+        (&#34;pwd&#34;,     all_in,  none_in,    auth_pass, get_pwd_func,     pwdd_help),
+        (&#34;stat&#34;,    all_in,  none_in,    auth_pass, get_stat_func,    stat_help),
+        (&#34;buff&#34;,    all_in,  none_in,    auth_pass, get_buff_func,    buff_help),
+        (&#34;throt&#34;,   all_in,  none_in,    auth_pass, get_throt_func,   throt_help),
+        (&#34;twofa&#34;,   all_in,  auth_twofa, auth_pass, get_twofa_func,   twofa_help),
+        (&#34;dmode&#34;,   all_in,  none_in,    initial,   get_dmode_func,   dmode_help),
+        (&#34;ihave&#34;,   all_in,  none_in,    initial,   get_ihave_func,   ihave_help),
+        (&#34;ihost&#34;,   all_in,  none_in,    initial,   get_ihost_func,   ihost_help),
+        (&#34;rlist&#34;,    all_in,  none_in,   auth_pass, get_rlist_func,   rlist_help),
+        (&#34;rcount&#34;,   all_in,  none_in,   auth_pass, get_rcount_func,  rcount_help),
+        (&#34;rsize&#34;,    all_in,  none_in,   auth_pass, get_rsize_func,   rsize_help),
+        (&#34;rget&#34;,     all_in,  none_in,   auth_pass, get_rget_func,    rget_help),
+        (&#34;rabs&#34;,     all_in,  none_in,   auth_pass, get_rabs_func,    rabs_help),
+        (&#34;rhave&#34;,    all_in,  none_in,   auth_pass, get_rhave_func,   rhave_help),
+        (&#34;rtest&#34;,    all_in,  none_in,   auth_pass, get_rtest_func, rtest_help),
 
-    (&#34;dmode&#34;,   all_in,  none_in,    initial, get_dmode_func,  dmode_help),
-    (&#34;ihave&#34;,   all_in,  none_in,    initial, get_ihave_func,  ihave_help),
-    (&#34;ihost&#34;,   all_in,  none_in,    initial, get_ihost_func,  ihost_help),
-
-    # Following the two factor auth commands. Disabled during development
-    (&#34;rput&#34;,     all_in,  none_in,    minauth,   get_rput_func,   rput_help),
-    (&#34;rcheck&#34;,   all_in,  none_in,    minauth,   get_rcheck_func,  rcheck_help),
-    (&#34;rlist&#34;,    all_in,  none_in,    auth_pass, get_rlist_func,  rlist_help),
-    (&#34;rcount&#34;,   all_in,  none_in,    auth_pass, get_rcount_func, rcount_help),
-    (&#34;rsize&#34;,    all_in,  none_in,    auth_pass, get_rsize_func,  rsize_help),
-    (&#34;rget&#34;,     all_in,  none_in,    auth_pass, get_rget_func,   rget_help),
-    (&#34;rhave&#34;,    all_in,  none_in,    auth_pass, get_rhave_func,   rhave_help),
+        # The two factor auth commands. 2FA not required during development
+        (&#34;rput&#34;,     all_in,  none_in,   minauth,   get_rput_func,   rput_help),
+        (&#34;rcheck&#34;,   all_in,  none_in,   minauth,   get_rcheck_func, rcheck_help),
     ]</code></pre>
 </details>
 </dd>
@@ -465,13 +469,15 @@ class StateHandler():
                 break
         try:
             self.fpx = open(self.lockname, &#34;wb&#34;)
-            fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+            if fcntl:
+                fcntl.lockf(self.fpx, fcntl.LOCK_EX)
         except:
             print(sys.exc_info())
             pass
 
     def dellock(self):
-        fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+        if fcntl:
+            fcntl.lockf(self.fpx, fcntl.LOCK_EX)
         try:
             self.fpx.close()
             os.unlink(self.lockname)
@@ -578,7 +584,6 @@ class StateHandler():
                 sss =  [&#34;ERR&#34;, &#34;Invalid command issued&#34;,  comx[0]]
             else:
                 sss =  [&#34;ERR&#34;, &#34;Out of Sequence command issued&#34;, comx[0]]
-            #self.resp.datahandler.putdata(sss.encode(&#34;cp437&#34;), self.resp.ekey)
             self.resp.datahandler.putencode(sss, self.resp.ekey)
             # Do not quit, just signal the error
             ret = False
@@ -599,7 +604,8 @@ class StateHandler():
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def dellock(self):
-    fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+    if fcntl:
+        fcntl.lockf(self.fpx, fcntl.LOCK_EX)
     try:
         self.fpx.close()
         os.unlink(self.lockname)
@@ -651,7 +657,8 @@ class StateHandler():
             break
     try:
         self.fpx = open(self.lockname, &#34;wb&#34;)
-        fcntl.lockf(self.fpx, fcntl.LOCK_EX)
+        if fcntl:
+            fcntl.lockf(self.fpx, fcntl.LOCK_EX)
     except:
         print(sys.exc_info())
         pass</code></pre>

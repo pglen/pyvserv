@@ -73,6 +73,10 @@ def test_func(capsys):
     resp = hand.client(["udel", "petery",], sess_key)
     print("udel Response:", resp)
 
+    resp = hand.client(["udel", "admin2",], sess_key)
+    print("udel Response:", resp)
+
+    # Start adding
     resp = hand.client(["uadd", "peterx", "1234",], sess_key)
     print("uadd Response:", resp)
     assert resp[0] ==  "OK"

@@ -28,25 +28,15 @@
 </summary>
 <pre><code class="python">#!/usr/bin/env python3
 
-import os, sys, threading, time
-
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  &#39;..&#39;))
-
-import sys
+import os, sys
 
 if sys.version_info[0] &lt; 3:
     print(&#34;Python 2 is not supported as of 1/1/2020&#34;)
     sys.exit(1)
 
-import os, getopt, signal, select, string, time
+import getopt, signal, select, string, time
 import tarfile, subprocess, struct, platform
-import socket, threading, tracemalloc, inspect
-
-if sys.version_info[0] &lt; 3:
-    import SocketServer as socketserver
-else:
-    import socketserver
+import socket, threading, tracemalloc, inspect, socketserver
 
 import pyvpacker
 
@@ -54,29 +44,20 @@ import pyvpacker
 # Remove pip version for local tests
 try:
     from pyvcommon import support
-
     # Get Parent of module root
-    sf = os.path.dirname(support.__file__)
-    sf = os.path.dirname(sf)
-    #print(&#34;sf&#34;, sf)
-    sys.path.append(os.path.join(sf, &#34;pyvcommon&#34;))
-    sys.path.append(os.path.join(sf, &#34;pyvserver&#34;))
-    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;))
-    #sys.path.append(os.path.join(sf, &#34;pyvgui&#34;, &#34;guilib&#34;))
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    #print(&#34;base&#34;, base)
+    sys.path.append(os.path.join(base,  &#39;..&#39;))
+    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvcommon&#34;))
+    sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvserver&#34;))
 
 except:
     base = os.path.dirname(os.path.realpath(__file__))
+    #print(&#34;local base&#34;, base)
     sys.path.append(os.path.join(base,  &#39;..&#39;))
     sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
     sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvserver&#34;))
-    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;))
-    #sys.path.append(os.path.join(base, &#34;..&#34;, &#34;pyvgui&#34;, &#34;guilib&#34;))
     from pyvcommon import support
-
-#for aa in sys.path:
-#    print(aa)
-
-print(&#34;Load:&#34;, sys.path[-1])
 
 from pyvcommon import support, pyservsup, pyclisup
 from pyvcommon import pydata, pysyslog, comline, pyvhash
