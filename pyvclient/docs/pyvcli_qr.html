@@ -36,14 +36,21 @@ if sys.version_info[0] &lt; 3:
     sys.exit(1)
 
 # ------------------------------------------------------------------------
-# Test client for the pyserv project. Download file.
+# Test client for the pyserv project.
 
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(os.path.join(base,  &#39;../pyvcommon&#39;))
-sys.path.append(os.path.join(base,  &#39;..&#39;))
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, &#34;.&#34;))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  &#39;..&#39;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
+    from pyvcommon import support
 
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
@@ -51,22 +58,22 @@ from pyvcommon import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = &#34;1.0.0&#34;
 
 # ------------------------------------------------------------------------
 
 def phelp():
 
-    print()
+    print( &#34;The pyvserv QR code downloader.&#34;)
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
-    print()
-    print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;  hostname: host to connect to. (default: 127.0.0.1)&#34;)
+    print( &#34;  options:  -d level  - Debug level 0-10&#34;)
+    print( &#34;            -p port   - Port to use (default: 6666)&#34;)
+    print( &#34;            -f file   - Upload new QR image file. Admin only.&#34;)
     print( &#34;            -v        - Verbose&#34;)
+    print( &#34;            -V        - Version&#34;)
     print( &#34;            -q        - Quiet&#34;)
-    print( &#34;            -n        - No encryption (plain)&#34;)
     print( &#34;            -h        - Help&#34;)
-    print()
     sys.exit(0)
 
 def pversion():
@@ -77,11 +84,9 @@ def pversion():
 optarr = \
     [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,      None],      \
     [&#34;p:&#34;,  &#34;port&#34;,     6666,   None],      \
-    [&#34;f:&#34;,  &#34;file&#34;,     6666,   None],      \
+    [&#34;f:&#34;,  &#34;file&#34;,     &#34;&#34;,     None],      \
     [&#34;v&#34;,   &#34;verbose&#34;,  0,      None],      \
     [&#34;q&#34;,   &#34;quiet&#34;,    0,      None],      \
-    [&#34;n&#34;,   &#34;plain&#34;,    0,      None],      \
-    [&#34;t&#34;,   &#34;test&#34;,     &#34;x&#34;,    None],      \
     [&#34;V&#34;,   None,       None,   pversion],  \
     [&#34;h&#34;,   None,       None,   phelp]      \
 
@@ -89,14 +94,17 @@ conf = comline.Config(optarr)
 
 # ------------------------------------------------------------------------
 
-def mainfunc():
+def mainfunct():
 
-    args = conf.comline(sys.argv[1:])
-
-    #print(vars(conf))
-
-    #if conf.comm:
-    #    print(&#34;Save to filename&#34;, conf.comm)
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -110,75 +118,59 @@ def mainfunc():
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #hand.comm  = conf.comm
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client([&#34;qr&#34;,] , &#34;&#34;, False)
-    #print(&#34;QR Response:&#34;, resp3[1])
-    fp = open(&#34;qr.png&#34;, &#39;wb&#39;)
-    fp.write(resp3[1])
-    fp.close()
+    resp3 = hand.start_session(conf)
+    if resp3[0] != &#34;OK&#34;:
+        print(&#34;Error on setting session:&#34;, resp3[1])
+        sys.exit(0)
 
-    hand.sock.shutdown(socket.SHUT_RDWR)
+    if conf.verbose:
+        resp = hand.client([&#34;hello&#34;], conf.sess_key)
+        print(&#34;Hello resp:&#34;, resp)
+
+    if conf.file:
+        resp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
+        if resp[0] != &#34;OK&#34;:
+            print(&#34;Login Response:&#34;, resp)
+            sys.exit()
+
+        fp = open(conf.file, &#34;rb&#34;)
+        buff = fp.read()
+        fp.close()
+        #print(&#34;len:&#34;, len(buff))
+        resp3 = hand.client([&#34;qr&#34;, buff], conf.sess_key, False)
+        print(&#34;QR UP Response:&#34;, resp3)
+    else:
+        resp3 = hand.client([&#34;qr&#34;,], conf.sess_key, False)
+        if resp3[0] != &#34;OK&#34;:
+            print(&#34;QR Response:&#34;, resp3)
+            sys.exit()
+
+        # Save
+        fp = open(&#34;qr.png&#34;, &#39;wb&#39;)
+        if type(resp3[1]) != type(b&#34;&#34;):
+            resp3[1] = resp3[1].encode()
+        fp.write(resp3[1])
+        fp.close()
+        if not conf.quiet:
+            print(&#34;Downloaded QR code, saved to &#39;qr.png&#39;&#34;, len(resp3[1]), &#34;bytes&#34;)
+
+    rrr = hand.client([&#34;quit&#34;], conf.sess_key)
+    if conf.verbose:
+        print(&#34;Quit resp:&#34;, rrr)
+    hand.close();
+
     sys.exit(0)
 
-def mainloop(conf, hand):
-
-    while(True):
-        try:
-            onecom = input(&#34;&gt;&gt; &#34;)
-            #print (&#34;&#39;&#34; + onecom.split() + &#34;&#39;&#34;)
-            ss = onecom.split()
-            if ss  != []:
-                # process commands that need additional data
-                if ss[0] == &#34;done&#34;:
-                    break
-                elif ss[0] == &#34;sess&#34;:
-                    cresp = hand.start_session(conf)
-                    if conf.sess_key:
-                        print(&#34;Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
-
-                elif ss[0] == &#34;fget&#34;:
-                    if len(ss) &lt; 2:
-                        print(&#34;Use: fget fname&#34;)
-                        continue
-                    ret2 = hand.getfile(ss[1], &#34;&#34;, conf.sess_key)
-                    print (&#34;Server fget response:&#34;, ret2)
-
-                elif ss[0] == &#34;fput&#34;:
-                    if len(ss) &lt; 2:
-                        print(&#34;Use: fput fname&#34;)
-                        continue
-                    ret2 = hand.putfile(ss[1], &#34;&#34;, conf.sess_key)
-                    print (&#34;Server fput response:&#34;, ret2)
-
-                elif ss[0] == &#34;file&#34;:
-                    if not os.path.isfile(ss[1]):
-                        print(&#34;File must exist.&#34;)
-                        continue
-                    cresp = hand.start_session(conf)
-                    if conf.sess_key:
-                        print(&#34;Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
-                if ss[0][0] == &#34;!&#34;:
-                    #print (&#34;local command&#34;)
-                    os.system(ss[0][1:] + &#34; &#34; + &#34; &#34;.join(ss[1:]))
-                    continue
-                else:
-                    # No wrapper needed
-                    cresp = hand.client(ss, conf.sess_key)
-                print (&#34;Server response:&#34;, cresp)
-
-        except:
-            print(sys.exc_info())
-            break
-
 if __name__ == &#39;__main__&#39;:
-    mainfunc()</code></pre>
+    mainfunct()
+
+# EOF</code></pre>
 </details>
 </section>
 <section>
@@ -188,8 +180,8 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="pyvcli_qr.mainfunc"><code class="name flex">
-<span>def <span class="ident">mainfunc</span></span>(<span>)</span>
+<dt id="pyvcli_qr.mainfunct"><code class="name flex">
+<span>def <span class="ident">mainfunct</span></span>(<span>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -197,14 +189,17 @@ if __name__ == &#39;__main__&#39;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def mainfunc():
+<pre><code class="python">def mainfunct():
 
-    args = conf.comline(sys.argv[1:])
-
-    #print(vars(conf))
-
-    #if conf.comm:
-    #    print(&#34;Save to filename&#34;, conf.comm)
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -218,82 +213,54 @@ if __name__ == &#39;__main__&#39;:
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #hand.comm  = conf.comm
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    resp3 = hand.client([&#34;qr&#34;,] , &#34;&#34;, False)
-    #print(&#34;QR Response:&#34;, resp3[1])
-    fp = open(&#34;qr.png&#34;, &#39;wb&#39;)
-    fp.write(resp3[1])
-    fp.close()
+    resp3 = hand.start_session(conf)
+    if resp3[0] != &#34;OK&#34;:
+        print(&#34;Error on setting session:&#34;, resp3[1])
+        sys.exit(0)
 
-    hand.sock.shutdown(socket.SHUT_RDWR)
+    if conf.verbose:
+        resp = hand.client([&#34;hello&#34;], conf.sess_key)
+        print(&#34;Hello resp:&#34;, resp)
+
+    if conf.file:
+        resp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
+        if resp[0] != &#34;OK&#34;:
+            print(&#34;Login Response:&#34;, resp)
+            sys.exit()
+
+        fp = open(conf.file, &#34;rb&#34;)
+        buff = fp.read()
+        fp.close()
+        #print(&#34;len:&#34;, len(buff))
+        resp3 = hand.client([&#34;qr&#34;, buff], conf.sess_key, False)
+        print(&#34;QR UP Response:&#34;, resp3)
+    else:
+        resp3 = hand.client([&#34;qr&#34;,], conf.sess_key, False)
+        if resp3[0] != &#34;OK&#34;:
+            print(&#34;QR Response:&#34;, resp3)
+            sys.exit()
+
+        # Save
+        fp = open(&#34;qr.png&#34;, &#39;wb&#39;)
+        if type(resp3[1]) != type(b&#34;&#34;):
+            resp3[1] = resp3[1].encode()
+        fp.write(resp3[1])
+        fp.close()
+        if not conf.quiet:
+            print(&#34;Downloaded QR code, saved to &#39;qr.png&#39;&#34;, len(resp3[1]), &#34;bytes&#34;)
+
+    rrr = hand.client([&#34;quit&#34;], conf.sess_key)
+    if conf.verbose:
+        print(&#34;Quit resp:&#34;, rrr)
+    hand.close();
+
     sys.exit(0)</code></pre>
-</details>
-</dd>
-<dt id="pyvcli_qr.mainloop"><code class="name flex">
-<span>def <span class="ident">mainloop</span></span>(<span>conf, hand)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def mainloop(conf, hand):
-
-    while(True):
-        try:
-            onecom = input(&#34;&gt;&gt; &#34;)
-            #print (&#34;&#39;&#34; + onecom.split() + &#34;&#39;&#34;)
-            ss = onecom.split()
-            if ss  != []:
-                # process commands that need additional data
-                if ss[0] == &#34;done&#34;:
-                    break
-                elif ss[0] == &#34;sess&#34;:
-                    cresp = hand.start_session(conf)
-                    if conf.sess_key:
-                        print(&#34;Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
-
-                elif ss[0] == &#34;fget&#34;:
-                    if len(ss) &lt; 2:
-                        print(&#34;Use: fget fname&#34;)
-                        continue
-                    ret2 = hand.getfile(ss[1], &#34;&#34;, conf.sess_key)
-                    print (&#34;Server fget response:&#34;, ret2)
-
-                elif ss[0] == &#34;fput&#34;:
-                    if len(ss) &lt; 2:
-                        print(&#34;Use: fput fname&#34;)
-                        continue
-                    ret2 = hand.putfile(ss[1], &#34;&#34;, conf.sess_key)
-                    print (&#34;Server fput response:&#34;, ret2)
-
-                elif ss[0] == &#34;file&#34;:
-                    if not os.path.isfile(ss[1]):
-                        print(&#34;File must exist.&#34;)
-                        continue
-                    cresp = hand.start_session(conf)
-                    if conf.sess_key:
-                        print(&#34;Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
-                if ss[0][0] == &#34;!&#34;:
-                    #print (&#34;local command&#34;)
-                    os.system(ss[0][1:] + &#34; &#34; + &#34; &#34;.join(ss[1:]))
-                    continue
-                else:
-                    # No wrapper needed
-                    cresp = hand.client(ss, conf.sess_key)
-                print (&#34;Server response:&#34;, cresp)
-
-        except:
-            print(sys.exc_info())
-            break</code></pre>
 </details>
 </dd>
 <dt id="pyvcli_qr.phelp"><code class="name flex">
@@ -307,16 +274,16 @@ if __name__ == &#39;__main__&#39;:
 </summary>
 <pre><code class="python">def phelp():
 
-    print()
+    print( &#34;The pyvserv QR code downloader.&#34;)
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
-    print()
-    print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;  hostname: host to connect to. (default: 127.0.0.1)&#34;)
+    print( &#34;  options:  -d level  - Debug level 0-10&#34;)
+    print( &#34;            -p port   - Port to use (default: 6666)&#34;)
+    print( &#34;            -f file   - Upload new QR image file. Admin only.&#34;)
     print( &#34;            -v        - Verbose&#34;)
+    print( &#34;            -V        - Version&#34;)
     print( &#34;            -q        - Quiet&#34;)
-    print( &#34;            -n        - No encryption (plain)&#34;)
     print( &#34;            -h        - Help&#34;)
-    print()
     sys.exit(0)</code></pre>
 </details>
 </dd>
@@ -349,8 +316,7 @@ if __name__ == &#39;__main__&#39;:
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="pyvcli_qr.mainfunc" href="#pyvcli_qr.mainfunc">mainfunc</a></code></li>
-<li><code><a title="pyvcli_qr.mainloop" href="#pyvcli_qr.mainloop">mainloop</a></code></li>
+<li><code><a title="pyvcli_qr.mainfunct" href="#pyvcli_qr.mainfunct">mainfunct</a></code></li>
 <li><code><a title="pyvcli_qr.phelp" href="#pyvcli_qr.phelp">phelp</a></code></li>
 <li><code><a title="pyvcli_qr.pversion" href="#pyvcli_qr.pversion">pversion</a></code></li>
 </ul>

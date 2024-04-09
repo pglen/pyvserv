@@ -37,10 +37,6 @@ from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat, datetime
 
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
 from Crypto import Random
 
 base = os.path.dirname(os.path.realpath(__file__))
@@ -48,16 +44,6 @@ sys.path.append(os.path.join(base,  &#39;..&#39; + os.sep + &#39;pyvcommon&#39;)
 
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
-
-&#39;&#39;&#39;
-# test encrypt with large keys
-rrr =  &#34;mTQdnL51eKnblQflLGSMvnMKDG4XjhKa9Mbgm5ZY9YLd&#34; \
-        &#34;/SxqZZxwyKc/ZVzCVwMxiJ5X8LdX3X5VVO5zq/VBWQ==&#34;
-sss = bluepy.encrypt(rrr, conf.sess_key)
-ttt = bluepy.decrypt(sss, conf.sess_key)
-print (rrr)
-print (ttt)
-&#39;&#39;&#39;
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -69,9 +55,6 @@ def phelp():
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
     print( &#34;            -p port   - Port to use (default: 6666)&#34;)
-    print( &#34;            -l level  - Log level (default: 0)&#34;)
-    print( &#34;            -c file   - Save comm to file&#34;)
-    print( &#34;            -s        - Showkey&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -h        - Help&#34;)
@@ -87,11 +70,8 @@ def pversion():
 optarr = \
     [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,      None],      \
     [&#34;p:&#34;,  &#34;port&#34;,     6666,   None],      \
-    [&#34;c:&#34;,  &#34;comm&#34;,     &#34;&#34;,     None],      \
     [&#34;v&#34;,   &#34;verbose&#34;,  0,      None],      \
     [&#34;q&#34;,   &#34;quiet&#34;,    0,      None],      \
-    [&#34;s&#34;,   &#34;showkey&#34;,  &#34;&#34;,     None],      \
-    [&#34;t&#34;,   &#34;test&#34;,     &#34;x&#34;,    None],      \
     [&#34;V&#34;,   None,       None,   pversion],  \
     [&#34;h&#34;,   None,       None,   phelp]      \
 
@@ -102,9 +82,6 @@ conf = comline.Config(optarr)
 if __name__ == &#39;__main__&#39;:
 
     args = conf.comline(sys.argv[1:])
-
-    if conf.comm:
-        print(&#34;Save to filename&#34;, conf.comm)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -117,7 +94,6 @@ if __name__ == &#39;__main__&#39;:
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
-    hand.comm  = conf.comm
 
     try:
         respc = hand.connect(ip, conf.port)
@@ -145,17 +121,16 @@ if __name__ == &#39;__main__&#39;:
 
     # Session estabilished, try a simple command
     resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
-    print(&#34;Hello Response:&#34;, resp4[1])
+    if not conf.quiet:
+        print(&#34;Hello Response:&#34;, resp4[1])
 
     cresp = hand.client([&#34;user&#34;, &#34;admin&#34;], conf.sess_key)
-    print (&#34;Server user response:&#34;, cresp[1])
+    if not conf.quiet:
+        print (&#34;Server user response:&#34;, cresp[1])
 
     cresp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
-    print (&#34;Server pass response:&#34;, cresp[1])
-
-    # Error responses
-    #cresp = hand.client([&#34;pwd&#34;,], conf.sess_key)
-    #print (&#34;Server pwd response:&#34;, cresp)
+    if not conf.quiet:
+        print (&#34;Server pass response:&#34;, cresp[1])
 
     cresp = hand.client([&#34;lsd&#34;,], conf.sess_key)
     print (&#34;Server lsd response:&#34;, cresp)
@@ -217,9 +192,6 @@ if __name__ == &#39;__main__&#39;:
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
     print( &#34;            -p port   - Port to use (default: 6666)&#34;)
-    print( &#34;            -l level  - Log level (default: 0)&#34;)
-    print( &#34;            -c file   - Save comm to file&#34;)
-    print( &#34;            -s        - Showkey&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -h        - Help&#34;)

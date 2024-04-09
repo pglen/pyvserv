@@ -39,14 +39,13 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
-    print( "            -l login  - Login Name; default: 'admin'")
-    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
-    print( "            -r header - Test item")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
-    print( "            -s        - Start time. Format: 'Y-m-d H:M'")
+    print( "            -b        - Start / Begin time. See format below. Default:today")
     print( "            -i        - Interval in minutes. (Default: 1 day)")
     print( "            -h        - Help")
+    print()
+    print("  Possible date Formats: 'Y-m-d+H:M' 'Y-m-d' 'm-d' 'm-d+H-M'")
     print()
     sys.exit(0)
 
@@ -60,11 +59,9 @@ optarr = \
     ["p:",  "port",     6666,       None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
-    ["n",   "plain",    0,          None],      \
+    ["t",   "test",     "x",        None],      \
+    ["b:",  "begin",    "",         None],      \
     ["i:",  "inter",    0,          None],      \
-    ["l:",  "login",    "admin",    None],      \
-    ["s:",  "lpass",    "1234",     None],      \
-    ["r:",  "rtest",    "",         None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
 
@@ -75,11 +72,6 @@ conf = comline.Config(optarr)
 def mainfunct():
 
     args = conf.comline(sys.argv[1:])
-
-    #print(dir(conf))
-
-    #if conf.comm:
-    #    print("Save to filename", conf.comm)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -101,56 +93,35 @@ def mainfunct():
 
     atexit.register(pyclisup.atexit_func, hand, conf)
 
-    #resp3 = hand.client(["id",] , "", False)
-    #print("ID Response:", resp3[1])
-
-    #ret = ["OK",];  conf.sess_key = ""
     ret = hand.start_session(conf)
     if ret[0] != "OK":
-        print("Error on setting session:", ret)
-        hand.client(["quit"], conf.sess_key)
+        print("Error on setting session:", resp3[1])
+        hand.client(["quit"])
         hand.close();
         sys.exit(0)
 
-    cresp = hand.login(conf.login, conf.lpass, conf)
+    cresp = hand.login("admin", "1234", conf)
+    #if not conf.quiet:
+    #    print ("Server login response:", cresp)
+    if cresp[0] != pyclisup.OK:
+        print("Error on login", cresp)
+        sys.exit(1)
 
-    if cresp[0] != "OK":
-        print("Error on logging in:", cresp)
-        hand.client(["quit"], conf.sess_key)
-        hand.close();
-        sys.exit(0)
+    dd_beg, dd_end = pyclisup.inter_date(conf.begin, conf.inter)
+
+    cresp = hand.client(["rsize", "vote"], conf.sess_key)
+    if not conf.quiet:
+        print ("Server rsize response:", cresp)
 
     if not conf.quiet:
-        print ("Server login response:", cresp)
+        print("Records from:", dd_beg, "to:", dd_end);
 
-    # Set date range
-    #if conf.start:
-    #    dd = datetime.datetime.now()
-    #    dd = dd.strptime(conf.start, "%Y-%m-%d %H:%M")
-    #else:
-    #    dd = datetime.datetime.now()
-    #    dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
-    #print(dd)
-    #dd_beg = dd + datetime.timedelta(0)
-    #if conf.inter:
-    #    dd_end = dd_beg + datetime.timedelta(0, conf.inter * 60)
-    #else:
-    #    dd_end = dd_beg + datetime.timedelta(1)
+    cresp = hand.client(["rcount", "vote", dd_beg.timestamp(),
+                                    dd_end.timestamp()], conf.sess_key)
+    print ("Server  rcount response:", cresp)
+    if cresp[0] != "OK":
+        sys.exit()
 
-    if conf.rtest:
-        import shlex
-        zzz = shlex.split(conf.rtest)
-        #print("zzz", zzz)
-        cresp = hand.client(["rtest", "vote", "sum", *zzz], conf.sess_key)
-        print ("rtest response:", cresp)
-    else:
-        cresp = hand.client(["rcheck", "vote", "sum"], conf.sess_key)
-        print ("rcheck sum response:", cresp)
-
-        cresp = hand.client(["rcheck", "vote", "link"], conf.sess_key)
-        print ("rcheck link response:", cresp)
-        if cresp[0] != "OK":
-            sys.exit()
 
 if __name__ == '__main__':
     mainfunct()

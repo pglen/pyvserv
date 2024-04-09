@@ -75,11 +75,8 @@ def pversion():
 optarr = \
     [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,      None],      \
     [&#34;p:&#34;,  &#34;port&#34;,     6666,   None],      \
-    [&#34;c:&#34;,  &#34;comm&#34;,     &#34;&#34;,     None],      \
     [&#34;v&#34;,   &#34;verbose&#34;,  0,      None],      \
     [&#34;q&#34;,   &#34;quiet&#34;,    0,      None],      \
-    [&#34;s&#34;,   &#34;showkey&#34;,  &#34;&#34;,     None],      \
-    [&#34;t&#34;,   &#34;test&#34;,     &#34;x&#34;,    None],      \
     [&#34;V&#34;,   None,       None,   pversion],  \
     [&#34;h&#34;,   None,       None,   phelp]      \
 
@@ -92,9 +89,6 @@ if __name__ == &#39;__main__&#39;:
     args = conf.comline(sys.argv[1:])
     #print(vars(conf))
 
-    if conf.comm:
-        print(&#34;Save to filename&#34;, conf.comm)
-
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
 
@@ -106,7 +100,6 @@ if __name__ == &#39;__main__&#39;:
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
-    hand.comm  = conf.comm
 
     try:
         respc = hand.connect(ip, conf.port)
@@ -200,11 +193,11 @@ if __name__ == &#39;__main__&#39;:
         sys.exit(0)
 
     # Make a note of the session key
-    print(&#34;Session key:&#34;, conf.sess_key[:24] , &#34;...&#34; )
+    print(&#34;Session key:&#34;, conf.sess_key)
 
     # Session estabilished, try a simple command
     resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
-    print(&#34;Encrypted Resp:&#34;, resp4)
+    print(&#34;Hello Resp:&#34;, resp4)
 
     # --------------------------------------------------------------------
     # Generate communication key, second session and second run
@@ -235,11 +228,11 @@ if __name__ == &#39;__main__&#39;:
 
     conf.sess_key = conf.sess_key2
     # Make a note of the session key
-    print(&#34;Session key:&#34;, conf.sess_key[:24] , &#34;...&#34; )
+    print(&#34;Session key2:&#34;, conf.sess_key)
 
     # Session estabilished, try a simple command
     resp5 = hand.client([&#34;hello&#34;,], conf.sess_key)
-    print(&#34;Hello2 Response:&#34;, resp5)
+    print(&#34;Hello2 Resp:&#34;, resp5)
 
     hand.client([&#34;quit&#34;,],conf.sess_key)
     hand.close();

@@ -31,7 +31,19 @@ __doc__ = \
     The keyword is embedded into the function name.
 '''
 
-#chainfname = "initial"
+fields_help =  '''
+    stat fields2:
+       1.  ST_MODE Inode protection mode.
+       2.  ST_INO Inode number.
+       3.  ST_DEV Device inode resides on.
+       4.  ST_NLINK  Number of links to the inode.
+       5.  ST_UID User id of the owner.
+       6.  ST_GID Group id of the owner.
+       7.  ST_SIZE Size in bytes of a plain file.
+       8.  ST_ATIME Time of last access.
+       9.  ST_MTIME Time of last modification.
+       10. ST_CTIME Time of last metadata change.
+    '''
 repfname = "replic"
 
 OK = "OK"
@@ -131,9 +143,12 @@ def get_tout_func(self, strx):
 
     tout = self.resp.datahandler.timeout
     if len(strx) > 1:
-        tout = int(strx[1])
-        self.resp.datahandler.timeout = tout
-        resp = [OK, "Timeout set to ", str(tout)],
+        try:
+            tout = int(strx[1])
+            self.resp.datahandler.timeout = tout
+            resp = [OK, "Timeout set to ", str(tout)],
+        except:
+            resp = [OK, "Timeout value must be an integer", strx[1]],
     else:
         resp = [OK, "Current timeout", str(self.resp.datahandler.timeout)],
 
@@ -712,7 +727,7 @@ def get_rcount_func(self, strx):
         #ttt = pyservsup.uuid2date(uuid.UUID(rec))
         #print(ddd, ttt)
 
-        if ddd > strx[2] and ddd < strx[3]:
+        if ddd >= strx[2] and ddd <= strx[3]:
             rcnt += 1
 
     if self.pgdebug > 2:
@@ -781,7 +796,8 @@ def get_rlist_func(self, strx):
 
     # Prevent overload from
     if len(arr) > 100:
-        response = [ERR,  "Too many records, narrow date range."]
+        # Return error and some data
+        response = [ERR,  "Too many records, narrow date range.", strx[1]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -869,8 +885,12 @@ def get_rabs_func(self, strx):
     core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     datax = []
+    dbsize = core.getdbsize()
     for aa in strx[2:]:
         aa = int(aa)
+        #convert to offsets
+        if aa < 0:
+            aa = dbsize + aa
         #print("aa", aa)
         if not core.checkdata(aa):
             data = [ERR, "Invalid Record, bad checksum.", aa]
@@ -937,6 +957,16 @@ def get_rget_func(self, strx):
     datax = []
     for aa in strx[2]:
         #print("aa", aa)
+        # Validate uuid
+        try:
+            uuidx = uuid.UUID(aa)
+        except:
+            print("getting UUID", sys.exc_info())
+            #response = [ERR, "Header must be a real UUID.", strx[2],]
+            #self.resp.datahandler.putencode(response, self.resp.ekey)
+            #return
+            continue
+
         data = []; ddd = []
         try:
             ddd = core.get_payoffs_bykey(aa)
@@ -1128,7 +1158,12 @@ def get_ihost_func(self, strx):
         return
 
     if len(strx) < 3:
-        response = [ERR, "Must specify host/port.", strx[0]]
+        response = [ERR, "Must specify host:port.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    if strx[2].find(":") < 0:
+        response = [ERR, "Entry must be in host:port format.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -1146,18 +1181,18 @@ def get_ihost_func(self, strx):
                 self.resp.datahandler.putencode(response, self.resp.ekey)
                 return
         ret = repcore.save_data(strx[2], ddd, True)
-        response = [OK, "Added replication host/port.", strx[2]]
+        response = [OK, "Added replication host:port.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
     elif strx[1] == 'del':
         rec = repcore.retrieve(strx[2])
         if not rec:
-            response = [ERR, "This entry does not exist.", strx[2]]
+            response = [ERR, "This entry is not in the list.", strx[2]]
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
         ret = repcore.del_rec_bykey(strx[2])
         #print("del ret", ret, strx[2])
-        response = [OK, "Deleted replication host/port.", strx[2]]
+        response = [OK, "Deleted replication host:port.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
     elif strx[1] == 'list':
@@ -1992,18 +2027,19 @@ def get_help_func(self, strx):
         harr.append(OK)
         for aa in pyvstate.state_table:
             harr.append(aa[0])
+        harr.append("fields")
     else:
         ff = False
         for aa in pyvstate.state_table:
             if strx[1] == aa[0]:
-                harr.append(OK)
-                harr.append(aa[5])
+                harr = [OK, aa[5], ]
                 ff = True
                 break
         if not ff:
-                harr.append(ERR)
-                harr.append("No such command")
-                harr.append(strx[0])
+            if strx[1] == "fields":
+                harr = [OK, fields_help, ]
+            else:
+                harr = [ERR, "No such command", strx[1], ]
 
     if pyservsup.globals.conf.pgdebug > 2:
         print( "get_help_func->output", harr)

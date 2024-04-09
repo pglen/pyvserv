@@ -21,22 +21,22 @@ from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
 
 # For this file
-version = "1,0"
+version = "1.0.0"
 
 # ------------------------------------------------------------------------
 # Functions from command line
 
 def phelp():
 
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 6666)")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print()
+    print( "The pyvserv version query.")
+    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [hostname]")
+    print( "  hostname: host to connect to. (default: 127.0.0.1)")
+    print( "  options:    -d level  - Debug level 0-10")
+    print( "              -p port   - Port to use (default: 6666)")
+    print( "              -v        - Verbose")
+    print( "              -V        - Version")
+    print( "              -q        - Quiet")
+    print( "              -h        - Help")
     sys.exit(0)
 
 def pversion():
@@ -62,7 +62,21 @@ def mainfunct():
         print("Warning! This script was meant for python 3.x")
         sys.exit()
 
-    args = conf.comline(sys.argv[1:])
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
+
+    if conf.verbose and conf.pgdebug:
+        print("Debug level", conf.pgdebug)
+
+    pyclisup.verbose = conf.verbose
+    pyclisup.pgdebug = conf.pgdebug
 
     if len(args) == 0:
         ip = '127.0.0.1'
@@ -80,7 +94,7 @@ def mainfunct():
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    if conf.quiet == False:
+    if conf.verbose:
         respini = hand.pb.decode_data(resp2[1])[0]
         print ("Server initial:", respini)
 
@@ -88,7 +102,8 @@ def mainfunct():
     print ("Version resp:", resp)
 
     resp = hand.client(["quit"])
-    print ("Server quit resp:", resp)
+    if conf.verbose:
+        print ("Server quit resp:", resp)
     hand.close()
 
     sys.exit(0)

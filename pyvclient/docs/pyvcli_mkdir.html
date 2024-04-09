@@ -48,7 +48,7 @@ import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = &#34;1.0.0&#34;
 
 # ------------------------------------------------------------------------
 
@@ -59,10 +59,9 @@ def phelp():
     print()
     print( &#34;Options:    -d level   - Debug level 0-10&#34;)
     print( &#34;            -c dirname - Directory to create. default: test_3&#34;)
-    print( &#34;            -p         - Port to use (default: 9999)&#34;)
+    print( &#34;            -p         - Port to use (default: 6666)&#34;)
     print( &#34;            -v         - Verbose&#34;)
     print( &#34;            -q         - Quiet&#34;)
-    print( &#34;            -n         - No encryption (plain)&#34;)
     print( &#34;            -h         - Help&#34;)
     print()
     sys.exit(0)
@@ -73,16 +72,13 @@ def pversion():
 
     # option, var_name, initial_val, function
 optarr = \
-    [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,      None],      \
-    [&#34;c:&#34;,  &#34;fname&#34;,    &#34;test_3&#34;, None],    \
-    [&#34;p:&#34;,  &#34;port&#34;,     6666,   None],      \
-    [&#34;f:&#34;,  &#34;file&#34;,     6666,   None],      \
-    [&#34;v&#34;,   &#34;verbose&#34;,  0,      None],      \
-    [&#34;q&#34;,   &#34;quiet&#34;,    0,      None],      \
-    [&#34;n&#34;,   &#34;plain&#34;,    0,      None],      \
-    [&#34;t&#34;,   &#34;test&#34;,     &#34;x&#34;,    None],      \
-    [&#34;V&#34;,   None,       None,   pversion],  \
-    [&#34;h&#34;,   None,       None,   phelp]      \
+    [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,          None],      \
+    [&#34;c:&#34;,  &#34;fname&#34;,    &#34;test_dir&#34;, None],    \
+    [&#34;p:&#34;,  &#34;port&#34;,     6666,       None],      \
+    [&#34;v&#34;,   &#34;verbose&#34;,  0,          None],      \
+    [&#34;q&#34;,   &#34;quiet&#34;,    0,          None],      \
+    [&#34;V&#34;,   None,       None,       pversion],  \
+    [&#34;h&#34;,   None,       None,       phelp]      \
 
 conf = comline.Config(optarr)
 
@@ -117,10 +113,6 @@ if __name__ == &#39;__main__&#39;:
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    #resp3 = hand.client([&#34;id&#34;,] , &#34;&#34;, False)
-    #print(&#34;ID Response:&#34;, resp3[1])
-
-    #ret = [&#34;OK&#34;,];  conf.sess_key = &#34;&#34;
     ret = hand.start_session(conf)
     if ret[0] != &#34;OK&#34;:
         print(&#34;Error on setting session:&#34;, resp3[1])
@@ -128,24 +120,16 @@ if __name__ == &#39;__main__&#39;:
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print(&#34;Sess Key ACCEPTED:&#34;,  resp3[1])
-
-    if conf.sess_key:
-        print(&#34;Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
+    if not conf.quiet:
+        print(&#34;Session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
 
     resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
-    print(&#34;Hello Response:&#34;, resp3)
-
-    # Session estabilished, try a simple command
-    #resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
-    #print(&#34;Hello Response:&#34;, resp4[1])
+    if not conf.quiet:
+        print(&#34;Hello Response:&#34;, resp3)
 
     cresp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
-    print (&#34;Server login response:&#34;, cresp)
-
-    #cresp = hand.client([&#34;ls&#34;, ], conf.sess_key)
-    #print (&#34;Server  ls response:&#34;, cresp)
+    if not conf.quiet:
+        print (&#34;Server login response:&#34;, cresp)
 
     #cresp = hand.client([&#34;buff&#34;, &#34;10&#34;, ], conf.sess_key)
     #print (&#34;Server buff response:&#34;, cresp)
@@ -159,9 +143,11 @@ if __name__ == &#39;__main__&#39;:
     print (&#34;Server mkdir response:&#34;, ret2)
 
     cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
-    print (&#34;Server quit response:&#34;, cresp)
+    #print (&#34;Server quit response:&#34;, cresp)
 
-    sys.exit(0)</code></pre>
+    sys.exit(0)
+
+# EOF</code></pre>
 </details>
 </section>
 <section>
@@ -187,10 +173,9 @@ if __name__ == &#39;__main__&#39;:
     print()
     print( &#34;Options:    -d level   - Debug level 0-10&#34;)
     print( &#34;            -c dirname - Directory to create. default: test_3&#34;)
-    print( &#34;            -p         - Port to use (default: 9999)&#34;)
+    print( &#34;            -p         - Port to use (default: 6666)&#34;)
     print( &#34;            -v         - Verbose&#34;)
     print( &#34;            -q         - Quiet&#34;)
-    print( &#34;            -n         - No encryption (plain)&#34;)
     print( &#34;            -h         - Help&#34;)
     print()
     sys.exit(0)</code></pre>

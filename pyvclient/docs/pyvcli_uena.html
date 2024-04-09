@@ -43,7 +43,7 @@ import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = &#34;1.0.0&#34;
 
 def phelp():
 
@@ -51,7 +51,7 @@ def phelp():
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -h        - Help&#34;)
@@ -104,13 +104,16 @@ if __name__ == &#39;__main__&#39;:
     #print(&#34;Hello Response:&#34;, resp3)
 
     resp3 = hand.start_session(conf)
-    print(&#34;Sess Response:&#34;, resp3)
+    if not conf.quiet:
+        print(&#34;Sess Response:&#34;, resp3)
 
     resp3 = hand.client([&#34;hello&#34;,] , conf.sess_key, False)
-    print(&#34;Hello Response:&#34;, resp3)
+    if not conf.quiet:
+        print(&#34;Hello Response:&#34;, resp3)
 
     resp = hand.client([&#34;user&#34;, &#34;admin&#34;], conf.sess_key)
-    print(&#34;user Response:&#34;, resp)
+    if not conf.quiet:
+        print(&#34;user Response:&#34;, resp)
 
     resp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
     print(&#34;pass Response:&#34;, resp)
@@ -118,16 +121,20 @@ if __name__ == &#39;__main__&#39;:
         raise ValueError(&#34;Not authorized&#34;, resp[1])
 
     resp = hand.client([&#34;uena&#34;, &#34;peter2&#34;, &#34;enable&#34;], conf.sess_key)
-    print(&#34;uena Response:&#34;, resp)
+    if not conf.quiet:
+        print(&#34;uena Response:&#34;, resp)
 
     resp = hand.client([&#34;logout&#34;,], conf.sess_key)
-    print(&#34;logout Response:&#34;, resp)
+    if not conf.quiet:
+        print(&#34;logout Response:&#34;, resp)
 
     resp = hand.client([&#34;uena&#34;, &#34;peter2&#34;, &#34;enable&#34;], conf.sess_key)
-    print(&#34;uena Response:&#34;, resp)
+    if not conf.quiet:
+        print(&#34;uena Response:&#34;, resp)
 
     resp = hand.client([&#34;user&#34;, &#34;admin&#34;], conf.sess_key)
-    print(&#34;user Response:&#34;, resp)
+    if not conf.quiet:
+        print(&#34;user Response:&#34;, resp)
 
     resp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
     print(&#34;pass Response:&#34;, resp)
@@ -135,16 +142,20 @@ if __name__ == &#39;__main__&#39;:
         raise ValueError(&#34;Not authorized&#34;, resp[1])
 
     resp = hand.client([&#34;uena&#34;, &#34;peter2&#34;, &#34;disable&#34;], conf.sess_key)
-    print(&#34;uena Response:&#34;, resp)
+    if not conf.quiet:
+        print(&#34;uena Response:&#34;, resp)
 
     resp = hand.client([&#34;logout&#34;,], conf.sess_key)
-    print(&#34;logout Response:&#34;, resp)
+    if not conf.quiet:
+        print(&#34;logout Response:&#34;, resp)
 
     resp = hand.client([&#34;user&#34;, &#34;peter2&#34;], conf.sess_key)
-    print(&#34;user Response:&#34;, resp)
+    if not conf.quiet:
+        print(&#34;user Response:&#34;, resp)
 
     resp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
-    print(&#34;pass Response:&#34;, resp)
+    if not conf.quiet:
+        print(&#34;pass Response:&#34;, resp)
 
     hand.client([&#34;quit&#34;], conf.sess_key)
     hand.close();
@@ -174,7 +185,7 @@ if __name__ == &#39;__main__&#39;:
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -h        - Help&#34;)

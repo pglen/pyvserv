@@ -12,27 +12,25 @@ init:
 tests:
 	@cd tests; pytest
 
-test:
-	@-python3 ./pyvcli_ping.py
-	@-python3 ./pyvcli_hello.py
-	@-python3 ./pyvcli_ver.py
-	@-python3 ./pyvcli_gethelp.py
-	@-python3 ./pyvcli_akey.py
-	@-python3 ./pyvcli_sess.py
-	@-python3 ./pyvcli_pass.py
-	@-python3 ./pyvcli_ls.py
-	@-python3 ./pyvcli_lsd.py
-	@-python3 ./pyvcli_fdel.py -q
-	@-python3 ./pyvcli_fput.py -q
-	@-python3 ./pyvcli_fget.py -q
-	@-python3 ./pyvcli_uadd.py -q
-	@-python3 ./pyvcli_uini.py -q
+#OPT="-V"
+OPT=""
 
-# This is optional (untested / obsolete)
-testopt:
-	@-python3 ./pyvcli_down.py -q
-	@-python3 ./pyvcli_enc.py -q
-	@-python3 ./pyvcli_up.py -q
+test:
+	@-python3 ./pyvcli_hello.py ${OPT}
+	@-python3 ./pyvcli_ping.py ${OPT}
+	@-python3 ./pyvcli_ver.py  ${OPT}
+	@-python3 ./pyvcli_gethelp.py  ${OPT}
+	@-python3 ./pyvcli_akey.py  ${OPT}
+	@-python3 ./pyvcli_sess.py  ${OPT}
+	@-python3 ./pyvcli_pass.py  ${OPT}
+	@-python3 ./pyvcli_ls.py  ${OPT}
+	@-python3 ./pyvcli_lsd.py  ${OPT}
+	@-python3 ./pyvcli_fdel.py  ${OPT}
+	@-python3 ./pyvcli_fput.py  ${OPT}
+	@-python3 ./pyvcli_fget.py  ${OPT}
+	@-python3 ./pyvcli_uadd.py  ${OPT}
+	@-python3 ./pyvcli_uini.py  ${OPT}
+	@-python3 ./pyvcli_cli.py -x ls ${OPT}
 
 clean:
 	@rm -f aa bb cc dd ee
@@ -46,37 +44,40 @@ clean:
 	@rm -f bigfile*
 	@rm -f test.txt*
 
+PPP=PYTHONPATH=../pyvcommon:../  pdoc --force --html
+
 docs:
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_qr.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_rput.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_cd.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_ls.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_uena.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_cli.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_mkdir.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_uini.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_fdel.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_pass.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_ver.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_fget.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_ping.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_file.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_fput.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_rget.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_gethelp.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_rlist.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_hello.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_rput.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_id.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_sess.py
-	@#-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_acc.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_ihost.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_sess_tout.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_akey.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_login.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_tout.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_bigget.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_lsd.py
-	@-PYTHONPATH=../pyvcommon pdoc  --force --html -o docs  pyvcli_uadd.py
+	@-${PPP} -o docs  pyvcli_qr.py
+	@-${PPP} -o docs  pyvcli_qr.py
+	@-${PPP} -o docs  pyvcli_rput.py
+	@-${PPP} -o docs  pyvcli_cd.py
+	@-${PPP} -o docs  pyvcli_ls.py
+	@-${PPP} -o docs  pyvcli_uena.py
+	@-${PPP} -o docs  pyvcli_cli.py
+	@-${PPP} -o docs  pyvcli_mkdir.py
+	@-${PPP} -o docs  pyvcli_uini.py
+	@-${PPP} -o docs  pyvcli_fdel.py
+	@-${PPP} -o docs  pyvcli_pass.py
+	@-${PPP} -o docs  pyvcli_ver.py
+	@-${PPP} -o docs  pyvcli_fget.py
+	@-${PPP} -o docs  pyvcli_ping.py
+	@-${PPP} -o docs  pyvcli_file.py
+	@-${PPP} -o docs  pyvcli_fput.py
+	@-${PPP} -o docs  pyvcli_rget.py
+	@-${PPP} -o docs  pyvcli_gethelp.py
+	@-${PPP} -o docs  pyvcli_rlist.py
+	@-${PPP} -o docs  pyvcli_hello.py
+	@-${PPP} -o docs  pyvcli_rput.py
+	@-${PPP} -o docs  pyvcli_id.py
+	@-${PPP} -o docs  pyvcli_sess.py
+	@-${PPP} -o docs  pyvcli_ihost.py
+	@-${PPP} -o docs  pyvcli_akey.py
+	@-${PPP} -o docs  pyvcli_login.py
+	@-${PPP} -o docs  pyvcli_bigget.py
+	@-${PPP} -o docs  pyvcli_lsd.py
+	@-${PPP} -o docs  pyvcli_uadd.py
+	@-${PPP} -o docs  optional/pyvcli_acc.py
+	@-${PPP} -o docs  optional/pyvcli_tout.py
+	@-${PPP} -o docs  optional/pyvcli_sess_tout.py
 
 # EOF

@@ -28,7 +28,7 @@ import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = "1.0.0"
 
 # ------------------------------------------------------------------------
 
@@ -39,12 +39,14 @@ def phelp():
     print()
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p        - Port to use (default: 6666)")
+    print( "            -l login  - Login Name; default: 'admin'")
+    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
-    print( "            -s        - Start time. Format: 'Y-m-d H:M'")
+    print( "            -b        - Start / Begin time. See format below. Default:today")
     print( "            -i        - Interval in minutes. (Default: 1 day)")
-    print( "            -n        - No encryption (plain)")
     print( "            -h        - Help")
+    print("  Possible date Formats: 'Y-m-d+H:M' 'Y-m-d' 'm-d' 'm-d+H-M'")
     print()
     sys.exit(0)
 
@@ -56,12 +58,12 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,       None],      \
+    ["l:",  "login",    "admin",    None],      \
+    ["s:",  "lpass",    "1234",     None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
-    ["n",   "plain",    0,          None],      \
-    ["t",   "test",     "x",        None],      \
+    ["b:",  "begin",    "",         None],      \
     ["i:",  "inter",    0,          None],      \
-    ["s:",  "start",    "",         None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
 
@@ -109,37 +111,20 @@ def mainfunct():
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print("Sess Key ACCEPTED:",  resp3[1])
+    cresp = hand.login(conf.login, conf.lpass, conf)
+    pyclisup.exit_if_err(cresp)
 
-    if conf.sess_key:
-        print("Post session, session key:", conf.sess_key[:12], "...")
+    #if not conf.quiet:
+    #    print ("Server login response:", cresp)
 
-    resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    print("Hello Response:", resp3)
-
-    cresp = hand.login("admin", "1234", conf)
-    print ("Server login response:", cresp)
-
-    # Set date range
-    if conf.start:
-        dd = datetime.datetime.now()
-        dd = dd.strptime(conf.start, "%Y-%m-%d %H:%M")
-    else:
-        dd = datetime.datetime.now()
-        dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
-
-    #print(dd)
-    dd_beg = dd + datetime.timedelta(0)
-    if conf.inter:
-        dd_end = dd_beg + datetime.timedelta(0, conf.inter * 60)
-    else:
-        dd_end = dd_beg + datetime.timedelta(1)
+    dd_beg, dd_end = pyclisup.inter_date(conf.begin, conf.inter)
 
     cresp = hand.client(["rsize", "vote"], conf.sess_key)
     print ("Server rsize response:", cresp)
 
-    print("from:", dd_beg, "to:", dd_end);
+    if not conf.quiet:
+        print("listing from:", dd_beg, "to:", dd_end);
+
     cresp = hand.client(["rcount", "vote", dd_beg.timestamp(),
                                     dd_end.timestamp()], conf.sess_key)
     print ("Server  rcount response:", cresp)
@@ -156,6 +141,7 @@ def mainfunct():
                 if aa:
                     ttt = pyservsup.uuid2date(uuid.UUID(aa))
                     print(aa, ":", ttt)
+        print("Listed", len(cresp[1]), "records.")
 
 if __name__ == '__main__':
     mainfunct()

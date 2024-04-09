@@ -34,16 +34,24 @@
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  &#39;..&#39; + os.sep + &#39;pyvcommon&#39;))
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, &#34;.&#34;))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  &#39;..&#39;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
+    from pyvcommon import support
 
-import support, pycrypt, pyservsup, pyclisup
-import pysyslog, comline
+from pyvcommon import support, pycrypt, pyclisup
+from pyvcommon import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = &#34;1.0.0&#34;
 
 # ------------------------------------------------------------------------
 
@@ -53,7 +61,7 @@ def phelp():
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -h        - Help&#34;)
@@ -70,7 +78,6 @@ optarr = \
     [&#34;p:&#34;,  &#34;port&#34;,     6666,   None],      \
     [&#34;v&#34;,   &#34;verbose&#34;,  0,      None],      \
     [&#34;q&#34;,   &#34;quiet&#34;,    0,      None],      \
-    [&#34;t&#34;,   &#34;test&#34;,     &#34;x&#34;,    None],      \
     [&#34;V&#34;,   None,       None,   pversion],  \
     [&#34;h&#34;,   None,       None,   phelp]      \
 
@@ -104,7 +111,6 @@ if __name__ == &#39;__main__&#39;:
         resp3 = hand.client([&#34;hello&#34;,] , &#34;&#34;, False)
         print(&#34;Hello Response:&#34;, resp3[1])
 
-    #conf.sess_key = &#34;&#34;    #ret = [&#34;OK&#34;,]
     ret = hand.start_session(conf)
 
     if ret[0] != &#34;OK&#34;:
@@ -113,35 +119,31 @@ if __name__ == &#39;__main__&#39;:
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print(&#34;Sess Key ACCEPTED:&#34;,  resp3[1])
-    #print(&#34;Post session, all is encrypted&#34;)
-
     # Session estabilished, try a simple command
     resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
-    if conf.verbose:
-        print(&#34;Hello (plain) Response:&#34;, resp4)
-        #print(&#34;Hello (encrypted) Response:&#34;, resp4[1])
+    if not conf.quiet:
+        print(&#34;Hello (plain) Resp:&#34;, resp4)
 
     cresp = hand.client([&#34;user&#34;, &#34;admin&#34;], conf.sess_key)
-    #print (&#34;Server user response:&#34;, cresp[1])
+    if not conf.quiet:
+        print (&#34;Server user response:&#34;, cresp[1])
 
     cresp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
-    #print (&#34;Server pass response:&#34;, cresp[1])
+    if not conf.quiet:
+        print (&#34;Server pass response:&#34;, cresp[1])
 
-    if conf.verbose:
-        cresp = hand.client([&#34;ls&#34;, ], conf.sess_key)
-        print (&#34;Server  ls response:&#34;, cresp)
+    cresp = hand.client([&#34;ls&#34;, ], conf.sess_key)
+    if not conf.quiet:
+        print (&#34;Server ls response:&#34;, cresp)
 
-    cresp = hand.client([&#34;file&#34;, &#34;zeros&#34;], conf.sess_key)
+    cresp = hand.client([&#34;file&#34;, &#34;test.txt&#34;], conf.sess_key)
     print (&#34;Server file response:&#34;, cresp)
     if cresp[0] != &#34;OK&#34;:
-        #print(&#34;Err: &#34;, cresp)
         cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
-        print (&#34;Server quit response:&#34;, cresp)
+        #print (&#34;Server quit response:&#34;, cresp)
         sys.exit(0)
 
-    fp = open(&#34;zeros_local&#34;, &#34;rb&#34;)
+    fp = open(&#34;test.txt_local&#34;, &#34;rb&#34;)
     offs = 0
     while 1:
         buf = fp.read(1024)
@@ -161,7 +163,9 @@ if __name__ == &#39;__main__&#39;:
     cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
     print (&#34;Server quit response:&#34;, cresp)
 
-    sys.exit(0)</code></pre>
+    sys.exit(0)
+
+# EOF</code></pre>
 </details>
 </section>
 <section>
@@ -186,7 +190,7 @@ if __name__ == &#39;__main__&#39;:
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -h        - Help&#34;)

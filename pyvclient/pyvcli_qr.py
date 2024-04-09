@@ -30,22 +30,22 @@ from pyvcommon import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = "1.0.0"
 
 # ------------------------------------------------------------------------
 
 def phelp():
 
-    print()
+    print( "The pyvserv QR code downloader.")
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -f file   - Upload new QR image file")
+    print( "  hostname: host to connect to. (default: 127.0.0.1)")
+    print( "  options:  -d level  - Debug level 0-10")
+    print( "            -p port   - Port to use (default: 6666)")
+    print( "            -f file   - Upload new QR image file. Admin only.")
     print( "            -v        - Verbose")
+    print( "            -V        - Version")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
-    print()
     sys.exit(0)
 
 def pversion():
@@ -68,11 +68,15 @@ conf = comline.Config(optarr)
 
 def mainfunct():
 
-    args = conf.comline(sys.argv[1:])
-
-    #print(vars(conf))
-    #if conf.comm:
-    #    print("Save to filename", conf.comm)
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -96,6 +100,10 @@ def mainfunct():
     if resp3[0] != "OK":
         print("Error on setting session:", resp3[1])
         sys.exit(0)
+
+    if conf.verbose:
+        resp = hand.client(["hello"], conf.sess_key)
+        print("Hello resp:", resp)
 
     if conf.file:
         resp = hand.login("admin", "1234", conf)
@@ -121,8 +129,12 @@ def mainfunct():
             resp3[1] = resp3[1].encode()
         fp.write(resp3[1])
         fp.close()
+        if not conf.quiet:
+            print("Downloaded QR code, saved to 'qr.png'", len(resp3[1]), "bytes")
 
-    hand.client(["quit"], conf.sess_key)
+    rrr = hand.client(["quit"], conf.sess_key)
+    if conf.verbose:
+        print("Quit resp:", rrr)
     hand.close();
 
     sys.exit(0)

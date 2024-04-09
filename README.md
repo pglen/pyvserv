@@ -252,12 +252,42 @@ client utility's help screen:
 
      One of Add / Remove / Enable / List option is needed.
 
+## pyvser clients
+
+ Some client programs are supplied to administer / drive / monitor pyvserv.
+ The -h option on the client programs give a brief help of usage / purpose.
+
+ | Client name  | Description               |        Purpose                |
+ | -----------  |  -----------              |  ------------------------     |
+ | pyvcli_cli   | Command line interface    | All aspects of pyvserve       |
+ | pyvcli_uini  | Create initial user       | Create initial admin user     |
+ | pyvcli_fman  | File manager              | Upload / Download files       |
+ | pyvcli_uman  | User manager              | Add remove users / admins     |
+ | pyvcli_rman  | Record manager            | Get / Put Blockchain Records  |
+ | pyvcli_hello | Get hello message         | Connectivity test             |
+ | pyvcli_ver   | Get Version number        | Check for server version      |
+
+ The utilities can also be executed from the 'pyvclient' sub directory by
+ post fixing with script extension. (add the .py extension like: ./pyvcli_cli.py)
+
+ The date formats for specifying record date filter dates are:
+
+   'Y-m-d+H:M' 'Y-m-d' 'm-d' 'm-d+H-M'
+
+Where Y=year m=month d=day H=hour M=minutes, just like in strftime.
+The hour is in 24 hour notation.
+
+The following are all valid dates specs, specifying the same date
+(in 2024 apr 15 at 00:00):
+
+    2024-04-15 2024-04-15+0:0 04-15 04-15+00:00
+
 ## Testing:
 
- All pytest cases pass. Note that the for the pytest client tests one needs to
- start the 'pyvserv.py' server.
- The server --port and --dataroot option can ba used to start the server in an alternate
- universe. Please make sure it does not interfere with production.
+ All pytest cases pass successfully. Note that for the pytest client
+ tests one needs to start the server. ('./pyvserv.py' or pyvserv if installed)
+ The server --port and --dataroot option can be used to start the server in
+ an alternate 'universe', so it does not interfere with production.
 
     ============================ test session starts ==============================
     platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.0.0
@@ -280,10 +310,8 @@ client utility's help screen:
 
     ============================== 15 passed in 9.47s ==============================
 
-Additional tests can be found in the tests/ directory. The pyvcli_* files may also
-serve as test cases.
-
-More test coming soon ....
+Additional tests can be found in the tests/ directory. The pyvcli_* files in the
+'pyvclient' directory may also serve as test cases.
 
 ## Production:
 
@@ -294,8 +322,8 @@ any users. To allow operation one may create the initial user with the uini
 functions and / or scripts.
 The uini can only operate successfully if there are no users present in the
 pyvserv system, and it is executed from the loopback interface. For example,
-the command line utility ./pyvcli_uini.py can be executed with the -t option
-to prompt for a password.
+the command line utility ./pyvcli_uini.py can be used;
+For production, it can executed with the -t option to prompt for a password.
 
 ## Screen shots:
 
@@ -310,19 +338,20 @@ contains a live view of the replicator log.
  The bottom area of the window contains a live view of the incoming data, as it is
 originally formatted, without the blockchain and hash details.
 
-  All views monitor the live files, on the default setup, without interfering
-with any of the operations.
+  All views monitor the live log files, on the default setup. The montor functions
+operate, without interfering with any of the operations.
 
 ## Windows compatibility
 
- Pyvserv now functions in the Windows MSYS2 subsystem. All the major
+  Pyvserv now functions in the Windows MSYS2 subsystem. All the major
 functionalities are ported. The file locking mechanism works, and all the
 pytests pass. Naturally, logging and readline etc ... works with the usual
 windows caveat.
 
-  For the GUI functions install the PyGobject subsystem. Instructions can
-be found very easily for that. Below, a screenshot of the pyvserv control panel
-in MSYS2.
+  For the GUI functions ona my need to install the PyGobject subsystem.
+Instructions can be found very easily for that.
+
+Below, a screenshot of the pyvserv control panel in MSYS2.
 
 ![Screen Shot](winscreen.png)
 

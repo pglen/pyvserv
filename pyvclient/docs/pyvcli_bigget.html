@@ -48,7 +48,7 @@ import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = &#34;1.0.0&#34;
 
 # ------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ def phelp():
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -n        - No encryption (plain)&#34;)
@@ -130,46 +130,70 @@ if __name__ == &#39;__main__&#39;:
     #print(&#34;Sess Key ACCEPTED:&#34;,  resp3[1])
 
     if conf.sess_key:
-        print(&#34;Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
+        if not conf.quiet:
+            print(&#34;Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
 
     resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
-    print(&#34;Hello Response:&#34;, resp3)
+    if not conf.quiet:
+        print(&#34;Hello Response:&#34;, resp3)
 
     # Session estabilished, try a simple command
     #resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
     #print(&#34;Hello Response:&#34;, resp4[1])
 
     cresp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
-    print (&#34;Server login response:&#34;, cresp)
+    if not conf.quiet:
+        print (&#34;Server login response:&#34;, cresp)
 
-    #cresp = hand.client([&#34;ls&#34;, ], conf.sess_key)
-    #print (&#34;Server  ls response:&#34;, cresp)
+    bigfname = &#34;bigfile&#34;    # Use this name for cleaning it
+    bigbuff = b&#34;abcdef&#34; * 1024
+    # Create bigfile
+    fp = open(bigfname, &#34;wb&#34;)
+    for aa in range(1024 * 10):
+        fp.write(bigbuff)
+    fp.close()
 
-    #cresp = hand.client([&#34;buff&#34;, &#34;10&#34;, ], conf.sess_key)
-    #print (&#34;Server buff response:&#34;, cresp)
-    #if cresp[0] != &#34;OK&#34;:
-    #    print(&#34;Error on buff command&#34;, cresp[1])
-    #    hand.client([&#34;quit&#34;], conf.sess_key)
-    #    hand.close();
-    #    sys.exit(0)
-
-    #zfile = &#34;zeros&#34;
-    #ret2 = hand.getfile(zfile, zfile+&#34;_local&#34;, conf.sess_key)
-    #print (&#34;Server  fget response:&#34;, ret2)
-
-    bfile =&#34;bigfile&#34;
-    print(&#34;Started bigfile ...&#34;, bfile)
+    # Put big file up
+    if not conf.quiet:
+        print(&#34;Started file UP ...&#34;, )
     ttt = time.time()
-    ret = hand.getfile(bfile, bfile + &#34;_local&#34;, conf.sess_key)
-    filesize = support.fsize(bfile+ &#34;_local&#34;)
-    print(&#34;filesize&#34;, filesize)
+    resp = hand.putfile(bigfname, &#34;&#34;, conf.sess_key)
+    filesize = support.fsize(bigfname)
     rate = filesize / (time.time() - ttt)
-    print (&#34;Server fget response:&#34;, ret, &#34;time %.2f kbytes/sec&#34; % (rate/1024))
+    if not conf.quiet:
+        print(&#34;filesize&#34;, filesize)
+    if resp[0] != &#34;OK&#34;:
+        print (&#34;fput resp:&#34;, resp)
+        cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
+        print (&#34;Server quit response:&#34;, cresp)
+        sys.exit()
+    print (&#34;fput response:&#34;, resp, &#34;time %.2f kbytes/sec&#34; % (rate/1024))
+
+    if not conf.quiet:
+        print(&#34;Started bigfile DOWN&#34;)
+    ttt = time.time()
+    ret = hand.getfile(bigfname, bigfname + &#34;_local&#34;, conf.sess_key)
+    filesize = support.fsize(bigfname + &#34;_local&#34;)
+    if not conf.quiet:
+        print(&#34;filesize&#34;, filesize)
+    rate = filesize / (time.time() - ttt)
+    print (&#34;fget response:&#34;, ret, &#34;time %.2f kbytes/sec&#34; % (rate/1024))
 
     cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
-    print (&#34;Server quit response:&#34;, cresp)
+    #print (&#34;Server quit response:&#34;, cresp)
 
-    sys.exit(0)</code></pre>
+    ret = os.system(&#34;diff &#34; + bigfname + &#34; &#34; + bigfname + &#34;_local&#34;)
+    if ret:
+        print(&#34;Error: Files Differ&#34;, ret)
+    else:
+        print(&#34;Files Compare OK&#34;)
+
+    #os.remove(bigfname)
+    #os.remove(bigfname + &#34;_local&#34;)
+
+    sys.exit(0)
+
+ # EOF</code></pre>
 </details>
 </section>
 <section>
@@ -194,7 +218,7 @@ if __name__ == &#39;__main__&#39;:
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -n        - No encryption (plain)&#34;)

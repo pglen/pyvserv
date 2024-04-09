@@ -46,65 +46,57 @@ none_in      = 120
 # ------------------------------------------------------------------------
 # Help stings
 
-user_help   = "Usage: user logon_name -- set session user name"
-akey_help   = "Usage: akey -- get asymmetric key"
-pass_help   = "Usage: pass logon_pass -- password"
-chpass_help = "Usage: chpass user  oldpass, newpass"
-file_help   = "Usage: file fname -- Specify name for upload"
-mkdir_help  = "Usage: mkdir dirname -- Specify name for new dir"
-rmdir_help  = "Usage: rmdir dirname -- Specify dir name to delete"
-fget_help   = "Usage: fget fname -- Download (get) file"
-fput_help   = "Usage: fput fname -- Upload (put) file"
-del_help    = "Usage: del  fname -- Delete file"
-uadd_help   = "Usage: uadd user_name user_pass -- Create new user"
-uini_help   = "Usage: uini user_name user_pass -- Create initial user. Loopback only."
-uena_help   = "Usage: uena user_name  flag -- enable / disable user"
-ulist_help  = "Usage: ulist flag  -- list users. Flag: user / admin / initial / disabled"
-aadd_help   = "Usage: aadd user_name user_pass -- create admin user"
-udel_help   = "Usage: udel user_name -- Delete user"
-data_help   = "Usage: data datalen -- Specify length of file to follow"
-vers_help   = "Usage: ver -- Get protocol version. alias: vers"
-id_help     = "Usage: id -- Get site id string"
-hello_help  = "Usage: hello -- Say Hello - test connectivity."
-quit_help   = "Usage: quit -- Terminate connection. alias: exit"
-help_help   = "Usage: help [command] -- Offer help on command"
-lsls_help   = "Usage: ls [dir] -- List files in dir"
-lsld_help   = "Usage: lsd [dir] -- List dirs in dir"
-cdcd_help   = "Usage: cd dir -- Change to dir. Capped to server root"
-pwdd_help   = "Usage: pwd -- Show current dir"
-tout_help   = "Usage: tout new_val -- Set / Reset timeout in seconds"
-ekey_help   = "Usage: ekey encryption_key -- Set encryption key "
-sess_help   = "Usage: sess session data -- Start session "
-logout_help = "Usage: logout -- log out user"
-buff_help   = "Usage: buff buff_size -- limited to 64k"
-throt_help  = "Usage: throt flag -- turn on or off throtleing"
-rput_help   = "Usage: rcheck kind link | sum -- check records. Link check or sum check"
-rtest_help  = "Usage: rtest link | sum recids -- check a list of records. Link check or sum check"
-rcheck_help = "Usage: rput kind header, [field1, field2] ... -- put record in blockcain."
-rlist_help  = "Usage: rlist kind beg_date end_date -- get records from blockcain."
-rcount_help = "Usage: rcount kind beg_date end_date -- get record count from blockcain."
-rsize_help  = "Usage: rsize kind -- get total record count from blockcain."
-rget_help   = "Usage: rget kind header -- get record from blockcain."
-rabs_help   = "Usage: rabs kind pos -- get record by absolute position from blockcain."
-rhave_help  = "Usage: rhave kind header -- is record in blockcain."
+usage = "Usage:"
+user_help   = usage + " user logon_name -- set session user name"
+akey_help   = usage + " akey -- get asymmetric key"
+pass_help   = usage + " pass logon_pass -- password"
+chpass_help = usage + " chpass user  oldpass, newpass"
+file_help   = usage + " file fname -- Specify name for upload"
+mkdir_help  = usage + " mkdir dirname -- Specify name for new dir"
+rmdir_help  = usage + " rmdir dirname -- Specify dir name to delete"
+fget_help   = usage + " fget fname -- Download (get) file"
+fput_help   = usage + " fput fname -- Upload (put) file"
+del_help    = usage + " del  fname -- Delete file"
+uadd_help   = usage + " uadd user_name user_pass -- Create new user"
+uini_help   = usage + " uini user_name user_pass -- Create initial user. Loopback only."
+uena_help   = usage + " uena user_name  flag -- enable / disable user"
+ulist_help  = usage + " ulist flag  -- list users. Flag: user / admin / initial / disabled"
+aadd_help   = usage + " aadd user_name user_pass -- create admin user"
+udel_help   = usage + " udel user_name -- Delete user"
+data_help   = usage + " data datalen -- Specify length of file to follow"
+vers_help   = usage + " ver -- Get server version."
+id_help     = usage + " id -- Get site id string"
+hello_help  = usage + " hello -- Say Hello - test connectivity."
+quit_help   = usage + " quit -- Terminate connection. alias: exit"
+exit_help   = usage + " exit -- Terminate connection. alias: quit"
+help_help   = usage + " help [command] -- Offer help on command"
+lsls_help   = usage + " ls [dir] -- List files in dir"
+lsld_help   = usage + " lsd [dir] -- List dirs in dir"
+cdcd_help   = usage + " cd dir -- Change to dir. Capped to server root"
+pwdd_help   = usage + " pwd -- Show current dir"
+tout_help   = usage + " tout [val] -- Get / Set timeout value. (seconds)"
+ekey_help   = usage + " ekey encryption_key -- Set encryption key "
+sess_help   = usage + " sess session data -- Start session "
+logout_help = usage + " logout -- log out user"
+buff_help   = usage + " buff buff_size -- limited to 64k"
+throt_help  = usage + " throt flag -- turn on or off throttling"
+rput_help   = usage + " rcheck kind link | sum -- check records. Link check or sum check"
+rtest_help  = usage + " rtest link | sum recids -- check a list of records. Link check or sum check"
+rcheck_help = usage + " rput kind header, [field1, field2] ... -- put record in blockchain."
+rlist_help  = usage + " rlist kind beg_date end_date -- get records from blockchain."
+rcount_help = usage + " rcount kind beg_date end_date -- get record count from blockchain."
+rsize_help  = usage + " rsize kind -- get total record count from blockchain."
+rget_help   = usage + " rget kind header -- get record from blockchain."
+rabs_help   = usage + " rabs kind pos -- get record by absolute position from blockchain."
+rhave_help  = usage + " rhave kind header -- is record in blockchain."
 
-qr_help     = "Usage: qr -- get qrcode image for 2fa"
-twofa_help  = "Usage: twofa -- two factor authentication"
-dmode_help  = "Usage: dmode -- get dmode (Developer Mode) flag"
-ihave_help  = "Usage: ihave -- 'i have you have' protocol entry point"
-ihost_help  = "Usage: ihost -- add / delete replicator host"
-xxxx_help   = "Usage: no data -- Template for new halp"
-stat_help   = "Usage: stat fname  -- Get file stat. Field list:\n"\
-    "   1.  ST_MODE Inode protection mode.\n"\
-    "   2.  ST_INO Inode number.\n"\
-    "   3.  ST_DEV Device inode resides on.\n"\
-    "   4.  ST_NLINK  Number of links to the inode.\n"\
-    "   5.  ST_UID User id of the owner.\n"\
-    "   6.  ST_GID Group id of the owner.\n"\
-    "   7.  ST_SIZE Size in bytes of a plain file.\n"\
-    "   8.  ST_ATIME Time of last access.\n"\
-    "   9.  ST_MTIME Time of last modification.\n"\
-    "   10. ST_CTIME Time of last metadata change."
+qr_help     = usage + " qr -- get QR code image for 2fa"
+twofa_help  = usage + " twofa pass -- two factor authentication credentials"
+dmode_help  = usage + " dmode -- get current dmode (Developer Mode) flag"
+ihave_help  = usage + " ihave -- 'i have you have' protocol entry point"
+ihost_help  = usage + " ihost -- add / delete replicator host:port target"
+stat_help   = usage + " stat fname  -- Get file stat"
+xxxx_help   = usage + " no data -- Template for new help"
 
 # ------------------------------------------------------------------------
 # Table driven server state machine.
@@ -129,7 +121,7 @@ def init_state_table():
         ("hello",   all_in,  none_in,    initial,   get_hello_func,   hello_help),
         ("helo",    all_in,  none_in,    initial,   get_hello_func,   hello_help),
         ("quit",    all_in,  none_in,    initial,   get_exit_func,    quit_help),
-        ("exit",    all_in,  none_in,    initial,   get_exit_func,    quit_help),
+        ("exit",    all_in,  none_in,    initial,   get_exit_func,    exit_help),
         ("help",    all_in,  none_in,    initial,   get_help_func,    help_help),
         ("akey",    all_in,  none_in,    initial,   get_akey_func,    akey_help),
         ("uini",    all_in,  none_in,    initial,   get_uini_func,    uini_help),
@@ -317,7 +309,6 @@ class StateHandler():
                 sss =  ["ERR", "Invalid command issued",  comx[0]]
             else:
                 sss =  ["ERR", "Out of Sequence command issued", comx[0]]
-            #self.resp.datahandler.putdata(sss.encode("cp437"), self.resp.ekey)
             self.resp.datahandler.putencode(sss, self.resp.ekey)
             # Do not quit, just signal the error
             ret = False

@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>pyvcli_cli API documentation</title>
-<meta name="description" content="Test unit for pyvserv. Command line interpreter. This interface is similar
-to the FTP client interface. Some functions are sent through directly,
-…" />
+<meta name="description" content="The pyvserv command line client.
+Usage: pdoc [options] [hostname]
+hostname: host to connect to. (default: 127.0.0.1)
+options:
+-d level
+- Debug …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -24,51 +27,31 @@ to the FTP client interface. Some functions are sent through directly,
 <h1 class="title">Module <code>pyvcli_cli</code></h1>
 </header>
 <section id="section-intro">
-<p>Test unit for pyvserv. Command line interpreter. This interface is similar
-to the FTP client interface. Some functions are sent through directly,
-and some functions are interpreted via client helpers.
-All encryption functionality is exercised as the real client would.
-The command that starts with the exclamation point is executed
-in the local shell.</p>
-<h2 id="the-following-commands-and-more-may-be-issued">The following commands (and more) may be issued.</h2>
-<pre><code>    user logon_name                 -- Name of user to log in with
-    akey                            -- Get asymmetric key
-    pass logon_pass                 -- Password
-    chpass newpass                  -- Change pass (not tested)
-    file fname                      -- Specify name for upload
-    fget fname                      -- Download (get) file
-    fput fname                      -- Upload (put) file
-    del  fname                      -- Delete file
-    uadd user_name user_pass        -- Create new user
-    kadd key_name key_val           -- Add new encryption key
-    uini user_name user_pass        -- Create initial user. Must be from local net.
-    kini key_name key_pass          -- Create initial key.  Must be from local net.
-    uena user_name  flag            -- Enable / disable user
-    aadd user_name user_pass        -- Create admin user
-    udel user_name                  -- Delete user
-    data datalen                    -- Specify length of file to follow
-    ver                             -- Get protocol version. alias: vers
-    id                              -- Get site id string
-    hello                           -- Say Hello - test connectivity.
-    quit                            -- Terminate connection. alias: exit
-    help [command]                  -- Offer help on command
-    ls [dir]                        -- List files in dir
-    lsd [dir]                       -- List dirs in dir
-    cd dir                          -- Change to dir. Capped to server root
-    pwd                             -- Show current dir
-    stat fname                      -- Get file stat. See at the end of this table.
-    tout new_val                    -- Set / Reset timeout in seconds
-    ekey encryption_key             -- Set encryption key
-    sess session data               -- Start session
-    buff buff_size                  -- Limited to 64k
-    rput header, field1, field2...  -- Put record in blockcain. See example code.
-    rget header                     -- Get record from blockcain.
-    qr                              -- Get qrcode image for 2fa
-    twofa                           -- Two factor authentication
-    dmode                           -- Get dmode (Developer Mode) flag
-    ihave                           -- The 'i have you have' protocol entry point
-    ihost                           -- Add / delete replicator host
-</code></pre>
+<p>The pyvserv command line client.
+Usage: pdoc [options] [hostname]
+hostname: host to connect to. (default: 127.0.0.1)
+options:
+-d level
+- Debug level 0-10
+-p
+- Port to use (default: 6666)
+-l login
+- Login Name; default: 'user'
+-s lpass
+- Login Pass; default: '1234' !!For tests Only!!
+-t
+- Prompt for pass
+-x comm
+- Execute command and quit
+-q
+- Quiet
+-v
+- Verbose
+-V
+- Print version number
+-h
+- Help
+Prefix local commands with '!' (exclamation mark)</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -114,7 +97,9 @@ __doc__ = \
     The command that starts with the exclamation point is executed
     in the local shell.
 
-## The following commands (and more) may be issued.
+    ## The following commands (and more) may be issued.
+
+    ### Type &#39;help&#39; for a complete list
 
         user logon_name                 -- Name of user to log in with
         akey                            -- Get asymmetric key
@@ -158,41 +143,52 @@ __doc__ = \
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
-
+version = &#34;1.0.0&#34;
+progn = os.path.basename(sys.argv[0])
 # ------------------------------------------------------------------------
 
+__doc__ = &#39;&#39;&#39;\
+The pyvserv command line client.
+Usage: %s [options] [hostname]
+  hostname: host to connect to. (default: 127.0.0.1)
+  options:  -d level  - Debug level 0-10
+            -p        - Port to use (default: 6666)
+            -l login  - Login Name; default: &#39;user&#39;
+            -s lpass  - Login Pass; default: &#39;1234&#39; !!For tests Only!!
+            -t        - Prompt for pass
+            -x comm   - Execute command and quit
+            -q        - Quiet
+            -v        - Verbose
+            -V        - Print version number
+            -h        - Help
+Prefix local commands with &#39;!&#39; (exclamation mark) &#39;&#39;&#39; \
+ % (progn)
+
 def phelp():
-
     &#39;&#39;&#39; Provide local help &#39;&#39;&#39;
-
-    print()
-    print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
-    print()
-    print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
-    print( &#34;            -v        - Verbose&#34;)
-    print( &#34;            -q        - Quiet&#34;)
-    print( &#34;            -n        - No encryption (plain)&#34;)
-    print( &#34;            -h        - Help&#34;)
-    print()
+    print(__doc__)
     sys.exit(0)
 
 def pversion():
 
     &#39;&#39;&#39; Print version string &#39;&#39;&#39;
 
-    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
+    print(progn, &#34;Version&#34;, version)
     sys.exit(0)
 
     # option, var_name, initial_val, function
+
 optarr = \
-    [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,      None],      \
-    [&#34;p:&#34;,  &#34;port&#34;,     6666,   None],      \
-    [&#34;v&#34;,   &#34;verbose&#34;,  0,      None],      \
-    [&#34;q&#34;,   &#34;quiet&#34;,    0,      None],      \
-    [&#34;V&#34;,   None,       None,   pversion],  \
-    [&#34;h&#34;,   None,       None,   phelp]      \
+    [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,          None],      \
+    [&#34;p:&#34;,  &#34;port&#34;,     6666,       None],      \
+    [&#34;l:&#34;,  &#34;login&#34;,    &#34;admin&#34;,    None],      \
+    [&#34;s:&#34;,  &#34;lpass&#34;,    &#34;1234&#34;,     None],      \
+    [&#34;t&#34;,   &#34;prompt&#34;,   0,          None],      \
+    [&#34;x:&#34;,  &#34;comm&#34;,     &#34;&#34;,         None],      \
+    [&#34;v&#34;,   &#34;verbose&#34;,  0,          None],      \
+    [&#34;q&#34;,   &#34;quiet&#34;,    0,          None],      \
+    [&#34;V&#34;,   None,       None,       pversion],  \
+    [&#34;h&#34;,   None,       None,       phelp]      \
 
 conf = comline.Config(optarr)
 
@@ -202,12 +198,26 @@ def mainfunct():
 
     &#39;&#39;&#39; Command line interpreter &#39;&#39;&#39;
 
-    args = conf.comline(sys.argv[1:])
-
-    #print(vars(conf))
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
+
+    if conf.prompt:
+        import getpass
+        strx = getpass.getpass(&#34;Enter Pass: &#34;)
+        if not strx:
+            print(&#34;Aborting ...&#34;)
+            sys.exit(0)
+        conf.lpass  = strx
 
     if len(args) == 0:
         ip = &#39;127.0.0.1&#39;
@@ -226,31 +236,27 @@ def mainfunct():
 
     atexit.register(pyclisup.atexit_func, hand, conf)
 
-    #resp3 = hand.client([&#34;id&#34;,] , &#34;&#34;, False)
-    #print(&#34;ID Response:&#34;, resp3[1])
+    resp3 = hand.client([&#34;ver&#34;,] , &#34;&#34;, False)
+    if conf.verbose:
+        print(&#34;Ver  Resp: &#34;, resp3)
 
     conf.sess_key = &#34;&#34;
-    #ret = [&#34;OK&#34;,];  conf.sess_key = &#34;&#34;
     resp3 = hand.start_session(conf)
     if resp3[0] != &#34;OK&#34;:
         print(&#34;Error on setting session:&#34;, resp3[1])
         sys.exit(0)
 
-    # Make a note of the session key
-    #print(&#34;Sess Key ACCEPTED:&#34;,  resp3[1])
+    if conf.verbose:
+        resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
+        print(&#34;Hello Resp:&#34;, resp3)
 
-    if conf.sess_key:
-        print(&#34; ------ Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
+    cresp = hand.login(conf.login, conf.lpass, conf)
+    if cresp[0] != &#34;OK&#34;:
+        print(&#34;Error on login, exiting.&#34;, cresp)
+        sys.exit(1)
 
-    resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
-    print(&#34;Hello Resp:&#34;, resp3)
-
-    # Session estabilished, try a simple command
-    #resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
-    #print(&#34;Hello Response:&#34;, resp4[1])
-
-    cresp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
-    print (&#34;Login resp:&#34;, cresp)
+    if conf.verbose:
+        print (&#34;Login resp:&#34;, cresp)
 
     # Start a new session for the rest of the work
     resp3 = hand.start_session(conf)
@@ -258,18 +264,21 @@ def mainfunct():
         print(&#34;Error on setting session:&#34;, resp3[1])
         sys.exit(0)
 
-    if conf.sess_key:
-        print(&#34; ------ Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
-
-    resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
-    print(&#34;Hello2 Resp:&#34;, resp3)
-
     # Interactive, need more time
-    hand.client([&#34;tout&#34;, &#34;30&#34;,], conf.sess_key)
+    hand.client([&#34;tout&#34;, &#34;60&#34;,], conf.sess_key)
 
-    print (&#34;Enter commands, Ctrl-C or &#39;done&#39; to quit. Prefix local commands with &#39;!&#39;&#34;)
-
-    mainloop(conf, hand)
+    if conf.comm:
+        import shlex
+        #print(&#34;exec:&#34;, conf.comm)
+        commx = shlex.split(conf.comm)
+        if not conf.quiet:
+            print(&#34;Issued:&#34;, commx)
+        resp = hand.client([*commx], conf.sess_key)
+        print(&#34;resp:  &#34;, resp)
+    else:
+        if not conf.quiet:
+            print (&#34;Enter commands, Ctrl-C or Ctrl-D or &#39;quit&#39; to exit.&#34;)
+        mainloop(conf, hand)
 
     sys.exit(0)
 
@@ -301,7 +310,7 @@ def mainloop(conf, hand):
                         print(&#34;Use: fget fname&#34;)
                         continue
                     ret2 = hand.getfile(ss[1], ss[1] + &#34;_local&#34;, conf.sess_key)
-                    print (&#34;Server fget response:&#34;, ret2)
+                    print (&#34;fget response:&#34;, ret2)
                     continue
 
                 elif ss[0] == &#34;fput&#34;:
@@ -309,7 +318,7 @@ def mainloop(conf, hand):
                         print(&#34;Use: fput fname&#34;)
                         continue
                     ret2 = hand.putfile(ss[1], &#34;&#34;, conf.sess_key)
-                    print (&#34;Server fput response:&#34;, ret2)
+                    print (&#34;fput response:&#34;, ret2)
                     continue
 
                 elif ss[0] == &#34;file&#34;:
@@ -329,7 +338,7 @@ def mainloop(conf, hand):
                     # No wrapper needed
                     cresp = hand.client(ss, conf.sess_key)
                     # post process
-                    print (&#34;Server response:&#34;, cresp)
+                    print (&#34;resp:&#34;, cresp)
         except:
             print(sys.exc_info())
             break
@@ -360,12 +369,26 @@ if __name__ == &#39;__main__&#39;:
 
     &#39;&#39;&#39; Command line interpreter &#39;&#39;&#39;
 
-    args = conf.comline(sys.argv[1:])
-
-    #print(vars(conf))
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
+
+    if conf.prompt:
+        import getpass
+        strx = getpass.getpass(&#34;Enter Pass: &#34;)
+        if not strx:
+            print(&#34;Aborting ...&#34;)
+            sys.exit(0)
+        conf.lpass  = strx
 
     if len(args) == 0:
         ip = &#39;127.0.0.1&#39;
@@ -384,31 +407,27 @@ if __name__ == &#39;__main__&#39;:
 
     atexit.register(pyclisup.atexit_func, hand, conf)
 
-    #resp3 = hand.client([&#34;id&#34;,] , &#34;&#34;, False)
-    #print(&#34;ID Response:&#34;, resp3[1])
+    resp3 = hand.client([&#34;ver&#34;,] , &#34;&#34;, False)
+    if conf.verbose:
+        print(&#34;Ver  Resp: &#34;, resp3)
 
     conf.sess_key = &#34;&#34;
-    #ret = [&#34;OK&#34;,];  conf.sess_key = &#34;&#34;
     resp3 = hand.start_session(conf)
     if resp3[0] != &#34;OK&#34;:
         print(&#34;Error on setting session:&#34;, resp3[1])
         sys.exit(0)
 
-    # Make a note of the session key
-    #print(&#34;Sess Key ACCEPTED:&#34;,  resp3[1])
+    if conf.verbose:
+        resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
+        print(&#34;Hello Resp:&#34;, resp3)
 
-    if conf.sess_key:
-        print(&#34; ------ Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
+    cresp = hand.login(conf.login, conf.lpass, conf)
+    if cresp[0] != &#34;OK&#34;:
+        print(&#34;Error on login, exiting.&#34;, cresp)
+        sys.exit(1)
 
-    resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
-    print(&#34;Hello Resp:&#34;, resp3)
-
-    # Session estabilished, try a simple command
-    #resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
-    #print(&#34;Hello Response:&#34;, resp4[1])
-
-    cresp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
-    print (&#34;Login resp:&#34;, cresp)
+    if conf.verbose:
+        print (&#34;Login resp:&#34;, cresp)
 
     # Start a new session for the rest of the work
     resp3 = hand.start_session(conf)
@@ -416,18 +435,21 @@ if __name__ == &#39;__main__&#39;:
         print(&#34;Error on setting session:&#34;, resp3[1])
         sys.exit(0)
 
-    if conf.sess_key:
-        print(&#34; ------ Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
-
-    resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
-    print(&#34;Hello2 Resp:&#34;, resp3)
-
     # Interactive, need more time
-    hand.client([&#34;tout&#34;, &#34;30&#34;,], conf.sess_key)
+    hand.client([&#34;tout&#34;, &#34;60&#34;,], conf.sess_key)
 
-    print (&#34;Enter commands, Ctrl-C or &#39;done&#39; to quit. Prefix local commands with &#39;!&#39;&#34;)
-
-    mainloop(conf, hand)
+    if conf.comm:
+        import shlex
+        #print(&#34;exec:&#34;, conf.comm)
+        commx = shlex.split(conf.comm)
+        if not conf.quiet:
+            print(&#34;Issued:&#34;, commx)
+        resp = hand.client([*commx], conf.sess_key)
+        print(&#34;resp:  &#34;, resp)
+    else:
+        if not conf.quiet:
+            print (&#34;Enter commands, Ctrl-C or Ctrl-D or &#39;quit&#39; to exit.&#34;)
+        mainloop(conf, hand)
 
     sys.exit(0)</code></pre>
 </details>
@@ -469,7 +491,7 @@ a line by line basis.</p></div>
                         print(&#34;Use: fget fname&#34;)
                         continue
                     ret2 = hand.getfile(ss[1], ss[1] + &#34;_local&#34;, conf.sess_key)
-                    print (&#34;Server fget response:&#34;, ret2)
+                    print (&#34;fget response:&#34;, ret2)
                     continue
 
                 elif ss[0] == &#34;fput&#34;:
@@ -477,7 +499,7 @@ a line by line basis.</p></div>
                         print(&#34;Use: fput fname&#34;)
                         continue
                     ret2 = hand.putfile(ss[1], &#34;&#34;, conf.sess_key)
-                    print (&#34;Server fput response:&#34;, ret2)
+                    print (&#34;fput response:&#34;, ret2)
                     continue
 
                 elif ss[0] == &#34;file&#34;:
@@ -497,7 +519,7 @@ a line by line basis.</p></div>
                     # No wrapper needed
                     cresp = hand.client(ss, conf.sess_key)
                     # post process
-                    print (&#34;Server response:&#34;, cresp)
+                    print (&#34;resp:&#34;, cresp)
         except:
             print(sys.exc_info())
             break</code></pre>
@@ -513,19 +535,8 @@ a line by line basis.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def phelp():
-
     &#39;&#39;&#39; Provide local help &#39;&#39;&#39;
-
-    print()
-    print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
-    print()
-    print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
-    print( &#34;            -v        - Verbose&#34;)
-    print( &#34;            -q        - Quiet&#34;)
-    print( &#34;            -n        - No encryption (plain)&#34;)
-    print( &#34;            -h        - Help&#34;)
-    print()
+    print(__doc__)
     sys.exit(0)</code></pre>
 </details>
 </dd>
@@ -542,7 +553,7 @@ a line by line basis.</p></div>
 
     &#39;&#39;&#39; Print version string &#39;&#39;&#39;
 
-    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
+    print(progn, &#34;Version&#34;, version)
     sys.exit(0)
 
     # option, var_name, initial_val, function</code></pre>
@@ -556,9 +567,7 @@ a line by line basis.</p></div>
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul>
-<li><a href="#the-following-commands-and-more-may-be-issued">The following commands (and more) may be issued.</a></li>
-</ul>
+<ul></ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>

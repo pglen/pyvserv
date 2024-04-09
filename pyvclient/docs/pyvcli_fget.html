@@ -48,7 +48,7 @@ import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = &#34;1.0.0&#34;
 
 # ------------------------------------------------------------------------
 
@@ -58,7 +58,7 @@ def phelp():
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -n        - No encryption (plain)&#34;)
@@ -129,30 +129,25 @@ if __name__ == &#39;__main__&#39;:
     # Make a note of the session key
     #print(&#34;Sess Key ACCEPTED:&#34;,  resp3[1])
 
-    if conf.sess_key:
-        print(&#34;Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
+    if not conf.quiet:
+        print(&#34;Session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
 
     resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
-    print(&#34;Hello Response:&#34;, resp3)
-
-    # Session estabilished, try a simple command
-    #resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
-    #print(&#34;Hello Response:&#34;, resp4[1])
+    if not conf.quiet:
+        print(&#34;Hello Response:&#34;, resp3)
 
     cresp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
-    print (&#34;Server login response:&#34;, cresp)
+    if not conf.quiet:
+        print (&#34;Server login response:&#34;, cresp)
 
-    #cresp = hand.client([&#34;ls&#34;, ], conf.sess_key)
-    #print (&#34;Server  ls response:&#34;, cresp)
+    cresp = hand.client([&#34;throt&#34;, &#34;off&#34;], conf.sess_key)
+    print (&#34;Server throttle:&#34;, cresp)
 
     ret2 = hand.getfile(conf.fname, conf.fname + &#34;_local&#34;, conf.sess_key)
     print (&#34;Server fget response:&#34;, ret2)
 
-    cresp = hand.client([&#34;ls&#34;, ], conf.sess_key)
-    print (&#34;Server  ls response:&#34;, cresp)
-
     cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
-    print (&#34;Server quit response:&#34;, cresp)
+    #print (&#34;Server quit response:&#34;, cresp)
 
 # EOF</code></pre>
 </details>
@@ -179,7 +174,7 @@ if __name__ == &#39;__main__&#39;:
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
     print( &#34;            -n        - No encryption (plain)&#34;)

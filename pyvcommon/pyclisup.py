@@ -23,6 +23,9 @@ from Crypto.Cipher import PKCS1_OAEP
 #rbuffsize = 1024
 rbuffsize = 4096
 
+OK  = "OK"
+ERR = "ERR"
+
 privtest = '''\
 -----BEGIN PRIVATE ECC-----
 ZMOOwr3Dg0sSw7oTAQAAQMOpM8O+D8O2w53ClsOjwr4KwpRxZcKmCMOVwrZ8w54/McOqY8K7w7VtD8KTBcKKwq4uwosvMHLDj3TDgMOtw6w+wrHDqRtCecO5w5vCmnE6w5jDi8KAw58Gw7vCqcKLw5XDn8KEwpsAIC56akoEOsO6w5hYwpwfADHCrcOvwrxIwqMUwrXClkXDsW8OJcO/fMOaT8O+w7c=
@@ -521,5 +524,56 @@ def formatstat(resp, dateidx = 0):
         support.mode2str(int(resp[2])), support.unescape(resp[1]),
                 int(resp[8]), ddd) )
     return retx
+
+def show_onerec(hand, aa, conf):
+    dec = hand.pb.decode_data(aa[1])[0]
+    if conf.pgdebug > 2:
+        print("dec:", dec)
+    pay = hand.pb.decode_data(dec['payload'])[0]
+    if conf.verbose:
+        print("pay:", pay)
+    else:
+        print("payload:", pay['PayLoad'])
+
+def inter_date(begin = None, inter = None):
+
+    dd = datetime.datetime.now()
+    if not begin:
+        # Beginning of today
+        dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
+    else:
+        try:
+            dd = dd.strptime(begin, "%Y-%m-%d+%H:%M")
+        except:
+            try:
+                dd = dd.strptime(begin, "%Y-%m-%d")
+                dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
+            except:
+                try:
+                    yyyy = dd.year
+                    dd = dd.strptime(begin, "%m-%d+%H:%M")
+                    # Merge it with this year
+                    dd = dd.replace(year=yyyy, second=0, microsecond=0)
+                except:
+                    try:
+                        yyyy = dd.year; hhh = dd.hour; mmm = dd.minute
+                        dd = dd.strptime(begin, "%m-%d")
+                        # Merge it with this year, reset HH:MM
+                        dd = dd.replace(year=yyyy, hour=0, minute=0, second=0, microsecond=0)
+                    except:
+                        raise
+
+    dd_beg = dd + datetime.timedelta(0)
+    if inter:
+        dd_end = dd_beg + datetime.timedelta(0, inter * 60)
+    else:
+        dd_end = dd_beg + datetime.timedelta(1)
+
+    return dd_beg, dd_end
+
+def     exit_if_err(cresp, strx = "Exiting:"):
+    if cresp[0] != OK:
+        print(strx, cresp)
+        sys.exit(1)
 
 # EOF

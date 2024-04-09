@@ -85,34 +85,37 @@ __doc__ = \
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
-
+version = "1.0.0"
+progn = os.path.basename(sys.argv[0])
 # ------------------------------------------------------------------------
 
+__doc__ = '''\
+The pyvserv command line client.
+Usage: %s [options] [hostname]
+  hostname: host to connect to. (default: 127.0.0.1)
+  options:  -d level  - Debug level 0-10
+            -p        - Port to use (default: 6666)
+            -l login  - Login Name; default: 'user'
+            -s lpass  - Login Pass; default: '1234' !!For tests Only!!
+            -t        - Prompt for pass
+            -x comm   - Execute command and quit
+            -q        - Quiet
+            -v        - Verbose
+            -V        - Print version number
+            -h        - Help
+Prefix local commands with '!' (exclamation mark) ''' \
+ % (progn)
+
 def phelp():
-
     ''' Provide local help '''
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -l login  - Login Name; default: 'user'")
-    print( "            -s lpass  - Login Pass; default: '1234' !!For tests Only!!")
-    print( "            -t        - Prompt for pass")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -x comm   - Execute command and quit")
-    print( "            -h        - Help")
-    print()
+    print(__doc__)
     sys.exit(0)
 
 def pversion():
 
     ''' Print version string '''
 
-    print( os.path.basename(sys.argv[0]), "Version", version)
+    print(progn, "Version", version)
     sys.exit(0)
 
     # option, var_name, initial_val, function
@@ -137,9 +140,15 @@ def mainfunct():
 
     ''' Command line interpreter '''
 
-    args = conf.comline(sys.argv[1:])
-
-    #print(vars(conf))
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -150,6 +159,7 @@ def mainfunct():
         if not strx:
             print("Aborting ...")
             sys.exit(0)
+        conf.lpass  = strx
 
     if len(args) == 0:
         ip = '127.0.0.1'
@@ -168,34 +178,27 @@ def mainfunct():
 
     atexit.register(pyclisup.atexit_func, hand, conf)
 
-    resp3 = hand.client(["id",] , "", False)
-    if not conf.quiet:
-        print("ID Response:", resp3[1])
+    resp3 = hand.client(["ver",] , "", False)
+    if conf.verbose:
+        print("Ver  Resp: ", resp3)
 
     conf.sess_key = ""
-    #ret = ["OK",];  conf.sess_key = ""
     resp3 = hand.start_session(conf)
     if resp3[0] != "OK":
         print("Error on setting session:", resp3[1])
         sys.exit(0)
 
-    # Make a note of the session key
-    #print("Sess Key ACCEPTED:",  resp3[1])
-
-    if conf.sess_key:
-        if not conf.quiet:
-            print(" ------ Post session, session key:", conf.sess_key[:12], "...")
-
-    resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    if not conf.quiet:
+    if conf.verbose:
+        resp3 = hand.client(["hello", ],  conf.sess_key, False)
         print("Hello Resp:", resp3)
 
     cresp = hand.login(conf.login, conf.lpass, conf)
-    if not conf.quiet:
-        print ("Login resp:", cresp)
     if cresp[0] != "OK":
-        print("Error on logging in, exiting.")
+        print("Error on login, exiting.", cresp)
         sys.exit(1)
+
+    if conf.verbose:
+        print ("Login resp:", cresp)
 
     # Start a new session for the rest of the work
     resp3 = hand.start_session(conf)
@@ -203,27 +206,20 @@ def mainfunct():
         print("Error on setting session:", resp3[1])
         sys.exit(0)
 
-    if conf.sess_key:
-        if not conf.quiet:
-            print(" ------ Post session, session key:", conf.sess_key[:12], "...")
-
-    resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    if not conf.quiet:
-        print("Hello2 Resp:", resp3)
-
     # Interactive, need more time
-    hand.client(["tout", "30",], conf.sess_key)
+    hand.client(["tout", "60",], conf.sess_key)
 
     if conf.comm:
         import shlex
         #print("exec:", conf.comm)
         commx = shlex.split(conf.comm)
         if not conf.quiet:
-            print("Issue:", commx)
+            print("Issued:", commx)
         resp = hand.client([*commx], conf.sess_key)
-        print("resp:", resp)
+        print("resp:  ", resp)
     else:
-        print ("Enter commands, Ctrl-C or 'done' to quit. Prefix local commands with '!'")
+        if not conf.quiet:
+            print ("Enter commands, Ctrl-C or Ctrl-D or 'quit' to exit.")
         mainloop(conf, hand)
 
     sys.exit(0)
@@ -256,7 +252,7 @@ def mainloop(conf, hand):
                         print("Use: fget fname")
                         continue
                     ret2 = hand.getfile(ss[1], ss[1] + "_local", conf.sess_key)
-                    print ("Server fget response:", ret2)
+                    print ("fget response:", ret2)
                     continue
 
                 elif ss[0] == "fput":
@@ -264,7 +260,7 @@ def mainloop(conf, hand):
                         print("Use: fput fname")
                         continue
                     ret2 = hand.putfile(ss[1], "", conf.sess_key)
-                    print ("Server fput response:", ret2)
+                    print ("fput response:", ret2)
                     continue
 
                 elif ss[0] == "file":
@@ -284,7 +280,7 @@ def mainloop(conf, hand):
                     # No wrapper needed
                     cresp = hand.client(ss, conf.sess_key)
                     # post process
-                    print ("Server response:", cresp)
+                    print ("resp:", cresp)
         except:
             print(sys.exc_info())
             break

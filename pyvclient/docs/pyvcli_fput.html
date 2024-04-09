@@ -29,7 +29,7 @@
 <pre><code class="python">#!/usr/bin/env python
 
 # ------------------------------------------------------------------------
-# Test client for the pyserv project. Download file.
+# Test client for the pyserv project. Upload file.
 
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
@@ -43,7 +43,7 @@ import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = &#34;1.0.0&#34;
 
 # ------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ def phelp():
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -f fname  - Send file&#34;)
     print( &#34;            -q        - Quiet&#34;)
@@ -72,7 +72,6 @@ optarr = \
     [&#34;p:&#34;,  &#34;port&#34;,     6666,       None],      \
     [&#34;v&#34;,   &#34;verbose&#34;,  0,          None],      \
     [&#34;q&#34;,   &#34;quiet&#34;,    0,          None],      \
-    [&#34;t&#34;,   &#34;test&#34;,     &#34;x&#34;,        None],      \
     [&#34;V&#34;,   None,       None,       pversion],  \
     [&#34;h&#34;,   None,       None,       phelp]      \
 
@@ -102,40 +101,33 @@ if __name__ == &#39;__main__&#39;:
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    if conf.verbose:
-        resp3 = hand.client([&#34;hello&#34;,] , &#34;&#34;, False)
+    resp3 = hand.client([&#34;hello&#34;,] , &#34;&#34;, False)
+    if not conf.quiet:
         print(&#34;Hello Response:&#34;, resp3[1])
 
-    #conf.sess_key = &#34;&#34;    #ret = [&#34;OK&#34;,]
     ret = hand.start_session(conf)
-
     if ret[0] != &#34;OK&#34;:
         print(&#34;Error on setting session:&#34;, resp3[1])
         hand.client([&#34;quit&#34;])
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print(&#34;Sess Key ACCEPTED:&#34;,  resp3[1])
-    #print(&#34;Post session, all is encrypted&#34;)
-
     # Session estabilished, try a simple command
     resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
-    if conf.verbose:
-        print(&#34;Hello (plain) Response:&#34;, resp4)
-        #print(&#34;Hello (encrypted) Response:&#34;, resp4[1])
+    if not conf.quiet:
+        print(&#34;Hello resp:&#34;, resp4)
 
     cresp = hand.client([&#34;user&#34;, &#34;admin&#34;], conf.sess_key)
-    #print (&#34;Server user response:&#34;, cresp[1])
+    if not conf.quiet:
+        print (&#34;Server user response:&#34;, cresp[1])
 
     cresp = hand.client([&#34;pass&#34;, &#34;1234&#34;], conf.sess_key)
-    #print (&#34;Server pass response:&#34;, cresp[1])
+    if not conf.quiet:
+        print (&#34;Server pass response:&#34;, cresp[1])
 
-    if conf.verbose:
-        cresp = hand.client([&#34;ls&#34;, ], conf.sess_key)
-        print (&#34;Server  ls response:&#34;, cresp)
+    if not conf.quiet:
+        print(&#34;Started file ...&#34;, conf.fname)
 
-    print(&#34;Started file ...&#34;, conf.fname)
     ttt = time.time()
     resp = hand.putfile(conf.fname, &#34;&#34;, conf.sess_key)
     filesize = support.fsize(conf.fname)/1024
@@ -150,11 +142,13 @@ if __name__ == &#39;__main__&#39;:
         rate = filesize / (time.time() - ttt)
         print (&#34;fput resp:&#34;, resp, &#34; %.2f kbytes/sec&#34; % rate)
 
-    cresp = hand.client([&#34;ls&#34;, ], conf.sess_key)
-    print (&#34;Server  ls response:&#34;, cresp)
+    print(&#34;fput response:&#34;, resp)
+
+    #cresp = hand.client([&#34;ls&#34;, ], conf.sess_key)
+    #print (&#34;Server  ls response:&#34;, cresp)
 
     cresp = hand.client([&#34;quit&#34;, ], conf.sess_key)
-    print (&#34;Server quit response:&#34;, cresp)
+    #print (&#34;Server quit response:&#34;, cresp)
 
     sys.exit(0)
 
@@ -183,7 +177,7 @@ if __name__ == &#39;__main__&#39;:
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -f fname  - Send file&#34;)
     print( &#34;            -q        - Quiet&#34;)

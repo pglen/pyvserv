@@ -34,22 +34,20 @@ from pyvcommon import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = "1.0.0"
 
 def phelp():
 
-    print()
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [hostname]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10 default: 0")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -v        - Verbose. Present more info.")
-    print( "            -q        - Quiet. Present less info.")
-    print( "            -u user   - User Name; default: 'admin'")
-    print( "            -l pass   - Password; default: '1234' (!! for tests only !!)")
-    print( "            -t        - Prompt for password.")
-    print( "            -h        - Help (this screen)")
-    print()
+    print( "  hostname: host to connect to. (default: 127.0.0.1)")
+    print( "  options:    -d level  - Debug level 0-10 default: 0")
+    print( "              -p        - Port to use (default: 6666)")
+    print( "              -v        - Verbose. Present more info.")
+    print( "              -q        - Quiet. Present less info.")
+    print( "              -u user   - User Name; default: 'admin'")
+    print( "              -l pass   - Password; default: '1234' (!! for tests only !!)")
+    print( "              -t        - Prompt for password.")
+    print( "              -h        - Help (this screen)")
     print( "The user will be prompted for confirmation if demosystem is created.")
     sys.exit(0)
 
@@ -81,7 +79,21 @@ def    mainfunct():
         On production server, add a real password.
     '''
 
-    args = conf.comline(sys.argv[1:])
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
+
+    if conf.verbose and conf.pgdebug:
+        print("Debug level", conf.pgdebug)
+
+    pyclisup.verbose = conf.verbose
+    pyclisup.pgdebug = conf.pgdebug
 
     if conf.prompt:
         import getpass

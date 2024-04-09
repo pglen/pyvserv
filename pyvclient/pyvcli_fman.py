@@ -23,33 +23,30 @@ from pyvcommon import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = "1.0.0"
+progn = os.path.basename(sys.argv[0])
+
+__doc__ = '''\
+The pyvserv file manager.
+Usage: %s  [options] [hostname]
+  hostname: host to connect to. (default: 127.0.0.1)
+  options:  -d level  - Debug level 0-10
+            -p        - Port to use (default: 6666)
+            -l login  - Login Name; default: 'admin'
+            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)
+            -t        - Prompt for login pass
+            -m dname  - Make directory    -|-  -r dname  - Remove directory
+            -u fname  - Upload file       -|-  -n fname  - Download file
+            -e fname  - Delete file       -|-  -a fname  - Stat file
+            -i        - List files        -|-  -I        - List directories
+            -g        - Long listings     -|-  -v        - Verbose
+            -V        - Print version     -|-  -q        - Quiet
+            -h        - Help (this screen)
+If no action is specified, command defaults to list files. ''' \
+ % (progn)
 
 def phelp():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [hostname]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -l login  - Login Name; default: 'admin'")
-    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
-    print( "            -t        - prompt for login pass")
-    print( "            -m dname  - Make directory")
-    print( "            -r dname  - Remove directory")
-    print( "            -u fname  - Upload file")
-    print( "            -n fname  - Download file")
-    print( "            -e fname  - Delete file")
-    print( "            -a fname  - Stat file")
-    print( "            -i        - List files")
-    print( "            -I        - List directories")
-    print( "            -g        - Long listings")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print()
-    print( " If no action is specified, command defauts to list files.")
-    print()
+    print(__doc__)
     sys.exit(0)
 
 def pversion():
@@ -84,16 +81,23 @@ conf.sess_key = ""
 
 def    mainfunct():
 
-    '''if  sys.version_info[0] < 3:
-        print(("Needs python 3 or better."))
-        sys.exit(1)'''
-
-    args = conf.comline(sys.argv[1:])
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
 
     if len(args) == 0:
         ip = '127.0.0.1'
     else:
         ip = args[0]
+
+    pyclisup.verbose = conf.verbose
+    pyclisup.pgdebug = conf.pgdebug
 
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
@@ -113,38 +117,39 @@ def    mainfunct():
         sys.exit(1)
 
     resp3 = hand.start_session(conf)
-    if not conf.quiet:
-        print("Sess Response:", resp3)
+    if conf.verbose:
+        print("Sess Resp:", resp3)
+
     resp = hand.login(conf.login, conf.lpass, conf)
     if not conf.quiet:
-        print("login Response:", resp)
+        print("login Resp:", resp)
     if resp[0] != "OK":
+        print("Login failed, exiting.", resp)
         hand.client(["quit"], conf.sess_key)
         hand.close();
-        print("Error on authentication, exiting.")
         sys.exit(1)
 
     # Execute commands
 
     if conf.dname:
         resp = hand.getfile(conf.dname, "", conf.sess_key)
-        print("download Response:", resp)
+        print("download Resp:", resp)
     elif conf.fname:
         resp = hand.putfile(conf.fname, "", conf.sess_key)
-        print("upload Response:", resp)
+        print("upload Resp:", resp)
     elif conf.delname:
         resp = hand.client(["del", conf.delname], conf.sess_key)
-        print ("del response:", resp)
+        print ("del Resp:", resp)
     elif conf.stname:
         resp = hand.client(["stat", conf.stname], conf.sess_key)
-        #print ("stat response:", resp)
+        #print ("stat Resp:", resp)
         print(pyclisup.formatstat(resp))
     elif conf.mdname:
         resp = hand.client(["mkdir", conf.mdname], conf.sess_key)
-        print ("mkdir response:", resp)
+        print ("mkdir Resp:", resp)
     elif conf.rdname:
         resp = hand.client(["rmdir", conf.rdname], conf.sess_key)
-        print ("rdmdir response:", resp)
+        print ("rdmdir Resp:", resp)
     elif conf.dlist:
         resp = hand.client(["lsd", ], conf.sess_key)
         if conf.long:
@@ -152,7 +157,7 @@ def    mainfunct():
                 resp2 = hand.client(["stat", aa], conf.sess_key)
                 print(pyclisup.formatstat(resp2))
         else:
-            print("lsd Response:", resp)
+            print("lsd Resp:", resp)
     else:
         #if conf.list:
         resp = hand.client(["ls", ], conf.sess_key)
@@ -161,7 +166,7 @@ def    mainfunct():
                 resp2 = hand.client(["stat", aa], conf.sess_key)
                 print(pyclisup.formatstat(resp2))
         else:
-            print("ls Response:", resp)
+            print("ls Resp:", resp)
 
     hand.client(["quit"], conf.sess_key)
     hand.close();

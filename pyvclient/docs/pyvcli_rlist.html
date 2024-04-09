@@ -56,7 +56,7 @@ import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = &#34;1.0.0&#34;
 
 # ------------------------------------------------------------------------
 
@@ -66,13 +66,15 @@ def phelp():
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
+    print( &#34;            -l login  - Login Name; default: &#39;admin&#39;&#34;)
+    print( &#34;            -s lpass  - Login Pass; default: &#39;1234&#39; (for !!testing only!!)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
-    print( &#34;            -s        - Start time. Format: &#39;Y-m-d H:M&#39;&#34;)
+    print( &#34;            -b        - Start / Begin time. See format below. Default:today&#34;)
     print( &#34;            -i        - Interval in minutes. (Default: 1 day)&#34;)
-    print( &#34;            -n        - No encryption (plain)&#34;)
     print( &#34;            -h        - Help&#34;)
+    print(&#34;  Possible date Formats: &#39;Y-m-d+H:M&#39; &#39;Y-m-d&#39; &#39;m-d&#39; &#39;m-d+H-M&#39;&#34;)
     print()
     sys.exit(0)
 
@@ -84,12 +86,12 @@ def pversion():
 optarr = \
     [&#34;d:&#34;,  &#34;pgdebug&#34;,  0,          None],      \
     [&#34;p:&#34;,  &#34;port&#34;,     6666,       None],      \
+    [&#34;l:&#34;,  &#34;login&#34;,    &#34;admin&#34;,    None],      \
+    [&#34;s:&#34;,  &#34;lpass&#34;,    &#34;1234&#34;,     None],      \
     [&#34;v&#34;,   &#34;verbose&#34;,  0,          None],      \
     [&#34;q&#34;,   &#34;quiet&#34;,    0,          None],      \
-    [&#34;n&#34;,   &#34;plain&#34;,    0,          None],      \
-    [&#34;t&#34;,   &#34;test&#34;,     &#34;x&#34;,        None],      \
+    [&#34;b:&#34;,  &#34;begin&#34;,    &#34;&#34;,         None],      \
     [&#34;i:&#34;,  &#34;inter&#34;,    0,          None],      \
-    [&#34;s:&#34;,  &#34;start&#34;,    &#34;&#34;,         None],      \
     [&#34;V&#34;,   None,       None,       pversion],  \
     [&#34;h&#34;,   None,       None,       phelp]      \
 
@@ -137,37 +139,25 @@ def mainfunct():
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print(&#34;Sess Key ACCEPTED:&#34;,  resp3[1])
+    cresp = hand.login(conf.login, conf.lpass, conf)
+    pyclisup.exit_if_err(cresp)
 
-    if conf.sess_key:
-        print(&#34;Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
+    #if not conf.quiet:
+    #    print (&#34;Server login response:&#34;, cresp)
 
-    resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
-    print(&#34;Hello Response:&#34;, resp3)
+    dd_beg, dd_end = pyclisup.inter_date(conf.begin, conf.inter)
 
-    cresp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
-    print (&#34;Server login response:&#34;, cresp)
+    cresp = hand.client([&#34;rsize&#34;, &#34;vote&#34;], conf.sess_key)
+    print (&#34;Server rsize response:&#34;, cresp)
 
-    # Set date range
-    if conf.start:
-        dd = datetime.datetime.now()
-        dd = dd.strptime(conf.start, &#34;%Y-%m-%d %H:%M&#34;)
-    else:
-        dd = datetime.datetime.now()
-        dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
+    if not conf.quiet:
+        print(&#34;listing from:&#34;, dd_beg, &#34;to:&#34;, dd_end);
 
-    #print(dd)
-    dd_beg = dd + datetime.timedelta(0)
-    if conf.inter:
-        dd_end = dd_beg + datetime.timedelta(0, conf.inter * 60)
-    else:
-        dd_end = dd_beg + datetime.timedelta(1)
-
-    print(&#34;from:&#34;, dd_beg, &#34;to:&#34;, dd_end);
     cresp = hand.client([&#34;rcount&#34;, &#34;vote&#34;, dd_beg.timestamp(),
                                     dd_end.timestamp()], conf.sess_key)
     print (&#34;Server  rcount response:&#34;, cresp)
+    if cresp[0] != &#34;OK&#34;:
+        sys.exit()
 
     if cresp[1] &lt; 100:
         cresp = hand.client([&#34;rlist&#34;, &#34;vote&#34;, dd_beg.timestamp(),
@@ -179,6 +169,7 @@ def mainfunct():
                 if aa:
                     ttt = pyservsup.uuid2date(uuid.UUID(aa))
                     print(aa, &#34;:&#34;, ttt)
+        print(&#34;Listed&#34;, len(cresp[1]), &#34;records.&#34;)
 
 if __name__ == &#39;__main__&#39;:
     mainfunct()
@@ -242,37 +233,25 @@ if __name__ == &#39;__main__&#39;:
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print(&#34;Sess Key ACCEPTED:&#34;,  resp3[1])
+    cresp = hand.login(conf.login, conf.lpass, conf)
+    pyclisup.exit_if_err(cresp)
 
-    if conf.sess_key:
-        print(&#34;Post session, session key:&#34;, conf.sess_key[:12], &#34;...&#34;)
+    #if not conf.quiet:
+    #    print (&#34;Server login response:&#34;, cresp)
 
-    resp3 = hand.client([&#34;hello&#34;, ],  conf.sess_key, False)
-    print(&#34;Hello Response:&#34;, resp3)
+    dd_beg, dd_end = pyclisup.inter_date(conf.begin, conf.inter)
 
-    cresp = hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
-    print (&#34;Server login response:&#34;, cresp)
+    cresp = hand.client([&#34;rsize&#34;, &#34;vote&#34;], conf.sess_key)
+    print (&#34;Server rsize response:&#34;, cresp)
 
-    # Set date range
-    if conf.start:
-        dd = datetime.datetime.now()
-        dd = dd.strptime(conf.start, &#34;%Y-%m-%d %H:%M&#34;)
-    else:
-        dd = datetime.datetime.now()
-        dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
+    if not conf.quiet:
+        print(&#34;listing from:&#34;, dd_beg, &#34;to:&#34;, dd_end);
 
-    #print(dd)
-    dd_beg = dd + datetime.timedelta(0)
-    if conf.inter:
-        dd_end = dd_beg + datetime.timedelta(0, conf.inter * 60)
-    else:
-        dd_end = dd_beg + datetime.timedelta(1)
-
-    print(&#34;from:&#34;, dd_beg, &#34;to:&#34;, dd_end);
     cresp = hand.client([&#34;rcount&#34;, &#34;vote&#34;, dd_beg.timestamp(),
                                     dd_end.timestamp()], conf.sess_key)
     print (&#34;Server  rcount response:&#34;, cresp)
+    if cresp[0] != &#34;OK&#34;:
+        sys.exit()
 
     if cresp[1] &lt; 100:
         cresp = hand.client([&#34;rlist&#34;, &#34;vote&#34;, dd_beg.timestamp(),
@@ -283,7 +262,8 @@ if __name__ == &#39;__main__&#39;:
                 #print(&#34;aa&#34;, aa)
                 if aa:
                     ttt = pyservsup.uuid2date(uuid.UUID(aa))
-                    print(aa, &#34;:&#34;, ttt)</code></pre>
+                    print(aa, &#34;:&#34;, ttt)
+        print(&#34;Listed&#34;, len(cresp[1]), &#34;records.&#34;)</code></pre>
 </details>
 </dd>
 <dt id="pyvcli_rlist.phelp"><code class="name flex">
@@ -301,13 +281,15 @@ if __name__ == &#39;__main__&#39;:
     print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
     print()
     print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
+    print( &#34;            -p        - Port to use (default: 6666)&#34;)
+    print( &#34;            -l login  - Login Name; default: &#39;admin&#39;&#34;)
+    print( &#34;            -s lpass  - Login Pass; default: &#39;1234&#39; (for !!testing only!!)&#34;)
     print( &#34;            -v        - Verbose&#34;)
     print( &#34;            -q        - Quiet&#34;)
-    print( &#34;            -s        - Start time. Format: &#39;Y-m-d H:M&#39;&#34;)
+    print( &#34;            -b        - Start / Begin time. See format below. Default:today&#34;)
     print( &#34;            -i        - Interval in minutes. (Default: 1 day)&#34;)
-    print( &#34;            -n        - No encryption (plain)&#34;)
     print( &#34;            -h        - Help&#34;)
+    print(&#34;  Possible date Formats: &#39;Y-m-d+H:M&#39; &#39;Y-m-d&#39; &#39;m-d&#39; &#39;m-d+H-M&#39;&#34;)
     print()
     sys.exit(0)</code></pre>
 </details>

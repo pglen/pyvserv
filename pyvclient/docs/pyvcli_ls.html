@@ -42,10 +42,6 @@ from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat, datetime
 
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
-from Crypto.Hash import SHA
 from Crypto import Random
 
 base = os.path.dirname(os.path.realpath(__file__))
@@ -121,7 +117,8 @@ if __name__ == &#39;__main__&#39;:
         sys.exit(1)
 
     resp3 = hand.client([&#34;hello&#34;,] , conf.sess_key, False)
-    print(&#34;Hello Response:&#34;, resp3)
+    if not conf.quiet:
+        print(&#34;Hello Response:&#34;, resp3)
 
     ret = hand.start_session(conf)
     if ret[0] != &#34;OK&#34;:
@@ -132,11 +129,13 @@ if __name__ == &#39;__main__&#39;:
 
     # Make a note of the session key
     #print(&#34;Session Key ACCEPTED:&#34;,  ret, )
-    print(&#34;Session, with key:&#34;, conf.sess_key[:12], &#34;...&#34;)
+    if not conf.quiet:
+        print(&#34;Session, with key:&#34;, conf.sess_key[:12], &#34;...&#34;)
 
     # Session estabilished, try a simple command
-    #resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
-    #print(&#34;Hello Response:&#34;, resp4[1])
+    resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
+    if not conf.quiet:
+        print(&#34;Sess Response:&#34;, resp4)
 
     ret =  hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
     if ret[0] != &#34;OK&#34;:

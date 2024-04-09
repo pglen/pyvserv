@@ -27,18 +27,17 @@ with open("README.md", "r", encoding="utf-8") as fh:
 # The shortlist of starter applications
 
 test_root = [\
-"pyvcli_cli",
-"pyvcli_gethelp",
-"pyvcli_ver",
-"pyvcli_hello",
-"pyvcli_rget",
-"pyvcli_rlist",
-"pyvcli_rput",
-"pyvcli_uini",
-"pyvcli_uman",
-"pyvcli_fman",
-"pyvcli_qr",
-]
+    "pyvcli_cli",
+    "pyvcli_gethelp",
+    "pyvcli_ver",
+    "pyvcli_hello",
+    "pyvcli_uini",
+    "pyvcli_uman",
+    "pyvcli_fman",
+    "pyvcli_rman",
+    "pyvcli_qr",
+    "pyvcli_ihost",
+    ]
 
 # Generate script and loadable details
 test_scripts = []; test_exec = []

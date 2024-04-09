@@ -28,7 +28,7 @@ from pyvcommon import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = "1.0.0"
 
 # ------------------------------------------------------------------------
 
@@ -42,12 +42,14 @@ def phelp():
     print( "            -l login  - Login Name; default: 'admin'")
     print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
     print( "            -t        - prompt for login pass")
+    print( "            -a recpos - Absolute positions. Negative for end offsets.")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
-    print( "            -r        - Record offset (absolute position) to get")
-    print( "            -i        - Interval in minutes. (Default: 1 day)")
     print( "            -h        - Help")
     print()
+    print("  Use quotes for multiple arguments. (like: -a \"-1 -2 -3\") -- lists last 3")
+    print()
+
     sys.exit(0)
 
 def pversion():
@@ -58,16 +60,12 @@ def pversion():
 optarr = \
     ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,       None],      \
-    ["f:",  "fname",    "test.txt", None],      \
     ["l:",  "login",    "admin",    None],      \
     ["s:",  "lpass",    "1234",     None],      \
     ["t",   "lprompt",  0,          None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
-    ["n",   "plain",    0,          None],      \
-    ["r:",  "rabs",     "",         None],      \
-    ["b:",  "start",     "",        None],      \
-    ["i:",  "inter",    0,          None],      \
+    ["a:",  "rabs",     "",         None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
 
@@ -110,9 +108,6 @@ def    mainfunct():
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    #resp3 = hand.client(["id",] , "", False)
-    #print("ID Response:", resp3[1])
-
     #ret = ["OK",];  conf.sess_key = ""
     ret = hand.start_session(conf)
     if ret[0] != "OK":
@@ -143,11 +138,7 @@ def    mainfunct():
             sys.exit()
         for aa in cresp2[3]:
             #print("aa", aa)
-            dec = hand.pb.decode_data(aa[1])[0]
-            if conf.verbose:
-                print("dec:", dec)
-            pay = hand.pb.decode_data(dec['payload'])[0]
-            print("pay:", pay['PayLoad'])
+            pyclisup.show_onerec(hand, aa, conf)
     else:
         # Get last record
         cresp = hand.client(["rsize", "vote"], conf.sess_key)
@@ -156,11 +147,8 @@ def    mainfunct():
         # Offset is one less than count
         cresp2 = hand.client(["rabs", "vote", cresp[1] - 1], conf.sess_key)
         #print ("Server rabs response:", cresp2)
-        dec = hand.pb.decode_data(cresp2[3][0][1])[0]
-        if conf.verbose:
-            print("dec:", dec)
-        pay = hand.pb.decode_data(dec['payload'])[0]
-        print("pay:", pay['PayLoad'])
+        for aa in cresp2[3]:
+            pyclisup.show_onerec(hand, aa, conf)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     #print ("Server quit response:", cresp)

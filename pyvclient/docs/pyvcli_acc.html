@@ -47,11 +47,19 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.Hash import SHA
 from Crypto import Random
 
-base = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(base,  &#39;..&#39; + os.sep + &#39;pyvcommon&#39;))
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, &#34;.&#34;))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  &#39;..&#39;))
+    sys.path.append(os.path.join(base,  &#39;..&#39;, &#34;pyvcommon&#34;))
+    from pyvcommon import support
 
-import support, pycrypt, pyservsup, pyclisup
-import pysyslog, comline
+from pyvcommon import support, pycrypt, pyclisup
+from pyvcommon import pysyslog, comline
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -155,7 +163,7 @@ if __name__ == &#39;__main__&#39;:
     #resp4 = hand.client([&#34;hello&#34;,], conf.sess_key)
     #print(&#34;Hello Response:&#34;, resp4[1])
 
-    ret =  hand.login(conf, &#34;admin&#34;, &#34;1234&#34;)
+    ret =  hand.login(&#34;admin&#34;, &#34;1234&#34;, conf)
     if ret[0] != &#34;OK&#34;:
         print (&#34;Server login fail:&#34;, ret)
         hand.client([&#34;quit&#34;], conf.sess_key)

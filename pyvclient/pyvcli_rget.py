@@ -28,7 +28,7 @@ from pyvcommon import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = "1.0.0"
 
 # ------------------------------------------------------------------------
 
@@ -41,11 +41,14 @@ def phelp():
     print( "            -p        - Port to use (default: 6666)")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
-    print( "            -r        - Record ID to get")
-    print( "            -b        - Start / Begin time. Format: 'Y-m-d H:M' Default: now")
+    print( "            -r recids - Record IDs to get")
+    print( "            -b        - Start / Begin time. Format: 'Y-m-d+H:M' Default: now")
     print( "            -i        - Interval in minutes. (Default: 1 day)")
     print( "            -h        - Help")
     print()
+    print("  Use quotes for multiple arguments on recids.")
+    print()
+
     sys.exit(0)
 
 def pversion():
@@ -61,7 +64,7 @@ optarr = \
     ["q",   "quiet",    0,          None],      \
     ["n",   "plain",    0,          None],      \
     ["r:",  "rget",     "",         None],      \
-    ["b:",  "start",     "",        None],      \
+    ["b:",  "begin",    "",        None],      \
     ["i:",  "inter",    0,          None],      \
     ["V",   None,       None,       pversion],  \
     ["h",   None,       None,       phelp]      \
@@ -120,30 +123,9 @@ def    mainfunct():
     cresp = hand.login("admin", "1234", conf)
     #print ("Server login response:", cresp)
 
-    if conf.start:
-        dd = datetime.datetime.now()
-        #print(dd)
-        try:
-            dd = dd.strptime(conf.start, "%Y-%m-%d %H:%M")
-        except:
-            try:
-                dd = dd.strptime(conf.start, "%Y-%m-%d")
-            except:
-                raise
-        print("date from comline:", dd)
-    else:
-        # Beginning of today
-        dd = datetime.datetime.now()
-        dd = dd.replace(hour=0, minute=0, second=0, microsecond=0)
+    dd_beg, dd_end = pyclisup.inter_date(conf.begin, conf.inter)
+    print("date from:", dd_beg, "to:", dd_end);
 
-    dd_beg = dd + datetime.timedelta(0)
-
-    if conf.inter:
-        dd_end = dd_beg + datetime.timedelta(0, conf.inter * 60)
-    else:
-        dd_end = dd_beg + datetime.timedelta(1)
-
-    print("from:", dd_beg, "to:", dd_end);
     if conf.rget:
         rgetarr = conf.rget.split()
         #print("rgetarr:", rgetarr)
@@ -151,11 +133,16 @@ def    mainfunct():
         if cresp[0] == "OK":
             #print("rget resp:", cresp)
             for aa in cresp[3]:
-                dec = hand.pb.decode_data(aa[1])[0]
-                if conf.verbose:
-                    print("dec:", dec)
-                pay = hand.pb.decode_data(dec['payload'])[0]
-                print("pay:", pay['payload'])
+                pyclisup.show_onerec(hand, aa, conf)
+
+                #dec = hand.pb.decode_data(aa[1])[0]
+                #if conf.verbose:
+                #    print("dec:", dec)
+                #pay = hand.pb.decode_data(dec['payload'])[0]
+                #if conf.verbose:
+                #    print("dec:", dec)
+                #else:
+                #    print("pay:", pay['PayLoad'])
     else:
         cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
                          dd_end.timestamp()], conf.sess_key)
@@ -164,7 +151,7 @@ def    mainfunct():
             print("Cannot get rlist", cresp)
             cresp = hand.client(["quit", ], conf.sess_key)
             sys.exit(0)
-        print("rlist got", len(cresp[1]), "records")
+        #print("rlist got", len(cresp[1]), "records")
         for aaa in cresp[1]:
             cresp2 = hand.client(["rget", "vote", [aaa]], conf.sess_key)
             if cresp2[0] != "OK":
@@ -172,11 +159,8 @@ def    mainfunct():
                 continue
             #print("cresp2:", cresp2)
             for aa in cresp2[3]:
-                dec = hand.pb.decode_data(aa[1])[0]
-                if conf.verbose:
-                    print("dec:", dec)
-                pay = hand.pb.decode_data(dec['payload'])[0]
-                print("pay:", pay['PayLoad'])
+                pyclisup.show_onerec(hand, aa, conf)
+        print("Listed", len(cresp[1]), "records.")
 
     cresp = hand.client(["quit", ], conf.sess_key)
     #print ("Server quit response:", cresp)

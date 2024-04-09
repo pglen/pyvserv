@@ -23,33 +23,33 @@ from pyvcommon import pysyslog, comline
 # ------------------------------------------------------------------------
 # Globals
 
-version = 1.0
+version = "1.0.0"
+progn = os.path.basename(sys.argv[0])
+
+__doc__ = '''\
+The pyvserv user manager.
+Usage: %s [options] [hostname]
+  hostname: host to connect to. (default: 127.0.0.1)
+  options:  -d level  - Debug level 0-10
+            -p        - Port to use (default: 6666)
+            -l login  - Login Name; default: 'admin'
+            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)
+            -t        - prompt for login pass
+            -u user   - New/Op User Name; default: 'test_user'
+            -x npass  - New/Op User Pass; default: '1234'
+            -a        - Add user flag. Must be a unique user name
+            -m        - Add admin flag. Add admin instead of a regular user
+            -i kind   - List users. (kind = user / admin / disabled / initial)
+            -e enflag - Enable / Disable user flag
+            -T        - Prompt for new/op user pass / change pass
+            -r        - Remove user flag -|-  -c        - Change pass flag
+            -v        - Verbose          -|-  -V        - Print version number
+            -q        - Quiet            -|-  -h        - Help (this screen)
+If no action is specified, defaults to list users. ''' \
+ % (progn)
 
 def phelp():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [hostname]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -l login  - Login Name; default: 'admin'")
-    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
-    print( "            -t        - prompt for login pass")
-    print( "            -a        - Add user. Must be a unique user name.")
-    print( "            -m        - Add admin instead of regular user")
-    print( "            -r        - Remove user")
-    print( "            -c        - Change pass")
-    print( "            -i kind   - List users (user / admin / disabled / initial")
-    print( "            -e enflag - Enable / Disable user")
-    print( "            -u user   - User Name; default: 'test_user'")
-    print( "            -x npass  - User password; default: '1234' (!!for tests only!!)")
-    print( "            -T        - prompt for new user pass / change pass")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print()
-    print( " If no action is specified, it defaults to list users.")
-    print()
+    print(__doc__)
     sys.exit(0)
 
 def pversion():
@@ -85,11 +85,16 @@ conf.sess_key = ""
 
 def    mainfunct():
 
-    '''if  sys.version_info[0] < 3:
-        print(("Needs python 3 or better."))
-        sys.exit(1)'''
+    try:
+        args = conf.comline(sys.argv[1:])
 
-    args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
 
     #if not conf.add and not conf.remove and not conf.encomm \
     #            and not conf.listx and not conf.change:
@@ -141,7 +146,7 @@ def    mainfunct():
     if resp[0] != "OK":
         hand.client(["quit"], conf.sess_key)
         hand.close();
-        print("Error on authentication, exiting.")
+        print("Error on login, exiting.", resp)
         sys.exit(1)
 
     if conf.prompt:
