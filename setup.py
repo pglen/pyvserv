@@ -90,13 +90,15 @@ for aa in cdoclistx:
 tdoclist = []; droot3 = "pyvtools/docs/"
 tdoclistx = os.listdir(droot3)
 for aa in tdoclistx:
-    cdoclist.append("docs/" + aa)
+    tdoclist.append("docs/" + aa)
 
 # This was needed to verify lists ...
 #print("includex:", includex)
 #print("find packages:", setuptools.find_packages(include=includex))
 #print("deplist:", deplist)
 #print("doclist:", doclist)
+#print("cdoclist:", cdoclist)
+#print("tdoclist:", tdoclist)
 #sys.exit(1)
 
 setuptools.setup(
