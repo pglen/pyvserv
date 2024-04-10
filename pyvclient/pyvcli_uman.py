@@ -26,7 +26,7 @@ from pyvcommon import pysyslog, comline
 version = "1.0.0"
 progn = os.path.basename(sys.argv[0])
 
-__doc__ = '''\
+cdoc = '''\
 The pyvserv user manager.
 Usage: %s [options] [hostname]
   hostname: host to connect to. (default: 127.0.0.1)
@@ -48,11 +48,15 @@ Usage: %s [options] [hostname]
 If no action is specified, defaults to list users. ''' \
  % (progn)
 
+__doc__= "<pre>" + cdoc + "</pre>"
+
 def phelp():
-    print(__doc__)
+    ''' Present command line help '''
+    print(cdoc)
     sys.exit(0)
 
 def pversion():
+    ''' Display Version information '''
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
@@ -85,6 +89,7 @@ conf.sess_key = ""
 
 def    mainfunct():
 
+    ''' Entry point for pip script '''
     try:
         args = conf.comline(sys.argv[1:])
 

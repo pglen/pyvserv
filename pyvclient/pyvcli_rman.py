@@ -31,7 +31,7 @@ from pyvcommon import pysyslog, comline, pyvhash
 version = "1.0.0"
 progn = os.path.basename(sys.argv[0])
 
-__doc__ = '''\
+cdoc = '''\
 The pyvserv record manager.
 Usage: %s [options] [hostname]
   hostname: host to connect to. (default: 127.0.0.1)
@@ -54,13 +54,17 @@ Use quotes for multiple arguments. (example: -a \"-1 -2 -3\" -- lists last 3)
 Possible date Formats: 'Y-m-d+H:M' 'Y-m-d' 'm-d' 'm-d+H-M'  '''  \
 % (progn)
 
+__doc__= "<pre>" + cdoc + "</pre>"
+
 # ------------------------------------------------------------------------
 
 def phelp():
-    print(__doc__)
+    ''' Present command line help '''
+    print(cdoc)
     sys.exit(0)
 
 def pversion():
+    ''' Display Version information '''
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
@@ -75,7 +79,7 @@ optarr = \
     ["q",   "quiet",    0,          None],      \
     ["u",   "upload",   0,          None],      \
     ["c",   "cget",     0,          None],      \
-    ["z",   "size",    0,          None],      \
+    ["z",   "size",    0,          None],       \
     ["r:",  "rget",     "",         None],      \
     ["a:",  "rabs",     "",         None],      \
     ["b:",  "begin",     "",        None],      \
@@ -89,6 +93,8 @@ conf = comline.Config(optarr)
 # ------------------------------------------------------------------------
 
 def    mainfunct():
+
+    ''' Entry point for pip script '''
 
     try:
         args = conf.comline(sys.argv[1:])

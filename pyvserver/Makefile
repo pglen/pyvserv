@@ -41,7 +41,11 @@ clean:
 test:
 	@echo No tests
 
+XPATH=PYTHONPATH=../pyvcommon:../  python -W ignore::DeprecationWarning `which pdoc3` --force --html
 docs:
-	@echo No docs (in parent dir)
+	@${XPATH} -o docs pyvserv.py
+	@${XPATH} -o docs pyvfunc.py
+	@${XPATH} -o docs pyvreplic.py
+	@${XPATH} -o docs pyvstate.py
 
 # EOF

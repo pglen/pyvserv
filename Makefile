@@ -66,21 +66,18 @@ tests:
 	@echo "Warning: On empty database this test created demo credentials."
 	@echo "It is recommended to delete all test generated data"
 
-XPATH=PYTHONPATH=pyvcommon:../pyvguicom/pyvguicom: pdoc --force --html
+PPP=PYTHONPATH=../pyvcommon:../  python -W ignore::DeprecationWarning `which pdoc` --force --html
+
 docs:
-	@${XPATH} -o pyvserver/docs pyvserver/pyvserv.py
-	@${XPATH} -o pyvserver/docs pyvserver/pyvfunc.py
-	@${XPATH} -o pyvserver/docs pyvserver/pyvreplic.py
-	@${XPATH} -o pyvserver/docs pyvserver/pyvstate.py
-	@${XPATH} -o pyvserver/docs pyvtools/pyvgenkeys.py
-	@${XPATH} -o pyvserver/docs pyvtools/pyvgenkey.py
-	@${XPATH} -o pyvserver/docs pyvgui/pyvcpanel.py
-	@${XPATH} -o pyvserver/docs pyvgui/pyvservui.py
-	@${XPATH} -o pyvserver/docs pyvgui/pyvtally.py
-	@${XPATH} -o pyvserver/docs pyvgui/pyvtally.py
-	@${XPATH} -o pyvserver/docs pyvgui/guilib/mainwin.py
-	@${XPATH} -o pyvserver/docs pyvgui/guilib/mainwinserv.py
-	@${XPATH} -o pyvserver/docs pyvgui/guilib/mainwintally.py
+	@${XPATH} -o pyvtools/docs pyvtools/pyvgenkeys.py
+	@${XPATH} -o pyvtools/docs pyvtools/pyvgenkey.py
+	@${XPATH} -o pyvgui/docs pyvgui/pyvcpanel.py
+	@${XPATH} -o pyvgui/docs pyvgui/pyvservui.py
+	@${XPATH} -o pyvgui/docs pyvgui/pyvtally.py
+	@${XPATH} -o pyvgui/docs pyvgui/pyvtally.py
+	@${XPATH} -o pyvgui/guilib/docs pyvgui/guilib/mainwin.py
+	@${XPATH} -o pyvgui/guilib/docs pyvgui/guilib/mainwinserv.py
+	@${XPATH} -o pyvgui/guilib/docs pyvgui/guilib/mainwintally.py
 
 checksum:
 	@echo "Checking SHA256 sums; No output if OK."

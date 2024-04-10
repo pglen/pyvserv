@@ -4,15 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>pyvcli_hello API documentation</title>
-<meta name="description" content="The pyvserv hello.
+<title>pyvcli_fman API documentation</title>
+<meta name="description" content="&lt;pre&gt;The pyvserv file manager.
 Usage: pdoc
 [options] [hostname]
 hostname: host to connect to. (default: 127.0.0.1)
 options:
 -d level
-- Debug level 0-10
-…" />
+- Debug …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -26,39 +25,36 @@ options:
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pyvcli_hello</code></h1>
+<h1 class="title">Module <code>pyvcli_fman</code></h1>
 </header>
 <section id="section-intro">
-<p>The pyvserv hello.
-Usage: pdoc
-[options] [hostname]
-hostname: host to connect to. (default: 127.0.0.1)
-options:
--d level
-- Debug level 0-10
--p
-- Port to use (default: 6666)
--v
-- Verbose
--V
-- Print version number
--q
-- Quiet
--h
-- Help</p>
+<pre>The pyvserv file manager.
+Usage: pdoc  [options] [hostname]
+  hostname: host to connect to. (default: 127.0.0.1)
+  options:  -d level  - Debug level 0-10
+            -p        - Port to use (default: 6666)
+            -l login  - Login Name; default: 'admin'
+            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)
+            -t        - Prompt for login pass
+            -m dname  - Make directory    -|-  -r dname  - Remove directory
+            -u fname  - Upload file       -|-  -n fname  - Download file
+            -e fname  - Delete file       -|-  -a fname  - Stat file
+            -i        - List files        -|-  -I        - List directories
+            -g        - Long listings     -|-  -v        - Verbose
+            -V        - Print version     -|-  -q        - Quiet
+            -h        - Help (this screen)
+If no action is specified, command defaults to list files. </pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">#!/usr/bin/env python3
-
-from __future__ import print_function
+<pre><code class="python">#!/usr/bin/env python
 
 # ------------------------------------------------------------------------
-# Test client for the pyserv project. Encrypt test.
+# Test client for the pyserv project. File Manipulation.
 
-import  os, sys, getopt, signal, select, socket, time, struct
-import  random, stat
+import os, sys, getopt, signal, select, socket, time, struct
+import random, stat, datetime
 
 # This repairs the path from local run to pip run.
 try:
@@ -80,27 +76,34 @@ from pyvcommon import pysyslog, comline
 version = &#34;1.0.0&#34;
 progn = os.path.basename(sys.argv[0])
 
-__doc__ = &#39;&#39;&#39;\
-The pyvserv hello.
+cdoc  = &#39;&#39;&#39;\
+The pyvserv file manager.
 Usage: %s  [options] [hostname]
   hostname: host to connect to. (default: 127.0.0.1)
   options:  -d level  - Debug level 0-10
             -p        - Port to use (default: 6666)
-            -v        - Verbose
-            -V        - Print version number
-            -q        - Quiet
-            -h        - Help &#39;&#39;&#39; \
+            -l login  - Login Name; default: &#39;admin&#39;
+            -s lpass  - Login Pass; default: &#39;1234&#39; (for !!testing only!!)
+            -t        - Prompt for login pass
+            -m dname  - Make directory    -|-  -r dname  - Remove directory
+            -u fname  - Upload file       -|-  -n fname  - Download file
+            -e fname  - Delete file       -|-  -a fname  - Stat file
+            -i        - List files        -|-  -I        - List directories
+            -g        - Long listings     -|-  -v        - Verbose
+            -V        - Print version     -|-  -q        - Quiet
+            -h        - Help (this screen)
+If no action is specified, command defaults to list files. &#39;&#39;&#39; \
  % (progn)
 
-# ------------------------------------------------------------------------
-# Functions from command line
+__doc__= &#34;&lt;pre&gt;&#34; + cdoc + &#34;&lt;/pre&gt;&#34;
 
-#print (optarr)
 def phelp():
-    print(__doc__)
+    &#39;&#39;&#39; Present command line help &#39;&#39;&#39;
+    print(cdoc)
     sys.exit(0)
 
 def pversion():
+    &#39;&#39;&#39; Display Version information &#39;&#39;&#39;
     print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
     sys.exit(0)
 
@@ -108,6 +111,17 @@ def pversion():
 optarr = \
     [&#34;d:&#34;,  &#34;pgdebug&#34;,      0,          None],      \
     [&#34;p:&#34;,  &#34;port&#34;,         6666,       None],      \
+    [&#34;l:&#34;,  &#34;login&#34;,        &#34;admin&#34;,    None],      \
+    [&#34;s:&#34;,  &#34;lpass&#34;,        &#34;1234&#34;,     None],      \
+    [&#34;u:&#34;,  &#34;fname&#34;,        &#34;&#34;,         None],      \
+    [&#34;m:&#34;,  &#34;mdname&#34;,       &#34;&#34;,         None],      \
+    [&#34;r:&#34;,  &#34;rdname&#34;,       &#34;&#34;,         None],      \
+    [&#34;n:&#34;,  &#34;dname&#34;,        &#34;&#34;,         None],      \
+    [&#34;e:&#34;,  &#34;delname&#34;,      &#34;&#34;,         None],      \
+    [&#34;a:&#34;,  &#34;stname&#34;,       &#34;&#34;,         None],      \
+    [&#34;t&#34;,   &#34;lprompt&#34;,      0,          None],      \
+    [&#34;i&#34;,   &#34;list&#34;,         0,          None],      \
+    [&#34;I&#34;,   &#34;dlist&#34;,        0,          None],      \
     [&#34;g&#34;,   &#34;long&#34;,         0,          None],      \
     [&#34;v&#34;,   &#34;verbose&#34;,      0,          None],      \
     [&#34;q&#34;,   &#34;quiet&#34;,        0,          None],      \
@@ -115,14 +129,13 @@ optarr = \
     [&#34;h&#34;,   None,           None,       phelp]      \
 
 conf = comline.Config(optarr)
+conf.sess_key = &#34;&#34;
 
 # ------------------------------------------------------------------------
 
-def mainfunct():
+def    mainfunct():
 
-    if sys.version_info[0] &lt; 3:
-        print(&#34;Warning! This script was meant for python 3.x&#34;)
-        time.sleep(1)
+    &#39;&#39;&#39; Entry point for pip script &#39;&#39;&#39;
 
     try:
         args = conf.comline(sys.argv[1:])
@@ -134,44 +147,87 @@ def mainfunct():
         print(sys.exc_info())
         sys.exit(1)
 
-    if conf.verbose and conf.pgdebug:
-        print(&#34;Debug level&#34;, conf.pgdebug)
-
-    pyclisup.verbose = conf.verbose
-    pyclisup.pgdebug = conf.pgdebug
-
     if len(args) == 0:
         ip = &#39;127.0.0.1&#39;
     else:
         ip = args[0]
 
+    pyclisup.verbose = conf.verbose
+    pyclisup.pgdebug = conf.pgdebug
+
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #print(&#34;dir&#34;.__doc__)
-
+    if conf.lprompt:
+        import getpass
+        strx = getpass.getpass(&#34;Pass for login %s: &#34; % conf.login)
+        if not strx:
+            print(&#34;Cannot login with empty pass, aborting ...&#34;)
+            sys.exit(0)
+        conf.lpass = strx
     try:
-        resp2 = hand.connect(ip, conf.port)
+        respc = hand.connect(ip, conf.port)
     except:
-        #support.put_exception(&#34;On connect&#34;)
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
+    resp3 = hand.start_session(conf)
     if conf.verbose:
-        respini = hand.pb.decode_data(resp2[1])[0]
-        print (&#34;Server initial:&#34;, respini)
+        print(&#34;Sess Resp:&#34;, resp3)
 
-    resp = hand.client([&#34;hello&#34;])
+    resp = hand.login(conf.login, conf.lpass, conf)
     if not conf.quiet:
-        print(&#34;hello resp&#34;, resp)
-    else:
-        print(resp)
+        print(&#34;login Resp:&#34;, resp)
+    if resp[0] != &#34;OK&#34;:
+        print(&#34;Login failed, exiting.&#34;, resp)
+        hand.client([&#34;quit&#34;], conf.sess_key)
+        hand.close();
+        sys.exit(1)
 
-    resp2 = hand.client([&#34;quit&#34;])
-    if conf.verbose:
-        print (&#34;Server quit response:&#34;, resp2)
+    # Execute commands
+
+    if conf.dname:
+        resp = hand.getfile(conf.dname, &#34;&#34;, conf.sess_key)
+        print(&#34;download Resp:&#34;, resp)
+    elif conf.fname:
+        resp = hand.putfile(conf.fname, &#34;&#34;, conf.sess_key)
+        print(&#34;upload Resp:&#34;, resp)
+    elif conf.delname:
+        resp = hand.client([&#34;del&#34;, conf.delname], conf.sess_key)
+        print (&#34;del Resp:&#34;, resp)
+    elif conf.stname:
+        resp = hand.client([&#34;stat&#34;, conf.stname], conf.sess_key)
+        #print (&#34;stat Resp:&#34;, resp)
+        print(pyclisup.formatstat(resp))
+    elif conf.mdname:
+        resp = hand.client([&#34;mkdir&#34;, conf.mdname], conf.sess_key)
+        print (&#34;mkdir Resp:&#34;, resp)
+    elif conf.rdname:
+        resp = hand.client([&#34;rmdir&#34;, conf.rdname], conf.sess_key)
+        print (&#34;rdmdir Resp:&#34;, resp)
+    elif conf.dlist:
+        resp = hand.client([&#34;lsd&#34;, ], conf.sess_key)
+        if conf.long:
+            for aa in resp[1:]:
+                resp2 = hand.client([&#34;stat&#34;, aa], conf.sess_key)
+                print(pyclisup.formatstat(resp2))
+        else:
+            print(&#34;lsd Resp:&#34;, resp)
+    else:
+        #if conf.list:
+        resp = hand.client([&#34;ls&#34;, ], conf.sess_key)
+        if conf.long:
+            for aa in resp[1:]:
+                resp2 = hand.client([&#34;stat&#34;, aa], conf.sess_key)
+                print(pyclisup.formatstat(resp2))
+        else:
+            print(&#34;ls Resp:&#34;, resp)
+
+    hand.client([&#34;quit&#34;], conf.sess_key)
     hand.close();
+
+    sys.exit(0)
 
 if __name__ == &#39;__main__&#39;:
     mainfunct()
@@ -186,20 +242,18 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="pyvcli_hello.mainfunct"><code class="name flex">
+<dt id="pyvcli_fman.mainfunct"><code class="name flex">
 <span>def <span class="ident">mainfunct</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Entry point for pip script</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def mainfunct():
+<pre><code class="python">def    mainfunct():
 
-    if sys.version_info[0] &lt; 3:
-        print(&#34;Warning! This script was meant for python 3.x&#34;)
-        time.sleep(1)
+    &#39;&#39;&#39; Entry point for pip script &#39;&#39;&#39;
 
     try:
         args = conf.comline(sys.argv[1:])
@@ -211,70 +265,115 @@ if __name__ == &#39;__main__&#39;:
         print(sys.exc_info())
         sys.exit(1)
 
-    if conf.verbose and conf.pgdebug:
-        print(&#34;Debug level&#34;, conf.pgdebug)
-
-    pyclisup.verbose = conf.verbose
-    pyclisup.pgdebug = conf.pgdebug
-
     if len(args) == 0:
         ip = &#39;127.0.0.1&#39;
     else:
         ip = args[0]
 
+    pyclisup.verbose = conf.verbose
+    pyclisup.pgdebug = conf.pgdebug
+
     hand = pyclisup.CliSup()
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #print(&#34;dir&#34;.__doc__)
-
+    if conf.lprompt:
+        import getpass
+        strx = getpass.getpass(&#34;Pass for login %s: &#34; % conf.login)
+        if not strx:
+            print(&#34;Cannot login with empty pass, aborting ...&#34;)
+            sys.exit(0)
+        conf.lpass = strx
     try:
-        resp2 = hand.connect(ip, conf.port)
+        respc = hand.connect(ip, conf.port)
     except:
-        #support.put_exception(&#34;On connect&#34;)
         print( &#34;Cannot connect to:&#34;, ip + &#34;:&#34; + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
+    resp3 = hand.start_session(conf)
     if conf.verbose:
-        respini = hand.pb.decode_data(resp2[1])[0]
-        print (&#34;Server initial:&#34;, respini)
+        print(&#34;Sess Resp:&#34;, resp3)
 
-    resp = hand.client([&#34;hello&#34;])
+    resp = hand.login(conf.login, conf.lpass, conf)
     if not conf.quiet:
-        print(&#34;hello resp&#34;, resp)
-    else:
-        print(resp)
+        print(&#34;login Resp:&#34;, resp)
+    if resp[0] != &#34;OK&#34;:
+        print(&#34;Login failed, exiting.&#34;, resp)
+        hand.client([&#34;quit&#34;], conf.sess_key)
+        hand.close();
+        sys.exit(1)
 
-    resp2 = hand.client([&#34;quit&#34;])
-    if conf.verbose:
-        print (&#34;Server quit response:&#34;, resp2)
-    hand.close();</code></pre>
+    # Execute commands
+
+    if conf.dname:
+        resp = hand.getfile(conf.dname, &#34;&#34;, conf.sess_key)
+        print(&#34;download Resp:&#34;, resp)
+    elif conf.fname:
+        resp = hand.putfile(conf.fname, &#34;&#34;, conf.sess_key)
+        print(&#34;upload Resp:&#34;, resp)
+    elif conf.delname:
+        resp = hand.client([&#34;del&#34;, conf.delname], conf.sess_key)
+        print (&#34;del Resp:&#34;, resp)
+    elif conf.stname:
+        resp = hand.client([&#34;stat&#34;, conf.stname], conf.sess_key)
+        #print (&#34;stat Resp:&#34;, resp)
+        print(pyclisup.formatstat(resp))
+    elif conf.mdname:
+        resp = hand.client([&#34;mkdir&#34;, conf.mdname], conf.sess_key)
+        print (&#34;mkdir Resp:&#34;, resp)
+    elif conf.rdname:
+        resp = hand.client([&#34;rmdir&#34;, conf.rdname], conf.sess_key)
+        print (&#34;rdmdir Resp:&#34;, resp)
+    elif conf.dlist:
+        resp = hand.client([&#34;lsd&#34;, ], conf.sess_key)
+        if conf.long:
+            for aa in resp[1:]:
+                resp2 = hand.client([&#34;stat&#34;, aa], conf.sess_key)
+                print(pyclisup.formatstat(resp2))
+        else:
+            print(&#34;lsd Resp:&#34;, resp)
+    else:
+        #if conf.list:
+        resp = hand.client([&#34;ls&#34;, ], conf.sess_key)
+        if conf.long:
+            for aa in resp[1:]:
+                resp2 = hand.client([&#34;stat&#34;, aa], conf.sess_key)
+                print(pyclisup.formatstat(resp2))
+        else:
+            print(&#34;ls Resp:&#34;, resp)
+
+    hand.client([&#34;quit&#34;], conf.sess_key)
+    hand.close();
+
+    sys.exit(0)</code></pre>
 </details>
 </dd>
-<dt id="pyvcli_hello.phelp"><code class="name flex">
+<dt id="pyvcli_fman.phelp"><code class="name flex">
 <span>def <span class="ident">phelp</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Present command line help</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def phelp():
-    print(__doc__)
+    &#39;&#39;&#39; Present command line help &#39;&#39;&#39;
+    print(cdoc)
     sys.exit(0)</code></pre>
 </details>
 </dd>
-<dt id="pyvcli_hello.pversion"><code class="name flex">
+<dt id="pyvcli_fman.pversion"><code class="name flex">
 <span>def <span class="ident">pversion</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Display Version information</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def pversion():
+    &#39;&#39;&#39; Display Version information &#39;&#39;&#39;
     print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
     sys.exit(0)
 
@@ -294,9 +393,9 @@ if __name__ == &#39;__main__&#39;:
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="pyvcli_hello.mainfunct" href="#pyvcli_hello.mainfunct">mainfunct</a></code></li>
-<li><code><a title="pyvcli_hello.phelp" href="#pyvcli_hello.phelp">phelp</a></code></li>
-<li><code><a title="pyvcli_hello.pversion" href="#pyvcli_hello.pversion">pversion</a></code></li>
+<li><code><a title="pyvcli_fman.mainfunct" href="#pyvcli_fman.mainfunct">mainfunct</a></code></li>
+<li><code><a title="pyvcli_fman.phelp" href="#pyvcli_fman.phelp">phelp</a></code></li>
+<li><code><a title="pyvcli_fman.pversion" href="#pyvcli_fman.pversion">pversion</a></code></li>
 </ul>
 </li>
 </ul>
