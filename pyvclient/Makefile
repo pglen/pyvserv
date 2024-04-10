@@ -48,10 +48,6 @@ PPP=PYTHONPATH=../pyvcommon:../  python -W ignore::DeprecationWarning `which pdo
 #PPP=PYTHONPATH=../pyvcommon:../  pdoc --html
 
 docs:
-	@-${PPP} -o docs  pyvcli_uman.py
-	@-${PPP} -o docs  pyvcli_rman.py
-	@-${PPP} -o docs  pyvcli_fman.py
-	sss
 	@-${PPP} -o docs  pyvcli_akey.py
 	@-${PPP} -o docs  pyvcli_bigget.py
 	@-${PPP} -o docs  pyvcli_cd.py

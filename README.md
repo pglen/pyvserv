@@ -373,18 +373,20 @@ The project is functional in MSYS2, but for real deployment we recommend Linux.
 
     Project name
         pyvserv
+    Generated
+        2024-04-09 20:45:56
     Report Period
-        2018-12-31 20:50:04 to 2024-03-15 04:47:25
+        2018-12-31 20:50:04 to 2024-04-09 20:41:24
     Age
-        1901 days, 101 active days (5.31%)
+        1927 days, 111 active days (5.76%)
     Total Files
-        287
+        211
     Total Lines of Code
-        70286 (235368 added, 165082 removed)
+        44443 (258657 added, 214214 removed)
     Total Commits
-        216 (average 2.1 commits per active day, 0.1 per all days)
+        257 (average 2.3 commits per active day, 0.1 per all days)
     Authors
-        6 (average 36.0 commits per author)
+        6 (average 42.8 commits per author)
 
 ![Screen Shot](commits_by_year_month.png)
 
@@ -400,7 +402,7 @@ mid flight, on command.
 hashes. This is generated every time a transaction is created.
 
  &nbsp; The proof of work is a modest 3 generations deep. This can be calculated
-with an everyday desktop in one - to - three seconds. Even though this looks like
+with an everyday desktop in one ... to ... three seconds. Even though this looks like
 a small amount, it adds up if one wants to re-generate (fake) a whole chain.
 Additionally, the check sum, the link sum, and proof of work interact, changing one
 will effect the other. This way a sum verification and link verification and the
