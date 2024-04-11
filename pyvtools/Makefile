@@ -41,4 +41,10 @@ docs:
 	@${XPATH} -o docs pyvgenkey.py
 	@${XPATH} -o docs pyvgenkeys.py
 
+clean:
+	@rm -f aa bb cc pyvserv.deb
+	@rm -rf build-tmp/*
+	@rm -rf  dist/*
+	@rm -rf  build/*
+
 # End of Makefile

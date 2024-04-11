@@ -35,8 +35,10 @@ clean:
 	@rm -f *.o
 	@rm -f *.so
 	@rm -f *.pyd
-	@rm -f *.dll
 	@rm -f *.pyc
+	@rm -rf __pycache__/*
+	@rm -rf build/*
+	@rm -rf dist/*
 
 test:
 	@echo No tests
@@ -47,5 +49,6 @@ docs:
 	@${XPATH} -o docs pyvfunc.py
 	@${XPATH} -o docs pyvreplic.py
 	@${XPATH} -o docs pyvstate.py
+	@${XPATH} -o docs pyvfunc.py
 
 # EOF

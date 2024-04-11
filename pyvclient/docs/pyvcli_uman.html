@@ -6,11 +6,11 @@
 <meta name="generator" content="pdoc 0.10.0" />
 <title>pyvcli_uman API documentation</title>
 <meta name="description" content="&lt;pre&gt;The pyvserv user manager.
-Usage: pdoc [options] [hostname]
+Usage: pyvcli_uman.py [options] [hostname]
 hostname: host to connect to. (default: 127.0.0.1)
 options:
 -d level
-- Debug …" />
+- …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -28,7 +28,7 @@ options:
 </header>
 <section id="section-intro">
 <pre>The pyvserv user manager.
-Usage: pdoc [options] [hostname]
+Usage: pyvcli_uman.py [options] [hostname]
   hostname: host to connect to. (default: 127.0.0.1)
   options:  -d level  - Debug level 0-10
             -p        - Port to use (default: 6666)
@@ -76,7 +76,8 @@ from pyvcommon import pysyslog, comline
 # Globals
 
 version = &#34;1.0.0&#34;
-progn = os.path.basename(sys.argv[0])
+#progn = os.path.basename(sys.argv[0])
+progn = os.path.basename(__file__)
 
 cdoc = &#39;&#39;&#39;\
 The pyvserv user manager.

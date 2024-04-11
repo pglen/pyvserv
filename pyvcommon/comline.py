@@ -13,7 +13,12 @@ def pversion():
     sys.exit(0)
 
 glargs = ""
+glhead = ""
 glfoot = ""
+
+glprog = "proname"
+gloptarr = []
+glsoptarr = []
 
 def setargs(args):
     global glargs
@@ -23,14 +28,41 @@ def setfoot(args):
     global glfoot
     glfoot = args
 
+def sethead(args):
+    global glhead
+    glhead = args
+
+def setprog(args):
+    global glprog
+    glprog = args
+
 # ------------------------------------------------------------------------
+
+def dupoptcheck(optarr):
+        optdup = {}
+        for bb in range(len(optarr)):
+            kkk = optarr[bb][0][0]
+            try:
+                optdup[kkk] += 1
+            except KeyError:
+                optdup[kkk] = 1
+            except:
+                print(sys.exc_info())
+        #print(optdup)
+        found = False
+        for cc in optdup.keys():
+            if optdup[cc] > 1:
+                #print("founddup", cc)
+                found = True
+        return found
+
 
 def phelp():
 
-    print()
+    if glhead:
+        print("head", glhead)
     print( "Usage: " + os.path.basename(sys.argv[0]), "[options]", glargs)
-    print()
-    print( "Options:")
+    print( "options:")
 
     for aa in optarr:
         pad = " " * (9 - len(aa[1]))
@@ -38,12 +70,12 @@ def phelp():
 
     print()
     if glfoot:
-        print(glfoot)
+        print("s", glfoot)
 
     sys.exit(0)
 
 # ------------------------------------------------------------------------
-# option [:], var_name, initial_val, function, helpstr
+# option [:],  var_name, initial_val, function, helpstr
 # Add colon ':' to option with argument.
 
 optarr = [\
@@ -62,6 +94,13 @@ optarr = [\
 class Config:
 
     def __init__(self, optarr):
+
+        if dupoptcheck(optarr):
+            raise ValueError("Duplicate options in comline.")
+
+        global glsoptarr
+        glsoptarr = optarr
+
         self.optarr = optarr
         self.verbose = False
         self.debug = False
@@ -111,18 +150,20 @@ class Config:
                             self.optarr[bb][3]()
         return args
 
+# ------------------------------------------------------------------------
+# Long form help
 
 def phelplong():
 
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]), "[options]", glargs)
-    print()
-    print( "Options:")
+    if glhead:
+        print(glhead)
 
-    for aa in optarrlong:
+    print( "Usage:", glprog, glargs)
+    print( "  options:")
+    for aa in gloptarr:
         longop = aa[1].replace("=", "")
         if "=" in aa[1]:
-            arg = longop
+            arg = aa[2]
         else:
             arg = " "
 
@@ -130,13 +171,10 @@ def phelplong():
         pad2 = " " * (8 - len(arg))
 
         print("       ", "-" + aa[0][0], " ", "--" + longop, pad, arg, pad2," - ", aa[5])
-
-    print()
     if glfoot:
         print(glfoot)
 
     sys.exit(0)
-
 
 # ------------------------------------------------------------------------
 # Handle command line. Interpret optarray and decorate the class;
@@ -161,18 +199,25 @@ def phelplong():
 #    ["i:",    "input=",      "input",      "-",          None],      \
 #    ]
 
+# option [:], long_option[=],  var_name,   initial_value, function, helpstr
 optarrlong = [\
     ["d:",  "debug=",  "pgdebug",  0,      None,       "Debug level 0-10" ], \
     ["p:",  "port=",   "port",     6666,   None,       "Listen on port"],    \
-    ["v",   "verbose", "verbose",  0,      None,       "Verbose"],           \
-    ["q",   "quiet",   "quiet",    0,      None,       "Quiet"],             \
-    ["V",   "version", "version",  None,   pversion,   "Print Version"],     \
-    ["h",   "help",    "help",     None,   phelplong,  "Show Help"]          \
+    ["v",   "verbose", "verbose",  0,      None,       "Verbose. Show more info."],           \
+    ["q",   "quiet",   "quiet",    0,      None,       "Quiet. Show less info."],             \
+    ["V",   "version", "version",  None,   pversion,   "Print Version string"],     \
+    ["h",   "help",    "help",     None,   phelplong,  "Show Help. (this screen)"]          \
     ]
 
 class ConfigLong:
 
     def __init__(self, optarr):
+
+        if dupoptcheck(optarr):
+            raise ValueError("Duplicate options in comline.")
+
+        global gloptarr
+        gloptarr = optarr
         self._optarr = optarr
         self.err = None
 
@@ -192,6 +237,7 @@ class ConfigLong:
                     print("Can only have int and str type not", type(self._optarr[bb][3]))
                     raise ValueError("Can only None, have int and string - not %s" \
                                              % (type(self._optarr[bb][3])))
+
 
     def printvars(self):
         print("Variables -----")
@@ -226,10 +272,8 @@ class ConfigLong:
             opts, args = getopt.getopt(argv, optletters, longopt)
         #except getopt.GetoptError, err:
         except getopt.GetoptError as err:
-            #print("Invalid option(s) on command line: %s" % err)
-            #self.err =  str("Invalid option(s) on command line: %s" % err)
+            print("Invalid option(s) on command line: %s" % err)
             raise
-            return None
 
         #print ("opts", opts, "args", args)
         for aa in opts:

@@ -843,6 +843,64 @@ def uuid2timestamp(uuu):
                     (uuu.time - UUID_EPOCH)*100/1e9)
     return dd.timestamp()
 
+class SharedData():
+
+    '''  Common space for mydata for remebering connecting client data.
+    '''
+    def __init__(self):
+
+        if fcntl:
+            # This is for forkmixin
+            self.sem  = mp.Semaphore()
+            self.man  = mp.Manager()
+            self.mydata = self.man.dict()
+        else:
+            self.sem     = threading.Semaphore()
+            self.mydata = {}
+
+    def setdat(self, newkey, newdat):
+
+        self.sem.acquire()
+        try:
+            self.mydata[newkey] = newdat
+        except:
+            print("setdat", sys.exc_info())
+        self.sem.release()
+
+    def getdat(self, key):
+
+        self.sem.acquire()
+        ddd = None
+        try:
+            ddd = self.mydata[key]
+        except:
+            print("getdat", self.man, self.sem, sys.exc_info())
+        self.sem.release()
+
+        return ddd
+
+    def getall(self):
+
+        self.sem.acquire()
+        ddd = None
+        try:
+            ddd = self.mydata.copy()
+        except:
+            print("getall", sys.exc_info())
+        self.sem.release()
+
+        return ddd
+
+    def deldat(self, keyx):
+
+        self.sem.acquire()
+        try:
+            del self.mydata[keyx]
+        except:
+            print("deldat", sys.exc_info())
+        self.sem.release()
+        return
+
 # ------------------------------------------------------------------------
 
 class Throttle():

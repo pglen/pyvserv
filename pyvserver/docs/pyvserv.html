@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>pyvserv API documentation</title>
-<meta name="description" content="Server module." />
+<meta name="description" content="&lt;pre&gt;The main pyvserv excutable.
+Usage: pyvserv.py [options]
+options:
+-n
+--host
+host
+-
+Set server hostname / interface.
+…" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,7 +30,20 @@
 <h1 class="title">Module <code>pyvserv</code></h1>
 </header>
 <section id="section-intro">
-<p>Server module.</p>
+<pre>The main pyvserv excutable.
+Usage: pyvserv.py [options]
+  options:
+        -n   --host      host       -  Set server hostname / interface.
+        -r   --dataroot  droot      -  Set data root for server.
+        -l   --loglevel  pglog      -  Log level (0 - 10) default = 1
+        -d   --debug     pgdebug    -  Debug level 0-10
+        -p   --port      port       -  Listen on port
+        -v   --verbose              -  Verbose. Show more info.
+        -q   --quiet                -  Quiet. Show less info.
+        -V   --version              -  Print Version string
+        -h   --help                 -  Show Help. (this screen)
+        -P   --pmode                -  Production mode ON. (allow 2FA)
+Use quotes for multiple option strings. </pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -55,9 +76,21 @@ else:
 
 import pyvpacker
 
-#import gi
-#gi.require_version(&#34;Gtk&#34;, &#34;3.0&#34;)
-#from gi.repository import GLib
+__doc__ = &#39;&#39;&#39; &lt;pre&gt;\
+The main pyvserv excutable.
+Usage: pyvserv.py [options]
+  options:
+        -n   --host      host       -  Set server hostname / interface.
+        -r   --dataroot  droot      -  Set data root for server.
+        -l   --loglevel  pglog      -  Log level (0 - 10) default = 1
+        -d   --debug     pgdebug    -  Debug level 0-10
+        -p   --port      port       -  Listen on port
+        -v   --verbose              -  Verbose. Show more info.
+        -q   --quiet                -  Quiet. Show less info.
+        -V   --version              -  Print Version string
+        -h   --help                 -  Show Help. (this screen)
+        -P   --pmode                -  Production mode ON. (allow 2FA)
+Use quotes for multiple option strings. &lt;/pre&gt;&#39;&#39;&#39;
 
 # Create a placeholder for the main server var
 server = None
@@ -315,6 +348,8 @@ def terminate(arg1, arg2):
 
     global mydata, server
 
+    &#39;&#39;&#39; Terminate app.  Wind down all sockets. Free locks. &#39;&#39;&#39;
+
     #print(&#34;terminate&#34;)
     #if mydata != {}:
     #    print( &#34;Dumping connection info:&#34;)
@@ -345,7 +380,8 @@ def terminate(arg1, arg2):
 
 class serve_one():
 
-    &#39;&#39;&#39; Simplifies server for testing. &#39;&#39;&#39;
+    &#39;&#39;&#39; Simplified server for testing. Kept in case we want to
+        temporarily revert.&#39;&#39;&#39;
 
     def __init__(self, *argx):
         self.cnt = 0
@@ -444,25 +480,24 @@ def simple_server(HOST, PORT):
 
 # ------------------------------------------------------------------------
 
-optarr =  [] #comline.optarrlong
-#optarr.append ( [&#34;e&#34;,   &#34;detach=&#34;,   &#34;detach&#34;,      0,       None, &#34;Detach from terminal.&#34;] )
-optarr.append ( [&#34;n:&#34;,  &#34;host&#34;,      &#34;host&#34;,   &#34;127.0.0.1&#34;,  None, &#34;Set server hostname / interface.&#34;] )
-optarr.append ( [&#34;r:&#34;,  &#34;dataroot=&#34;, &#34;droot&#34;,  &#34;pyvserver&#34;,  None, &#34;Set data root for server. &#34;] )
-optarr.append ( [&#34;P&#34;,   &#34;pmode&#34;,     &#34;pmode&#34;,       0,       None, &#34;Production mode ON. (allow 2FA)&#34;] )
-optarr.append ( [&#34;l:&#34;,  &#34;loglevel&#34;,  &#34;pglog&#34;,       1,       None, &#34;Log level (0 - 10) default = 1&#34;] )
-optarr.append ( [&#34;m&#34;,   &#34;mem&#34;,       &#34;mem&#34;,         0,       None, &#34;Show memory trace.&#34;] )
-optarr.append ( [&#34;N&#34;,   &#34;norepl&#34;,    &#34;norepl&#34;,      0,       None, &#34;No replication. (for testing)&#34;] )
-
-for aa in comline.optarrlong:
-    optarr.append(aa)
-
-comline.optarrlong = optarr
-
 # Tue 02.Apr.2024 made devmode default
 
-#print (optarr)
-comline.setargs(&#34;&#34;)
-comline.setfoot(&#34;Use quotes for argument separations.&#34;)
+optarr =  []
+optarr.append ( [&#34;n:&#34;,  &#34;host=&#34;,     &#34;host&#34;,   &#34;127.0.0.1&#34;,  None, &#34;Set server hostname / interface.&#34;] )
+optarr.append ( [&#34;r:&#34;,  &#34;dataroot=&#34;, &#34;droot&#34;,  &#34;pyvserver&#34;,  None, &#34;Set data root for server. &#34;] )
+optarr.append ( [&#34;l:&#34;,  &#34;loglevel=&#34;, &#34;pglog&#34;,       1,       None, &#34;Log level (0 - 10) default = 1&#34;] )
+
+optarr += comline.optarrlong
+
+#optarr.append ( [&#34;m&#34;,   &#34;mem&#34;,       &#34;mem&#34;,         0,       None, &#34;Show memory trace.&#34;] )
+#optarr.append ( [&#34;N&#34;,   &#34;norepl&#34;,    &#34;norepl&#34;,      0,       None, &#34;No replication. (for testing)&#34;] )
+optarr.append ( [&#34;P&#34;,   &#34;pmode&#34;,     &#34;pmode&#34;,       0,       None, &#34;Production mode ON. (allow 2FA)&#34;] )
+
+comline.sethead(&#34;The main pyvserv excutable.&#34;)
+#comline.setprog(os.path.basename(sys.argv[0]))
+comline.setprog(os.path.basename(__file__))
+comline.setargs(&#34;[options]&#34;)
+comline.setfoot(&#34;Use quotes for multiple option strings.&#34;)
 
 conf = comline.ConfigLong(optarr)
 #conf.printvars()
@@ -476,7 +511,15 @@ def mainfunct():
         time.sleep(.1)
         sys.exit(0)
 
-    args = conf.comline(sys.argv[1:])
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
     #print(args)
 
     # Print comline args
@@ -608,7 +651,6 @@ def mainfunct():
         server = ThreadedTCPServer((conf.host, conf.port), ThreadedTCPRequestHandler)
         server.allow_reuse_address = True
         ip, port = server.server_address
-        server.allow_reuse_address = True
         server.verbose = conf.verbose
 
         # Start a thread with the server -- that thread will then start one
@@ -673,7 +715,15 @@ if __name__ == &#39;__main__&#39;:
         time.sleep(.1)
         sys.exit(0)
 
-    args = conf.comline(sys.argv[1:])
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
     #print(args)
 
     # Print comline args
@@ -805,7 +855,6 @@ if __name__ == &#39;__main__&#39;:
         server = ThreadedTCPServer((conf.host, conf.port), ThreadedTCPRequestHandler)
         server.allow_reuse_address = True
         ip, port = server.server_address
-        server.allow_reuse_address = True
         server.verbose = conf.verbose
 
         # Start a thread with the server -- that thread will then start one
@@ -917,6 +966,8 @@ Did not behave as expected.</p></div>
 <pre><code class="python">def terminate(arg1, arg2):
 
     global mydata, server
+
+    &#39;&#39;&#39; Terminate app.  Wind down all sockets. Free locks. &#39;&#39;&#39;
 
     #print(&#34;terminate&#34;)
     #if mydata != {}:
@@ -1367,14 +1418,16 @@ May be extended, do not override.</p></div>
 <span>(</span><span>*argx)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Simplifies server for testing.</p></div>
+<div class="desc"><p>Simplified server for testing. Kept in case we want to
+temporarily revert.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class serve_one():
 
-    &#39;&#39;&#39; Simplifies server for testing. &#39;&#39;&#39;
+    &#39;&#39;&#39; Simplified server for testing. Kept in case we want to
+        temporarily revert.&#39;&#39;&#39;
 
     def __init__(self, *argx):
         self.cnt = 0

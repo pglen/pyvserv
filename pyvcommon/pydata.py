@@ -78,6 +78,11 @@ class DataHandler():
 
             #print(dir(self))
             #print(dir(self.par))
+
+            # Forcably close ... dead already
+            self.sock.shutdown(socket.SHUT_RDWR)
+            self.sock.close()
+
         except:
             pass
         self.toutflag = True

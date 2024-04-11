@@ -60,27 +60,11 @@ class Replicator():
         open_file_handles = os.listdir('/proc/self/fd')
         print('open file handles: ' + ', '.join(map(str, open_file_handles)))
 
-    #def softcreate(self, dbarr, fname, dbcreator):
-    #
-    #    ''' create database only once '''
-    #    xcore = None
-    #    for aa in dbarr:
-    #        if aa[0] == fname:
-    #            xcore = aa[1]
-    #            break
-    #    if not xcore:
-    #        xcore = dbcreator(fname)
-    #        dbarr.append((fname, xcore))
-    #    return xcore
-
     def rep_run(self):
 
         ''' Main entry point for replication. '''
 
         while True:
-
-            #if self.pgdebug > 5:
-            #    print("Replicator cycle", time.time())
 
             ddd = os.listdir(pyservsup.globals.chaindir )
             for aa in ddd:
@@ -98,6 +82,9 @@ class Replicator():
 
         ''' Scan chain dir for replication data. '''
 
+        if self.pgdebug > 9:
+            print("Replicator cycle", "%.3f "% time.time(), dirname)
+
         wastrans = False
         fname = os.path.join(pyservsup.globals.chaindir, dirname)
         rfile = os.path.join(fname, replicname)
@@ -106,7 +93,11 @@ class Replicator():
         #repcore.pgdebug = 10
         #repcore.core_verbose = 5
         dbsize = repcore.getdbsize()
-        #print("dbsize", dbsize)
+        if conf.pgdebug > 6:
+            repcore.showdel = True
+
+        if conf.pgdebug > 3:
+            print("dbname:", rfile, "dbsize:", dbsize)
         for bb in range(dbsize):
             try:
                 rec = repcore.get_rec(bb)
@@ -115,7 +106,7 @@ class Replicator():
                 continue
             if not rec:
                 continue;   # Deleted record
-            #print("head:", rec[0], "arr:", rec[1])
+            print("head:", rec[0], "arr:", rec[1])
             arr = self.packer.decode_data(rec[1])[0]
             #print("arr:", arr)
             # Increment count:
@@ -310,13 +301,40 @@ class Replicator():
         ret = True
         return ret
 
+optarr = []
+optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
+optarr.append ( ["m:",  "dumpdata=", "kind",  "",  None, "Dump replicator data for 'kind'"] )
+
+optarr += comline.optarrlong
+
+# Replace help sting on pprt
+for aa in range(len(optarr)):
+    if optarr[aa][0] == "p:":
+        optarr[aa] = ["p:", "port=", "port", "6666", None, "Host port to replicate to"]
+
+#print(optarr)
+
+comline.sethead("Pull directly from database for replication.")
+comline.setfoot("Use quote for multiple option strings.")
+comline.setargs("[options] [hostname_to]")
+comline.setprog(os.path.basename(sys.argv[0]))
+conf = comline.ConfigLong(optarr)
+
 def mainfunct():
 
-    conf = comline.ConfigLong(optarr)
-    conf.comline(sys.argv[1:])
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
+
     # Comline processed, go
 
-    if conf.pgdebug > 5:
+    if conf.pgdebug > 9:
         conf.printvars()
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
@@ -327,16 +345,44 @@ def mainfunct():
     pysyslog.init_loggers(
             ("system", slogfile), ("replic", rlogfile))
 
-
     pysyslog.repliclog("Replicator started")
 
-    print("Started replicator")
+    if conf.kind:
+        print("Dump replicator database:")
+        packer = pyvpacker.packbin()
+        fname = os.path.join(pyservsup.globals.chaindir, conf.kind)
+        rfile = os.path.join(fname, replicname)
+        print("rfile: ", rfile)
+        try:
+            repcore = twinchain.TwinCore(rfile)
+            repcore.showdel = True
+        except:
+            print("No database here", rfile)
+            sys.exit()
+
+        dbsize = repcore.getdbsize()
+        #print("dbsize", dbsize)
+        for bb in range(dbsize):
+            try:
+                rec = repcore.get_rec(bb)
+            except:
+                print("Exc on get_rec", sys.exc_info())
+                continue
+            if rec[0] == b"del":
+                #print("deleted:", rec[1])
+                # Shift one off for deleted values
+                arr = packer.decode_data(rec[2])[0]
+                print("del arr:", arr)
+            else:
+                arr = packer.decode_data(rec[2])[0]
+                print("arr:", rec)
+
+        sys.exit()
+
+    if conf.verbose:
+        print("Started replicator ... ")
     repl = Replicator(conf.verbose, conf.pgdebug)
     repl.rep_run()
-
-optarr =  comline.optarrlong
-
-optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
 
 if __name__ == '__main__':
 

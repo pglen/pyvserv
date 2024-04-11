@@ -26,9 +26,21 @@ else:
 
 import pyvpacker
 
-#import gi
-#gi.require_version("Gtk", "3.0")
-#from gi.repository import GLib
+__doc__ = ''' <pre>\
+The main pyvserv excutable.
+Usage: pyvserv.py [options]
+  options:
+        -n   --host      host       -  Set server hostname / interface.
+        -r   --dataroot  droot      -  Set data root for server.
+        -l   --loglevel  pglog      -  Log level (0 - 10) default = 1
+        -d   --debug     pgdebug    -  Debug level 0-10
+        -p   --port      port       -  Listen on port
+        -v   --verbose              -  Verbose. Show more info.
+        -q   --quiet                -  Quiet. Show less info.
+        -V   --version              -  Print Version string
+        -h   --help                 -  Show Help. (this screen)
+        -P   --pmode                -  Production mode ON. (allow 2FA)
+Use quotes for multiple option strings. </pre>'''
 
 # Create a placeholder for the main server var
 server = None
@@ -59,7 +71,8 @@ from pyvcommon import pydata, pysyslog, comline
 from pyvserver import pyvstate
 from pyvserver import pyvfunc
 
-mydata = {}
+#mydata = {}
+shared_mydata = None
 
 # ------------------------------------------------------------------------
 
@@ -69,13 +82,6 @@ class InvalidArg(Exception):
 
     def __init__(self, message):
          self.message = message
-
-# Using globals here; class instances fooled by threading
-#gl_sem = threading.Semaphore()
-#gl_queue = queue.Queue()
-#global gl_queue
-#gl_queue.put((peer, now))
-#print("qsize", gl_queue.qsize)
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
@@ -107,7 +113,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         ''' Start server '''
 
-        global mydata
+        global shared_mydata
 
         #print("thread", self)
         #print(dir(self))
@@ -128,7 +134,12 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.statehandler.pgdebug   = conf.pgdebug
         self.statehandler.name      = self.name
 
-        mydata[self.name] = self
+        # Remeber globally, add to shared dicrtionary
+        ddd = (os.getpid(), self.peer[0], self.peer[1],  self.request)
+
+        if conf.pgdebug > 4:
+            print("Adding mydata:", ddd)
+        shared_mydata.setdat(self.name, ddd)
 
         self.datahandler            =  pydata.DataHandler(self.request)
         self.datahandler.pgdebug    = conf.pgdebug
@@ -178,7 +189,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             print( "Connection closed on", self.peer)
 
         if conf.mem:
-            #print( "Memory trace")
+            print( "Memory trace")
             snapshot = tracemalloc.take_snapshot()
             top_stats = snapshot.statistics('lineno')
 
@@ -193,21 +204,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         ''' Wind down, remove globals '''
 
-        global mydata, conf
-
-        cli = str(mydata[self.name].client_address)
-        usr = str(mydata[self.name].user)
-        #print( "Logoff '" + usr + "'", cli)
-        del mydata[self.name]
-
-        #if conf.verbose:
-        #    print( "Closed socket on", self.name)
-
-        if conf.pglog > 0:
-            pysyslog.syslog("Logoff '" + usr + "' " + cli)
-
-        #server.socket.shutdown(socket.SHUT_RDWR)
-        #server.socket.close()
+        global shared_mydata
+        if conf.pgdebug > 4:
+            ddd = shared_mydata.getdat(self.name)
+            print("Removing mydata:", self.name, ddd)
+        shared_mydata.deldat(self.name)
 
 # ------------------------------------------------------------------------
 # Override stock methods. Windows has no ForkinMixin
@@ -217,7 +218,7 @@ if not fcntl:
 else:
     mixin = socketserver.ForkingMixIn
 
-# Overriding it for throttle development
+# Overriding it for throttle and cleanup development !! TEST !!
 #mixin = socketserver.ThreadingMixIn
 
 class ThreadedTCPServer(mixin, socketserver.TCPServer):
@@ -229,28 +230,25 @@ class ThreadedTCPServer(mixin, socketserver.TCPServer):
 
     def stop(self):
         self._BaseServer__shutdown_request = True
-        if verbose:
+        if conf.verbose:
             print( "Stop called")
         #self.shutdown()
         #self.server_close()
         pass
 
-
 def usersig(arg1, arg2):
 
     ''' signal comes in here, list current clients '''
 
-    global mydata, server
-    print("usersig", arg1, arg2)
-    if conf.pglog > 0:
-        pysyslog.syslog("Got user signal %d" % arg1)
-
+    global shared_mydata, server
+    #print("usersig", arg1, arg2)
+    #if conf.pglog > 0:
+    #    pysyslog.syslog("Got user signal %d" % arg1)
     print("Current clients:")
-    print( mydata)
+    print( shared_mydata.getall())
 
 def usersig2(arg1, arg2):
 
-    global mydata, server
     print("usersig2", arg1, arg2)
     if conf.pglog > 0:
         pysyslog.syslog("Got user signal2 %d" % arg1)
@@ -260,55 +258,58 @@ def soft_terminate(arg1, arg2):
     ''' Terminate app.  Did not behave as expected. '''
 
     #global mydata, server
-    ##print("soft_terminate")
-    #try:
-    #
-    #    for aa in mydata:
-    #        print(aa, mydata[aa])
-    #        mydata[aa].finish()
-    #except:
-    #    pass
-    #
+    if conf.pgdebug > 1:
+        print("   soft_terminate")
+
+    if conf.pgdebug > 2:
+        print( "Dumping connection info:")
+        ddd = shared_mydata.getall()
+        for aa in ddd.keys():
+            print(os.getpid(), ddd[aa])
 
     terminate(0, 0)
-
-    #while True:
-    #    print( "Dumping connection info:")
-    #    print( mydata)
-    #    if mydata == {}:
-    #        terminate(0, 0);
-    #        break
-    #    time.sleep (1)
 
 # ------------------------------------------------------------------------
 
 def terminate(arg1, arg2):
 
-    global mydata, server
+    global shared_mydata, server
 
-    #print("terminate")
-    #if mydata != {}:
-    #    print( "Dumping connection info:")
-    #    print( mydata)
+    ''' Terminate app.  Wind down all sockets. Free locks. '''
 
-    try:
-        if server:
-            server.socket.shutdown(socket.SHUT_RDWR)
-            server.socket.close()
-            server.shutdown()
-    except:
-        print("Exception in shutdown", sys.exc_info())
-        pass
-
-    if not conf.quiet:
-        print( "Terminated", progname)
+    # Attempt to unhook all pending clients
+    #print( "Closing active clients:")
+    ddd = shared_mydata.getall()
+    pid = os.getpid()
+    for aa in ddd.keys():
+        if conf.pgdebug > 5:
+            print( "Shared data:", ddd[aa])
+        if pid == ddd[aa][0]:
+            if conf.pgdebug > 0:
+                print( "Closing connection:", ddd[aa])
+            try:
+                ddd[aa][3].shutdown(socket.SHUT_RDWR)
+                ddd[aa][3].close()
+            except:
+                print("exc on close conn", sys.exc_info())
+    #try:
+    #    if server:
+    #        server.socket.shutdown(socket.SHUT_RDWR)
+    #        server.socket.close()
+    #        server.shutdown()
+    #except:
+    #    if conf.verbose:
+    #        print("Exception in shutdown", sys.exc_info())
+    #    pass
 
     #if conf.pglog > 0:
     #    pysyslog.syslog("Terminated Server")
 
     support.unlock_process(pyservsup.globals.lockfname)
 
-    # Attempt to unhook all pending clients
+    if not conf.quiet:
+        print( "Terminated", progname)
+
     sys.exit(2)
 
 # ------------------------------------------------------------------------
@@ -316,7 +317,8 @@ def terminate(arg1, arg2):
 
 class serve_one():
 
-    ''' Simplifies server for testing. '''
+    ''' Simplified server for testing. Kept in case we want to
+        temporarily revert.'''
 
     def __init__(self, *argx):
         self.cnt = 0
@@ -351,9 +353,6 @@ class serve_one():
         self.statehandler.verbose = conf.verbose
         self.statehandler.pglog = conf.pglog
         self.statehandler.pgdebug = conf.pgdebug
-
-        #print(self.request)
-        #mydata[self.name] = self
 
         #if conf.verbose:
         #    print("Connected " + " " + str(self.client_address))
@@ -415,25 +414,24 @@ def simple_server(HOST, PORT):
 
 # ------------------------------------------------------------------------
 
-optarr =  [] #comline.optarrlong
-#optarr.append ( ["e",   "detach=",   "detach",      0,       None, "Detach from terminal."] )
-optarr.append ( ["n:",  "host",      "host",   "127.0.0.1",  None, "Set server hostname / interface."] )
-optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Set data root for server. "] )
-optarr.append ( ["P",   "pmode",     "pmode",       0,       None, "Production mode ON. (allow 2FA)"] )
-optarr.append ( ["l:",  "loglevel",  "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
-optarr.append ( ["m",   "mem",       "mem",         0,       None, "Show memory trace."] )
-optarr.append ( ["N",   "norepl",    "norepl",      0,       None, "No replication. (for testing)"] )
-
-for aa in comline.optarrlong:
-    optarr.append(aa)
-
-comline.optarrlong = optarr
-
 # Tue 02.Apr.2024 made devmode default
 
-#print (optarr)
-comline.setargs("")
-comline.setfoot("Use quotes for argument separations.")
+optarr =  []
+optarr.append ( ["n:",  "host=",     "host",   "127.0.0.1",  None, "Set server hostname / interface."] )
+optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Set data root for server. "] )
+optarr.append ( ["l:",  "loglevel=", "pglog",       1,       None, "Log level (0 - 10) default = 1"] )
+
+optarr += comline.optarrlong
+
+optarr.append ( ["m",   "mem",       "mem",         0,       None, "Show memory trace."] )
+#optarr.append ( ["N",   "norepl",    "norepl",      0,       None, "No replication. (for testing)"] )
+optarr.append ( ["P",   "pmode",     "pmode",       0,       None, "Production mode ON. (allow 2FA)"] )
+
+comline.sethead("The main pyvserv excutable.")
+#comline.setprog(os.path.basename(sys.argv[0]))
+comline.setprog(os.path.basename(__file__))
+comline.setargs("[options]")
+comline.setfoot("Use quotes for multiple option strings.")
 
 conf = comline.ConfigLong(optarr)
 #conf.printvars()
@@ -447,7 +445,15 @@ def mainfunct():
         time.sleep(.1)
         sys.exit(0)
 
-    args = conf.comline(sys.argv[1:])
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
     #print(args)
 
     # Print comline args
@@ -574,12 +580,14 @@ def mainfunct():
     #hostarr = shlex.split(conf.host)
     #print("hostarr", hostarr)
 
+    global shared_mydata
+    shared_mydata = pyservsup.SharedData()
+
     global server
     try:
         server = ThreadedTCPServer((conf.host, conf.port), ThreadedTCPRequestHandler)
         server.allow_reuse_address = True
         ip, port = server.server_address
-        server.allow_reuse_address = True
         server.verbose = conf.verbose
 
         # Start a thread with the server -- that thread will then start one

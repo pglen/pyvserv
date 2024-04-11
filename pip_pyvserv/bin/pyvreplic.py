@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/peterglen/pgpygtk/pyvserv/pip_pyvserv/bin/python3
 
 import os, sys
 
@@ -13,37 +13,38 @@ import socket, threading, tracemalloc, inspect, socketserver
 import pyvpacker
 
 # This repairs the path from local run to pip run.
+# Remove pip version for local tests
 try:
     from pyvcommon import support
     # Get Parent of module root
-    base = os.path.dirname(support.__file__)
-    #print("base:", base)
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    #print("base", base)
+    sys.path.append(os.path.join(base,  '..'))
     sys.path.append(os.path.join(base, "..", "pyvcommon"))
     sys.path.append(os.path.join(base, "..", "pyvserver"))
+
 except:
     base = os.path.dirname(os.path.realpath(__file__))
-    print("local base", base)
+    #print("local base", base)
     sys.path.append(os.path.join(base,  '..'))
     sys.path.append(os.path.join(base,  '..', "pyvcommon"))
     sys.path.append(os.path.join(base,  '..', "pyvserver"))
     from pyvcommon import support
-
-#print("Load:", sys.path[-1])
 
 from pyvcommon import support, pyservsup, pyclisup
 from pyvcommon import pydata, pysyslog, comline, pyvhash
 
 from pydbase import twincore, twinchain
 
-replicname  = "replic.pydb"
-datafname   = "initial.pydb"
-ihostfname  = "ihosts.pydb"
+replicname = "replic.pydb"
+datafname = "initial.pydb"
+ihostfname = "ihosts.pydb"
 
 MAX_DBSIZE = 20                 # Size of DB when vacuum
 
 class Blank(): pass
 
-class Puller():
+class Replicator():
 
     def __init__(self, verbose = 0, pgdebug = 0):
         self.verbose = verbose
@@ -72,7 +73,7 @@ class Puller():
     #        dbarr.append((fname, xcore))
     #    return xcore
 
-    def pull_run(self):
+    def rep_run(self):
 
         ''' Main entry point for replication. '''
 
@@ -309,9 +310,6 @@ class Puller():
         ret = True
         return ret
 
-optarr =  comline.optarrlong
-optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
-
 def mainfunct():
 
     conf = comline.ConfigLong(optarr)
@@ -329,10 +327,16 @@ def mainfunct():
     pysyslog.init_loggers(
             ("system", slogfile), ("replic", rlogfile))
 
-    pysyslog.repliclog("Puller started")
-    print("Started puller")
-    repl = Puller(conf.verbose, conf.pgdebug)
-    repl.pull_run()
+
+    pysyslog.repliclog("Replicator started")
+
+    print("Started replicator")
+    repl = Replicator(conf.verbose, conf.pgdebug)
+    repl.rep_run()
+
+optarr =  comline.optarrlong
+
+optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",  None, "Root for server data"] )
 
 if __name__ == '__main__':
 

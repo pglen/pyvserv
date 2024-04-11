@@ -90,6 +90,11 @@ docs:
 	@-${PPP} -o docs  optional/pyvcli_tout.py
 	@-${PPP} -o docs  optional/pyvcli_sess_tout.py
 
+docs_man:
+	@-${PPP} -o docs  pyvcli_rman.py
+	@-${PPP} -o docs  pyvcli_uman.py
+	@-${PPP} -o docs  pyvcli_fman.py
+
 tryx:
 	echo `which pdoc`
 

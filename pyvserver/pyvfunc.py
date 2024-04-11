@@ -1420,7 +1420,7 @@ def get_sess_func(self, strx):
     # Decoded OK?
     ttt = SHA256.new(); ttt.update(message2.encode())
 
-    if pyservsup.globals.conf.pgdebug > 4:
+    if pyservsup.globals.conf.pgdebug > 6:
         print("Hash1:", strx[1])
         print("Hash2:", ttt.hexdigest())
 
@@ -1474,7 +1474,7 @@ def get_akey_func(self, strx):
         self.keyx = fp.read()
         fp.close()
 
-        if pyservsup.globals.conf.pgdebug > 4:
+        if pyservsup.globals.conf.pgdebug > 7:
             print("Key read: \n'" + self.keyx + "'\n")
     except:
         print("Cannot read key:", self.keyfroot, sys.exc_info()[1])

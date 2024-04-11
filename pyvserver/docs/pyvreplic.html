@@ -88,27 +88,11 @@ class Replicator():
         open_file_handles = os.listdir(&#39;/proc/self/fd&#39;)
         print(&#39;open file handles: &#39; + &#39;, &#39;.join(map(str, open_file_handles)))
 
-    #def softcreate(self, dbarr, fname, dbcreator):
-    #
-    #    &#39;&#39;&#39; create database only once &#39;&#39;&#39;
-    #    xcore = None
-    #    for aa in dbarr:
-    #        if aa[0] == fname:
-    #            xcore = aa[1]
-    #            break
-    #    if not xcore:
-    #        xcore = dbcreator(fname)
-    #        dbarr.append((fname, xcore))
-    #    return xcore
-
     def rep_run(self):
 
         &#39;&#39;&#39; Main entry point for replication. &#39;&#39;&#39;
 
         while True:
-
-            #if self.pgdebug &gt; 5:
-            #    print(&#34;Replicator cycle&#34;, time.time())
 
             ddd = os.listdir(pyservsup.globals.chaindir )
             for aa in ddd:
@@ -126,6 +110,9 @@ class Replicator():
 
         &#39;&#39;&#39; Scan chain dir for replication data. &#39;&#39;&#39;
 
+        if self.pgdebug &gt; 9:
+            print(&#34;Replicator cycle&#34;, &#34;%.3f &#34;% time.time(), dirname)
+
         wastrans = False
         fname = os.path.join(pyservsup.globals.chaindir, dirname)
         rfile = os.path.join(fname, replicname)
@@ -134,7 +121,11 @@ class Replicator():
         #repcore.pgdebug = 10
         #repcore.core_verbose = 5
         dbsize = repcore.getdbsize()
-        #print(&#34;dbsize&#34;, dbsize)
+        if conf.pgdebug &gt; 6:
+            repcore.showdel = True
+
+        if conf.pgdebug &gt; 3:
+            print(&#34;dbname:&#34;, rfile, &#34;dbsize:&#34;, dbsize)
         for bb in range(dbsize):
             try:
                 rec = repcore.get_rec(bb)
@@ -143,7 +134,7 @@ class Replicator():
                 continue
             if not rec:
                 continue;   # Deleted record
-            #print(&#34;head:&#34;, rec[0], &#34;arr:&#34;, rec[1])
+            print(&#34;head:&#34;, rec[0], &#34;arr:&#34;, rec[1])
             arr = self.packer.decode_data(rec[1])[0]
             #print(&#34;arr:&#34;, arr)
             # Increment count:
@@ -338,13 +329,40 @@ class Replicator():
         ret = True
         return ret
 
+optarr = []
+optarr.append ( [&#34;r:&#34;,  &#34;dataroot=&#34;, &#34;droot&#34;,  &#34;pyvserver&#34;,  None, &#34;Root for server data&#34;] )
+optarr.append ( [&#34;m:&#34;,  &#34;dumpdata=&#34;, &#34;kind&#34;,  &#34;&#34;,  None, &#34;Dump replicator data for &#39;kind&#39;&#34;] )
+
+optarr += comline.optarrlong
+
+# Replace help sting on pprt
+for aa in range(len(optarr)):
+    if optarr[aa][0] == &#34;p:&#34;:
+        optarr[aa] = [&#34;p:&#34;, &#34;port=&#34;, &#34;port&#34;, &#34;6666&#34;, None, &#34;Host port to replicate to&#34;]
+
+#print(optarr)
+
+comline.sethead(&#34;Pull directly from database for replication.&#34;)
+comline.setfoot(&#34;Use quote for multiple option strings.&#34;)
+comline.setargs(&#34;[options] [hostname_to]&#34;)
+comline.setprog(os.path.basename(sys.argv[0]))
+conf = comline.ConfigLong(optarr)
+
 def mainfunct():
 
-    conf = comline.ConfigLong(optarr)
-    conf.comline(sys.argv[1:])
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
+
     # Comline processed, go
 
-    if conf.pgdebug &gt; 5:
+    if conf.pgdebug &gt; 9:
         conf.printvars()
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
@@ -355,16 +373,44 @@ def mainfunct():
     pysyslog.init_loggers(
             (&#34;system&#34;, slogfile), (&#34;replic&#34;, rlogfile))
 
-
     pysyslog.repliclog(&#34;Replicator started&#34;)
 
-    print(&#34;Started replicator&#34;)
+    if conf.kind:
+        print(&#34;Dump replicator database:&#34;)
+        packer = pyvpacker.packbin()
+        fname = os.path.join(pyservsup.globals.chaindir, conf.kind)
+        rfile = os.path.join(fname, replicname)
+        print(&#34;rfile: &#34;, rfile)
+        try:
+            repcore = twinchain.TwinCore(rfile)
+            repcore.showdel = True
+        except:
+            print(&#34;No database here&#34;, rfile)
+            sys.exit()
+
+        dbsize = repcore.getdbsize()
+        #print(&#34;dbsize&#34;, dbsize)
+        for bb in range(dbsize):
+            try:
+                rec = repcore.get_rec(bb)
+            except:
+                print(&#34;Exc on get_rec&#34;, sys.exc_info())
+                continue
+            if rec[0] == b&#34;del&#34;:
+                #print(&#34;deleted:&#34;, rec[1])
+                # Shift one off for deleted values
+                arr = packer.decode_data(rec[2])[0]
+                print(&#34;del arr:&#34;, arr)
+            else:
+                arr = packer.decode_data(rec[2])[0]
+                print(&#34;arr:&#34;, rec)
+
+        sys.exit()
+
+    if conf.verbose:
+        print(&#34;Started replicator ... &#34;)
     repl = Replicator(conf.verbose, conf.pgdebug)
     repl.rep_run()
-
-optarr =  comline.optarrlong
-
-optarr.append ( [&#34;r:&#34;,  &#34;dataroot=&#34;, &#34;droot&#34;,  &#34;pyvserver&#34;,  None, &#34;Root for server data&#34;] )
 
 if __name__ == &#39;__main__&#39;:
 
@@ -391,11 +437,19 @@ if __name__ == &#39;__main__&#39;:
 </summary>
 <pre><code class="python">def mainfunct():
 
-    conf = comline.ConfigLong(optarr)
-    conf.comline(sys.argv[1:])
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
+
     # Comline processed, go
 
-    if conf.pgdebug &gt; 5:
+    if conf.pgdebug &gt; 9:
         conf.printvars()
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
@@ -406,10 +460,42 @@ if __name__ == &#39;__main__&#39;:
     pysyslog.init_loggers(
             (&#34;system&#34;, slogfile), (&#34;replic&#34;, rlogfile))
 
-
     pysyslog.repliclog(&#34;Replicator started&#34;)
 
-    print(&#34;Started replicator&#34;)
+    if conf.kind:
+        print(&#34;Dump replicator database:&#34;)
+        packer = pyvpacker.packbin()
+        fname = os.path.join(pyservsup.globals.chaindir, conf.kind)
+        rfile = os.path.join(fname, replicname)
+        print(&#34;rfile: &#34;, rfile)
+        try:
+            repcore = twinchain.TwinCore(rfile)
+            repcore.showdel = True
+        except:
+            print(&#34;No database here&#34;, rfile)
+            sys.exit()
+
+        dbsize = repcore.getdbsize()
+        #print(&#34;dbsize&#34;, dbsize)
+        for bb in range(dbsize):
+            try:
+                rec = repcore.get_rec(bb)
+            except:
+                print(&#34;Exc on get_rec&#34;, sys.exc_info())
+                continue
+            if rec[0] == b&#34;del&#34;:
+                #print(&#34;deleted:&#34;, rec[1])
+                # Shift one off for deleted values
+                arr = packer.decode_data(rec[2])[0]
+                print(&#34;del arr:&#34;, arr)
+            else:
+                arr = packer.decode_data(rec[2])[0]
+                print(&#34;arr:&#34;, rec)
+
+        sys.exit()
+
+    if conf.verbose:
+        print(&#34;Started replicator ... &#34;)
     repl = Replicator(conf.verbose, conf.pgdebug)
     repl.rep_run()</code></pre>
 </details>
@@ -457,27 +543,11 @@ if __name__ == &#39;__main__&#39;:
         open_file_handles = os.listdir(&#39;/proc/self/fd&#39;)
         print(&#39;open file handles: &#39; + &#39;, &#39;.join(map(str, open_file_handles)))
 
-    #def softcreate(self, dbarr, fname, dbcreator):
-    #
-    #    &#39;&#39;&#39; create database only once &#39;&#39;&#39;
-    #    xcore = None
-    #    for aa in dbarr:
-    #        if aa[0] == fname:
-    #            xcore = aa[1]
-    #            break
-    #    if not xcore:
-    #        xcore = dbcreator(fname)
-    #        dbarr.append((fname, xcore))
-    #    return xcore
-
     def rep_run(self):
 
         &#39;&#39;&#39; Main entry point for replication. &#39;&#39;&#39;
 
         while True:
-
-            #if self.pgdebug &gt; 5:
-            #    print(&#34;Replicator cycle&#34;, time.time())
 
             ddd = os.listdir(pyservsup.globals.chaindir )
             for aa in ddd:
@@ -495,6 +565,9 @@ if __name__ == &#39;__main__&#39;:
 
         &#39;&#39;&#39; Scan chain dir for replication data. &#39;&#39;&#39;
 
+        if self.pgdebug &gt; 9:
+            print(&#34;Replicator cycle&#34;, &#34;%.3f &#34;% time.time(), dirname)
+
         wastrans = False
         fname = os.path.join(pyservsup.globals.chaindir, dirname)
         rfile = os.path.join(fname, replicname)
@@ -503,7 +576,11 @@ if __name__ == &#39;__main__&#39;:
         #repcore.pgdebug = 10
         #repcore.core_verbose = 5
         dbsize = repcore.getdbsize()
-        #print(&#34;dbsize&#34;, dbsize)
+        if conf.pgdebug &gt; 6:
+            repcore.showdel = True
+
+        if conf.pgdebug &gt; 3:
+            print(&#34;dbname:&#34;, rfile, &#34;dbsize:&#34;, dbsize)
         for bb in range(dbsize):
             try:
                 rec = repcore.get_rec(bb)
@@ -512,7 +589,7 @@ if __name__ == &#39;__main__&#39;:
                 continue
             if not rec:
                 continue;   # Deleted record
-            #print(&#34;head:&#34;, rec[0], &#34;arr:&#34;, rec[1])
+            print(&#34;head:&#34;, rec[0], &#34;arr:&#34;, rec[1])
             arr = self.packer.decode_data(rec[1])[0]
             #print(&#34;arr:&#34;, arr)
             # Increment count:
@@ -724,9 +801,6 @@ if __name__ == &#39;__main__&#39;:
 
     while True:
 
-        #if self.pgdebug &gt; 5:
-        #    print(&#34;Replicator cycle&#34;, time.time())
-
         ddd = os.listdir(pyservsup.globals.chaindir )
         for aa in ddd:
             aaa = os.path.join(pyservsup.globals.chaindir, aa)
@@ -837,6 +911,9 @@ if __name__ == &#39;__main__&#39;:
 
     &#39;&#39;&#39; Scan chain dir for replication data. &#39;&#39;&#39;
 
+    if self.pgdebug &gt; 9:
+        print(&#34;Replicator cycle&#34;, &#34;%.3f &#34;% time.time(), dirname)
+
     wastrans = False
     fname = os.path.join(pyservsup.globals.chaindir, dirname)
     rfile = os.path.join(fname, replicname)
@@ -845,7 +922,11 @@ if __name__ == &#39;__main__&#39;:
     #repcore.pgdebug = 10
     #repcore.core_verbose = 5
     dbsize = repcore.getdbsize()
-    #print(&#34;dbsize&#34;, dbsize)
+    if conf.pgdebug &gt; 6:
+        repcore.showdel = True
+
+    if conf.pgdebug &gt; 3:
+        print(&#34;dbname:&#34;, rfile, &#34;dbsize:&#34;, dbsize)
     for bb in range(dbsize):
         try:
             rec = repcore.get_rec(bb)
@@ -854,7 +935,7 @@ if __name__ == &#39;__main__&#39;:
             continue
         if not rec:
             continue;   # Deleted record
-        #print(&#34;head:&#34;, rec[0], &#34;arr:&#34;, rec[1])
+        print(&#34;head:&#34;, rec[0], &#34;arr:&#34;, rec[1])
         arr = self.packer.decode_data(rec[1])[0]
         #print(&#34;arr:&#34;, arr)
         # Increment count:

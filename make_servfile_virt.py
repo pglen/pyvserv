@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
-import sys, os, site
+import sys, os
 
 progname = "pyvserv"
 dirname  = "./pip_pyvserv/"
 execname = os.path.realpath(dirname + "bin/" + progname)
 
 if not os.path.isfile(dirname + "bin/" + progname):
-    print("pip_pyvserver virtual env is not installed. Use: ./pyvserv_env_insall.sh")
+    print("pip_pyvserver virtual env is not installed. " \
+            "Use: ./pyvserv_env_insall.sh", file=sys.stderr, )
     sys.exit(1)
 
 def find(what):

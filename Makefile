@@ -32,17 +32,13 @@ git:
 	git push
 	#git push local
 
-hello:
-	@make -C client hello
-
-# untested
-deb:  build build3
-	./build-deb.sh
+cleansubs:
+	@make -C pyvclient clean
+	@make -C pyvserver clean
+	@make -C pyvcommon clean
+	@make -C pyvtools clean
 
 clean:
-	@#make -C pyvclient clean
-	@#make -C pyvserver clean
-	@#make -C pyvcommon clean
 	@rm -f aa bb cc pyvserv.deb
 	@rm -rf build-tmp/*
 	@rm -rf  dist/*
@@ -118,6 +114,9 @@ startservice:
 
 stopservice:
 	sudo systemctl stop pyvserv.service
+
+disableservice:
+	sudo systemctl disable --now pyvserv.service
 
 # The pyvserv may be installed in a virtual environment.
 # Control it froom here

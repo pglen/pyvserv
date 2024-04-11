@@ -29,7 +29,8 @@ from pyvcommon import pysyslog, comline, pyvhash
 # Globals
 
 version = "1.0.0"
-progn = os.path.basename(sys.argv[0])
+#progn = os.path.basename(sys.argv[0])
+progn = os.path.basename(__file__)
 
 cdoc = '''\
 The pyvserv record manager.
