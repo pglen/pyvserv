@@ -37,6 +37,9 @@ PERM_NON = 8;
 # Modes
 RESET_MODE = 0x80;
 
+# ------------------------------------------------------------------------
+# Globals
+
 pgdebug = 0
 
 #buffsize = 1024;
@@ -47,6 +50,7 @@ repfname    = "pyvreplic"
 logfname    = "pyvserver"
 
 lock_locktout = 5
+shared_logons = None
 
 # Configure the server by customizing this class
 
@@ -57,7 +61,8 @@ class   Global_Vars:
         # Underscore names are definitions - others are calculated
 
         self.verbose = 0
-        self._script_home = scriptname    # where the original script lives
+        # where the original script lives
+        self._script_home = os.path.abspath(scriptname)
 
         self._dataroot  =   dataroot
         self._passfile  =  "passwd.secret"
@@ -140,14 +145,10 @@ class   Global_Vars:
 
         self.verbose = conf.verbose
         self.pgdebug = conf.pgdebug
-
         #if conf.verbose:
         #    print("Script home:     ", self._script_home)
-
         if conf.pgdebug:
-                print ("Debug level:     ", conf.pgdebug)
-
-        #self._datadir = self.script_home + self._datadir
+            print ("Debug level:     ", conf.pgdebug)
 
 # ------------------------------------------------------------------------
 # This will create the server's UUID

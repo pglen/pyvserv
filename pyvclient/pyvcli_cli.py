@@ -207,7 +207,7 @@ def mainfunct():
         sys.exit(0)
 
     # Interactive, need more time
-    hand.client(["tout", "60",], conf.sess_key)
+    hand.client(["tout", "6",], conf.sess_key)
 
     if conf.comm:
         import shlex

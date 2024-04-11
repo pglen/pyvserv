@@ -71,8 +71,8 @@ from pyvcommon import pydata, pysyslog, comline
 from pyvserver import pyvstate
 from pyvserver import pyvfunc
 
-#mydata = {}
 shared_mydata = None
+shared_logons = None
 
 # ------------------------------------------------------------------------
 
@@ -209,6 +209,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             ddd = shared_mydata.getdat(self.name)
             print("Removing mydata:", self.name, ddd)
         shared_mydata.deldat(self.name)
+        pyservsup.shared_logons.deldat(self.statehandler.resp.user)
 
 # ------------------------------------------------------------------------
 # Override stock methods. Windows has no ForkinMixin
@@ -241,27 +242,59 @@ def usersig(arg1, arg2):
     ''' signal comes in here, list current clients '''
 
     global shared_mydata, server
-    #print("usersig", arg1, arg2)
-    #if conf.pglog > 0:
-    #    pysyslog.syslog("Got user signal %d" % arg1)
+    if conf.pgdebug > 1:
+        print("usersig", arg1)
+
+    if conf.pgdebug > 6:
+        print("usersig", arg1, arg2)
+
+    if conf.pglog > 2:
+        pysyslog.syslog("Got user signal %d" % arg1)
+
     print("Current clients:")
     print( shared_mydata.getall())
 
+    print("Current logons:")
+    print( pyservsup.shared_logons.getall())
+
 def usersig2(arg1, arg2):
 
-    print("usersig2", arg1, arg2)
-    if conf.pglog > 0:
+    if conf.pgdebug > 1:
+        print("usersig2", arg1)
+
+    if conf.pgdebug > 6:
+        print("usersig2", arg1, arg2)
+
+    if conf.pglog > 2:
         pysyslog.syslog("Got user signal2 %d" % arg1)
+
+    print("Current configuration:")
+    print("Full server path:    ", pyservsup.globals._script_home)
+    print("Data root:           ", pyservsup.globals.myhome)
+    print("Pass Dir:            ", pyservsup.globals.passdir)
+    print("Key Dir:             ", pyservsup.globals.keydir)
+    print("Payload Dir:         ", pyservsup.globals.paydir)
+    print("Blockchain Dir:      ", pyservsup.globals.chaindir)
+    print("Log dir:             ", pyservsup.globals.logdir)
+    print("Temp dir:            ", pyservsup.globals.tmpdir)
+    print("Lockfile:            ", pyservsup.globals.lockfname)
+    print("IDfile:              ", pyservsup.globals.idfile)
+    print("Current operationals:")
+    print("Server hostname:     ", pyservsup.globals.conf.host)
+    print("Port listening on:   ", pyservsup.globals.conf.port)
+    print("Debug level:         ", pyservsup.globals.conf.pgdebug)
+    print("Verbose:             ", pyservsup.globals.conf.verbose)
+    print("Loglevel:            ", pyservsup.globals.conf.pglog)
+    print("Production Mode:     ", pyservsup.globals.conf.pmode)
 
 def soft_terminate(arg1, arg2):
 
-    ''' Terminate app.  Did not behave as expected. '''
+    ''' Terminate app. Did not behave as expected ... fixed. '''
 
-    #global mydata, server
     if conf.pgdebug > 1:
         print("   soft_terminate")
 
-    if conf.pgdebug > 2:
+    if conf.pgdebug > 1:
         print( "Dumping connection info:")
         ddd = shared_mydata.getall()
         for aa in ddd.keys():
@@ -285,25 +318,16 @@ def terminate(arg1, arg2):
         if conf.pgdebug > 5:
             print( "Shared data:", ddd[aa])
         if pid == ddd[aa][0]:
-            if conf.pgdebug > 0:
+            if conf.pgdebug > 1:
                 print( "Closing connection:", ddd[aa])
             try:
                 ddd[aa][3].shutdown(socket.SHUT_RDWR)
                 ddd[aa][3].close()
             except:
                 print("exc on close conn", sys.exc_info())
-    #try:
-    #    if server:
-    #        server.socket.shutdown(socket.SHUT_RDWR)
-    #        server.socket.close()
-    #        server.shutdown()
-    #except:
-    #    if conf.verbose:
-    #        print("Exception in shutdown", sys.exc_info())
-    #    pass
 
-    #if conf.pglog > 0:
-    #    pysyslog.syslog("Terminated Server")
+    if conf.pglog > 0:
+        pysyslog.syslog("Terminated Server")
 
     support.unlock_process(pyservsup.globals.lockfname)
 
@@ -580,8 +604,9 @@ def mainfunct():
     #hostarr = shlex.split(conf.host)
     #print("hostarr", hostarr)
 
-    global shared_mydata
+    global shared_mydata, shared_logons
     shared_mydata = pyservsup.SharedData()
+    pyservsup.shared_logons = pyservsup.SharedData()
 
     global server
     try:
