@@ -12,7 +12,7 @@ if sys.version_info[0] < 3:
 
 import os, getopt, signal, select, string, time
 import subprocess,  platform, queue, ctypes
-import socket, threading, tracemalloc, copy, random
+import socket, threading, tracemalloc, copy, random, datetime
 
 try:
     import fcntl
@@ -94,6 +94,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         self.peer = a2
         self.fname = ""
         self.user = ""
+        self.preuser = ""
         self.cwd = os.getcwd()
         self.dir = ""
         self.ekey = ""
@@ -208,8 +209,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if conf.pgdebug > 4:
             ddd = shared_mydata.getdat(self.name)
             print("Removing mydata:", self.name, ddd)
+
         shared_mydata.deldat(self.name)
-        pyservsup.shared_logons.deldat(self.statehandler.resp.user)
+        if self.statehandler.resp.user:
+            pyservsup.shared_logons.deldat(self.statehandler.resp.user)
 
 # ------------------------------------------------------------------------
 # Override stock methods. Windows has no ForkinMixin
@@ -237,7 +240,7 @@ class ThreadedTCPServer(mixin, socketserver.TCPServer):
         #self.server_close()
         pass
 
-def usersig(arg1, arg2):
+def usersig1(arg1, arg2):
 
     ''' signal comes in here, list current clients '''
 
@@ -254,8 +257,12 @@ def usersig(arg1, arg2):
     print("Current clients:")
     print( shared_mydata.getall())
 
-    print("Current logons:")
-    print( pyservsup.shared_logons.getall())
+    print("Current logins:")
+    ddd = pyservsup.shared_logons.getall()
+    if ddd:
+        for aa in ddd.keys():
+            dt = datetime.datetime.fromtimestamp(ddd[aa])
+            print("Login:", "'" + aa + "'", "Login time:", dt)
 
 def usersig2(arg1, arg2):
 
@@ -312,22 +319,23 @@ def terminate(arg1, arg2):
 
     # Attempt to unhook all pending clients
     #print( "Closing active clients:")
-    ddd = shared_mydata.getall()
     pid = os.getpid()
-    for aa in ddd.keys():
-        if conf.pgdebug > 5:
-            print( "Shared data:", ddd[aa])
-        if pid == ddd[aa][0]:
-            if conf.pgdebug > 1:
-                print( "Closing connection:", ddd[aa])
-            try:
-                ddd[aa][3].shutdown(socket.SHUT_RDWR)
-                ddd[aa][3].close()
-            except:
-                print("exc on close conn", sys.exc_info())
+    ddd = shared_mydata.getall()
+    if ddd:
+        for aa in ddd.keys():
+            if conf.pgdebug > 5:
+                print( "Shared data:", ddd[aa])
+            if pid == ddd[aa][0]:
+                if conf.pgdebug > 1:
+                    print( "Closing connection:", ddd[aa])
+                try:
+                    ddd[aa][3].shutdown(socket.SHUT_RDWR)
+                    ddd[aa][3].close()
+                except:
+                    print("exc on close conn", sys.exc_info())
 
     if conf.pglog > 0:
-        pysyslog.syslog("Terminated Server")
+        pysyslog.syslog("Terminated Server" )
 
     support.unlock_process(pyservsup.globals.lockfname)
 
@@ -390,7 +398,7 @@ class serve_one():
         self.client.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
 
         if conf.pglog > 0:
-            pysyslog.syslog("Connected " + " " + str(self.client_address))
+            pysyslog.syslog("Connected ", str(self.client_address))
 
         response =  ["OK", "pyvserv %s ready" % pyservsup.version]
         # Connected, acknowledge it
@@ -561,7 +569,7 @@ def mainfunct():
     signal.signal(signal.SIGTERM, terminate)
     signal.signal(signal.SIGINT, soft_terminate)
     try:
-        signal.signal(signal.SIGUSR1, usersig)
+        signal.signal(signal.SIGUSR1, usersig1)
         signal.signal(signal.SIGUSR2, usersig2)
     except:
         print("User signals may not be available.")
@@ -632,9 +640,6 @@ def mainfunct():
             #print("Try again later.")
             #terminate(None, None)
             sys.exit(1)
-
-    #if conf.pglog > 0:
-    #     pysyslog.syslog("Started Server")
 
     if conf.pglog > 0:
         pysyslog.syslog("Server started. Prodmode %d" % conf.pmode)

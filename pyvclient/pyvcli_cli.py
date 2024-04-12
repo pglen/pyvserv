@@ -43,9 +43,9 @@ __doc__ = \
 
     ### Type 'help' for a complete list
 
-        user logon_name                 -- Name of user to log in with
+        user login_name                 -- Name of user to log in with
         akey                            -- Get asymmetric key
-        pass logon_pass                 -- Password
+        pass login_pass                 -- Password
         chpass newpass                  -- Change pass (not tested)
         file fname                      -- Specify name for upload
         fget fname                      -- Download (get) file
@@ -207,7 +207,7 @@ def mainfunct():
         sys.exit(0)
 
     # Interactive, need more time
-    hand.client(["tout", "6",], conf.sess_key)
+    hand.client(["tout", "10",], conf.sess_key)
 
     if conf.comm:
         import shlex

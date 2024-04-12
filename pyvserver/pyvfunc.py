@@ -51,6 +51,9 @@ ERR = "ERR"
 
 #pgdebug = 0
 
+def _wr(strx):
+    return "'" + strx + "'"
+
 def _print_handles(self):
         ''' Debug helper '''
         open_file_handles = os.listdir('/proc/self/fd')
@@ -124,8 +127,19 @@ def get_exit_func(self, strx):
 
     if pyservsup.globals.conf.pgdebug > 1:
         print( "get_exit_func()", strx)
+
+    # Clean up logouts
+    if self.resp.user:
+        pyservsup.shared_logons.deldat(self.resp.user)
+
+    if pyservsup.globals.conf.pglog > 0:
+        stry = "Quit", _wr(self.resp.user), str(self.resp.client_address)
+        pysyslog.syslog(*stry)
+
+    # This instance will go away, but just to make sure
+    self.resp.user = ""
+
     self.resp.datahandler.putencode([OK, "Bye", self.name], self.resp.ekey)
-    #self.resp.datahandler.par.shutdown(socket.SHUT_RDWR)
 
     # Cancel **after** sending bye
     if self.resp.datahandler.tout:
@@ -426,13 +440,13 @@ def get_fget_func(self, strx):
         if blen == 0:
             break
 
+    #if pyservsup.globals.conf.pglog > 1:
+    #    stry = "Server sent file: '" + dname + "' " + str(flen) + " bytes",
+    #    pysyslog.syslog(stry)
+
     response = [OK, "Server sent file", strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
-    # Lof and set state to IDLE
-    xstr = "Server sent file: '" + dname + "' " + str(flen) + " bytes"
-    if pyservsup.globals.conf.pglog > 1:
-        pysyslog.syslog(xstr)
 
 def get_fput_func(self, strx):
 
@@ -1146,7 +1160,9 @@ def get_rput_func(self, strx):
     #print('open file handles: ' + ', '.join(map(str, open_file_handles)))
 
     if pyservsup.globals.conf.pglog > 1:
-        pysyslog.syslog("BCD %s" % strx[2]['header'])
+        stry = "Block Chain Data %s" % strx[2]['header'], \
+                _wr(self.resp.user), str(self.resp.client_address)
+        pysyslog.syslog(*stry)
 
 
 def get_ihost_func(self, strx):
@@ -1371,11 +1387,18 @@ def get_lout_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    olduser = self.resp.user
-    self.resp.user = ""
-    #print("logout", self.resp.user)
+    if pyservsup.globals.conf.pglog > 0:
+        stry = "Logout", _wr(resp.user), \
+                str(self.resp.client_address)
+        pysyslog.syslog(*stry)
 
-    pyservsup.shared_logons.deldat(olduser)
+    if self.pgdebug > 3:
+        print("logout", self.resp.user)
+
+    if resp.user:
+        pyservsup.shared_logons.deldat(resp.user)
+
+    self.resp.user = ""
 
     response = [OK, "Logged out.", olduser, ]
     self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1387,11 +1410,16 @@ def get_user_func(self, strx):
         print( "get_user_func()", strx)
 
     if len(strx) < 2:
-        self.resp.datahandler.putencode(
-                [ERR, "Must specify user name.", strx[0]], self.resp.ekey)
+        resp = [ERR, "Must specify user name.", strx[0]]
+        self.resp.datahandler.putencode(resp, self.resp.ekey)
         return
-    self.resp.user = strx[1]
-    self.resp.datahandler.putencode([OK, "Send pass ..."], self.resp.ekey)
+
+    if self.resp.user:
+        self.resp.datahandler.putencode([ERR, "Already logged in"], self.resp.ekey)
+        return
+
+    self.resp.preuser = strx[1]
+    self.resp.datahandler.putencode([OK, "Send pass for", strx[1]], self.resp.ekey)
 
 # ------------------------------------------------------------------------
 
@@ -1546,21 +1574,22 @@ def get_pass_func(self, strx):
 
     ret = "";  retval = True
 
-    ttt = time.time()
+    #ttt = time.time()
 
     if len(strx) < 2:
         self.resp.datahandler.putencode(
                 [ERR, "Must specify pass.", strx[0]], self.resp.ekey)
         return retval
+
     # Make sure there is a trace of the attempt
-    stry = "Logon  '" + self.resp.user + "' " + \
+    if pyservsup.globals.conf.pglog > 0:
+        stry = "Attempted login", _wr(self.resp.preuser), \
                 str(self.resp.client_address)
-    if pyservsup.globals.conf.pglog > 1:
-        pysyslog.syslog(stry)
+        pysyslog.syslog(*stry)
 
     #print("pass 1 %.3f" % ((time.time() - ttt) * 1000) )
 
-    ret = pyservsup.gl_passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.preuser)
     #print("pass 2 %.3f" % ((time.time() - ttt) * 1000) )
 
     if int(ret[2]) & pyservsup.PERM_DIS:
@@ -1568,26 +1597,22 @@ def get_pass_func(self, strx):
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return retval
 
-    xret = pyservsup.gl_passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
+    xret = pyservsup.gl_passwd.auth(self.resp.preuser, strx[1], 0, pyservsup.USER_AUTH)
     #print("pass 3 %.3f" % ((time.time() - ttt) * 1000) )
 
     rrr = []
     if xret[0] == 3:
-        stry = "No such user  '" + self.resp.user + "' " + \
+        if pyservsup.globals.conf.pglog > 0:
+            stry = "No such user", _wr(self.resp.preuser), \
                 str(self.resp.client_address)
-        if pyservsup.globals.conf.pglog > 1:
-            pysyslog.syslog(stry)
-        rrr = [ERR, "No such user.", self.resp.user]
+            pysyslog.syslog(*stry)
+        rrr = [ERR, "No such user.", self.resp.preuser]
     elif xret[0] == 1:
-        stry = "Successful logon '" + self.resp.user + "' " + \
-                            str(self.resp.client_address)
-        if pyservsup.globals.conf.pglog > 1:
-            pysyslog.syslog(stry)
 
         if self.pgdebug > 3:
-            print("Authenticated", self.resp.user)
+            print("Authenticated", self.resp.preuser)
 
-        userdir2 = pyservsup.globals.paydir + os.sep + self.resp.user
+        userdir2 = pyservsup.globals.paydir + os.sep + self.resp.preuser
         self.userdir = check_payload_path(self, userdir2)
         #print("Contained",  self.userdir)
         if not self.userdir:
@@ -1599,16 +1624,27 @@ def get_pass_func(self, strx):
             os.mkdir(self.userdir)
         self.resp.cwd = self.userdir
 
+        if pyservsup.globals.conf.pglog > 0:
+            stry = "Successful login", _wr(self.resp.preuser),  \
+                            str(self.resp.client_address)
+            pysyslog.syslog(*stry)
+
+        # Commit  user
+        self.resp.user = self.resp.preuser
+        self.resp.preuser = ""
+
         # Anounce it to global stats
-        pyservsup.shared_logons.setdat(self.resp.user, ttt)
+        if self.resp.user:
+            logttt = time.time()
+            pyservsup.shared_logons.setdat(self.resp.user, logttt)
 
         rrr = [OK,  "Authenticated.", self.resp.user]
         retval = False
     else:
-        stry = "Error on logon  '" + self.resp.user + "' " + \
+        if pyservsup.globals.conf.pglog > 0:
+            stry = "Error on login", _wr(self.resp.preuser), \
                 str(self.resp.client_address)
-        if pyservsup.globals.conf.pglog > 1:
-            pysyslog.syslog(stry)
+            pysyslog.syslog(*stry)
         rrr = [ERR,  xret[1], strx[0]]
 
     self.resp.datahandler.putencode(rrr, self.resp.ekey)
@@ -1635,9 +1671,10 @@ def get_chpass_func(self, strx):
         return
     #print("chpass", strx)
     # Make sure there is a trace of the attempt
-    stry = "chpass  '" + self.resp.user + "' " + str(self.resp.client_address)
     if pyservsup.globals.conf.pglog > 1:
-        pysyslog.syslog(stry)
+        stry = "chpass", _wr(self.resp.user), \
+                 str(self.resp.client_address)
+        pysyslog.syslog(*stry)
 
     # Are we allowed to change pass?
     ret = pyservsup.gl_passwd.perms(self.resp.user)
@@ -1658,27 +1695,29 @@ def get_chpass_func(self, strx):
 
     ret = ""
     if xret[0] == 5:
-        stry = "Pass changed '" + self.resp.user + "' " + \
-                str(self.resp.client_address)
         if pyservsup.globals.conf.pglog > 1:
-            pysyslog.syslog(stry)
+            stry = "Pass changed", _wr(resp.user), \
+                str(self.resp.client_address)
+            pysyslog.syslog(*stry)
         ret = [OK, "Pass changed", strx[1]]
     elif xret[0] == 3:
-        stry = "No such user  '" + strx[1] + "' " + \
-                str(self.resp.client_address)
         if pyservsup.globals.conf.pglog > 1:
-            pysyslog.syslog(stry)
+            stry = "No such user", _wr(strx[1]),  \
+                str(self.resp.client_address)
+            pysyslog.syslog(*stry)
         ret = [ERR, "No such user.", strx[1]]
     elif xret[0] == 1:
         if pyservsup.globals.conf.pglog > 1:
-            pysyslog.syslog("Successful logon", strx[1],
-                                            str(self.resp.client_address))
+            stry = "Successful login", strx[1], \
+                           str(self.resp.client_address)
+            pysyslog.syslog(*stry)
         ret = ["OK ", self.resp.user, " Authenticated."]
         retval = False
     else:
-        stry = "Error on logon  '" + strx[1] + "' " + \
-                str(self.resp.client_address)
-        pysyslog.syslog(stry)
+        if pyservsup.globals.conf.pglog > 1:
+            stry = "Error on login", _wr(strx[1]), \
+                    str(self.resp.client_address)
+            pysyslog.syslog(*stry)
         ret = [ERR, xret[1], strx[0]]
 
     self.resp.datahandler.putencode(ret, self.resp.ekey)
@@ -1850,6 +1889,11 @@ def get_uini_func(self, strx):
             response = [ERR,
             "User already exists, no change. Use pass function.", strx[0]];
         elif ret[0] == 2:
+
+            if pyservsup.globals.conf.pglog > 1:
+                stry = "Added initial user",  strx[1], \
+                        str(self.resp.client_address)
+                pysyslog.syslog(*stry)
             response = [OK, "Added initial user", strx[1]]
         else:
             response = [ERR, ret[1], strx[0]]
@@ -1920,8 +1964,7 @@ def put_file_func(self, strx):
             response = [ERR, "Cannot create file", self.resp.fname, strx[0]]
     except:
         response = [ERR,  "Must specify file name", strx[0]]
-        #if pyservsup.globals.conf.pglog > 1:
-            #pysyslog.syslog("Opened", xstr[1])
+
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def put_data_func(self, strx):
@@ -1961,9 +2004,10 @@ def put_data_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    xstr = "Received chunk: '" + self.resp.fname + \
-                "' " + str(dlen) + " bytes"
+    #xstr = "Received chunk: '" + self.resp.fname + \
+    #            "'" + str(dlen) + " bytes"
     #print( xstr)
+
     self.resp.datahandler.putencode([OK,  "Got data"], self.resp.ekey)
 
 def get_qr_func(self, strx):

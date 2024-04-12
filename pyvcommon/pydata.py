@@ -60,7 +60,6 @@ class DataHandler():
                 break
             self.timex += 1
             if self.timex > self.timeout:
-                #print (self.timex)
                 self.handler_timeout()
                 break
 
@@ -70,16 +69,16 @@ class DataHandler():
             if self.pgdebug > 0:
                 print( "in handler_timeout %s" % self.name )
 
-            if self.verbose:
-                print( "handler_timeout()")
+            #if self.verbose:
+            #    print( "handler_timeout()")
 
             if self.pglog > 0:
-                pysyslog.syslog("Timeout on " + " " + str(self.par.client_address))
+                pysyslog.syslog("Timeout on ", str(self.par.client_address))
 
             #print(dir(self))
             #print(dir(self.par))
 
-            # Forcably close ... dead already
+            # Forcably close ... dead already but cleanup can start
             self.sock.shutdown(socket.SHUT_RDWR)
             self.sock.close()
 
