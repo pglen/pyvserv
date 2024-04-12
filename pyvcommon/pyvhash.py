@@ -41,6 +41,10 @@ Repli    = "Replicated"
 PayLoad  = "PayLoad"
 Header   = "header"
 Now      = "now"
+Stamp    = "stamp"
+Iso      = "iso"
+
+datefmt = '%a, %d %b %Y %H:%M:%S'
 
 def DefPayload():
     return {PayLoad : { "Default": "None"}}
@@ -48,10 +52,16 @@ def DefPayload():
 def DefHeader():
     return {Header : str(uuid.uuid1())}
 
-def DefNow():
-    dt = datetime.datetime.now()
-    fdt = dt.strftime('%a, %d %b %Y %H:%M:%S`')
+def DefNow(dt):
+    fdt = dt.strftime(datefmt)
     return {'now' : fdt}
+
+def DefISO(dt):
+    fdt = dt.isoformat()
+    return {'iso' : fdt}
+
+def DefStamp(dt):
+    return {'stamp' : str(dt.timestamp())}
 
 def DefRep():
     return {Repli : 0}
@@ -114,13 +124,26 @@ class BcData():
             self.newdata()
         else:
             raise TypeError("Cannot create class from %s" % type(old_data))
+
         # Add Expected fields:
+        dt = datetime.datetime.now()
         if not PayLoad in self.datax:
             self.datax |= DefPayload()
         if not Header in self.datax:
             self.datax |= DefHeader()
+
+        # This is a lot of datetime variations. The rational is:
+        #   a human readable
+        #   a machine readable and
+        #   an ISO standard date.
+        # This is to assist internationalzation and possible hand count.
+
         if not Now in self.datax:
-            self.datax |= DefNow()
+            self.datax |= DefNow(dt)
+        if not Stamp in self.datax:
+            self.datax |= DefStamp(dt)
+        if not Iso in self.datax:
+            self.datax |= DefISO(dt)
         if not Repli in self.datax:
             self.datax |= DefRep()
 

@@ -1486,7 +1486,8 @@ def get_akey_func(self, strx):
     try:
         self.keyfroot = pyservsup.pickkey(ddd)
     except:
-        print("No keys generated yet.", sys.exc_info()[1])
+        if self.verbose:
+            print("No keys generated yet.", sys.exc_info()[1])
         support.put_exception("no keys yet")
         rrr = [ERR, "No keys yet. Run keygen.", strx[0]]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)

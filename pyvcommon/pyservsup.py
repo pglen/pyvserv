@@ -63,6 +63,7 @@ class   Global_Vars:
         self.verbose = 0
         # where the original script lives
         self._script_home = os.path.abspath(scriptname)
+        #print("script:", self._script_home)
 
         self._dataroot  =   dataroot
         self._passfile  =  "passwd.secret"
@@ -218,7 +219,7 @@ class   FileLock():
         ''' Create the lock file, else just remember the name '''
 
         #if not lockname:
-        #    raise ValuError("Must specify lockfile")
+        #    raise ValueError("Must specify lockfile")
 
         self.lockname = lockname
 
@@ -817,10 +818,10 @@ def pickkey(keydir):
 
     #print("Getting keys", keydir)
     dl = os.listdir(keydir)
-    if dl == 0:
-        print("No keys yet", keydir)
-        raise (Valuerror("No keys generated yet"))
-
+    #print("dl:", dl)
+    if not dl:
+        #print("No keys yet", keydir)
+        raise (ValueError("No keys generated yet"))
     dust = random.randint(0, len(dl)-1)
     eee = os.path.splitext(os.path.basename(dl[dust]))
     #print("picking key", eee[0])

@@ -7,7 +7,7 @@ if sys.version_info[0] < 3:
     sys.exit(1)
 
 import getopt, signal, select, string, time
-import tarfile, subprocess, struct, platform
+import tarfile, subprocess, struct, platform, datetime
 import socket, threading, tracemalloc, inspect, socketserver
 
 import pyvpacker
@@ -372,10 +372,13 @@ def mainfunct():
                 #print("deleted:", rec[1])
                 # Shift one off for deleted values
                 arr = packer.decode_data(rec[2])[0]
-                print("del arr:", arr)
+                #print("del arr:", arr)
             else:
-                arr = packer.decode_data(rec[2])[0]
-                print("arr:", rec)
+                arr = packer.decode_data(rec[1])[0]
+                #print("arr:", arr)
+
+            dd = datetime.datetime.strptime(arr['now'], pyvhash.datefmt)
+            print("header:", arr['header'], arr['now'], dd)
 
         sys.exit()
 

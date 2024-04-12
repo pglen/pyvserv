@@ -501,10 +501,11 @@ def mainfunct():
         print("Script name:     ", __file__)
         print("Exec argv:       ", sys.argv[0])
 
-    pyservsup.pgdebug = conf.pgdebug
+    # Just for testing
+    #pyservsup.pgdebug = conf.pgdebug
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
-    pyservsup.globals.lockfname += "_" + str(conf.port) + "_" + str(conf.host)
+    pyservsup.globals.lockfname += "_" + str(conf.host) +  "_" + str(conf.port)
     pyservsup.globals._softmkdir(pyservsup.globals.myhome)
 
     # Change directory to the data dir
@@ -522,38 +523,44 @@ def mainfunct():
     pyservsup.globals._softmkdir(vd)
 
     if conf.verbose:
+        print("Serve exe path:  ", pyservsup.globals._script_home)
+        print("Data root:       ", pyservsup.globals.myhome)
         print("Pass Dir:        ", pyservsup.globals.passdir)
         print("Key Dir:         ", pyservsup.globals.keydir)
         print("Payload Dir:     ", pyservsup.globals.paydir)
-        print("Lockfile:        ", pyservsup.globals.lockfname)
-        print("Passfile:        ", pyservsup.globals.passfile)
-        print("IDfile:          ", pyservsup.globals.idfile)
+        print("Lock file:       ", pyservsup.globals.lockfname)
+        print("ID file:         ", pyservsup.globals.idfile)
+        #print("Passfile:        ", pyservsup.globals.passfile)
     try:
         keyfroot = pyservsup.pickkey(pyservsup.globals.keydir)
     except:
+        if conf.pgdebug > 4:
+            print("Could pick keys", sys.exc_info())
+        if conf.pgdebug > 5:
+            support.put_exception("pick keys")
+
         #print("No keys generated yet. Please run pyvgenkey.py first.")
         print("Notice: Generating key in", "'" + pyservsup.globals.keydir + "'")
-        exec = os.path.dirname(os.path.split(pyservsup.globals._script_home)[0]) + os.sep
+        exec = os.path.dirname(pyservsup.globals._script_home) + os.sep
         exec += "../pyvtools/pyvgenkey.py"
         try:
-            if conf.pgdebug > 2:
+            if conf.pgdebug > 4:
                 print("Generating keys", exec)
-            # Early out for no script
-            if not os.path.isfile(exec):
-                raise
-            ret = subprocess.Popen([exec, "-q", "-m", pyservsup.globals.myhome])
-        except:
-            try:
-                # Try with full install version
-                #print("Executing with installed version")
+            # Try local
+            if os.path.isfile(exec):
+                ret = subprocess.Popen([exec, "-q", "-m", pyservsup.globals.myhome])
+            else:
+                # Try with full install version ... executable
                 exec = "pyvgenkey"
                 ret = subprocess.Popen([exec, "-q", "-m", pyservsup.globals.myhome])
-            except:
-                print("Could not generate key. Keydir was:", pyservsup.globals.keydir)
-                print("Please try again manually with the 'pvgenkey' utility.")
-
-            print("For added security please generate more keys with 'pyvgenkeys'");
-            #sys.exit(1)
+        except:
+            if conf.pgdebug > 4:
+                print("Could not exec", sys.exc_info())
+            if conf.pgdebug > 5:
+                support.put_exception("generate keys")
+            print("Could not generate key. Keydir was:", pyservsup.globals.keydir)
+            print("Please try again manually with the 'pvgenkey' utility.")
+        print("For added security please generate more keys with 'pyvgenkeys'");
 
     iii = pyservsup.create_read_idfile(pyservsup.globals.idfile)
     if not iii:
