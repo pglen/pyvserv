@@ -75,7 +75,6 @@ optarr = \
     ["c:",  "comm",     "",         None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
-    ["s",   "showkey",  "",         None],      \
     ["l:",  "login",    "admin",    None],      \
     ["s:",  "lpass",    "1234",     None],      \
     ["t",   "lprompt",  0,          None],      \

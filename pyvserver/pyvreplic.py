@@ -378,7 +378,10 @@ def mainfunct():
                 #print("arr:", arr)
 
             dd = datetime.datetime.strptime(arr['now'], pyvhash.datefmt)
-            print("header:", arr['header'], arr['now'], dd)
+            if conf.verbose:
+                print("arr:", arr)
+            else:
+                print("header:", arr['header'], arr['now'], dd)
 
         sys.exit()
 

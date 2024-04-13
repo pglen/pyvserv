@@ -93,19 +93,19 @@ def mainfunct():
     actstr = ["register", "unregister", "cast", "uncast", ]
     act = actstr[random.randint(0, len(actstr)-1)]
 
-    print("Calculating hash ....", end = " "); sys.stdout.flush()
     #ttt = time.time()
     pvh = pyvhash.BcData()
     pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
     pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
     pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
+    # We mark this as 'test' so it can stay in the chain, if desired
+    pvh.addpayload({"Test": "test" ,})
 
-    #if conf.verbose:
-    #    print(pvh.datax)
 
     if conf.putkey:
         pvh.datax['header'] = conf.putkey
 
+    print("Calculating hash ....", end = " "); sys.stdout.flush()
     pvh.hasharr();    pvh.powarr()
     print("OK")
 
@@ -114,8 +114,10 @@ def mainfunct():
     elif not pvh.checkpow():
         print("Error on POW payload .. retrying ...")
 
-    #if conf.verbose:
-    #    print(pvh.datax)
+    if conf.verbose:
+        print(pvh.datax)
+        #!/usr/bin/env python3
+
     #print("Chain cnt", pvh.cnt)
     #print("chain %.3fms" % ((time.time() - ttt) * 1000) )
 

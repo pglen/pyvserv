@@ -62,7 +62,7 @@ class   Global_Vars:
 
         self.verbose = 0
         # where the original script lives
-        self._script_home = os.path.abspath(scriptname)
+        self.script_home = os.path.abspath(scriptname)
         #print("script:", self._script_home)
 
         self._dataroot  =   dataroot
@@ -130,6 +130,9 @@ class   Global_Vars:
         #globals = self
         pass
 
+    def softmkdir(self, ddd):
+        self._softmkdir(ddd)
+
     # Soft make dir
     def _softmkdir(self, ddd, fff="data"):
 
@@ -150,6 +153,9 @@ class   Global_Vars:
         #    print("Script home:     ", self._script_home)
         if conf.pgdebug:
             print ("Debug level:     ", conf.pgdebug)
+
+        globals.siteid = create_read_idfile \
+                        (globals.idfile)
 
 # ------------------------------------------------------------------------
 # This will create the server's UUID

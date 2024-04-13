@@ -52,10 +52,9 @@ def dupoptcheck(optarr):
         found = False
         for cc in optdup.keys():
             if optdup[cc] > 1:
-                #print("founddup", cc)
-                found = True
+                #print("found dup", cc)
+                found = cc
         return found
-
 
 def phelp():
 
@@ -95,8 +94,9 @@ class Config:
 
     def __init__(self, optarr):
 
-        if dupoptcheck(optarr):
-            raise ValueError("Duplicate options in comline.")
+        ddd = dupoptcheck(optarr)
+        if ddd:
+            raise ValueError("Duplicate options on comline.", ddd)
 
         global glsoptarr
         glsoptarr = optarr
@@ -213,8 +213,9 @@ class ConfigLong:
 
     def __init__(self, optarr):
 
-        if dupoptcheck(optarr):
-            raise ValueError("Duplicate options in comline.")
+        ddd = dupoptcheck(optarr)
+        if ddd:
+            raise ValueError("Duplicate options on comline.", ddd)
 
         global gloptarr
         gloptarr = optarr

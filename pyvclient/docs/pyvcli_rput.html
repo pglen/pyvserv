@@ -121,19 +121,19 @@ def mainfunct():
     actstr = [&#34;register&#34;, &#34;unregister&#34;, &#34;cast&#34;, &#34;uncast&#34;, ]
     act = actstr[random.randint(0, len(actstr)-1)]
 
-    print(&#34;Calculating hash ....&#34;, end = &#34; &#34;); sys.stdout.flush()
     #ttt = time.time()
     pvh = pyvhash.BcData()
     pvh.addpayload({&#34;Vote&#34;: random.randint(0, 10), &#34;UID&#34;:  str(uuid.uuid1()), })
     pvh.addpayload({&#34;SubVote&#34;: random.randint(0, 10), &#34;TUID&#34;:  str(uuid.uuid1()), })
     pvh.addpayload({&#34;Action&#34;: act , &#34;RUID&#34;:  str(uuid.uuid1()), })
+    # We mark this as &#39;test&#39; so it can stay in the chain, if desired
+    pvh.addpayload({&#34;Test&#34;: &#34;test&#34; ,})
 
-    #if conf.verbose:
-    #    print(pvh.datax)
 
     if conf.putkey:
         pvh.datax[&#39;header&#39;] = conf.putkey
 
+    print(&#34;Calculating hash ....&#34;, end = &#34; &#34;); sys.stdout.flush()
     pvh.hasharr();    pvh.powarr()
     print(&#34;OK&#34;)
 
@@ -142,8 +142,10 @@ def mainfunct():
     elif not pvh.checkpow():
         print(&#34;Error on POW payload .. retrying ...&#34;)
 
-    #if conf.verbose:
-    #    print(pvh.datax)
+    if conf.verbose:
+        print(pvh.datax)
+        #!/usr/bin/env python3
+
     #print(&#34;Chain cnt&#34;, pvh.cnt)
     #print(&#34;chain %.3fms&#34; % ((time.time() - ttt) * 1000) )
 
@@ -253,19 +255,19 @@ if __name__ == &#39;__main__&#39;:
     actstr = [&#34;register&#34;, &#34;unregister&#34;, &#34;cast&#34;, &#34;uncast&#34;, ]
     act = actstr[random.randint(0, len(actstr)-1)]
 
-    print(&#34;Calculating hash ....&#34;, end = &#34; &#34;); sys.stdout.flush()
     #ttt = time.time()
     pvh = pyvhash.BcData()
     pvh.addpayload({&#34;Vote&#34;: random.randint(0, 10), &#34;UID&#34;:  str(uuid.uuid1()), })
     pvh.addpayload({&#34;SubVote&#34;: random.randint(0, 10), &#34;TUID&#34;:  str(uuid.uuid1()), })
     pvh.addpayload({&#34;Action&#34;: act , &#34;RUID&#34;:  str(uuid.uuid1()), })
+    # We mark this as &#39;test&#39; so it can stay in the chain, if desired
+    pvh.addpayload({&#34;Test&#34;: &#34;test&#34; ,})
 
-    #if conf.verbose:
-    #    print(pvh.datax)
 
     if conf.putkey:
         pvh.datax[&#39;header&#39;] = conf.putkey
 
+    print(&#34;Calculating hash ....&#34;, end = &#34; &#34;); sys.stdout.flush()
     pvh.hasharr();    pvh.powarr()
     print(&#34;OK&#34;)
 
@@ -274,8 +276,10 @@ if __name__ == &#39;__main__&#39;:
     elif not pvh.checkpow():
         print(&#34;Error on POW payload .. retrying ...&#34;)
 
-    #if conf.verbose:
-    #    print(pvh.datax)
+    if conf.verbose:
+        print(pvh.datax)
+        #!/usr/bin/env python3
+
     #print(&#34;Chain cnt&#34;, pvh.cnt)
     #print(&#34;chain %.3fms&#34; % ((time.time() - ttt) * 1000) )
 

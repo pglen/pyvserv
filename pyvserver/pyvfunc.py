@@ -52,6 +52,7 @@ ERR = "ERR"
 #pgdebug = 0
 
 def _wr(strx):
+    ''' Wrap string with single quotes '''
     return "'" + strx + "'"
 
 def _print_handles(self):
@@ -130,7 +131,7 @@ def get_exit_func(self, strx):
 
     # Clean up logouts
     if self.resp.user:
-        pyservsup.shared_logons.deldat(self.resp.user)
+        pyservsup.SHARED_LOGINS.deldat(self.resp.user)
 
     if pyservsup.globals.conf.pglog > 0:
         stry = "Quit", _wr(self.resp.user), str(self.resp.client_address)
@@ -240,9 +241,6 @@ def get_throt_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 1:
         print( "get_throt_func()", strx)
 
-    ret = pyservsup.gl_passwd.perms(self.resp.user)
-    #print("pass 2 %.3f" % ((time.time() - ttt) * 1000) )
-
     if len(strx) < 2:
         if pyservsup.gl_throttle.getflag():
             boolstr = "ON"
@@ -252,6 +250,7 @@ def get_throt_func(self, strx):
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     if not int(ret[2]) & pyservsup.PERM_ADMIN:
         rrr = [ERR, "Only admin can control throttle"]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
@@ -1175,30 +1174,41 @@ def get_ihost_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    if len(strx) < 3:
-        response = [ERR, "Must specify host:port.", strx[0]]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
+    if not int(ret[2]) & pyservsup.PERM_ADMIN:
+        rrr = [ERR, "Only admin can control / view ihosts"]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
-    if strx[2].find(":") < 0:
-        response = [ERR, "Entry must be in host:port format.", strx[0]]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
+    if strx[1] != 'list':
+        if len(strx) < 3:
+            response = [ERR, "Must specify host:port.", strx[0]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
 
-    #print(strx)
+        if strx[2].find(":") < 0:
+            response = [ERR, "Entry must be in host:port format.", strx[2]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
     ihname = "ihosts.pydb"
+    print("ihost:", os.path.realpath(ihname))
     repcore = twincore.TwinCore(ihname)
+    #repcore.pgdebug = 10
 
     if strx[1] == 'add':
         ddd = self.pb.encode_data("", strx[2])
         rec = repcore.retrieve(strx[2])
+        print("rec:", rec)
         if rec:
             if rec[0][0].decode() == strx[2]:
-                #print("Identical", rec[0][0])
-                response = [ERR, "This entry is already in the list.", strx[2]]
+                print("Identical", rec[0][0])
+                response = [ERR, "Duplicate entry.", strx[2]]
                 self.resp.datahandler.putencode(response, self.resp.ekey)
                 return
-        ret = repcore.save_data(strx[2], ddd, True)
+
+        ret = repcore.save_data(strx[2], ddd)
+        print("repcore save:", ret, ddd)
         response = [OK, "Added replication host:port.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -1396,7 +1406,7 @@ def get_lout_func(self, strx):
         print("logout", self.resp.user)
 
     if resp.user:
-        pyservsup.shared_logons.deldat(resp.user)
+        pyservsup.SHARED_LOGINS.deldat(resp.user)
 
     self.resp.user = ""
 
@@ -1488,7 +1498,10 @@ def get_akey_func(self, strx):
     except:
         if self.verbose:
             print("No keys generated yet.", sys.exc_info()[1])
-        support.put_exception("no keys yet")
+
+        if self.pgdebug > 2:
+            support.put_exception("no keys yet")
+
         rrr = [ERR, "No keys yet. Run keygen.", strx[0]]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
@@ -1637,7 +1650,7 @@ def get_pass_func(self, strx):
         # Anounce it to global stats
         if self.resp.user:
             logttt = time.time()
-            pyservsup.shared_logons.setdat(self.resp.user, logttt)
+            pyservsup.SHARED_LOGINS.setdat(self.resp.user, logttt)
 
         rrr = [OK,  "Authenticated.", self.resp.user]
         retval = False
