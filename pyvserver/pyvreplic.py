@@ -56,6 +56,22 @@ MAX_DBSIZE = 20                 # Size of DB when vacuum
 class Blank():
     ''' For conf '''
 
+def cutid(strx):
+    return strx[:13] + "..." +strx[-8:]
+
+def between(val, mmm, xxx):
+    if val >= mmm and val <= xxx:
+        return True
+    else:
+        return False
+
+def print_handles(strx = ""):
+
+    ''' Debug helper '''
+    open_file_handles = os.listdir('/proc/self/fd')
+    print(strx, 'open file handles: ' + ', '.join(map(str, open_file_handles)))
+
+
 class Replicator():
 
     def __init__(self, verbose = 0, pgdebug = 0):
@@ -65,12 +81,8 @@ class Replicator():
         self.dbfarr = []
         self.dbdarr = []
         self.hostdarr = []
-
-    def _print_handles(self):
-
-        ''' Debug helper '''
-        open_file_handles = os.listdir('/proc/self/fd')
-        print('open file handles: ' + ', '.join(map(str, open_file_handles)))
+        self.hfname = os.path.join(pyservsup.globals.myhome, IHOST_FNAME)
+        self.runcount = 0
 
     def rep_run(self):
 
@@ -88,6 +100,7 @@ class Replicator():
                 if not os.path.isfile(fname):
                     continue
                 self.scandir(aa)
+            self.runcount += 1
             time.sleep(conf.timedel)
 
     def scandir(self, dirname):
@@ -125,30 +138,103 @@ class Replicator():
             if conf.pgdebug > 9:
                 print("rec:", rec)
             arr = self.packer.decode_data(rec[1])[0]
-            #if conf.pgdebug > 7:
-            #    print("head:", rec[0], "arr:", arr)
 
-            self.create_perhost(dirname, arr)
+            if conf.pgdebug > 7:
+                print("head:", rec[0], "arr:", arr)
+
+            if not int(arr['processed']):
+                #print("Processed:", arr['processed'])
+                self.create_perhost(dirname, arr)
+
+                # Save it back as relicate stage 1
+                arr['processed'] = "%05d" % 1
+                arr2 = self.packer.encode_data("", arr)
+                repcore.save_data(rec[0], arr2, replace=True)
+
+        self.process_statedata(dirname)
+        del repcore
+
+        if  self.runcount and self.runcount % 10 == 0:
+            self.depclean(dirname)
+
+    def depclean(self, dirname):
+
+        #print("Exec dependency cleanup")
+
+        fname = os.path.join(pyservsup.globals.chaindir, dirname)
+        rfile = os.path.join(fname, REPLIC_FNAME)
+        repcore = twinchain.TwinCore(rfile)
+        dbsize = repcore.getdbsize()
+
+        stname = os.path.join(pyservsup.globals.chaindir, dirname,  STATE_FNAME)
+        statecore = twincore.TwinCore(stname)
+        staterec = statecore.getdbsize()
+        canclean = []
+        for bb in range(dbsize):
+            try:
+                rec = repcore.get_rec(bb)
+            except:
+                continue
+            if not rec:
+                continue   # Deleted record
+            rarr = self.packer.decode_data(rec[1])[0]
+
+            found = False
+            for cc in range(staterec):
+                try:
+                    srec = statecore.get_rec(cc)
+                except:
+                    pass
+                if not srec:
+                    continue        # Deleted record
+                sarr = self.packer.decode_data(srec[1])[0]
+                #print("cleanup", rarr['header'], sarr['header'])
+                if rarr['header'] == sarr['header']:
+                    found = True
+            if not found:
+                #print("Can clean:", rarr['header'])
+                canclean.append(bb)
+
+        for dd in canclean:
+            repcore.del_rec(dd)
+
+        if dbsize > MAX_DBSIZE:
+            if self.pgdebug > 2:
+                print("vacuuming repl", dbsize)
+            if self.pgdebug > 5:
+                ttt = time.time()
+            repcore.vacuum()
+            if self.pgdebug > 5:
+                print("db vacuum %.3f" % ((time.time() - ttt) * 1000) )
+
+        if staterec > MAX_DBSIZE:
+            if self.pgdebug > 2:
+                print("vacuuming state", staterec)
+            if self.pgdebug > 5:
+                ttt = time.time()
+            statecore.vacuum()
+            if self.pgdebug > 5:
+                print("db vacuum %.3f" % ((time.time() - ttt) * 1000) )
+
+        del repcore
+        del statecore
+
+
 
     def create_perhost(self, dirname, arr):
 
         ''' Replicator state data  on a per host basis '''
 
         ret = 0
-        if self.pgdebug > 3:
-            print("host rep", arr['header'])
+        #if self.pgdebug > 3:
+        #    print("host rep", arr['header'])
         #if self.pgdebug > 5:
         #    print("host rep data", arr)
 
-        hfname = os.path.join(pyservsup.globals.myhome, IHOST_FNAME)
-        stname = os.path.join(pyservsup.globals.chaindir, dirname,  STATE_FNAME)
-        #if self.pgdebug > 3:
-        #    print("host  data fname:", hfname)
-        #    print("state data fname:", stname )
-
-        hostcore = twincore.TwinCore(hfname)
+        hostcore = twincore.TwinCore(self.hfname)
         hostrec = hostcore.getdbsize()
 
+        stname = os.path.join(pyservsup.globals.chaindir, dirname,  STATE_FNAME)
         statecore = twincore.TwinCore(stname)
         staterec = statecore.getdbsize()
 
@@ -167,219 +253,254 @@ class Replicator():
 
             # Create state record if none
             comboname = arr['header'] + "_" + harr
-            #print("Comboname", comboname)
             exists = statecore.retrieve(comboname)
             if not exists:
+                if self.pgdebug > 4:
+                    print("Create rec", comboname)
+                # Create state record
                 ttt = time.time()
                 dd = datetime.datetime.fromtimestamp(ttt)
                 fdt = dd.strftime(pyvhash.datefmt)
                 idt = dd.isoformat()
-
-                xarr = { "header" : arr['header'], "Record" : comboname,
+                xarr = {
+                        "header" : arr['header'], "Record" : comboname,
                         "host" : harr,
                         "stamp": ttt,  "iso": idt, "LastAttempt": fdt,
                         "orgnow" : arr['now'],
+                        "orgstamp" : arr['stamp'],
                         "count1": "00000", "count2" : "00000",
                         "count3" : "00000",
+                        "status" : "00000",
                        }
-
                 #print("xarr:", xarr)
                 xarr2 = self.packer.encode_data("", xarr)
                 #print("xarr2:", xarr2)
                 statecore.save_data(comboname, xarr2)
-                exists = statecore.retrieve(comboname)
+        del statecore
+        del hostcore
 
+    def process_statedata(self, dirname):
+
+        ''' Process states for this data '''
+
+        stname = os.path.join(pyservsup.globals.chaindir, dirname,  STATE_FNAME)
+        statecore = twincore.TwinCore(stname)
+        staterec = statecore.getdbsize()
+
+        remsced  = []
+
+        for aa in range(staterec):
+            rec = statecore.get_rec(aa)
+            if not rec:
+                continue
             # Process it
-            dec =  self.packer.decode_data(exists[0][1])[0]
-            if self.pgdebug > 6:
-                print("Processing:", dec)
-            elif self.pgdebug > 4:
-                print("Processing", dec['header'], dec['host'])
+            dec =  self.packer.decode_data(rec[1])[0]
 
-            # Save attempt date
+            # if it succeeded already, do not replicate, remove from database
+            if int(dec['status']) != 0:
+                if self.pgdebug > 1:
+                    print("Replicated already", dec['host'], dec['header'])
+                remsced.append(aa)
+                continue
+
+            if self.pgdebug > 6:
+                print("State data:", dec)
+                #print("Sdata:", dec['header'], dec['host'], dec['stamp'])
+            elif self.pgdebug > 4:
+                print("State data:", dec['header'], dec['host'])
+
+            # See if we are scheduled to replicate
+            # We have 3 scedules, much like the email servers
+            # First:
+            #   try  3 times (6 sec)
+            #
+            # Second:
+            #   try 3 times every 4 hours
+            #
+            # Third:
+            #   if attemp period period larger than a day, every 8 hours
+            #
+            # Removal:
+            #   if attemp period period larger 4 days, stop trying ...
+            #   .. and delete record with a note in replic log
+            #
+            # The dev version will do:
+            #            Stage1:    0-6
+            #            Stage2:    7-149 timediff % 14 + 6 sec
+            #            Stage_3:   150-199 timediff % 28
+            #            remove:    >= 200
+            # The production version will do:
+            #            Stage1:    0-6
+            #            Stage2:    60*60*4
+            #            Stage_3:   60*60*24
+            #           remove >    60*60*24*4
+
+            tdiff = int(time.time() - float(dec['orgstamp']))
+            tdiff = (tdiff //2) * 2 # Make it even
+
+            #if conf.pgdebug > 2:
+            #    print("Scedule:", tdiff, dec['header'], dec['host'], "count1:", dec['count1'])
+
+            #print(time.time(), dec['stamp'])
+            #if conf.pgdebug > 2:
+            #    print("tdiff", tdiff)
+
+            doit = False
+            if tdiff < 6:
+                #if between(tdiff, 0, 5):
+                doit = True
+            elif tdiff < 100:
+                if tdiff % 14 == 0:
+                    if between(tdiff, tdiff, tdiff + 6):
+                        doit = True
+            elif tdiff < 150:
+                 if tdiff % 28 == 0:
+                    if between(tdiff, tdiff, tdiff + 6):
+                            doit = True
+            else:
+                if conf.loglev > 0:
+                    pysyslog.repliclog("Giving up:", dec['host'], dirname, dec['header'])
+                remsced.append(aa)
+
+            if not doit:
+                continue
+
+            if conf.verbose:
+                print("Attempt:", tdiff, dec['header'], dec['host'], "count1:", dec['count1'])
+
+            # Try again ... Save attempt date
             ttt = time.time()
             dd = datetime.datetime.fromtimestamp(ttt)
             fdt = dd.strftime(pyvhash.datefmt)
             idt = dd.isoformat()
 
-            dec['stamp'] = ttt
-            dec["iso"] =  idt
+            dec['stamp'] = ttt;  dec["iso"] =  idt
             dec["LastAttempt"]= fdt
+            # Increment try count
+            dec["count1"] = "%05d" % (int(dec['count1']) + 1)
+
+            # Make delivery attempt
+            ret = self.replicate(dirname, dec)
+            #print("Rep success", ret)
+            if ret:
+                # mark success
+                dec["status"] =  "%05d" % (int(dec['status']) + 1)
+
             xarr3 = self.packer.encode_data("", dec)
-            #print("xarr2:", xarr2)
-            statecore.save_data(comboname, xarr3)
+            statecore.save_data(rec[0], xarr3, replace=True)
+
+        for bb in remsced:
+            #print("removal sceduled", aa)
+            statecore.del_rec(bb)
 
         del statecore
-        del hostcore
+        #print_handles()
 
-    def action(self, repcore):
+    def replicate(self, dirname, dec):
 
-        ''' Scan db and create needed rep action entries '''
+        ''' Replicate this one host in the state record '''
 
-        dbsize = repcore.getdbsize()
-        # Increment count:
-        cntstr2 = "00000"
-        cntstr3 = "00000"
-        cntstr = "%05d" % (int(arr['count1']) + 1)
-        arr['count1'] = cntstr
-        #print("arr:", arr)
-        if  not int(arr['count2']):
-            #if  int(cntstr) > 1  and int(cntstr) < 4:
+        #if self.pgdebug > 2:
+        #    print("replicate to:", dec['header'])
+        #    print("replicate host:", dec['host'])
 
-            # condition for transmit try
-            tryit =  int(arr['count3'])  > 0 and int(cntstr) == 6
-            tryit |= int(arr['count3']) == 0 and int(cntstr) == 1
-
-            if tryit:
-                wastrans = True
-                success = self.replicate(dirname, rec[0])
-                if success:
-                    if self.pgdebug > 5:
-                        print("Succeeded", rec[0])
-                     # Increment success count:
-                    cntstr2 = "%05d" % (int(arr['count2']) + 1)
-                    arr['count2'] = cntstr2
-                else:
-                    if self.pgdebug > 0:
-                        print("Failed", rec[0])
-                     # Increment failure count:
-                    cntstr3 = "%05d" % (int(arr['count3']) + 1)
-                    arr['count3'] = cntstr3
-                    arr['count1'] = 0
-        else:
-            if self.pgdebug > 2:
-                print("Marked done", arr['header'])
-
-        strx = str(self.packer.encode_data("", arr))
-        #print("Save rep", rec[0], strx)
-        #ttt = time.time()
-        ret = repcore.save_data(rec[0], strx, True)
-        #print("db save %.3f" % ((time.time() - ttt) * 1000) )
-
-        # Failed? Keep it for a while
-        delok = 0
-        if int(cntstr3) == 0:
-            if int(cntstr) > 6:
-                #print("del rec:", rec[0])
-                delok = True
-        else:
-            if int(cntstr3) > 3:
-                delok = True
-        if delok:
-            ret = repcore.del_rec_bykey(rec[0])
-
-        if dbsize > MAX_DBSIZE:
-
-            if self.pgdebug > 2:
-                print("vacuuming", dbsize)
-            if self.pgdebug > 5:
-                ttt = time.time()
-            repcore.vacuum()
-            if self.pgdebug > 5:
-                print("db vacuum %.3f" % ((time.time() - ttt) * 1000) )
-
-        del repcore
-        if wastrans:
-            if self.pgdebug > 5:
-                self._print_handles()
-
-    def replicate(self, dirname, recx):
-
-        ''' Replicate this to all the hosts in the list. '''
-
-        if self.pgdebug > 2:
-            print("replicate", dirname, recx)
-        if type(recx) == type(b""):
-            recx = recx.decode()
-        ret = 0
+        ret = 0; rec = []
         fname = os.path.join(pyservsup.globals.chaindir, dirname)
         dfname = os.path.join(fname, DATA_FNAME)
-
-        #print("dfname: ", dfname)
-        #if not os.path.isfile(dfname):
-        #    return
-        #datacore = self.softcreate(self.dbdarr, dfname, twinchain.TwinChain)
         datacore = twinchain.TwinChain(dfname)
-
         #print("dbsize", datacore.getdbsize())
-        #print("recx", recx)
         try:
-            rec = datacore.get_data_bykey(recx)
+            rec = datacore.get_data_bykey(dec['header'])
         except:
-            print("Replicate: cannot get record", sys.exc_info)
-        if not rec:
-            #print("Empty record on replicate")
-            return ret
-        if self.pgdebug > 8:
-            print("rec", rec)
-        #print("rex", rec[0][1][1])
-        arr = self.packer.decode_data(rec[0][1][1])
+            print("Replicate: cannot get record", sys.exc_info())
 
-        # Decorate 'replicated' variable
-        try:
-            arr[0]['Replicated'] += 1
-        except:
-            pass
-        #print(arr)
+        if not rec:
+            print("Empty record on replicate.")
+            return ret
 
         del datacore
 
+        #if self.pgdebug > 8:
+        #    print("rec", rec)
+
+        arr = self.packer.decode_data(rec[0][1][1])
+        # Decorate 'replicated' variable
+
+        if arr[0]['Replicated']:
+            print("This entry is replicated already", dec['header'])
+            return True
+
+        arr[0]['Replicated'] = arr[0].get("Replicated") + 1
+        if self.pgdebug > 9:
+            print("payload arr", arr)
         pvh = pyvhash.BcData(arr[0])
-        #pvh.hasharr(); pvh.powarr()
-        if self.pgdebug > 5:
-            print("pyvhash", pvh.datax, pvh.checkhash(), pvh.checkpow())
+        #if self.pgdebug > 7:
+        #    print("Checks:", pvh.checkhash(), pvh.checkpow())
 
+        #if self.pgdebug > 5:
+        #    print("pyvhash", pvh.datax, pvh.checkhash(), pvh.checkpow())
 
-            ret = self.transmit(hrec[0], dirname, pvh.datax)
-        del hostcore
+        ret = self.transmit(dirname, dec, pvh.datax)
+
         return ret
 
-    def transmit(self, hostport, dirname, data):
+
+    def transmit(self, dirname, dec, data):
 
         ''' Transmit to one particular host, Return True for success '''
 
-        if self.pgdebug > 0:
-            print("Transmitting:", hostport, dirname, data['header'])
+        if conf.loglev > 1:
+            pysyslog.repliclog("Try:", dec['host'], dirname, data['header'])
 
-        hp = hostport.decode().split(":")
-        ret = 0
+        hostx, portx = dec['host'].split(":")
+
+        #if self.pgdebug > 2:
+        #    print("Transmitting:", hostx, portx, dirname, data['header'])
+
+        ret = False
         hand = pyclisup.CliSup()
         try:
-            respc = hand.connect(hp[0], int(hp[1]))
+            respc = hand.connect(hostx, int(portx))
         except:
-            print( "Cannot connect to:", hp, sys.exc_info()[1])
+            errx = str(sys.exc_info()[1]).split(']')[1]
+
+            if self.pgdebug > 1:
+                print( "Cannot connect to:", dec['host'], errx)
+
             # Failure, log it
-            pysyslog.repliclog("Cannot Connect:", hostport.decode(), dirname, data['header'])
-            return False
+            if conf.loglev > 1:
+                pysyslog.repliclog("Cannot Connect:", dec['host'], errx)
+            return ret
 
         confx = Blank()
         hand.start_session(confx)
         #print(confx.sess_key[:24])
-        cresp = hand.client(["user", "admin"], confx.sess_key)
+        cresp = hand.login("admin", "1234", confx)
         if self.pgdebug > 5:
-            print ("Server user respo:", cresp)
-        cresp = hand.client(["pass", "1234"], confx.sess_key)
-        if self.pgdebug > 5:
-            print ("Server pass resp:", cresp)
+            print ("Server logon resp:", cresp)
         if cresp[0]  != "OK":
-            print("Error on connecting, invalid pass")
+            print("Error logging in", cresp)
+            if conf.loglev > 1:
+                pysyslog.repliclog("Fail:", dec['host'], "Error on logging in")
             cresp = hand.client(["quit"], confx.sess_key, False)
             hand.close()
             return ret
         cresp = hand.client(["rput", dirname, data] , confx.sess_key, False)
         if cresp[0]  != "OK":
-            print("rput ERR Resp:", cresp)
+            print("rput error resp:", cresp)
+            if conf.loglev > 1:
+                pysyslog.repliclog("Fail:", dec['host'], "Duplicate record.",)
             cresp = hand.client(["quit"], confx.sess_key, False)
             hand.close()
             return ret
-        if self.pgdebug > 2:
-            print ("Server rput resp:", cresp)
         cresp = hand.client(["quit"], confx.sess_key, False)
-        #print ("Server quit resp:", cresp)
         hand.close()
+        if self.pgdebug > 2:
+            print("Success on transmit", dec['host'])
 
         # Success, log it
-        pysyslog.repliclog("Replicated", hostport.decode(), dirname, data['header'])
+        if conf.loglev > 1:
+            pysyslog.repliclog("OK:", dec['host'], cutid(data['header']))
 
         # Success, mark record
         ret = True
@@ -428,7 +549,9 @@ optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
 optarr.append ( ["m:",  "dumpdata=", "kind",  "",
                         None, "Dump replicator data for 'kind'"] )
 optarr.append ( ["t:",  "time=", "timedel",  2,
-                        None, "Time delay between replications."] )
+                        None, "Time delay between replications"] )
+optarr.append ( ["l:",  "loglevel=", "loglev",  0,
+                        None, "Log level for replicator"] )
 optarr += comline.optarrlong
 # Replace help string on port
 for aa in range(len(optarr)):
@@ -475,7 +598,8 @@ def mainfunct():
     if conf.verbose:
         print("Started replicator ... ")
 
-    pysyslog.repliclog("Replicator started")
+    if conf.loglev:
+        pysyslog.repliclog("Replicator started")
 
     repl = Replicator(conf.verbose, conf.pgdebug)
     repl.rep_run()

@@ -201,12 +201,12 @@ def phelplong():
 
 # option [:], long_option[=],  var_name,   initial_value, function, helpstr
 optarrlong = [\
-    ["d:",  "debug=",  "pgdebug",  0,      None,       "Debug level 0-10" ], \
-    ["p:",  "port=",   "port",     6666,   None,       "Listen on port"],    \
-    ["v",   "verbose", "verbose",  0,      None,       "Verbose. Show more info."],           \
-    ["q",   "quiet",   "quiet",    0,      None,       "Quiet. Show less info."],             \
-    ["V",   "version", "version",  None,   pversion,   "Print Version string"],     \
-    ["h",   "help",    "help",     None,   phelplong,  "Show Help. (this screen)"]          \
+    ["d:",  "debug=",  "pgdebug",  0,      None,       "Debug level 0-10" ],
+    ["p:",  "port=",   "port",     6666,   None,       "Listen on port"],
+    ["v",   "verbose", "verbose",  0,      None,       "Verbose. Show more info"],
+    ["q",   "quiet",   "quiet",    0,      None,       "Quiet. Show less info"],
+    ["V",   "version", "version",  None,   pversion,   "Print Version string"],
+    ["h",   "help",    "help",     None,   phelplong,  "Show Help. (this screen)"]
     ]
 
 class ConfigLong:

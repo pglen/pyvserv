@@ -52,6 +52,9 @@ freshdata:
 cleanall:
 	@rm -rf ~/pyvserver/*
 
+cleanalt:
+	@rm -rf ~/pyvserver_alt/*
+
 cleankeys:
 	@rm -rf ~/pyvserver/keys/*
 	@rm -rf ~/pyvserver/private/*

@@ -18,8 +18,9 @@
 all:
 	@echo Targets: clean cleanpayload cleandata docs
 
+# This is used in replication testing
 cleanalt:
-	@rm -rf ~/pyvserver_alter/
+	@rm -rf ~/pyvserver_alt/
 
 cleanall:
 	@rm -rf ~/pyvserver/

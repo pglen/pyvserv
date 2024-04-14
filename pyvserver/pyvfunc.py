@@ -1126,7 +1126,7 @@ def get_rput_func(self, strx):
                 'header' : strx[2]['header'],
                 'now' : strx[2]['now'], 'iso' : strx[2]['iso'],
                 'stamp' : strx[2]['stamp'],
-                "processed" : 0,
+                "processed" : "00000",
                 }
 
         if self.pgdebug > 3:
