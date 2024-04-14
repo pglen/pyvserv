@@ -47,6 +47,7 @@ def phelp():
     print( "              -u user   - User Name; default: 'admin'")
     print( "              -l pass   - Password; default: '1234' (!! for tests only !!)")
     print( "              -t        - Prompt for password.")
+    print( "              -f        - Force, No prompt for demo.")
     print( "              -h        - Help (this screen)")
     print( "The user will be prompted for confirmation if demosystem is created.")
     sys.exit(0)
@@ -64,8 +65,9 @@ optarr = \
     ["u:",  "userx",    "admin",    None],      \
     ["l:",  "passx",    "1234",     None],      \
     ["t",   "prompt",    0,         None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
+    ["f",   "noprompt",  0,         None],      \
+    ["V",   None,        None,      pversion],  \
+    ["h",   None,        None,      phelp]      \
 
 conf = comline.Config(optarr)
 conf.sess_key = ""
@@ -104,13 +106,15 @@ def    mainfunct():
         conf.passx =  strx
 
     if conf.passx == "1234":
-        print("This creates credentials for a demo / test system.")
-        print("Are you sure? (y/N) ", end = ""); sys.stdout.flush()
-        sss = input().strip().lower()
-        #print(sss)
-        if sss != "y" and sss != "yes":
-            print("You may use the -t option for password prompt. Exiting ...")
-            sys.exit()
+
+        if not conf.noprompt:
+            print("This creates credentials for a demo / test system.")
+            print("Are you sure? (y/N) ", end = ""); sys.stdout.flush()
+            sss = input().strip().lower()
+            #print(sss)
+            if sss != "y" and sss != "yes":
+                print("You may use the -t option for password prompt. Exiting ...")
+                sys.exit()
 
     if len(args) == 0:
         ip = '127.0.0.1'

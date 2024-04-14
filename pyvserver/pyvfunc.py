@@ -1120,9 +1120,15 @@ def get_rput_func(self, strx):
     # if it is not replicated already, add replicate request
     if not strx[2]["Replicated"]:
         # Prepare data. Do strings so it can be re-written in place
-        rrr = {'count1': "00000", 'count2' : "00000",
-                        'count3' : "00000",  'header' : strx[2]['header'],
-                            'now' : strx[2]['now'],}
+        rrr = {
+                # Sun 14.Apr.2024 removed counts, shifted to state data
+                #'count1': "00000", 'count2' : "00000", 'count3' : "00000",
+                'header' : strx[2]['header'],
+                'now' : strx[2]['now'], 'iso' : strx[2]['iso'],
+                'stamp' : strx[2]['stamp'],
+                "processed" : 0,
+                }
+
         if self.pgdebug > 3:
             print("replic req", rrr)
 
@@ -1191,24 +1197,26 @@ def get_ihost_func(self, strx):
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
 
-    ihname = "ihosts.pydb"
-    print("ihost:", os.path.realpath(ihname))
+    ihname = os.path.realpath("ihosts.pydb")
+    if self.pgdebug > 2:
+        print("ihost:", ihname)
     repcore = twincore.TwinCore(ihname)
     #repcore.pgdebug = 10
 
     if strx[1] == 'add':
         ddd = self.pb.encode_data("", strx[2])
         rec = repcore.retrieve(strx[2])
-        print("rec:", rec)
+        if self.pgdebug > 9:
+            print("rec:", rec)
         if rec:
             if rec[0][0].decode() == strx[2]:
-                print("Identical", rec[0][0])
+                #print("Identical", rec[0][0])
                 response = [ERR, "Duplicate entry.", strx[2]]
                 self.resp.datahandler.putencode(response, self.resp.ekey)
                 return
-
         ret = repcore.save_data(strx[2], ddd)
-        print("repcore save:", ret, ddd)
+        if self.pgdebug > 8:
+            print("repcore save:", ret, ddd)
         response = [OK, "Added replication host:port.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -1218,8 +1226,9 @@ def get_ihost_func(self, strx):
             response = [ERR, "This entry is not in the list.", strx[2]]
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
+        if self.pgdebug > 4:
+            print("delete ihost rec:", strx[2])
         ret = repcore.del_rec_bykey(strx[2])
-        #print("del ret", ret, strx[2])
         response = [OK, "Deleted replication host:port.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 # Too many misc crappers like dyn properties
-
 # pylint: disable=E1101
 # pylint: disable=C0103
 # pylint: disable=C0413
