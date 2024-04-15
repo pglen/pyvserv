@@ -170,7 +170,8 @@ def phelplong():
         pad  = " " * (8 - len(longop))
         pad2 = " " * (8 - len(arg))
 
-        print("       ", "-" + aa[0][0], " ", "--" + longop, pad, arg, pad2," - ", aa[5])
+        print("   ", "-" + aa[0][0], " ",
+                        "--" + longop, pad, arg, pad2,"- ", aa[5])
     if glfoot:
         print(glfoot)
 
@@ -201,13 +202,13 @@ def phelplong():
 
 # option [:], long_option[=],  var_name,   initial_value, function, helpstr
 optarrlong = [\
-    ["d:",  "debug=",  "pgdebug",  0,      None,       "Debug level 0-10" ],
-    ["p:",  "port=",   "port",     6666,   None,       "Listen on port"],
-    ["v",   "verbose", "verbose",  0,      None,       "Verbose. Show more info"],
-    ["q",   "quiet",   "quiet",    0,      None,       "Quiet. Show less info"],
-    ["V",   "version", "version",  None,   pversion,   "Print Version string"],
-    ["h",   "help",    "help",     None,   phelplong,  "Show Help. (this screen)"]
-    ]
+ ["d:",  "debug=",  "pgdebug",  0,      None,       "Debug level. 0=none 10=noisy default=0" ],
+ ["p:",  "port=",   "port",     6666,   None,       "Listen on port. default=6666"],
+ ["v",   "verbose", "verbose",  0,      None,       "Verbose. Show more info."],
+ ["q",   "quiet",   "quiet",    0,      None,       "Quiet. Show less info."],
+ ["V",   "version", "version",  None,   pversion,   "Print Version string."],
+ ["h",   "help",    "help",     None,   phelplong,  "Show Help. (this screen)"]
+]
 
 class ConfigLong:
 

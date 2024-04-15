@@ -85,6 +85,10 @@ ERR = &#34;ERR&#34;
 
 #pgdebug = 0
 
+def _wr(strx):
+    &#39;&#39;&#39; Wrap string with single quotes &#39;&#39;&#39;
+    return &#34;&#39;&#34; + strx + &#34;&#39;&#34;
+
 def _print_handles(self):
         &#39;&#39;&#39; Debug helper &#39;&#39;&#39;
         open_file_handles = os.listdir(&#39;/proc/self/fd&#39;)
@@ -158,8 +162,19 @@ def get_exit_func(self, strx):
 
     if pyservsup.globals.conf.pgdebug &gt; 1:
         print( &#34;get_exit_func()&#34;, strx)
+
+    # Clean up logouts
+    if self.resp.user:
+        pyservsup.SHARED_LOGINS.deldat(self.resp.user)
+
+    if pyservsup.globals.conf.pglog &gt; 0:
+        stry = &#34;Quit&#34;, _wr(self.resp.user), str(self.resp.client_address)
+        pysyslog.syslog(*stry)
+
+    # This instance will go away, but just to make sure
+    self.resp.user = &#34;&#34;
+
     self.resp.datahandler.putencode([OK, &#34;Bye&#34;, self.name], self.resp.ekey)
-    #self.resp.datahandler.par.shutdown(socket.SHUT_RDWR)
 
     # Cancel **after** sending bye
     if self.resp.datahandler.tout:
@@ -260,9 +275,6 @@ def get_throt_func(self, strx):
     if pyservsup.globals.conf.pgdebug &gt; 1:
         print( &#34;get_throt_func()&#34;, strx)
 
-    ret = pyservsup.gl_passwd.perms(self.resp.user)
-    #print(&#34;pass 2 %.3f&#34; % ((time.time() - ttt) * 1000) )
-
     if len(strx) &lt; 2:
         if pyservsup.gl_throttle.getflag():
             boolstr = &#34;ON&#34;
@@ -272,6 +284,7 @@ def get_throt_func(self, strx):
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     if not int(ret[2]) &amp; pyservsup.PERM_ADMIN:
         rrr = [ERR, &#34;Only admin can control throttle&#34;]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
@@ -460,12 +473,13 @@ def get_fget_func(self, strx):
         if blen == 0:
             break
 
+    #if pyservsup.globals.conf.pglog &gt; 1:
+    #    stry = &#34;Server sent file: &#39;&#34; + dname + &#34;&#39; &#34; + str(flen) + &#34; bytes&#34;,
+    #    pysyslog.syslog(stry)
+
     response = [OK, &#34;Server sent file&#34;, strx[1]]
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
-    # Lof and set state to IDLE
-    xstr = &#34;Server sent file: &#39;&#34; + dname + &#34;&#39; &#34; + str(flen) + &#34; bytes&#34;
-    pysyslog.syslog(xstr)
 
 def get_fput_func(self, strx):
 
@@ -1140,9 +1154,15 @@ def get_rput_func(self, strx):
     # if it is not replicated already, add replicate request
     if not strx[2][&#34;Replicated&#34;]:
         # Prepare data. Do strings so it can be re-written in place
-        rrr = {&#39;count1&#39;: &#34;00000&#34;, &#39;count2&#39; : &#34;00000&#34;,
-                        &#39;count3&#39; : &#34;00000&#34;,  &#39;header&#39; : strx[2][&#39;header&#39;],
-                            &#39;now&#39; : strx[2][&#39;now&#39;],}
+        rrr = {
+                # Sun 14.Apr.2024 removed counts, shifted to state data
+                #&#39;count1&#39;: &#34;00000&#34;, &#39;count2&#39; : &#34;00000&#34;, &#39;count3&#39; : &#34;00000&#34;,
+                &#39;header&#39; : strx[2][&#39;header&#39;],
+                &#39;now&#39; : strx[2][&#39;now&#39;], &#39;iso&#39; : strx[2][&#39;iso&#39;],
+                &#39;stamp&#39; : strx[2][&#39;stamp&#39;],
+                &#34;processed&#34; : &#34;00000&#34;,
+                }
+
         if self.pgdebug &gt; 3:
             print(&#34;replic req&#34;, rrr)
 
@@ -1178,7 +1198,10 @@ def get_rput_func(self, strx):
     #open_file_handles = os.listdir(&#39;/proc/self/fd&#39;)
     #print(&#39;open file handles: &#39; + &#39;, &#39;.join(map(str, open_file_handles)))
 
-    pysyslog.syslog(&#34;BCD %s&#34; % strx[2][&#39;header&#39;])
+    if pyservsup.globals.conf.pglog &gt; 1:
+        stry = &#34;Block Chain Data %s&#34; % strx[2][&#39;header&#39;], \
+                _wr(self.resp.user), str(self.resp.client_address)
+        pysyslog.syslog(*stry)
 
 
 def get_ihost_func(self, strx):
@@ -1191,30 +1214,43 @@ def get_ihost_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    if len(strx) &lt; 3:
-        response = [ERR, &#34;Must specify host:port.&#34;, strx[0]]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
+    if not int(ret[2]) &amp; pyservsup.PERM_ADMIN:
+        rrr = [ERR, &#34;Only admin can control / view ihosts&#34;]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
-    if strx[2].find(&#34;:&#34;) &lt; 0:
-        response = [ERR, &#34;Entry must be in host:port format.&#34;, strx[0]]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
+    if strx[1] != &#39;list&#39;:
+        if len(strx) &lt; 3:
+            response = [ERR, &#34;Must specify host:port.&#34;, strx[0]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
 
-    #print(strx)
-    ihname = &#34;ihosts.pydb&#34;
+        if strx[2].find(&#34;:&#34;) &lt; 0:
+            response = [ERR, &#34;Entry must be in host:port format.&#34;, strx[2]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+    ihname = os.path.realpath(&#34;ihosts.pydb&#34;)
+    if self.pgdebug &gt; 2:
+        print(&#34;ihost:&#34;, ihname)
     repcore = twincore.TwinCore(ihname)
+    #repcore.pgdebug = 10
 
     if strx[1] == &#39;add&#39;:
         ddd = self.pb.encode_data(&#34;&#34;, strx[2])
         rec = repcore.retrieve(strx[2])
+        if self.pgdebug &gt; 9:
+            print(&#34;rec:&#34;, rec)
         if rec:
             if rec[0][0].decode() == strx[2]:
                 #print(&#34;Identical&#34;, rec[0][0])
-                response = [ERR, &#34;This entry is already in the list.&#34;, strx[2]]
+                response = [ERR, &#34;Duplicate entry.&#34;, strx[2]]
                 self.resp.datahandler.putencode(response, self.resp.ekey)
                 return
-        ret = repcore.save_data(strx[2], ddd, True)
+        ret = repcore.save_data(strx[2], ddd)
+        if self.pgdebug &gt; 8:
+            print(&#34;repcore save:&#34;, ret, ddd)
         response = [OK, &#34;Added replication host:port.&#34;, strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -1224,8 +1260,9 @@ def get_ihost_func(self, strx):
             response = [ERR, &#34;This entry is not in the list.&#34;, strx[2]]
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
+        if self.pgdebug &gt; 4:
+            print(&#34;delete ihost rec:&#34;, strx[2])
         ret = repcore.del_rec_bykey(strx[2])
-        #print(&#34;del ret&#34;, ret, strx[2])
         response = [OK, &#34;Deleted replication host:port.&#34;, strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -1403,9 +1440,18 @@ def get_lout_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    olduser = self.resp.user
+    if pyservsup.globals.conf.pglog &gt; 0:
+        stry = &#34;Logout&#34;, _wr(resp.user), \
+                str(self.resp.client_address)
+        pysyslog.syslog(*stry)
+
+    if self.pgdebug &gt; 3:
+        print(&#34;logout&#34;, self.resp.user)
+
+    if resp.user:
+        pyservsup.SHARED_LOGINS.deldat(resp.user)
+
     self.resp.user = &#34;&#34;
-    #print(&#34;logout&#34;, self.resp.user)
 
     response = [OK, &#34;Logged out.&#34;, olduser, ]
     self.resp.datahandler.putencode(response, self.resp.ekey)
@@ -1417,11 +1463,16 @@ def get_user_func(self, strx):
         print( &#34;get_user_func()&#34;, strx)
 
     if len(strx) &lt; 2:
-        self.resp.datahandler.putencode(
-                [ERR, &#34;Must specify user name.&#34;, strx[0]], self.resp.ekey)
+        resp = [ERR, &#34;Must specify user name.&#34;, strx[0]]
+        self.resp.datahandler.putencode(resp, self.resp.ekey)
         return
-    self.resp.user = strx[1]
-    self.resp.datahandler.putencode([OK, &#34;Send pass ...&#34;], self.resp.ekey)
+
+    if self.resp.user:
+        self.resp.datahandler.putencode([ERR, &#34;Already logged in&#34;], self.resp.ekey)
+        return
+
+    self.resp.preuser = strx[1]
+    self.resp.datahandler.putencode([OK, &#34;Send pass for&#34;, strx[1]], self.resp.ekey)
 
 # ------------------------------------------------------------------------
 
@@ -1454,7 +1505,7 @@ def get_sess_func(self, strx):
     # Decoded OK?
     ttt = SHA256.new(); ttt.update(message2.encode())
 
-    if pyservsup.globals.conf.pgdebug &gt; 4:
+    if pyservsup.globals.conf.pgdebug &gt; 6:
         print(&#34;Hash1:&#34;, strx[1])
         print(&#34;Hash2:&#34;, ttt.hexdigest())
 
@@ -1488,8 +1539,12 @@ def get_akey_func(self, strx):
     try:
         self.keyfroot = pyservsup.pickkey(ddd)
     except:
-        print(&#34;No keys generated yet.&#34;, sys.exc_info()[1])
-        support.put_exception(&#34;no keys yet&#34;)
+        if self.verbose:
+            print(&#34;No keys generated yet.&#34;, sys.exc_info()[1])
+
+        if self.pgdebug &gt; 2:
+            support.put_exception(&#34;no keys yet&#34;)
+
         rrr = [ERR, &#34;No keys yet. Run keygen.&#34;, strx[0]]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
@@ -1508,7 +1563,7 @@ def get_akey_func(self, strx):
         self.keyx = fp.read()
         fp.close()
 
-        if pyservsup.globals.conf.pgdebug &gt; 4:
+        if pyservsup.globals.conf.pgdebug &gt; 7:
             print(&#34;Key read: \n&#39;&#34; + self.keyx + &#34;&#39;\n&#34;)
     except:
         print(&#34;Cannot read key:&#34;, self.keyfroot, sys.exc_info()[1])
@@ -1582,14 +1637,16 @@ def get_pass_func(self, strx):
         self.resp.datahandler.putencode(
                 [ERR, &#34;Must specify pass.&#34;, strx[0]], self.resp.ekey)
         return retval
+
     # Make sure there is a trace of the attempt
-    stry = &#34;Logon  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
+    if pyservsup.globals.conf.pglog &gt; 0:
+        stry = &#34;Attempted login&#34;, _wr(self.resp.preuser), \
                 str(self.resp.client_address)
-    pysyslog.syslog(stry)
+        pysyslog.syslog(*stry)
 
     #print(&#34;pass 1 %.3f&#34; % ((time.time() - ttt) * 1000) )
 
-    ret = pyservsup.gl_passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.preuser)
     #print(&#34;pass 2 %.3f&#34; % ((time.time() - ttt) * 1000) )
 
     if int(ret[2]) &amp; pyservsup.PERM_DIS:
@@ -1597,24 +1654,22 @@ def get_pass_func(self, strx):
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return retval
 
-    xret = pyservsup.gl_passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
+    xret = pyservsup.gl_passwd.auth(self.resp.preuser, strx[1], 0, pyservsup.USER_AUTH)
     #print(&#34;pass 3 %.3f&#34; % ((time.time() - ttt) * 1000) )
 
     rrr = []
     if xret[0] == 3:
-        stry = &#34;No such user  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
+        if pyservsup.globals.conf.pglog &gt; 0:
+            stry = &#34;No such user&#34;, _wr(self.resp.preuser), \
                 str(self.resp.client_address)
-        pysyslog.syslog(stry)
-        rrr = [ERR, &#34;No such user.&#34;, self.resp.user]
+            pysyslog.syslog(*stry)
+        rrr = [ERR, &#34;No such user.&#34;, self.resp.preuser]
     elif xret[0] == 1:
-        stry = &#34;Successful logon &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
-                            str(self.resp.client_address)
-        pysyslog.syslog(stry)
 
         if self.pgdebug &gt; 3:
-            print(&#34;Authenticated&#34;, self.resp.user)
+            print(&#34;Authenticated&#34;, self.resp.preuser)
 
-        userdir2 = pyservsup.globals.paydir + os.sep + self.resp.user
+        userdir2 = pyservsup.globals.paydir + os.sep + self.resp.preuser
         self.userdir = check_payload_path(self, userdir2)
         #print(&#34;Contained&#34;,  self.userdir)
         if not self.userdir:
@@ -1625,12 +1680,28 @@ def get_pass_func(self, strx):
         if not os.path.isdir(self.userdir):
             os.mkdir(self.userdir)
         self.resp.cwd = self.userdir
+
+        if pyservsup.globals.conf.pglog &gt; 0:
+            stry = &#34;Successful login&#34;, _wr(self.resp.preuser),  \
+                            str(self.resp.client_address)
+            pysyslog.syslog(*stry)
+
+        # Commit  user
+        self.resp.user = self.resp.preuser
+        self.resp.preuser = &#34;&#34;
+
+        # Anounce it to global stats
+        if self.resp.user:
+            logttt = time.time()
+            pyservsup.SHARED_LOGINS.setdat(self.resp.user, logttt)
+
         rrr = [OK,  &#34;Authenticated.&#34;, self.resp.user]
         retval = False
     else:
-        stry = &#34;Error on logon  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
+        if pyservsup.globals.conf.pglog &gt; 0:
+            stry = &#34;Error on login&#34;, _wr(self.resp.preuser), \
                 str(self.resp.client_address)
-        pysyslog.syslog(stry)
+            pysyslog.syslog(*stry)
         rrr = [ERR,  xret[1], strx[0]]
 
     self.resp.datahandler.putencode(rrr, self.resp.ekey)
@@ -1657,8 +1728,10 @@ def get_chpass_func(self, strx):
         return
     #print(&#34;chpass&#34;, strx)
     # Make sure there is a trace of the attempt
-    stry = &#34;chpass  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + str(self.resp.client_address)
-    pysyslog.syslog(stry)
+    if pyservsup.globals.conf.pglog &gt; 1:
+        stry = &#34;chpass&#34;, _wr(self.resp.user), \
+                 str(self.resp.client_address)
+        pysyslog.syslog(*stry)
 
     # Are we allowed to change pass?
     ret = pyservsup.gl_passwd.perms(self.resp.user)
@@ -1679,24 +1752,29 @@ def get_chpass_func(self, strx):
 
     ret = &#34;&#34;
     if xret[0] == 5:
-        stry = &#34;Pass changed &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
+        if pyservsup.globals.conf.pglog &gt; 1:
+            stry = &#34;Pass changed&#34;, _wr(resp.user), \
                 str(self.resp.client_address)
-        pysyslog.syslog(stry)
+            pysyslog.syslog(*stry)
         ret = [OK, &#34;Pass changed&#34;, strx[1]]
     elif xret[0] == 3:
-        stry = &#34;No such user  &#39;&#34; + strx[1] + &#34;&#39; &#34; + \
+        if pyservsup.globals.conf.pglog &gt; 1:
+            stry = &#34;No such user&#34;, _wr(strx[1]),  \
                 str(self.resp.client_address)
-        pysyslog.syslog(stry)
+            pysyslog.syslog(*stry)
         ret = [ERR, &#34;No such user.&#34;, strx[1]]
     elif xret[0] == 1:
-        pysyslog.syslog(&#34;Successful logon&#34;, strx[1],
-                                            str(self.resp.client_address))
+        if pyservsup.globals.conf.pglog &gt; 1:
+            stry = &#34;Successful login&#34;, strx[1], \
+                           str(self.resp.client_address)
+            pysyslog.syslog(*stry)
         ret = [&#34;OK &#34;, self.resp.user, &#34; Authenticated.&#34;]
         retval = False
     else:
-        stry = &#34;Error on logon  &#39;&#34; + strx[1] + &#34;&#39; &#34; + \
-                str(self.resp.client_address)
-        pysyslog.syslog(stry)
+        if pyservsup.globals.conf.pglog &gt; 1:
+            stry = &#34;Error on login&#34;, _wr(strx[1]), \
+                    str(self.resp.client_address)
+            pysyslog.syslog(*stry)
         ret = [ERR, xret[1], strx[0]]
 
     self.resp.datahandler.putencode(ret, self.resp.ekey)
@@ -1868,6 +1946,11 @@ def get_uini_func(self, strx):
             response = [ERR,
             &#34;User already exists, no change. Use pass function.&#34;, strx[0]];
         elif ret[0] == 2:
+
+            if pyservsup.globals.conf.pglog &gt; 1:
+                stry = &#34;Added initial user&#34;,  strx[1], \
+                        str(self.resp.client_address)
+                pysyslog.syslog(*stry)
             response = [OK, &#34;Added initial user&#34;, strx[1]]
         else:
             response = [ERR, ret[1], strx[0]]
@@ -1938,7 +2021,7 @@ def put_file_func(self, strx):
             response = [ERR, &#34;Cannot create file&#34;, self.resp.fname, strx[0]]
     except:
         response = [ERR,  &#34;Must specify file name&#34;, strx[0]]
-    #pysyslog.syslog(&#34;Opened&#34;, xstr[1])
+
     self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def put_data_func(self, strx):
@@ -1978,11 +2061,10 @@ def put_data_func(self, strx):
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    xstr = &#34;Received chunk: &#39;&#34; + self.resp.fname + \
-                &#34;&#39; &#34; + str(dlen) + &#34; bytes&#34;
+    #xstr = &#34;Received chunk: &#39;&#34; + self.resp.fname + \
+    #            &#34;&#39;&#34; + str(dlen) + &#34; bytes&#34;
     #print( xstr)
-    #pysyslog.syslog(xstr)
-    #self.resp.datahandler.putencode(&#34;OK Got data&#34;, self.resp.ekey)
+
     self.resp.datahandler.putencode([OK,  &#34;Got data&#34;], self.resp.ekey)
 
 def get_qr_func(self, strx):
@@ -2250,8 +2332,12 @@ if __name__ == &#39;__main__&#39;:
     try:
         self.keyfroot = pyservsup.pickkey(ddd)
     except:
-        print(&#34;No keys generated yet.&#34;, sys.exc_info()[1])
-        support.put_exception(&#34;no keys yet&#34;)
+        if self.verbose:
+            print(&#34;No keys generated yet.&#34;, sys.exc_info()[1])
+
+        if self.pgdebug &gt; 2:
+            support.put_exception(&#34;no keys yet&#34;)
+
         rrr = [ERR, &#34;No keys yet. Run keygen.&#34;, strx[0]]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
@@ -2270,7 +2356,7 @@ if __name__ == &#39;__main__&#39;:
         self.keyx = fp.read()
         fp.close()
 
-        if pyservsup.globals.conf.pgdebug &gt; 4:
+        if pyservsup.globals.conf.pgdebug &gt; 7:
             print(&#34;Key read: \n&#39;&#34; + self.keyx + &#34;&#39;\n&#34;)
     except:
         print(&#34;Cannot read key:&#34;, self.keyfroot, sys.exc_info()[1])
@@ -2436,8 +2522,10 @@ if __name__ == &#39;__main__&#39;:
         return
     #print(&#34;chpass&#34;, strx)
     # Make sure there is a trace of the attempt
-    stry = &#34;chpass  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + str(self.resp.client_address)
-    pysyslog.syslog(stry)
+    if pyservsup.globals.conf.pglog &gt; 1:
+        stry = &#34;chpass&#34;, _wr(self.resp.user), \
+                 str(self.resp.client_address)
+        pysyslog.syslog(*stry)
 
     # Are we allowed to change pass?
     ret = pyservsup.gl_passwd.perms(self.resp.user)
@@ -2458,24 +2546,29 @@ if __name__ == &#39;__main__&#39;:
 
     ret = &#34;&#34;
     if xret[0] == 5:
-        stry = &#34;Pass changed &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
+        if pyservsup.globals.conf.pglog &gt; 1:
+            stry = &#34;Pass changed&#34;, _wr(resp.user), \
                 str(self.resp.client_address)
-        pysyslog.syslog(stry)
+            pysyslog.syslog(*stry)
         ret = [OK, &#34;Pass changed&#34;, strx[1]]
     elif xret[0] == 3:
-        stry = &#34;No such user  &#39;&#34; + strx[1] + &#34;&#39; &#34; + \
+        if pyservsup.globals.conf.pglog &gt; 1:
+            stry = &#34;No such user&#34;, _wr(strx[1]),  \
                 str(self.resp.client_address)
-        pysyslog.syslog(stry)
+            pysyslog.syslog(*stry)
         ret = [ERR, &#34;No such user.&#34;, strx[1]]
     elif xret[0] == 1:
-        pysyslog.syslog(&#34;Successful logon&#34;, strx[1],
-                                            str(self.resp.client_address))
+        if pyservsup.globals.conf.pglog &gt; 1:
+            stry = &#34;Successful login&#34;, strx[1], \
+                           str(self.resp.client_address)
+            pysyslog.syslog(*stry)
         ret = [&#34;OK &#34;, self.resp.user, &#34; Authenticated.&#34;]
         retval = False
     else:
-        stry = &#34;Error on logon  &#39;&#34; + strx[1] + &#34;&#39; &#34; + \
-                str(self.resp.client_address)
-        pysyslog.syslog(stry)
+        if pyservsup.globals.conf.pglog &gt; 1:
+            stry = &#34;Error on login&#34;, _wr(strx[1]), \
+                    str(self.resp.client_address)
+            pysyslog.syslog(*stry)
         ret = [ERR, xret[1], strx[0]]
 
     self.resp.datahandler.putencode(ret, self.resp.ekey)
@@ -2555,8 +2648,19 @@ if __name__ == &#39;__main__&#39;:
 
     if pyservsup.globals.conf.pgdebug &gt; 1:
         print( &#34;get_exit_func()&#34;, strx)
+
+    # Clean up logouts
+    if self.resp.user:
+        pyservsup.SHARED_LOGINS.deldat(self.resp.user)
+
+    if pyservsup.globals.conf.pglog &gt; 0:
+        stry = &#34;Quit&#34;, _wr(self.resp.user), str(self.resp.client_address)
+        pysyslog.syslog(*stry)
+
+    # This instance will go away, but just to make sure
+    self.resp.user = &#34;&#34;
+
     self.resp.datahandler.putencode([OK, &#34;Bye&#34;, self.name], self.resp.ekey)
-    #self.resp.datahandler.par.shutdown(socket.SHUT_RDWR)
 
     # Cancel **after** sending bye
     if self.resp.datahandler.tout:
@@ -2649,12 +2753,12 @@ if __name__ == &#39;__main__&#39;:
         if blen == 0:
             break
 
-    response = [OK, &#34;Server sent file&#34;, strx[1]]
-    self.resp.datahandler.putencode(response, self.resp.ekey)
+    #if pyservsup.globals.conf.pglog &gt; 1:
+    #    stry = &#34;Server sent file: &#39;&#34; + dname + &#34;&#39; &#34; + str(flen) + &#34; bytes&#34;,
+    #    pysyslog.syslog(stry)
 
-    # Lof and set state to IDLE
-    xstr = &#34;Server sent file: &#39;&#34; + dname + &#34;&#39; &#34; + str(flen) + &#34; bytes&#34;
-    pysyslog.syslog(xstr)</code></pre>
+    response = [OK, &#34;Server sent file&#34;, strx[1]]
+    self.resp.datahandler.putencode(response, self.resp.ekey)</code></pre>
 </details>
 </dd>
 <dt id="pyvfunc.get_fput_func"><code class="name flex">
@@ -2858,30 +2962,43 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    if len(strx) &lt; 3:
-        response = [ERR, &#34;Must specify host:port.&#34;, strx[0]]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
+    if not int(ret[2]) &amp; pyservsup.PERM_ADMIN:
+        rrr = [ERR, &#34;Only admin can control / view ihosts&#34;]
+        self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
-    if strx[2].find(&#34;:&#34;) &lt; 0:
-        response = [ERR, &#34;Entry must be in host:port format.&#34;, strx[0]]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
+    if strx[1] != &#39;list&#39;:
+        if len(strx) &lt; 3:
+            response = [ERR, &#34;Must specify host:port.&#34;, strx[0]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
 
-    #print(strx)
-    ihname = &#34;ihosts.pydb&#34;
+        if strx[2].find(&#34;:&#34;) &lt; 0:
+            response = [ERR, &#34;Entry must be in host:port format.&#34;, strx[2]]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+
+    ihname = os.path.realpath(&#34;ihosts.pydb&#34;)
+    if self.pgdebug &gt; 2:
+        print(&#34;ihost:&#34;, ihname)
     repcore = twincore.TwinCore(ihname)
+    #repcore.pgdebug = 10
 
     if strx[1] == &#39;add&#39;:
         ddd = self.pb.encode_data(&#34;&#34;, strx[2])
         rec = repcore.retrieve(strx[2])
+        if self.pgdebug &gt; 9:
+            print(&#34;rec:&#34;, rec)
         if rec:
             if rec[0][0].decode() == strx[2]:
                 #print(&#34;Identical&#34;, rec[0][0])
-                response = [ERR, &#34;This entry is already in the list.&#34;, strx[2]]
+                response = [ERR, &#34;Duplicate entry.&#34;, strx[2]]
                 self.resp.datahandler.putencode(response, self.resp.ekey)
                 return
-        ret = repcore.save_data(strx[2], ddd, True)
+        ret = repcore.save_data(strx[2], ddd)
+        if self.pgdebug &gt; 8:
+            print(&#34;repcore save:&#34;, ret, ddd)
         response = [OK, &#34;Added replication host:port.&#34;, strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -2891,8 +3008,9 @@ if __name__ == &#39;__main__&#39;:
             response = [ERR, &#34;This entry is not in the list.&#34;, strx[2]]
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
+        if self.pgdebug &gt; 4:
+            print(&#34;delete ihost rec:&#34;, strx[2])
         ret = repcore.del_rec_bykey(strx[2])
-        #print(&#34;del ret&#34;, ret, strx[2])
         response = [OK, &#34;Deleted replication host:port.&#34;, strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
@@ -2929,9 +3047,18 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    olduser = self.resp.user
+    if pyservsup.globals.conf.pglog &gt; 0:
+        stry = &#34;Logout&#34;, _wr(resp.user), \
+                str(self.resp.client_address)
+        pysyslog.syslog(*stry)
+
+    if self.pgdebug &gt; 3:
+        print(&#34;logout&#34;, self.resp.user)
+
+    if resp.user:
+        pyservsup.SHARED_LOGINS.deldat(resp.user)
+
     self.resp.user = &#34;&#34;
-    #print(&#34;logout&#34;, self.resp.user)
 
     response = [OK, &#34;Logged out.&#34;, olduser, ]
     self.resp.datahandler.putencode(response, self.resp.ekey)</code></pre>
@@ -3093,14 +3220,16 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(
                 [ERR, &#34;Must specify pass.&#34;, strx[0]], self.resp.ekey)
         return retval
+
     # Make sure there is a trace of the attempt
-    stry = &#34;Logon  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
+    if pyservsup.globals.conf.pglog &gt; 0:
+        stry = &#34;Attempted login&#34;, _wr(self.resp.preuser), \
                 str(self.resp.client_address)
-    pysyslog.syslog(stry)
+        pysyslog.syslog(*stry)
 
     #print(&#34;pass 1 %.3f&#34; % ((time.time() - ttt) * 1000) )
 
-    ret = pyservsup.gl_passwd.perms(self.resp.user)
+    ret = pyservsup.gl_passwd.perms(self.resp.preuser)
     #print(&#34;pass 2 %.3f&#34; % ((time.time() - ttt) * 1000) )
 
     if int(ret[2]) &amp; pyservsup.PERM_DIS:
@@ -3108,24 +3237,22 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return retval
 
-    xret = pyservsup.gl_passwd.auth(self.resp.user, strx[1], 0, pyservsup.USER_AUTH)
+    xret = pyservsup.gl_passwd.auth(self.resp.preuser, strx[1], 0, pyservsup.USER_AUTH)
     #print(&#34;pass 3 %.3f&#34; % ((time.time() - ttt) * 1000) )
 
     rrr = []
     if xret[0] == 3:
-        stry = &#34;No such user  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
+        if pyservsup.globals.conf.pglog &gt; 0:
+            stry = &#34;No such user&#34;, _wr(self.resp.preuser), \
                 str(self.resp.client_address)
-        pysyslog.syslog(stry)
-        rrr = [ERR, &#34;No such user.&#34;, self.resp.user]
+            pysyslog.syslog(*stry)
+        rrr = [ERR, &#34;No such user.&#34;, self.resp.preuser]
     elif xret[0] == 1:
-        stry = &#34;Successful logon &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
-                            str(self.resp.client_address)
-        pysyslog.syslog(stry)
 
         if self.pgdebug &gt; 3:
-            print(&#34;Authenticated&#34;, self.resp.user)
+            print(&#34;Authenticated&#34;, self.resp.preuser)
 
-        userdir2 = pyservsup.globals.paydir + os.sep + self.resp.user
+        userdir2 = pyservsup.globals.paydir + os.sep + self.resp.preuser
         self.userdir = check_payload_path(self, userdir2)
         #print(&#34;Contained&#34;,  self.userdir)
         if not self.userdir:
@@ -3136,12 +3263,28 @@ if __name__ == &#39;__main__&#39;:
         if not os.path.isdir(self.userdir):
             os.mkdir(self.userdir)
         self.resp.cwd = self.userdir
+
+        if pyservsup.globals.conf.pglog &gt; 0:
+            stry = &#34;Successful login&#34;, _wr(self.resp.preuser),  \
+                            str(self.resp.client_address)
+            pysyslog.syslog(*stry)
+
+        # Commit  user
+        self.resp.user = self.resp.preuser
+        self.resp.preuser = &#34;&#34;
+
+        # Anounce it to global stats
+        if self.resp.user:
+            logttt = time.time()
+            pyservsup.SHARED_LOGINS.setdat(self.resp.user, logttt)
+
         rrr = [OK,  &#34;Authenticated.&#34;, self.resp.user]
         retval = False
     else:
-        stry = &#34;Error on logon  &#39;&#34; + self.resp.user + &#34;&#39; &#34; + \
+        if pyservsup.globals.conf.pglog &gt; 0:
+            stry = &#34;Error on login&#34;, _wr(self.resp.preuser), \
                 str(self.resp.client_address)
-        pysyslog.syslog(stry)
+            pysyslog.syslog(*stry)
         rrr = [ERR,  xret[1], strx[0]]
 
     self.resp.datahandler.putencode(rrr, self.resp.ekey)
@@ -3809,9 +3952,15 @@ if __name__ == &#39;__main__&#39;:
     # if it is not replicated already, add replicate request
     if not strx[2][&#34;Replicated&#34;]:
         # Prepare data. Do strings so it can be re-written in place
-        rrr = {&#39;count1&#39;: &#34;00000&#34;, &#39;count2&#39; : &#34;00000&#34;,
-                        &#39;count3&#39; : &#34;00000&#34;,  &#39;header&#39; : strx[2][&#39;header&#39;],
-                            &#39;now&#39; : strx[2][&#39;now&#39;],}
+        rrr = {
+                # Sun 14.Apr.2024 removed counts, shifted to state data
+                #&#39;count1&#39;: &#34;00000&#34;, &#39;count2&#39; : &#34;00000&#34;, &#39;count3&#39; : &#34;00000&#34;,
+                &#39;header&#39; : strx[2][&#39;header&#39;],
+                &#39;now&#39; : strx[2][&#39;now&#39;], &#39;iso&#39; : strx[2][&#39;iso&#39;],
+                &#39;stamp&#39; : strx[2][&#39;stamp&#39;],
+                &#34;processed&#34; : &#34;00000&#34;,
+                }
+
         if self.pgdebug &gt; 3:
             print(&#34;replic req&#34;, rrr)
 
@@ -3847,7 +3996,10 @@ if __name__ == &#39;__main__&#39;:
     #open_file_handles = os.listdir(&#39;/proc/self/fd&#39;)
     #print(&#39;open file handles: &#39; + &#39;, &#39;.join(map(str, open_file_handles)))
 
-    pysyslog.syslog(&#34;BCD %s&#34; % strx[2][&#39;header&#39;])</code></pre>
+    if pyservsup.globals.conf.pglog &gt; 1:
+        stry = &#34;Block Chain Data %s&#34; % strx[2][&#39;header&#39;], \
+                _wr(self.resp.user), str(self.resp.client_address)
+        pysyslog.syslog(*stry)</code></pre>
 </details>
 </dd>
 <dt id="pyvfunc.get_rsize_func"><code class="name flex">
@@ -4011,7 +4163,7 @@ if __name__ == &#39;__main__&#39;:
     # Decoded OK?
     ttt = SHA256.new(); ttt.update(message2.encode())
 
-    if pyservsup.globals.conf.pgdebug &gt; 4:
+    if pyservsup.globals.conf.pgdebug &gt; 6:
         print(&#34;Hash1:&#34;, strx[1])
         print(&#34;Hash2:&#34;, ttt.hexdigest())
 
@@ -4088,9 +4240,6 @@ if __name__ == &#39;__main__&#39;:
     if pyservsup.globals.conf.pgdebug &gt; 1:
         print( &#34;get_throt_func()&#34;, strx)
 
-    ret = pyservsup.gl_passwd.perms(self.resp.user)
-    #print(&#34;pass 2 %.3f&#34; % ((time.time() - ttt) * 1000) )
-
     if len(strx) &lt; 2:
         if pyservsup.gl_throttle.getflag():
             boolstr = &#34;ON&#34;
@@ -4100,6 +4249,7 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
         return
 
+    ret = pyservsup.gl_passwd.perms(self.resp.user)
     if not int(ret[2]) &amp; pyservsup.PERM_ADMIN:
         rrr = [ERR, &#34;Only admin can control throttle&#34;]
         self.resp.datahandler.putencode(rrr, self.resp.ekey)
@@ -4350,6 +4500,11 @@ if __name__ == &#39;__main__&#39;:
             response = [ERR,
             &#34;User already exists, no change. Use pass function.&#34;, strx[0]];
         elif ret[0] == 2:
+
+            if pyservsup.globals.conf.pglog &gt; 1:
+                stry = &#34;Added initial user&#34;,  strx[1], \
+                        str(self.resp.client_address)
+                pysyslog.syslog(*stry)
             response = [OK, &#34;Added initial user&#34;, strx[1]]
         else:
             response = [ERR, ret[1], strx[0]]
@@ -4418,11 +4573,16 @@ if __name__ == &#39;__main__&#39;:
         print( &#34;get_user_func()&#34;, strx)
 
     if len(strx) &lt; 2:
-        self.resp.datahandler.putencode(
-                [ERR, &#34;Must specify user name.&#34;, strx[0]], self.resp.ekey)
+        resp = [ERR, &#34;Must specify user name.&#34;, strx[0]]
+        self.resp.datahandler.putencode(resp, self.resp.ekey)
         return
-    self.resp.user = strx[1]
-    self.resp.datahandler.putencode([OK, &#34;Send pass ...&#34;], self.resp.ekey)</code></pre>
+
+    if self.resp.user:
+        self.resp.datahandler.putencode([ERR, &#34;Already logged in&#34;], self.resp.ekey)
+        return
+
+    self.resp.preuser = strx[1]
+    self.resp.datahandler.putencode([OK, &#34;Send pass for&#34;, strx[1]], self.resp.ekey)</code></pre>
 </details>
 </dd>
 <dt id="pyvfunc.get_ver_func"><code class="name flex">
@@ -4494,11 +4654,10 @@ if __name__ == &#39;__main__&#39;:
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
-    xstr = &#34;Received chunk: &#39;&#34; + self.resp.fname + \
-                &#34;&#39; &#34; + str(dlen) + &#34; bytes&#34;
+    #xstr = &#34;Received chunk: &#39;&#34; + self.resp.fname + \
+    #            &#34;&#39;&#34; + str(dlen) + &#34; bytes&#34;
     #print( xstr)
-    #pysyslog.syslog(xstr)
-    #self.resp.datahandler.putencode(&#34;OK Got data&#34;, self.resp.ekey)
+
     self.resp.datahandler.putencode([OK,  &#34;Got data&#34;], self.resp.ekey)</code></pre>
 </details>
 </dd>
@@ -4547,7 +4706,7 @@ if __name__ == &#39;__main__&#39;:
             response = [ERR, &#34;Cannot create file&#34;, self.resp.fname, strx[0]]
     except:
         response = [ERR,  &#34;Must specify file name&#34;, strx[0]]
-    #pysyslog.syslog(&#34;Opened&#34;, xstr[1])
+
     self.resp.datahandler.putencode(response, self.resp.ekey)</code></pre>
 </details>
 </dd>

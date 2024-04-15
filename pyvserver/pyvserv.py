@@ -488,16 +488,16 @@ def simple_server(Host, Port):
 
 optarr =  []
 optarr.append ( ["n:",  "host=",     "host",   "127.0.0.1",
-            None, "Set server hostname / interface."] )
+            None, "Set server hostname / interface. default=127.0.0.1"] )
 optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
-            None, "Set data root for server. "] )
+            None, "Set data root for server. default:~/pyvserver "] )
 optarr.append ( ["l:",  "loglevel=", "pglog",       1,
-            None, "Log level (0 - 10) default = 1"] )
+            None, "Log level. 0=none 10=noisy default=1"] )
 
 optarr += comline.optarrlong
 
 optarr.append ( ["m",   "mem",       "mem",         0,
-                                None, "Show memory trace."] )
+                                None, "Show memory trace. (Advanced users only.)"] )
 #optarr.append ( ["N",   "norepl",    "norepl",      0,
 #                            None, "No replication. (for testing)"] )
 optarr.append ( ["P",   "pmode",     "pmode",       0,
