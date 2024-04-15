@@ -68,14 +68,18 @@ class MainWin(Gtk.Window):
         if www == 0 or hhh == 0:
             www = Gdk.screen_width(); hhh = Gdk.screen_height();
 
-        if www / hhh > 2:
-            self.set_default_size(5*www/8, 7*hhh/8)
-        else:
-            self.set_default_size(7*www/8, 7*hhh/8)
+        self.set_default_size(6*www/8, 6*hhh/8)
+
+        #if www / hhh > 2:
+        #    self.set_default_size(5*www/8, 5*hhh/8)
+        #else:
+        #    self.set_default_size(7*www/8, 7*hhh/8)
 
         self.connect("destroy", self.OnExit)
         self.connect("key-press-event", self.key_press_event)
         self.connect("button-press-event", self.button_press_event)
+
+        self.oldtally = [0,0,0,0,0,0,0,0,0,0,0,]
 
         self.tally = []
         for aa in range(11):
@@ -119,6 +123,7 @@ class MainWin(Gtk.Window):
         lab2a = Gtk.Label(" Initializing ");  hbox4.pack_start(lab2a, 1, 1, 0)
         lab2a.set_xalign(0)
         lab2a.set_size_request(300, -1)
+
         self.status = lab2a
         self.status_cnt = 1
 
@@ -152,6 +157,36 @@ class MainWin(Gtk.Window):
         hbox3a.pack_start(self.tree2s, True, True, 6)
         vbox.pack_start(hbox3a, True, True, 2)
 
+        self.tallyarr = []
+        hbox5 = Gtk.HBox()
+        for aa in range(10):
+            vbox_1 = Gtk.VBox()
+            vbox_1.pack_start(Gtk.Label("Ta %s" % aa), 1, 1, 2)
+            self.tallyarr.append(Gtk.Label("0"))
+            vbox_1.pack_start(self.tallyarr[aa], 1, 1, 2)
+            hbox5.pack_start(vbox_1, 1, 1,2)
+        vbox.pack_start(hbox5, False, 0, 2)
+
+        self.untallyarr = []
+        hbox6 = Gtk.HBox()
+        for aa in range(10):
+            vbox_1 = Gtk.VBox()
+            vbox_1.pack_start(Gtk.Label("Un %s" % aa), 1, 1, 2)
+            self.untallyarr.append(Gtk.Label("0"))
+            vbox_1.pack_start(self.untallyarr[aa], 1, 1, 2)
+            hbox6.pack_start(vbox_1, 1, 1,2)
+        vbox.pack_start(hbox6, False, 0, 2)
+
+        self.sumarr = []
+        hbox7 = Gtk.HBox()
+        for aa in range(10):
+            vbox_1 = Gtk.VBox()
+            vbox_1.pack_start(Gtk.Label("Sum %s" % aa), 1, 1, 2)
+            self.sumarr.append(Gtk.Label("0"))
+            vbox_1.pack_start(self.sumarr[aa], 1, 1, 2)
+            hbox7.pack_start(vbox_1, 1, 1,2)
+        vbox.pack_start(hbox7, False, 0, 2)
+
         vbox.pack_start(hbox4, False, 0, 6)
 
         self.add(vbox)
@@ -184,57 +219,73 @@ class MainWin(Gtk.Window):
                 self.core = twinchain.TwinChain(dbname)
                 #print("opened", self.core)
             sss = self.core.getdbsize()
-            sss = 3 # test
+            #sss = 3 # test
             if sss != self.old_sss:
                 cnt = 0
                 # Start from one
-                for aa in range(self.old_sss+1, sss):
+                for aa in range(self.old_sss, sss):
                     rec = self.core.get_rec(aa)
                     if not rec:
                         continue
-                    print("Datamon", rec[1])
+                    #print("Datamon", rec[1])
                     pb = pyvpacker.packbin()
                     dec = pb.decode_data(rec[1])[0]
-                    print("dec", dec)
-                    decpay   = pb.decode_data(dec['payload'])[0]
-
+                    #print("dec", dec)
+                    decpay  = pb.decode_data(dec['payload'])[0]
+                    pay = decpay['PayLoad']
+                    #print("pay:", pay)
                     actstr = ["register", "unregister", "cast", "uncast", ]
                     #print("decpay", decpay)
                     #for aa in actstr:
                     #    if aa == decpay['payload']['Action']:
                     #        print("action", aa, "for", decpay['payload']['Vote'])
 
-
-                    if decpay['payload']['Action'] == 'cast':
-                        idx = int(decpay['payload']['Vote'])
+                    if pay['Action'] == 'cast':
+                        idx = int(decpay['PayLoad']['Vote'])
                         if idx >= 11:
                             print("bad vote value", idx)
                         self.tally[ idx % 11 ] += 1
 
-                    if decpay['payload']['Action'] == 'uncast':
-                        idx = int(decpay['payload']['Vote'])
+                    if pay['Action'] == 'uncast':
+                        idx = int(decpay['PayLoad']['Vote'])
                         if idx >= 11:
                             print("bad unvote value", idx)
                         self.untally[ idx % 11 ] += 1
 
-                    for bb in sorted(decpay.keys()):
-                        strx = ""
+                    strx = ""
+                    for bb in sorted(pay.keys()):
                         if bb[0] != "_":
-                            strx += bb + " : " + str(decpay[bb]) + "  "
+                            strx += bb + " : " + str(pay[bb]) + "  "
                     #print("append:", strx)
                     self.tree1.append([dec['header'], strx])
 
                     cnt += 1
-                    self.set_status_text("Getting rec: %d" % cnt)
-                    sutil.usleep(2)
+                    #self.set_status_text("Getting rec: %d" % cnt)
+                    #sutil.usleep(2)
 
                 self.old_sss = sss
                 self.tree1.sel_last()
                 #self.led2.set_color("00ff00")
                 #GLib.timeout_add(400, self.led_off, self.led2, "#aaaaaa")
 
-                print(self.tally)
-                print(self.untally)
+                sumstr = ""
+                for aa in range(10):
+                    self.tallyarr[aa].set_text(str(self.tally[aa]))
+                    self.untallyarr[aa].set_text(str(self.untally[aa]))
+                    diff = int(self.tally[aa]) - int(self.untally[aa])
+                    self.sumarr[aa].set_text(str(diff))
+                    if self.oldtally[aa]  != diff:
+                        sumstr += str(aa) + " "
+                    self.oldtally[aa] = diff
+
+                if sumstr ==  "":
+                    sumstr = "None"
+
+                self.status.set_text("Changed: " + sumstr)
+                self.status_cnt = 5
+
+                #print("tally  ",   self.tally)
+                #print("untally",   self.untally)
 
         self.cnt += 1
         if self.status_cnt:

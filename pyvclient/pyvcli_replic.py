@@ -100,7 +100,64 @@ optarr = \
 conf = comline.Config(optarr)
 conf2 = comline.Config(optarr)
 
-def replicarr(count, hand, hand2):
+# Put one record payload. Now with quick dup checl
+
+def send_one(hand2, pay):
+
+    #print("pay:", pay['PayLoad'])
+    if conf.pgdebug > 3:
+        print("payload:", pay)
+    if conf.pgdebug > 2:
+        print("pay:", pay['PayLoad'])
+
+    # Check if data is OK
+    pvh = pyvhash.BcData(pay)
+    if conf.pgdebug > 3:
+        print(pvh.datax)
+
+    if not pvh.checkhash():
+        print("Refusing to replicate damaged record:", pay['header'])
+        return
+
+    #if conf.pgdebug > 3:
+    #    print("pvh checks:", pvh.checkhash(), pvh.checkpow())
+
+    #print("pay header:", pay['header'])
+    have = hand2.client(["rhave", "vote", pay['header'],], conf2.sess_key)
+    if conf.pgdebug > 1:
+        print("rhave:", pay['header'], have[1])
+
+    # Not in database
+    if have[0] == "ERR":
+        put = hand2.client(["rput", "vote", pay, ], conf2.sess_key)
+        if put[0] != "OK":
+            #print("put:", put)
+            # Duplicate is normal
+            if "Duplicate" in put[1]:
+                if conf.verbose:
+                    print("Duplicate:", pay['header'])
+            else:
+                print("Error on put:", put)
+        else:
+            global replic
+            replic += 1
+            if not conf.quiet:
+                print("Replicated:", pay['header'])
+
+def send_list(hand, hand2, cresp2):
+
+    for aa in cresp2[1]:
+        cresp3 = hand.client(["rget", "vote", aa], conf.sess_key)
+        if cresp3[0] == "OK":
+            #print("rget", cresp3)
+            dec = hand.pb.decode_data(cresp3[3][0][1])[0]
+            #print("dec:", dec['header'], dec['payload'])
+            pay = hand.pb.decode_data(dec['payload'])[0]
+            #print("pay header:", pay['header'])
+            # replicate
+            send_one(hand2, pay)
+
+def replic_abs(count, hand, hand2):
 
     ''' Replicate from database count '''
 
@@ -115,30 +172,8 @@ def replicarr(count, hand, hand2):
         if conf.pgdebug > 3:
             print("dec:", dec)
         pay = hand.pb.decode_data(dec['payload'])[0]
-        #print("pay:", pay['PayLoad'])
-        if conf.pgdebug > 2:
-            print("payload:", pay)
-        if conf.pgdebug > 1:
-            print("pay:", pay['PayLoad'])
 
-        # Check if data is OK
-        pvh = pyvhash.BcData(pay)
-        if conf.pgdebug > 2:
-            print(pvh.datax)
-        if conf.pgdebug > 3:
-            print("pvh checks:", pvh.checkhash(), pvh.checkpow())
-
-        put = hand2.client(["rput", "vote", pay, ], conf2.sess_key)
-        if put[0] != "OK":
-            #print("put:", put)
-            # Duplicate is normal
-            if not "Duplicate" in put[1]:
-                print("Error on put:", put)
-        else:
-            global replic
-            replic += 1
-            if not conf.quiet:
-                print("replicated:", pay['header'])
+        send_one(hand2, pay)
 
         #print("delay:", conf.delay)
         time.sleep(conf.delay)
@@ -146,24 +181,18 @@ def replicarr(count, hand, hand2):
 
 def scanall(hand, hand2):
 
-    ''' Scan all data fron source server '''
+    ''' Scan all data fron source server, transmit it  '''
 
     cresp = hand.client(["rsize", "vote",], conf.sess_key)
     #print ("Server  rsize response:", cresp)
     if cresp[0] != "OK":
         print("Cannot get records size")
         return
+    replic_abs(cresp[1], hand, hand2)
 
-    replicarr(cresp[1], hand, hand2)
-
-
-def scanfordays(handx, handx2):
+def scanfordays(hand, hand2):
 
     ''' Progressively dig down the timeline '''
-
-    global hand, hand2
-    hand    = handx
-    hand2   = handx2
 
     # Set beginning date range
     dd = datetime.datetime.now()
@@ -183,37 +212,24 @@ def scanfordays(handx, handx2):
         cresp = hand.client(["rcount", "vote", dd_beg.timestamp(),
                                         dd_end.timestamp()], conf.sess_key)
         if cresp[1] > 0:
-            print("from:", dd_beg, "to:", dd_end);
-            print ("Server rcount response:", cresp)
+            #print("from:", dd_beg, "to:", dd_end);
+            #print ("Source rcount response:", cresp)
 
             if cresp[1] >= 100:
                 scanhours(maxdays - dayx)
             else:
-                print("getting day:", dd_beg, "-", dd_end)
-
+                #if conf.verbose:
+                #    print("getting day:", dd_beg, "-", dd_end)
                 cresp = hand.client(["rcount", "vote", dd_beg.timestamp(),
                                         dd_end.timestamp()], conf.sess_key)
                 if cresp[1] > 0:
-                    print(" from:", dd_beg, "to:", dd_end);
-                    print("Server rcount response:", cresp)
+                    #print(" from:", dd_beg, "to:", dd_end);
+                    #print("Source rcount response:", cresp)
                     cresp2 = hand.client(["rlist", "vote", dd_beg.timestamp(),
                                         dd_end.timestamp()], conf.sess_key)
                     #print(" Server rlist response:", cresp2)
-                    for aa in cresp2[1]:
-                        print("rr:", aa)
-                        crespr = hand.client(["rget", "vote", aa], conf.sess_key)
-                        if cresp[0] == "OK":
-                            print("rget", crespr)
-                            #print("aa", aa)
-                            dec = hand.pb.decode_data(aa[1])[0]
-                            #print("dec", dec)
-                            print(dec['header'], dec['payload'])
-           # Get
-
-
-        #if cresp[1] > 100:
-        #    #print("record with more", cresp[1])
-        #    pass
+                    if cresp2[0] == "OK":
+                        send_list(hand, hand2, cresp2)
 
         dayx += 1
         # We end one day late to include all timezone deviations
@@ -240,13 +256,17 @@ def scanhours(dayx):
                                         dd_end.timestamp()], conf.sess_key)
         if cresp[1] > 0:
             print(" from:", dd_beg, "to:", dd_end);
-            print(" Server hour rcount response:", cresp)
+            #print(" Server hour rcount response:", cresp)
             if cresp[1] >= 100:
                 scanminutes(dayx, hourx)
             else:
                 print(" getting hour:", dd_beg, " - ", dd_end)
-                cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
-                                    dd_end.timestamp()], conf.sess_key)
+                cresp2 = hand.client(["rlist", "vote", dd_beg.timestamp(),
+                                        dd_end.timestamp()], conf.sess_key)
+                #print(" Server rlist response:", cresp2)
+                if cresp2[0] == "OK":
+                    send_list(hand, hand2, cresp2)
+
         hourx += 1
         if hourx > maxhours:
             break
@@ -277,29 +297,12 @@ def scanminutes(dayx, hourx):
                 print("    ----------- big rec count")
             else:
                 #print("    getting minutes:", dd_beg, "-", dd_end)
-                cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
+                cresp2 = hand.client(["rlist", "vote", dd_beg.timestamp(),
                                     dd_end.timestamp()], conf.sess_key)
-                if cresp[0] == "OK":
-                    crespr = hand.client(["rget", "vote", cresp[1]], conf.sess_key)
-                    #print("rget", crespr)
-                    for aa in crespr[1]:
-                        #print("aa", aa)
-                        dec = hand.pb.decode_data(aa[1])[0]
-                        #print("dec", dec)
-                        print(dec['header'], dec['payload'])
+                #print(" Server rlist response:", cresp2)
+                if cresp2[0] == "OK":
+                    send_list(hand, hand2, cresp2)
 
-                    #for aa in cresp[1]:
-                    #    #print("head", aa)
-                    #    #crespg = hand2.client(["rhave", "vote", aa], conf2.sess_key)
-                    #    #print("rhave", crespg)
-                    #    if 1: #crespg[0] != "OK":
-                    #        crespr = hand.client(["rget", "vote", aa], conf.sess_key)
-                    #        #print("Rec", crespr[1])
-                    #        cresp3 = hand2.client(
-                    #                ["rput", "vote", crespr[1][0], ], conf2.sess_key)
-                    #        if cresp3[0] == 'OK':
-                    #            print("rput", cresp3)
-                #print(cresp)
 
         minx += 1
         if minx > maxmins:
@@ -427,7 +430,7 @@ def    mainfunct():
     else:
         scanfordays(hand, hand2)
 
-    print("Replicated", replic, "record(s).")
+    print("Replicated:", replic, "record(s).")
 
 if __name__ == '__main__':
     mainfunct()

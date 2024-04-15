@@ -26,6 +26,7 @@ for aa in range(random.randint(1, 10)):
 # A more informative exception print
 
 def put_debug(xstr):
+
     try:
         if os.isatty(sys.stdout.fileno()):
             print( xstr)

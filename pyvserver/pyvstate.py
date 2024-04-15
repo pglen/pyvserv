@@ -89,12 +89,10 @@ rsize_help  = usage + " rsize kind -- get total record count from blockchain."
 rget_help   = usage + " rget kind header -- get record from blockchain."
 rabs_help   = usage + " rabs kind pos -- get record by absolute position from blockchain."
 rhave_help  = usage + " rhave kind header -- is record in blockchain."
-
 qr_help     = usage + " qr -- get QR code image for 2fa"
 twofa_help  = usage + " twofa pass -- two factor authentication credentials"
 dmode_help  = usage + " dmode -- get current dmode (Developer Mode) flag"
-ihave_help  = usage + " ihave -- 'i have you have' protocol entry point"
-ihost_help  = usage + " ihost -- add / delete replicator host:port target"
+ihost_help  = usage + " ihost -- add / del / list 'host:port' replicator host."
 stat_help   = usage + " stat fname  -- Get file stat"
 xxxx_help   = usage + " no data -- Template for new help"
 
@@ -105,8 +103,11 @@ xxxx_help   = usage + " no data -- Template for new help"
 
 def init_state_table():
 
-    global state_table
+    ''' Initialize state table '''
+
     #print("pystate init table")
+    global state_table
+
     # This is to develop without entering auth code every time
     if not pyservsup.globals.conf.pmode:
         minauth =  auth_pass
@@ -154,7 +155,6 @@ def init_state_table():
         ("throt",   all_in,  none_in,    auth_pass, get_throt_func,   throt_help),
         ("twofa",   all_in,  auth_twofa, auth_pass, get_twofa_func,   twofa_help),
         ("dmode",   all_in,  none_in,    initial,   get_dmode_func,   dmode_help),
-        ("ihave",   all_in,  none_in,    initial,   get_ihave_func,   ihave_help),
         ("ihost",   all_in,  none_in,    initial,   get_ihost_func,   ihost_help),
         ("rlist",    all_in,  none_in,   auth_pass, get_rlist_func,   rlist_help),
         ("rcount",   all_in,  none_in,   auth_pass, get_rcount_func,  rcount_help),

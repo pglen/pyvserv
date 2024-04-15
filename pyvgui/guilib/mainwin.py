@@ -172,11 +172,11 @@ class MainWin(Gtk.Window):
         butt1.connect("clicked", self.mon_log)
         hbox4p.pack_start(butt1, False, 0, 2)
 
-        butt1 = Gtk.Button.new_with_mnemonic("    _Stop Log Mon.  ")
+        butt1 = Gtk.Button.new_with_mnemonic("    Stop Log Mon.  ")
         butt1.connect("clicked", self.mon_log_off)
         hbox4p.pack_start(butt1, False, 0, 2)
 
-        butt1 = Gtk.Button.new_with_mnemonic("    Start Replic. Mon.  ")
+        butt1 = Gtk.Button.new_with_mnemonic("    Start _Replic. Mon.  ")
         butt1.connect("clicked", self.enable_replic)
         hbox4p.pack_start(butt1, False, 0, 2)
 
@@ -196,7 +196,7 @@ class MainWin(Gtk.Window):
 
         lab1 = Gtk.Label("  ");  hbox4.pack_start(lab1, 1, 1, 0)
 
-        butt1 = Gtk.Button.new_with_mnemonic("    _Start Data Mon.  ")
+        butt1 = Gtk.Button.new_with_mnemonic("    Start _Data Mon.  ")
         butt1.connect("clicked", self.datamon_on)
         hbox4.pack_start(butt1, False, 0, 2)
 
@@ -411,10 +411,10 @@ class MainWin(Gtk.Window):
                     #print("dec", dec)
                     decpay   = pb.decode_data(dec['payload'])[0]
                     #print("decpay", decpay)
-                    for bb in sorted(decpay.keys()):
-                        strx = ""
-                        if bb[0] != "_":
-                            strx += bb + " : " + str(decpay[bb]) + "  "
+                    strx = ""
+                    for bb in sorted(decpay['PayLoad'].keys()):
+                        if 1: #bb[0] != "_":
+                            strx += bb + " : " + str(decpay['PayLoad'][bb]) + "  "
                     #print("append:", strx)
                     self.tree3.append([dec['header'], strx])
                 self.old_sss = sss

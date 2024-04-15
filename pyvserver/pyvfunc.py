@@ -853,7 +853,8 @@ def get_rhave_func(self, strx):
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     ddd = []
     try:
-        ddd = core.get_payoffs_bykey(strx[2])
+        # use the faster hash based function
+        ddd = core.retrieve(strx[2])
     except:
         pass
     if len(ddd) == 0:
@@ -969,6 +970,8 @@ def get_rget_func(self, strx):
     core = twinchain.TwinChain(os.path.join(dname, pyservsup.chainfname + ".pydb"), 0)
     #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
     datax = []
+    if type(strx[2]) == type(""):
+        strx[2] = strx[2].split()
     for aa in strx[2]:
         #print("aa", aa)
         # Validate uuid
@@ -1244,28 +1247,6 @@ def get_ihost_func(self, strx):
     else:
         response = [ERR, "Operation must be 'add' or 'del or list'.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
-
-
-def get_ihave_func(self, strx):
-
-    if pyservsup.globals.conf.pgdebug > 1:
-        print( "get_ihave_func()", strx)
-
-    if len(strx) < 2:
-        response = [ERR, "Must specify blockchain kind.", strx[0]]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
-
-    if len(strx) < 3:
-        response = [ERR, "Must specify record header.", strx[0]]
-        self.resp.datahandler.putencode(response, self.resp.ekey)
-        return
-
-    uuid = uuid.UUID(strx[2])
-
-    print("ihave", strx[1], strx[2])
-    response = [OK,  "Ihave processed", strx[0], ]
-    self.resp.datahandler.putencode(response, self.resp.ekey)
 
 def get_cd_func(self, strx):
 
