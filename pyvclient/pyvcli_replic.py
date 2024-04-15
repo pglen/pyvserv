@@ -43,28 +43,37 @@ version = "1.0.0"
 
 # ------------------------------------------------------------------------
 
-def phelp():
+phelpstr = '''\
+The pyvserv get / put replicator client.
+Usage: %s [options] [sourcehost targethost]
+  options:
+    -d level  - Debug level 0-10
+    -p        - Port to use for source server (default: 6666)
+    -P        - Port to use for target server (default: 5555)
+    -l login  - Login Name; Source server. default: 'admin'
+    -s lpass  - Login Pass; (default: '1234') [for !!testing only!!]
+    -L login2 - Login Name; Target server. (default: 'admin')
+    -S lpass2 - Login Pass;  (default: '1234') [for !!testing only!!]
+    -t        - Prompt for source server pass
+    -T        - Prompt for target server pass
+    -b time   - Begin time. Format: 'Y-m-d H:M' (default: now)
+    -i time   - Interval in minutes. (default: 1 day)
+    -y msec   - Delay after every operation. (default: 0.1 sec)
+    -a        - Replicate all source server records. (may take long)
+    -v        - Verbose. More info on screen.
+    -q        - Quiet. Less info on screen.
+    -h        - Help. (this screen)''' \
+ % (os.path.basename(__file__))
 
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -P        - Second server port to use (default: 5555)")
-    print( "            -l login  - Login Name; default: 'admin'")
-    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
-    print( "            -L login2 - Login Name; Second server. default: 'admin'")
-    print( "            -S lpass2 - Login Pass; Second server. default: '1234' ")
-    print( "            -b        - Begin time. Format: 'Y-m-d H:M' Default: now")
-    print( "            -i        - Interval in minutes. (Default: 1 day)")
-    print( "            -a        - Replicate all records. See notes.")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print()
+__doc__ = "<pre>" + phelpstr + "</pre>"
+
+def phelp():
+    ''' Deliver help '''
+    print(phelpstr)
     sys.exit(0)
 
 def pversion():
+    ''' Print version '''
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
@@ -77,9 +86,12 @@ optarr = \
     ["s:",  "lpass",    "1234",     None],      \
     ["L:",  "login2",   "admin",    None],      \
     ["S:",  "lpass2",   "1234",     None],      \
-    ["b:",  "start",     "",        None],      \
+    ["t",   "prompt",   0,          None],      \
+    ["T",   "prompt2",  0,          None],      \
+    ["b:",  "start",    "",         None],      \
     ["i:",  "inter",    0,          None],      \
-    ["a",   "all",      0,          None],      \
+    ["y:",  "delay",    0.1,        None],      \
+    ["a",   "allrec",   0,          None],      \
     ["v",   "verbose",  0,          None],      \
     ["q",   "quiet",    0,          None],      \
     ["V",   None,       None,       pversion],  \
@@ -88,16 +100,13 @@ optarr = \
 conf = comline.Config(optarr)
 conf2 = comline.Config(optarr)
 
-def scanall(hand, hand2):
-    cresp = hand.client(["rsize", "vote",], conf.sess_key)
-    #print ("Server  rsize response:", cresp)
-    if cresp[0] != "OK":
-        print("Cannot get records size")
-        return
+def replicarr(count, hand, hand2):
 
-    for aa in range(cresp[1]):
+    ''' Replicate from database count '''
+
+    for aa in range(count):
         got = hand.client(["rabs", "vote", str(aa)], conf.sess_key)
-        #print("got:", got[3])
+        #print("got:", got)
         if got[0] != "OK":
             print("error:", got)
             continue
@@ -112,20 +121,45 @@ def scanall(hand, hand2):
         if conf.pgdebug > 1:
             print("pay:", pay['PayLoad'])
 
+        # Check if data is OK
+        pvh = pyvhash.BcData(pay)
+        if conf.pgdebug > 2:
+            print(pvh.datax)
+        if conf.pgdebug > 3:
+            print("pvh checks:", pvh.checkhash(), pvh.checkpow())
+
         put = hand2.client(["rput", "vote", pay, ], conf2.sess_key)
         if put[0] != "OK":
             #print("put:", put)
             # Duplicate is normal
             if not "Duplicate" in put[1]:
-                print("on put:", put)
+                print("Error on put:", put)
         else:
             global replic
             replic += 1
             if not conf.quiet:
                 print("replicated:", pay['header'])
 
+        #print("delay:", conf.delay)
+        time.sleep(conf.delay)
+
+
+def scanall(hand, hand2):
+
+    ''' Scan all data fron source server '''
+
+    cresp = hand.client(["rsize", "vote",], conf.sess_key)
+    #print ("Server  rsize response:", cresp)
+    if cresp[0] != "OK":
+        print("Cannot get records size")
+        return
+
+    replicarr(cresp[1], hand, hand2)
+
 
 def scanfordays(handx, handx2):
+
+    ''' Progressively dig down the timeline '''
 
     global hand, hand2
     hand    = handx
@@ -157,6 +191,26 @@ def scanfordays(handx, handx2):
             else:
                 print("getting day:", dd_beg, "-", dd_end)
 
+                cresp = hand.client(["rcount", "vote", dd_beg.timestamp(),
+                                        dd_end.timestamp()], conf.sess_key)
+                if cresp[1] > 0:
+                    print(" from:", dd_beg, "to:", dd_end);
+                    print("Server rcount response:", cresp)
+                    cresp2 = hand.client(["rlist", "vote", dd_beg.timestamp(),
+                                        dd_end.timestamp()], conf.sess_key)
+                    #print(" Server rlist response:", cresp2)
+                    for aa in cresp2[1]:
+                        print("rr:", aa)
+                        crespr = hand.client(["rget", "vote", aa], conf.sess_key)
+                        if cresp[0] == "OK":
+                            print("rget", crespr)
+                            #print("aa", aa)
+                            dec = hand.pb.decode_data(aa[1])[0]
+                            #print("dec", dec)
+                            print(dec['header'], dec['payload'])
+           # Get
+
+
         #if cresp[1] > 100:
         #    #print("record with more", cresp[1])
         #    pass
@@ -168,6 +222,8 @@ def scanfordays(handx, handx2):
 
 # Scan which hours of days that have records
 def scanhours(dayx):
+
+    ''' Progressively dig down the timeline, per hour '''
 
     # Set beginning date range
     dd = datetime.datetime.now()
@@ -196,6 +252,8 @@ def scanhours(dayx):
             break
 
 def scanminutes(dayx, hourx):
+
+    ''' Progressively dig down the timeline per minute '''
 
     # Set beginning date range
     dd = datetime.datetime.now()
@@ -249,9 +307,23 @@ def scanminutes(dayx, hourx):
 
 # ------------------------------------------------------------------------
 
-if __name__ == '__main__':
+def    mainfunct():
 
-    args = conf.comline(sys.argv[1:])
+    ''' Called by the SETUP script '''
+
+    try:
+        args = conf.comline(sys.argv[1:])
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit(0)
+    except:
+        print(sys.exc_info())
+        sys.exit(1)
+
+    # Convert to seconds for sleep
+    #Mon 15.Apr.2024 added float to comline
+    #conf.delay = conf.delay / 1000
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -276,15 +348,10 @@ if __name__ == '__main__':
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    hand2 = pyclisup.CliSup()
-    hand2.verbose = conf.verbose
-    hand2.pgdebug = conf.pgdebug
-
     atexit.register(pyclisup.atexit_func, hand, conf)
-
     ret = hand.start_session(conf)
     if ret[0] != "OK":
-        print("Error on setting session:", resp3[1])
+        print("Error on setting session on source:", resp3[1])
         hand.client(["quit"])
         hand.close();
         sys.exit(0)
@@ -292,8 +359,12 @@ if __name__ == '__main__':
     #resp3 = hand.client(["hello", ],  conf.sess_key, False)
     #print("Hello  Resp:", resp3)
 
+    hand2 = pyclisup.CliSup()
+    hand2.verbose = conf.verbose
+    hand2.pgdebug = conf.pgdebug
+
     try:
-        respc = hand2.connect(ip, conf.port2)
+        respc = hand2.connect(ip2, conf.port2)
     except:
         print( "Cannot connect to second server:", ip2 + ":" + str(conf.port2), sys.exc_info()[1])
         sys.exit(1)
@@ -302,13 +373,21 @@ if __name__ == '__main__':
 
     ret2 = hand2.start_session(conf2)
     if ret2[0] != "OK":
-        print("Error on setting session2:", ret2[1])
+        print("Error on setting session on target:", ret2[1])
         hand2.client(["quit"])
         hand2.close();
         sys.exit(0)
 
     #resp3 = hand2.client(["hello", ],  conf2.sess_key, False)
     #print("Hello2 Resp:", resp3)
+
+    if conf.prompt:
+        import getpass
+        strx = getpass.getpass("Enter Pass for source server: ")
+        if not strx:
+            print("Aborting ...")
+            sys.exit(0)
+        conf.lpass  = strx
 
     cresp = hand.login(conf.login, conf.lpass, conf)
     #print ("Server login response:", cresp)
@@ -317,11 +396,15 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if conf.verbose:
-        print ("Server  login response:", cresp)
+        print ("Server login response:", cresp)
 
-    cresp = hand.client(["rsize", "vote",], conf.sess_key)
-    if not conf.quiet:
-        print ("Server  rsize response:", cresp)
+    if conf.prompt2:
+        import getpass
+        strx = getpass.getpass("Enter Pass for target server: ")
+        if not strx:
+            print("Aborting ...")
+            sys.exit(0)
+        conf.lpass2  = strx
 
     cresp = hand2.login(conf.login2, conf.lpass2, conf2)
     if cresp[0] != "OK":
@@ -331,15 +414,22 @@ if __name__ == '__main__':
     if conf.verbose:
         print ("Server2 login response:", cresp)
 
+    cresp = hand.client(["rsize", "vote",], conf.sess_key)
+    if not conf.quiet:
+        print ("Server  rsize response:", cresp)
+
     cresp2 = hand2.client(["rsize", "vote",], conf2.sess_key)
     if not conf.quiet:
         print ("Server2 rsize response:", cresp2)
 
-    if conf.all:
+    if conf.allrec:
         scanall(hand, hand2)
     else:
         scanfordays(hand, hand2)
 
-    print("Replicated", replic, "records.")
+    print("Replicated", replic, "record(s).")
+
+if __name__ == '__main__':
+    mainfunct()
 
 # EOF

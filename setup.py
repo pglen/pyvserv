@@ -15,7 +15,6 @@ classx = [
           'Operating System :: Microsoft :: Windows',
           'Operating System :: POSIX',
           'Programming Language :: Python',
-          'Topic :: Editors',
           'Topic :: Software Development :: Servers',
         ]
 
@@ -38,6 +37,7 @@ test_root = [\
     "pyvcli_rman",
     "pyvcli_qr",
     "pyvcli_ihost",
+    "pyvcli_replic",
     ]
 
 # Generate script and loadable details

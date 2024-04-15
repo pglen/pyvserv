@@ -81,6 +81,7 @@ def phelp():
     print( &#34;              -u user   - User Name; default: &#39;admin&#39;&#34;)
     print( &#34;              -l pass   - Password; default: &#39;1234&#39; (!! for tests only !!)&#34;)
     print( &#34;              -t        - Prompt for password.&#34;)
+    print( &#34;              -f        - Force, No prompt for demo.&#34;)
     print( &#34;              -h        - Help (this screen)&#34;)
     print( &#34;The user will be prompted for confirmation if demosystem is created.&#34;)
     sys.exit(0)
@@ -98,8 +99,9 @@ optarr = \
     [&#34;u:&#34;,  &#34;userx&#34;,    &#34;admin&#34;,    None],      \
     [&#34;l:&#34;,  &#34;passx&#34;,    &#34;1234&#34;,     None],      \
     [&#34;t&#34;,   &#34;prompt&#34;,    0,         None],      \
-    [&#34;V&#34;,   None,       None,       pversion],  \
-    [&#34;h&#34;,   None,       None,       phelp]      \
+    [&#34;f&#34;,   &#34;noprompt&#34;,  0,         None],      \
+    [&#34;V&#34;,   None,        None,      pversion],  \
+    [&#34;h&#34;,   None,        None,      phelp]      \
 
 conf = comline.Config(optarr)
 conf.sess_key = &#34;&#34;
@@ -138,13 +140,15 @@ def    mainfunct():
         conf.passx =  strx
 
     if conf.passx == &#34;1234&#34;:
-        print(&#34;This creates credentials for a demo / test system.&#34;)
-        print(&#34;Are you sure? (y/N) &#34;, end = &#34;&#34;); sys.stdout.flush()
-        sss = input().strip().lower()
-        #print(sss)
-        if sss != &#34;y&#34; and sss != &#34;yes&#34;:
-            print(&#34;You may use the -t option for password prompt. Exiting ...&#34;)
-            sys.exit()
+
+        if not conf.noprompt:
+            print(&#34;This creates credentials for a demo / test system.&#34;)
+            print(&#34;Are you sure? (y/N) &#34;, end = &#34;&#34;); sys.stdout.flush()
+            sss = input().strip().lower()
+            #print(sss)
+            if sss != &#34;y&#34; and sss != &#34;yes&#34;:
+                print(&#34;You may use the -t option for password prompt. Exiting ...&#34;)
+                sys.exit()
 
     if len(args) == 0:
         ip = &#39;127.0.0.1&#39;
@@ -234,13 +238,15 @@ On production server, add a real password.</p></div>
         conf.passx =  strx
 
     if conf.passx == &#34;1234&#34;:
-        print(&#34;This creates credentials for a demo / test system.&#34;)
-        print(&#34;Are you sure? (y/N) &#34;, end = &#34;&#34;); sys.stdout.flush()
-        sss = input().strip().lower()
-        #print(sss)
-        if sss != &#34;y&#34; and sss != &#34;yes&#34;:
-            print(&#34;You may use the -t option for password prompt. Exiting ...&#34;)
-            sys.exit()
+
+        if not conf.noprompt:
+            print(&#34;This creates credentials for a demo / test system.&#34;)
+            print(&#34;Are you sure? (y/N) &#34;, end = &#34;&#34;); sys.stdout.flush()
+            sss = input().strip().lower()
+            #print(sss)
+            if sss != &#34;y&#34; and sss != &#34;yes&#34;:
+                print(&#34;You may use the -t option for password prompt. Exiting ...&#34;)
+                sys.exit()
 
     if len(args) == 0:
         ip = &#39;127.0.0.1&#39;
@@ -295,6 +301,7 @@ On production server, add a real password.</p></div>
     print( &#34;              -u user   - User Name; default: &#39;admin&#39;&#34;)
     print( &#34;              -l pass   - Password; default: &#39;1234&#39; (!! for tests only !!)&#34;)
     print( &#34;              -t        - Prompt for password.&#34;)
+    print( &#34;              -f        - Force, No prompt for demo.&#34;)
     print( &#34;              -h        - Help (this screen)&#34;)
     print( &#34;The user will be prompted for confirmation if demosystem is created.&#34;)
     sys.exit(0)</code></pre>

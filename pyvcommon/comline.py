@@ -78,13 +78,13 @@ def phelp():
 # Add colon ':' to option with argument.
 
 optarr = [\
-    ["d:",  "pgdebug",  0,      None,       "Debug level 0-10" ], \
-    ["p:",  "port",     6666,   None,       "Listen on port"],    \
-    ["v",   "verbose",  0,      None,       "Verbose"],           \
-    ["q",   "quiet",    0,      None,       "Quiet"],             \
-    ["V",   "version",  None,   pversion,   "Print Version"],     \
-    ["h",   "help",     None,   phelp,      "Show Help"]          \
-    ]
+ ["d:",  "pgdebug",  0,      None,       "Debug level 0-10" ], \
+ ["p:",  "port",     6666,   None,       "Listen on port"],    \
+ ["v",   "verbose",  0,      None,       "Verbose. . More info on screen."],           \
+ ["q",   "quiet",    0,      None,       "Quiet. Less info on screen."],             \
+ ["V",   "version",  None,   pversion,   "Print Version."],     \
+ ["h",   "help",     None,   phelp,      "Show Help. (this screen)"]          \
+]
 
 # ------------------------------------------------------------------------
 # Handle command line. Interpret optarray and decorate the class
@@ -118,6 +118,8 @@ class Config:
                 # Coerse type
                 if type(self.optarr[bb][2]) == type(0):
                     self.__dict__[self.optarr[bb][1]] = int(self.optarr[bb][2])
+                if type(self.optarr[bb][2]) == type(.0):
+                    self.__dict__[self.optarr[bb][1]] = float(self.optarr[bb][2])
                 if type(self.optarr[bb][2]) == type(""):
                     self.__dict__[self.optarr[bb][1]] = str(self.optarr[bb][2])
         try:
@@ -135,10 +137,12 @@ class Config:
                 if aa[0][1] == self.optarr[bb][0][0]:
                     #print( "match", aa, self.optarr[bb])
                     if len(self.optarr[bb][0]) > 1:
-                        #print( "arg", self.optarr[bb][1], aa[1])
+                        print( "arg", self.optarr[bb][1], aa[1])
                         if self.optarr[bb][2] != None:
                             if type(self.optarr[bb][2]) == type(0):
                                 self.__dict__[self.optarr[bb][1]] = int(aa[1])
+                            if type(self.optarr[bb][2]) == type(.0):
+                                self.__dict__[self.optarr[bb][1]] = float(aa[1])
                             if type(self.optarr[bb][2]) == type(""):
                                 self.__dict__[self.optarr[bb][1]] = str(aa[1])
                     else:

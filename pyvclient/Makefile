@@ -43,9 +43,14 @@ clean:
 	@rm -rf __pycache__
 	@rm -f bigfile*
 	@rm -f test.txt*
+	@rm -f pydbase.p*
 
 PPP=PYTHONPATH=../pyvcommon:../  python -W ignore::DeprecationWarning `which pdoc` --force --html
 #PPP=PYTHONPATH=../pyvcommon:../  pdoc --html
+
+# Shortcut to make current doc
+onedoc:
+	@-${PPP} -o docs  pyvcli_replic.py
 
 docs:
 	@-${PPP} -o docs  pyvcli_akey.py
