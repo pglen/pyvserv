@@ -23,6 +23,29 @@ from pydbase import twinchain
 
 import pyvpacker
 
+class   TextViewx(Gtk.TextView):
+
+    def __init__(self):
+        super(TextViewx).__init__()
+        GObject.GObject.__init__(self)
+        self.buffer = Gtk.TextBuffer()
+        self.set_buffer(self.buffer)
+        self.single_line = False
+
+    def get_text(self):
+        startt = self.buffer.get_start_iter()
+        endd = self.buffer.get_end_iter()
+        return self.buffer.get_text(startt, endd, False)
+
+    def set_text(self, txt, eventx = False):
+        if eventx:
+            self.check_saved()
+        startt = self.buffer.get_start_iter()
+        endd = self.buffer.get_end_iter()
+        self.buffer.delete(startt, endd)
+        self.buffer.insert(startt, txt)
+        self.buffer.set_modified(True)
+
 # ------------------------------------------------------------------------
 
 class MainWin(Gtk.Window):
@@ -48,6 +71,7 @@ class MainWin(Gtk.Window):
         self.status_cnt = 0
         self.set_title("PyVServer Vote Entry")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+        self.packer = pyvpacker.packbin()
 
         #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
         #window.set_icon(ic.get_pixbuf())
@@ -88,7 +112,8 @@ class MainWin(Gtk.Window):
         except:
             pass
 
-        vbox = Gtk.VBox(); hbox4 = Gtk.HBox()
+        vbox = Gtk.VBox()
+        hbox4 = Gtk.HBox()
 
         merge = Gtk.UIManager()
         #self.mywin.set_data("ui-manager", merge)
@@ -113,15 +138,22 @@ class MainWin(Gtk.Window):
         #bbox.pack_start(self.tbar, 0,0, 0)
         #vbox.pack_start(bbox, False, 0, 0)
 
-        lab1 = Gtk.Label("   ");  hbox4.pack_start(lab1, 0, 0, 0)
-        lab2a = Gtk.Label(" Initializing ");  hbox4.pack_start(lab2a, 1, 1, 0)
+        lab1 = Gtk.Label("   ");
+        hbox4.pack_start(lab1, 0, 0, 0)
+        lab2a = Gtk.Label(" Initializing ");
+        hbox4.pack_start(lab2a, 1, 1, 0)
         lab2a.set_xalign(0)
         lab2a.set_size_request(300, -1)
 
         self.status = lab2a
         self.status_cnt = 1
 
-        lab1 = Gtk.Label(" ");  hbox4.pack_start(lab1, 1, 1, 0)
+        lab1 = Gtk.Label(" ");
+        hbox4.pack_start(lab1, 1, 1, 0)
+
+        butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad entry ")
+        butt3.connect("clicked", self.load_data)
+        hbox4.pack_start(butt3, False, 0, 4)
 
         butt1 = Gtk.Button.new_with_mnemonic(" _Save entry ")
         butt1.connect("clicked", self.save_data)
@@ -138,7 +170,6 @@ class MainWin(Gtk.Window):
         #lab4 = Gtk.Label("");  hbox2.pack_start(lab4, 0, 0, 0)
         #vbox.pack_start(hbox2, False, 0, 0)
 
-        hbox3 = Gtk.HBox()
         #self.edit1 = pgsimp.SimpleEdit();
 
         # This is what is coming in:
@@ -169,9 +200,11 @@ class MainWin(Gtk.Window):
         #hbox3.pack_start(self.tree1s, True, True, 6)
 
         #sg = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
-        grid = Gtk.Grid()
-        grid.set_column_spacing(6)
-        grid.set_row_spacing(6)
+        gridx = Gtk.Grid()
+        gridx.set_column_spacing(6)
+        gridx.set_row_spacing(6)
+
+        #gridx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaaa"))
 
         rowcnt = 0
         sumx = Gtk.HBox()
@@ -180,73 +213,88 @@ class MainWin(Gtk.Window):
 
         tp1 =("Full Name: ", "cname", "Enter full name (TAB to advance)", None)
         tp2 = ("Nick Name: ", "nname", "Enter nick name / Alias if available", None)
-        lab1, lab2 = self.gridquad(grid, rowcnt, 0, tp1, tp2)
+        lab1, lab2 = self.gridquad(gridx, rowcnt, 0, tp1, tp2)
         self.dat_dict['name'] = lab1
         self.dat_dict['dob']  = lab2
         rowcnt += 1
 
         tp3 = ("Date of birth: ", "dob", "Date of birth, YYYY/MM/DD", None)
         tp4 = ("Location of birth: ", "lob", "Location, City and Country", None)
-        butt = Gtk.Button("Select")
-        lab3, lab4 = self.gridquad(grid, 0, rowcnt, tp3, tp4, butt)
-        butt.connect("pressed", self.pressed_dob, lab4)
+        butt = Gtk.Button.new_with_mnemonic("Sele_ct")
+        lab3, lab4 = self.gridquad(gridx, 0, rowcnt, tp3, tp4, butt)
+        butt.connect("clicked", self.pressed_dob, lab4)
         self.dat_dict['lob'] = lab3
         self.dat_dict['uuid'] = lab4
         rowcnt += 1
 
-        grid.attach(self.vspacer(8), 0, rowcnt, 1, 1)
+        gridx.attach(self.vspacer(8), 0, rowcnt, 1, 1)
         rowcnt += 1
 
-        tp3x = ("UUID: ", "uuid", "Generate by pressing button", None)
-        butt = Gtk.Button("Generate")
-        lab3x = self.griddouble(grid, 0, rowcnt, tp3x, butt)
-        butt.connect("pressed", self.pressed_uuid, lab3x)
+        tp3x = ("UUID: ", "uuid", "Generate VOTER UID by pressing button", None)
+        butt1 = Gtk.Button.new_with_mnemonic("G_enerate")
+        lab3x = self.griddouble(gridx, 0, rowcnt, tp3x, butt1)
+        butt1.connect("clicked", self.pressed_uuid, lab3x)
         self.dat_dict['uuid'] = lab3x
         rowcnt += 1
 
-        tp3x = ("GUID: ", "guid", "Generate by pressing button", None)
-        butt2 = Gtk.Button("Generate")
-        lab4x = self.griddouble(grid, 0, rowcnt, tp3x, butt2)
-        butt2.connect("pressed", self.pressed_uuid, lab4x)
+        tp4x = ("GUID: ", "guid", "Load GROUP UID by pressing button", None)
+        butt2 = Gtk.Button.new_with_mnemonic("Loa_d")
+        lab4x = self.griddouble(gridx, 0, rowcnt, tp4x, butt2)
+        butt2.connect("clicked", self.load_uuid, lab4x)
         self.dat_dict['guid'] = lab4x
         rowcnt += 1
-
-        grid.attach(self.vspacer(8), 0, rowcnt, 1, 1)
+        gridx.attach(self.vspacer(8), 0, rowcnt, 1, 1)
         rowcnt += 1
 
         tp3a = ("Address Line 1: ", "addr1", "Address line one. (Number, Street)", None)
         tp4a = ("Address Line 2: ", "addr2", "Addressline two. (if applicable)", None)
-        lab5, lab6 = self.gridquad(grid, 0, rowcnt, tp3a, tp4a)
+        lab5, lab6 = self.gridquad(gridx, 0, rowcnt, tp3a, tp4a)
         self.dat_dict['addr1'] = lab5
         self.dat_dict['addr2'] = lab6
         rowcnt += 1
 
         tp5 = ("City: ", "city", "City or Township", None)
         tp6 = ("County / Territory: ", "county", "County or Teritory or Borough", None)
-        lab7, lab8 = self.gridquad(grid, 0, rowcnt, tp5, tp6)
+        lab7, lab8 = self.gridquad(gridx, 0, rowcnt, tp5, tp6)
         self.dat_dict['city'] = lab7
         self.dat_dict['terr'] = lab8
         rowcnt += 1
 
         tp7 = ("Zip: ", "zip", "Zip code or Postal code", None)
         tp8 = ("Country: ", "country", "Coutry of residence", None)
-        lab9, lab10 = self.gridquad(grid, 0, rowcnt, tp7, tp8, butt)
+        lab9, lab10 = self.gridquad(gridx, 0, rowcnt, tp7, tp8, butt)
         self.dat_dict['zip'] = lab9
         self.dat_dict['country'] = lab10
         rowcnt += 1
 
         tp7a = ("Phone: ", "phone", "Phone or text number. ", None)
         tp8a = ("Email: ", "email", "Primary Email", None)
-        lab11, lab12 = self.gridquad(grid, 0, rowcnt, tp7a, tp8a, butt)
+        lab11, lab12 = self.gridquad(gridx, 0, rowcnt, tp7a, tp8a, butt)
         self.dat_dict['phone'] = lab11
         self.dat_dict['email'] = lab12
         rowcnt += 1
 
         tp7b = ("Phone: (secondary)", "phone2", "Secondary phone or text number. ", None)
         tp8b = ("Email: (Secondary)", "email2", "Secondary Email", None)
-        lab13, lab14 = self.gridquad(grid, 0, rowcnt, tp7b, tp8b, butt)
+        lab13, lab14 = self.gridquad(gridx, 0, rowcnt, tp7b, tp8b, butt)
         self.dat_dict['phone2'] = lab13
         self.dat_dict['email2'] = lab14
+        rowcnt += 1
+
+        tp6x = ("Notes: ", "", "Load GROUP UID by pressing button", None)
+        lab6x = self.gridsingle(gridx, 0, rowcnt, tp6x)
+        self.dat_dict['Notes'] = lab6x
+        rowcnt += 1
+
+        gridx.attach(self.vspacer(8), 0, rowcnt, 1, 1)
+        rowcnt += 1
+
+        #tp7b = ("Vote:" , "", "Voting entity. ", None)
+        #tp8b = ("Secondary Vote", "", "Secondary Entity", None)
+        #lab13, lab14 = self.gridquad(gridx, 0, rowcnt, tp7b, tp8b, butt)
+        #self.dat_dict['vote'] = lab13
+        #self.dat_dict['vote2'] = lab14
+        #rowcnt += 1
 
         # ----------------------------------------------------------------
 
@@ -255,27 +303,36 @@ class MainWin(Gtk.Window):
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
 
         hboxtop = Gtk.HBox()
-        hboxtop.pack_start(Gtk.Label("   Not all enrties, are required: "),  0, 0, 2)
-        hboxtop.pack_start(Gtk.Label(" "),  1, 1, 6)
-        vbox.pack_start(hboxtop, 0, 0, 12)
+        hboxtop.pack_start(Gtk.Label(" "),  0, 0, 2)
+        hboxtop.pack_start(Gtk.Label("Not all enrties are required: "),  0, 0, 6)
+        hboxtop.pack_start(Gtk.Label(" "),  1, 1, 2)
+        #hboxtop.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaa44"))
+        vbox.pack_start(hboxtop, 0, 0, 0)
 
-        sumx.pack_start(Gtk.Label("   "), 0, 0, 2)
-        sumx.pack_start(grid, 0, 0, 2)
-        sumx.pack_start(Gtk.Label("   "), 1, 1, 2)
+        sumx.pack_start(Gtk.Label("   "), 0, 0, 0)
+        sumx.pack_start(gridx, 0, 0, 0)
+        sumx.pack_start(Gtk.Label("   "), 1, 1, 0)
 
-        vbox.pack_start(sumx, 0, 0, 2)
+        vbox.pack_start(sumx, 1, 1, 2)
+        #sumx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaa88"))
 
-        fill = Gtk.VBox()
-        vbox.pack_start(fill, 1, 1, 2)
-        vbox.pack_start(hbox3, 0, 0, 2)
-        vbox.pack_start(hbox3, 0, 0, 2)
-        vbox.pack_start(hbox4, False, 0, 6)
+        #fill = Gtk.VBox()
+        #vbox.pack_start(fill, 0, 0, 2)
+
+        #hbox3 = Gtk.HBox()
+        #hbox3.pack_start(Gtk.Label("q"),1,1,0)
+        #hbox3.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaaa"))
+        #vbox.pack_start(hbox3, 0, 0, 2)
+
+        vbox.pack_start(hbox4, False, 0, 4)
 
         self.add(vbox)
         self.show_all()
 
         GLib.timeout_add(500, self.timer)
 
+    def load_data(self, arg):
+        pass
     def vspacer(self, sp):
         hbox = Gtk.HBox()
         hbox.set_size_request(sp, sp)
@@ -286,57 +343,75 @@ class MainWin(Gtk.Window):
 
     def pressed_uuid(self, arg, arg2):
         if arg2.get_text() != "":
-            self.status.set_text("Already has a UUID; Cannot set.")
+            msg = "Already has a UUID; Cannot set."
+            self.message(msg)
+            self.status.set_text(msg)
             self.status_cnt = 5
             return
-
         arg2.set_text(str(uuid.uuid1()))
 
-    #def vspacer(self, vbox, xstr = " ", expand = False):
-    #    lab = Gtk.Label(xstr)
-    #    vbox.pack_start(lab, expand, expand, 2)
+    def load_uuid(self, arg, arg2):
+        if arg2.get_text() != "":
+            msg = "Already has a GUID; Cannot set."
+            self.message(msg)
+            self.status.set_text(msg)
+            self.status_cnt = 5
+            return
+        arg2.set_text(str(uuid.uuid1()))
 
-    def gridquad(self, grid, left, top, entry1, entry2, butt = None):
+    def gridquad(self, gridx, left, top, entry1, entry2, butt = None):
         lab1 = Gtk.Label(entry1[0] + "   ")
         lab1.set_alignment(1, 0)
         lab1.set_tooltip_text(entry1[2])
-        grid.attach(lab1, left, top, 1, 1)
+        gridx.attach(lab1, left, top, 1, 1)
 
         headx = Gtk.Entry();
-        headx.set_width_chars(24)
+        headx.set_width_chars(20)
         if entry1[3] != None:
             headx.set_text(entry1[3])
-        grid.attach(headx, left+1, top, 1, 1)
+        gridx.attach(headx, left+1, top, 1, 1)
 
         lab2 = Gtk.Label("    " + entry2[0] + "   ")
         lab2.set_alignment(1, 0)
         lab2.set_tooltip_text(entry2[2])
-        grid.attach(lab2, left+2, top, 1, 1)
+        gridx.attach(lab2, left+2, top, 1, 1)
 
         headx2 = Gtk.Entry();
-        headx2.set_width_chars(36)
+        headx2.set_width_chars(20)
         if entry2[3] != None:
             headx2.set_text(entry2[3])
-        grid.attach(headx2, left+3, top, 1, 1)
+        gridx.attach(headx2, left+3, top, 1, 1)
         if butt:
-            grid.attach(butt, left+4, top, 1, 1)
+            gridx.attach(butt, left+4, top, 1, 1)
         return headx, headx2
 
-    def griddouble(self, grid, left, top, entry1, butt = None):
+    def griddouble(self, gridx, left, top, entry1, buttx = None):
         lab1 = Gtk.Label(entry1[0] + "   ")
         lab1.set_alignment(1, 0)
         lab1.set_tooltip_text(entry1[2])
-        grid.attach(lab1, left, top, 1, 1)
+        gridx.attach(lab1, left, top, 1, 1)
 
         headx = Gtk.Entry();
-        headx.set_width_chars(50)
+        headx.set_width_chars(40)
         if entry1[3] != None:
             headx.set_text(entry1[3])
-        grid.attach(headx, left+1, top, 2, 1)
-        if butt:
-            grid.attach(butt, left+3, top, 1, 1)
-
+        gridx.attach(headx, left+1, top, 2, 1)
+        if buttx:
+            gridx.attach(buttx, left+3, top, 1, 1)
         return headx
+
+    def gridsingle(self, gridx, left, top, entry1):
+        lab1 = Gtk.Label(entry1[0] + "   ")
+        lab1.set_alignment(1, 0)
+        lab1.set_tooltip_text(entry1[2])
+        gridx.attach(lab1, left, top, 1, 1)
+
+        headx, cont = self.wrap(TextViewx())
+        if entry1[3] != None:
+             headx.set_text(entry1[3])
+        gridx.attach(headx, left+1, top, 3, 1)
+
+        return cont
 
     def cellx(self, idx):
         cell = Gtk.CellRendererText()
@@ -370,16 +445,24 @@ class MainWin(Gtk.Window):
         #sel.select_path(self.treestore.get_path(iter))
 
     def wrap(self, cont):
+        fr = Gtk.Frame()
         sc = Gtk.ScrolledWindow()
         sc.set_hexpand(True)
         sc.set_vexpand(True)
         sc.add(cont)
-        return sc, cont
+        fr.add(sc)
+        return fr, cont
 
     def save_data(self, arg1):
         print("Save_data")
         for aa in self.dat_dict.keys():
             print(aa, "=", "'" + self.dat_dict[aa].get_text() + "'")
+        ddd = {}
+        for aa in self.dat_dict.keys():
+            ddd[aa] = self.dat_dict[aa].get_text()
+
+        enc = self.packer.encode_data("", ddd)
+        print("enc:", enc)
 
         cnt = 0
         for aa in self.dat_dict.keys():
@@ -472,10 +555,10 @@ class MainWin(Gtk.Window):
             if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
                 ccc = True
         if ccc:
-            print("Please save first")
-            self.status.set_text("Plase save data before exiting.")
+            msg = "Please save data before exiting"
+            self.status.set_text(msg)
             self.status_cnt = 4
-
+            self.message(msg)
             return True
 
         self.exit_all()
@@ -491,14 +574,17 @@ class MainWin(Gtk.Window):
         #print( "button_press_event", win, event)
         pass
 
-    def activate_action(self, action):
+    def message(self, msg):
+        dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, msg)
 
-        #dialog = Gtk.MessageDialog(None, Gtk.DIALOG_DESTROY_WITH_PARENT,
-        #    Gtk.MESSAGE_INFO, Gtk.BUTTONS_CLOSE,
         #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
+
         # Close dialog on user response
-        #dialog.connect ("response", lambda d, r: d.destroy())
-        #dialog.show()
+        dialog.connect ("response", lambda d, r: d.destroy())
+        dialog.show()
+
+    def activate_action(self, action):
 
         warnings.simplefilter("ignore")
         strx = action.get_name()
