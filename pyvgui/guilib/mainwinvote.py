@@ -18,8 +18,11 @@ from pyvguicom import pggui
 from pymenu import  *
 from pgui import  *
 
+import recsel
+
 from pyvcommon import pydata, pyservsup,  crysupp
-from pydbase import twinchain
+
+from pydbase import twincore, twinchain
 
 import pyvpacker
 
@@ -72,6 +75,7 @@ class MainWin(Gtk.Window):
         self.set_title("PyVServer Vote Entry")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
+        self.vcore = twincore.TwinCore("voters.pydb", 0)
 
         #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
         #window.set_icon(ic.get_pixbuf())
@@ -211,20 +215,20 @@ class MainWin(Gtk.Window):
 
         # ----------------------------------------------------------------
 
-        tp1 =("Full Name: ", "cname", "Enter full name (TAB to advance)", None)
-        tp2 = ("Nick Name: ", "nname", "Enter nick name / Alias if available", None)
+        tp1 =("Full Name: ", "name", "Enter full name (TAB to advance)", None)
+        tp2 = ("Nick Name: ", "nick", "Enter nick name / Alias if available", None)
         lab1, lab2 = self.gridquad(gridx, rowcnt, 0, tp1, tp2)
         self.dat_dict['name'] = lab1
-        self.dat_dict['dob']  = lab2
+        self.dat_dict['nick'] = lab2
         rowcnt += 1
 
-        tp3 = ("Date of birth: ", "dob", "Date of birth, YYYY/MM/DD", None)
-        tp4 = ("Location of birth: ", "lob", "Location, City and Country", None)
-        butt = Gtk.Button.new_with_mnemonic("Sele_ct")
-        lab3, lab4 = self.gridquad(gridx, 0, rowcnt, tp3, tp4, butt)
-        butt.connect("clicked", self.pressed_dob, lab4)
-        self.dat_dict['lob'] = lab3
-        self.dat_dict['uuid'] = lab4
+        tp3 = ("Location of birth: ", "lob", "Location: City / Country", None)
+        tp4 = ("Date of birth: ", "dob", "Date of birth, YYYY/MM/DD", None)
+        buttx2 = Gtk.Button.new_with_mnemonic("Sele_ct")
+        lab3, lab4 = self.gridquad(gridx, 0, rowcnt, tp3, tp4, buttx2)
+        buttx2.connect("clicked", self.pressed_dob, lab4)
+        self.dat_dict['dob'] = lab3
+        self.dat_dict['lob'] = lab4
         rowcnt += 1
 
         gridx.attach(self.vspacer(8), 0, rowcnt, 1, 1)
@@ -254,7 +258,7 @@ class MainWin(Gtk.Window):
         rowcnt += 1
 
         tp5 = ("City: ", "city", "City or Township", None)
-        tp6 = ("County / Territory: ", "county", "County or Teritory or Borough", None)
+        tp6 = ("State / Territory: ", "county", "County or Teritory or Borough", None)
         lab7, lab8 = self.gridquad(gridx, 0, rowcnt, tp5, tp6)
         self.dat_dict['city'] = lab7
         self.dat_dict['terr'] = lab8
@@ -262,21 +266,21 @@ class MainWin(Gtk.Window):
 
         tp7 = ("Zip: ", "zip", "Zip code or Postal code", None)
         tp8 = ("Country: ", "country", "Coutry of residence", None)
-        lab9, lab10 = self.gridquad(gridx, 0, rowcnt, tp7, tp8, butt)
+        lab9, lab10 = self.gridquad(gridx, 0, rowcnt, tp7, tp8)
         self.dat_dict['zip'] = lab9
         self.dat_dict['country'] = lab10
         rowcnt += 1
 
         tp7a = ("Phone: ", "phone", "Phone or text number. ", None)
         tp8a = ("Email: ", "email", "Primary Email", None)
-        lab11, lab12 = self.gridquad(gridx, 0, rowcnt, tp7a, tp8a, butt)
+        lab11, lab12 = self.gridquad(gridx, 0, rowcnt, tp7a, tp8a)
         self.dat_dict['phone'] = lab11
         self.dat_dict['email'] = lab12
         rowcnt += 1
 
         tp7b = ("Phone: (secondary)", "phone2", "Secondary phone or text number. ", None)
         tp8b = ("Email: (Secondary)", "email2", "Secondary Email", None)
-        lab13, lab14 = self.gridquad(gridx, 0, rowcnt, tp7b, tp8b, butt)
+        lab13, lab14 = self.gridquad(gridx, 0, rowcnt, tp7b, tp8b)
         self.dat_dict['phone2'] = lab13
         self.dat_dict['email2'] = lab14
         rowcnt += 1
@@ -331,8 +335,7 @@ class MainWin(Gtk.Window):
 
         GLib.timeout_add(500, self.timer)
 
-    def load_data(self, arg):
-        pass
+
     def vspacer(self, sp):
         hbox = Gtk.HBox()
         hbox.set_size_request(sp, sp)
@@ -453,18 +456,63 @@ class MainWin(Gtk.Window):
         fr.add(sc)
         return fr, cont
 
+    def load_data(self, arg):
+
+        recsel.ovd(self.vcore)
+
+        # See if previous one saved
+        ccc = False
+        for aa in self.dat_dict.keys():
+            if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
+                ccc = True
+        if ccc:
+            msg = "Please save data before loading new one."
+            self.status.set_text(msg)
+            self.status_cnt = 4
+            self.message(msg)
+            return
+
+        uuid = "119be02c-fc59-11ee-b375-4f23895f805f"
+        try:
+            dat = self.vcore.retrieve(uuid)
+        except:
+            print(sys.exc_info())
+            pass
+        if not dat:
+            msg = "No data"
+            print(msg)
+            self.status.set_text(msg)
+            self.status_cnt = 5
+            return
+
+        #print("dat:", dat)
+        dec = self.packer.decode_data(dat[0][1])[0]
+        print("dec:", dec)
+        for aa in dec.keys():
+            self.dat_dict[aa].set_text(dec[aa])
+
+        # Mark as non changed
+        for aa in self.dat_dict.keys():
+            self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
+
     def save_data(self, arg1):
-        print("Save_data")
         for aa in self.dat_dict.keys():
             print(aa, "=", "'" + self.dat_dict[aa].get_text() + "'")
         ddd = {}
         for aa in self.dat_dict.keys():
             ddd[aa] = self.dat_dict[aa].get_text()
 
+        print("Save_data", ddd)
+
         enc = self.packer.encode_data("", ddd)
         print("enc:", enc)
 
-        cnt = 0
+        try:
+            ret = self.vcore.save_data(self.dat_dict['uuid'].get_text(), enc)
+        except:
+            pass
+            print("save", sys.exc_info())
+
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
 

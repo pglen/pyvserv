@@ -34,6 +34,8 @@ except:
     sys.path.append(os.path.join(base,  "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
+import recsel
+
 from pyvguicom import sutil
 # Get Parent of module root
 sf = os.path.dirname(sutil.__file__)
