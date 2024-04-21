@@ -26,6 +26,7 @@ from pydbase import twincore, twinchain
 
 import pyvpacker
 
+
 class   TextViewx(Gtk.TextView):
 
     def __init__(self):
@@ -34,6 +35,22 @@ class   TextViewx(Gtk.TextView):
         self.buffer = Gtk.TextBuffer()
         self.set_buffer(self.buffer)
         self.single_line = False
+        self.connect("key-press-event", self.key_press_event)
+
+    def  key_press_event(self, arg1, event):
+
+        if event.keyval == Gdk.KEY_Tab or event.keyval == Gdk.KEY_ISO_Left_Tab:
+            #print("tab keypress ", event.keyval, event.state)
+            if event.state & Gdk.ModifierType.SHIFT_MASK:
+                self.emit("move-focus",  Gtk.DirectionType.TAB_BACKWARD)
+            else:
+                self.emit("move-focus",  Gtk.DirectionType.TAB_FORWARD)
+
+        if event.keyval == Gdk.KEY_Return:
+            if event.state & Gdk.ModifierType.SHIFT_MASK:
+                #print("keypress shift ", event)
+                self.emit("move-focus",  Gtk.DirectionType.TAB_FORWARD)
+                return True
 
     def get_text(self):
         startt = self.buffer.get_start_iter()
@@ -108,8 +125,8 @@ class MainWin(Gtk.Window):
 
         self.connect("delete-event", self.OnExit)
         self.connect("destroy", self.OnExit)
-        self.connect("key-press-event", self.key_press_event)
-        self.connect("button-press-event", self.button_press_event)
+        #self.connect("key-press-event", self.key_press_event)
+        #self.connect("button-press-event", self.button_press_event)
 
         try:
             self.set_icon_from_file("icon.png")
@@ -154,6 +171,10 @@ class MainWin(Gtk.Window):
 
         lab1 = Gtk.Label(" ");
         hbox4.pack_start(lab1, 1, 1, 0)
+
+        butt2 = Gtk.Button.new_with_mnemonic(" Dele_te entry ")
+        butt2.connect("clicked", self.del_data)
+        hbox4.pack_start(butt2, False, 0, 4)
 
         butt2 = Gtk.Button.new_with_mnemonic(" Ne_w entry ")
         butt2.connect("clicked", self.new_data)
@@ -289,7 +310,7 @@ class MainWin(Gtk.Window):
         self.dat_dict['email2'] = lab14
         rowcnt += 1
 
-        tp6x = ("Notes: ", "", "Load GROUP UID by pressing button", None)
+        tp6x = ("Notes: ", "", "Text for Notes. Press Shift Enter to advance", None)
         lab6x = self.gridsingle(gridx, 0, rowcnt, tp6x)
         self.dat_dict['Notes'] = lab6x
         rowcnt += 1
@@ -501,12 +522,49 @@ class MainWin(Gtk.Window):
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
 
+    def  clear_data(self):
+
+        ''' Clar out data '''
+
+        for aa in self.dat_dict.keys():
+            self.dat_dict[aa].set_text("")
+
     def  reset_changed(self):
 
         ''' Reset flags for changed dict '''
 
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
+
+    def del_data(self, arg):
+
+        nnn = self.dat_dict['name'].get_text()
+        if not nnn:
+            msg = "Empty record, cannot delete."
+            self.status.set_text(msg)
+            self.status_cnt = 4
+            self.message(msg)
+            return
+        msg = "This will delete: '%s'. \nAre you sure?" % nnn
+        self.status.set_text(msg)
+        self.status_cnt = 4
+        ret = self.yesno(msg)
+        if ret != Gtk.ResponseType.YES:
+            return True
+        ddd = self.dat_dict['uuid'].get_text()
+        #print("deleting:", ddd)
+        try:
+            dat = self.vcore.del_rec_bykey(ddd)
+            #print("dat:", dat)
+        except:
+            dat = []
+            print(sys.exc_info())
+            pass
+        self.status.set_text("Record '%s' deleted." % nnn)
+        self.status_cnt = 4
+        # Clear, reset
+        self.clear_data()
+        self.reset_changed()
 
     def new_data(self, arg):
 
@@ -615,79 +673,23 @@ class MainWin(Gtk.Window):
             pass
             print("save", sys.exc_info())
 
+        self.status.set_text("Entry '%s' saved." % self.dat_dict['name'].get_text())
+        self.status_cnt = 4
+
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
 
     def timer(self):
 
         #print("Called timer")
-
         if self.in_timer:
             return True
         in_timer = True
-
-        #if self.start_anal:
-        #    if not self.core:
-        #        dbname = os.path.join(pyservsup.globals.chaindir, "vote", pyservsup.chainfname + ".pydb")
-        #        self.core = twinchain.TwinChain(dbname)
-        #        #print("opened", self.core)
-        #    sss = self.core.getdbsize()
-        #    #sss = 3 # test
-        #    if sss != self.old_sss:
-        #        cnt = 0
-        #        # Start from one
-        #        for aa in range(self.old_sss, sss):
-        #            rec = self.core.get_rec(aa)
-        #            if not rec:
-        #                continue
-        #            #print("Datamon", rec[1])
-        #            pb = pyvpacker.packbin()
-        #            dec = pb.decode_data(rec[1])[0]
-        #            #print("dec", dec)
-        #            decpay  = pb.decode_data(dec['payload'])[0]
-        #            pay = decpay['PayLoad']
-        #            #print("pay:", pay)
-        #            actstr = ["register", "unregister", "cast", "uncast", ]
-        #            if pay['Action'] == 'cast':
-        #                idx = int(decpay['PayLoad']['Vote'])
-        #                if idx >= 11:
-        #                    print("bad vote value", idx)
-        #                self.tally[ idx % 11 ] += 1
-        #
-        #            if pay['Action'] == 'uncast':
-        #                idx = int(decpay['PayLoad']['Vote'])
-        #                if idx >= 11:
-        #                    print("bad unvote value", idx)
-        #                self.untally[ idx % 11 ] += 1
-        #            arrx = [dec['header']]
-        #            for aaa in self.fields[1:]:
-        #                try:
-        #                    arrx.append(str(pay[aaa]))
-        #                except:
-        #                    print("Incomplete:", pay)
-        #            try:
-        #                self.model.append(None, arrx)
-        #            except:
-        #                print("Bad record:", pay)
-        #            #if len(self.fields) !=  len(arrx):
-        #            #    print("Len mismatch:", pay)
-        #
-        #            cnt += 1
-        #            if cnt % 50 == 0:
-        #                self.set_status_text("Getting rec: %d" % cnt)
-        #                sutil.usleep(2)
-        #
-        #        self.old_sss = sss
-        #        self.sel_last(self.tree1)
-        #        #self.led2.set_color("00ff00")
-        #        #GLib.timeout_add(400, self.led_off, self.led2, "#aaaaaa")
-
         self.cnt += 1
         if self.status_cnt:
             self.status_cnt -= 1
             if not self.status_cnt:
-                self.status.set_text("Idle")
-
+                self.status.set_text("Idle.")
         in_timer = False
         return True
 
@@ -722,7 +724,7 @@ class MainWin(Gtk.Window):
         Gtk.main_quit()
 
     def key_press_event(self, win, event):
-        #print( "key_press_event", win, event)
+        #print( "key_press_event", event.string, event.state)
         pass
 
     def button_press_event(self, win, event):
