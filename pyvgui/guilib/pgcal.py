@@ -2,37 +2,19 @@
 
 ''' Action Handler for simple open file dialog '''
 
-import time, os, re, string, warnings, platform, sys, datetime
+import datetime
 
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GLib
-from gi.repository import GObject
-from gi.repository import GdkPixbuf
 
-import pyvpacker
+from pyvguicom import pgbox
 
-# ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix
+def PopCal(ddd):
 
-class xSpacer(Gtk.HBox):
-
-    def __init__(self, sp = None):
-        GObject.GObject.__init__(self)
-        #self.pack_start()
-        #if box_testmode:
-        #    col = pgutils.randcolstr(100, 200)
-        #    self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
-        if sp == None:
-            sp = 6
-        self.set_size_request(sp, sp)
-
-def popcal(ddd):
-
-    ''' open voter calendar dialog. While technically this is not a class,
-        we attach state aers to the dialog class
+    ''' Open calendar dialog. While technically this is not a class,
+        we attach state vars to the dialog class, pretending it is.
     '''
 
     dialog = Gtk.Dialog("Get Date",
@@ -87,13 +69,14 @@ def popcal(ddd):
     lab2.set_mnemonic_widget(dialog.entry)
     hbox3.pack_start(lab2, 0, 0, 2)
     hbox3.pack_start(dialog.entry, 1, 1, 2)
-    hbox3.pack_start(Gtk.Label("  "), 0, 0, 2)
+    hbox3.pack_start(Gtk.Label(" Entered text sets date as well. "), 0, 0, 2)
 
     dialog.pbox.pack_start(helpx, 1, 1, 0)
-    dialog.pbox.pack_start(xSpacer(8), 0, 0, 0)
-    dialog.pbox.pack_start(hbox3, 0, 0, 0)
-    dialog.pbox.pack_start(xSpacer(8), 0, 0, 0)
+
     dialog.pbox.pack_start(dialog.cal, 1, 1, 0)
+    dialog.pbox.pack_start(pgbox.xSpacer(8), 0, 0, 0)
+    dialog.pbox.pack_start(hbox3, 0, 0, 0)
+    dialog.pbox.pack_start(pgbox.xSpacer(8), 0, 0, 0)
 
     dialog.abox = dialog.get_action_area()
 
@@ -102,11 +85,11 @@ def popcal(ddd):
     dialog.abox.pack_start(buttnow, 0, 0, 0)
 
     buttpp = Gtk.Button.new_with_mnemonic("_Add 10 Years")
-    buttpp.connect("clicked", pyup, dialog.cal)
+    buttpp.connect("clicked", decade_up, dialog.cal)
     dialog.abox.pack_start(buttpp, 0, 0, 0)
 
     buttmm = Gtk.Button.new_with_mnemonic("_Sub 10 Years")
-    buttmm.connect("clicked", pydown, dialog.cal)
+    buttmm.connect("clicked", decade_down, dialog.cal)
     dialog.abox.pack_start(buttmm, 0, 0, 0)
 
     # Rearrange
@@ -114,10 +97,9 @@ def popcal(ddd):
     dialog.abox.reorder_child(buttpp,  0)
     dialog.abox.reorder_child(buttmm,  0)
 
+    dialog.entry.select_region(0, 0)
     dialog.show_all()
-
-    dialog.set_focus(dialog.cal)
-
+    #dialog.set_focus(dialog.entry)
     response = dialog.run()
 
     res = []
@@ -140,7 +122,7 @@ def entry_key(arg, event, self):
 
         ppp = self.entry.get_text().split("/")
         if len(ppp) == 3:
-            print("ppp", ppp)
+            #print("ppp", ppp)
             self.nofeed = True
             self.cal.select_month(int(ppp[1])-1, int(ppp[0]))
             self.cal.select_day(int(ppp[2]))
@@ -156,11 +138,11 @@ def pynow(self, cal):
     cal.select_month(int(dd.month)-1, dd.year)
     cal.select_day(dd.day)
 
-def pyup(self, cal):
+def decade_up(self, cal):
     ddd = cal.get_date()
     cal.select_month(1, ddd[0] + 10)
 
-def pydown(self, cal):
+def decade_down(self, cal):
     ddd = cal.get_date()
     cal.select_month(1, ddd[0] - 10)
 
@@ -173,6 +155,8 @@ def day_changed(arg1, self):
     #print("Day change", ddd)
     self.entry.set_text(str(ddd[0]) + "/" + str(ddd[1]+1) + \
                             "/" + str(ddd[2]))
+    #sutil.usleep(10)
+    #self.entry.select_region(0, 0)
 
 # ------------------------------------------------------------------------
 
@@ -190,6 +174,7 @@ def compare(model, row1, row2, user_data):
         return 1
 
 def ncompare(model, row1, row2, user_data):
+    ''' Compare for sort '''
     sort_column, _ = model.get_sort_column_id()
     value1 = model.get_value(row1, sort_column)
     value2 = model.get_value(row2, sort_column)
@@ -202,7 +187,7 @@ def ncompare(model, row1, row2, user_data):
         return 1
 
 def create_ftree(ts, text = None):
-
+    ''' Create tree '''
     # create the tview using ts
     tv = Gtk.TreeView(model=ts)
 
@@ -254,12 +239,13 @@ def cal_butt(area, event, self):
 
     #print("area_butt", event.type)
     if event.type == Gdk.EventType._2BUTTON_PRESS:
-        res = self.cal.get_date()
+        #res = self.cal.get_date()
         #print("area_butt", "double_click", res)
         self.response(Gtk.ResponseType.ACCEPT)
 
-# Call key handler
 def area_key(area, event, self):
+
+    ''' Dialog key handler '''
 
     #print("area_key", event)
 
@@ -267,36 +253,53 @@ def area_key(area, event, self):
     if  event.type == Gdk.EventType.KEY_PRESS:
 
         if event.keyval == Gdk.KEY_Escape:
-            return
+            return None
 
         if event.keyval == Gdk.KEY_Return:
             self.response(Gtk.ResponseType.ACCEPT)
 
         if event.keyval == Gdk.KEY_Alt_L or \
                 event.keyval == Gdk.KEY_Alt_R:
-            self.alt = True;
+            self.alt = True
 
         if event.keyval == Gdk.KEY_Control_L or \
                 event.keyval == Gdk.KEY_Control_R:
-            self.ctrl = True;
+            self.ctrl = True
 
         if event.keyval == Gdk.KEY_x or \
                 event.keyval == Gdk.KEY_X:
             if self.alt:
-                area.destroy()
+                self.response(Gtk.ResponseType.CANCEL)
 
     elif  event.type == Gdk.EventType.KEY_RELEASE:
         if event.keyval == Gdk.KEY_Alt_L or \
               event.keyval == Gdk.KEY_Alt_R:
-            self.alt = False;
+            self.alt = False
 
         if event.keyval == Gdk.KEY_Control_L or \
                 event.keyval == Gdk.KEY_Control_R:
-            self.ctrl = False;
+            self.ctrl = False
     else:
-        print("Invalid key state:", event.type)
+        pass
+        #print("Invalid key state:", event.type)
 
     return None
+
+def cal_set_date(tdiff, calx):
+
+    ddd = calx.get_date()
+    dd = datetime.datetime.now()
+    dd = dd.replace(year=ddd[0], month=ddd[1]+1, day=ddd[2],
+                                 hour=0, minute=0, second=0, microsecond=0)
+    #print("prev", dd)
+    dd += tdiff
+    #print("after", dd)
+    try:
+        calx.select_month(dd.month-1, dd.year)
+        calx.select_day(dd.day)
+    except:
+        #print("Cannot set date", dd)
+        pass
 
 # Call key handler
 def cal_key(area, event, self):
@@ -307,59 +310,48 @@ def cal_key(area, event, self):
 
         if self.alt:
             if event.keyval == Gdk.KEY_Left:
-                print("Alt left")
+                #print("Alt left")
                 ddd = self.cal.get_date()
-                self.cal.select_month(1, ddd[0] - 1)
+                self.cal.select_month(ddd[1], ddd[0] - 1)
                 return True
 
             if event.keyval == Gdk.KEY_Right:
-                print("Alt right")
+                #print("Alt right")
                 ddd = self.cal.get_date()
-                self.cal.select_month(1, ddd[0] + 1)
+                self.cal.select_month(ddd[1], ddd[0] + 1)
                 return True
 
         elif self.ctrl:
             if event.keyval == Gdk.KEY_Left:
-                print("Control left")
-                ddd = self.cal.get_date()
-                self.cal.select_month(ddd[1] - 1, ddd[0])
+                #print("Control left")
+                delta = datetime.timedelta(-30.25)
+                cal_set_date(delta, self.cal)
                 return True
+
             if event.keyval == Gdk.KEY_Right:
-                print("Control right")
-                ddd = self.cal.get_date()
-                self.cal.select_month(ddd[1] + 1, ddd[0])
+                #print("Control right")
+                delta = datetime.timedelta(+30.25)
+                cal_set_date(delta, self.cal)
                 return True
         else:
             if event.keyval == Gdk.KEY_Up:
-                ddd = self.cal.get_date()
-                try:
-                    self.cal.select_day(ddd[2] - 7)
-                except:
-                    self.cal.select_day(ddd[2])
+                delta = datetime.timedelta(-7)
+                cal_set_date(delta, self.cal)
                 return True
 
             if event.keyval == Gdk.KEY_Down:
-                ddd = self.cal.get_date()
-                try:
-                    self.cal.select_day(ddd[2] + 7)
-                except:
-                    self.cal.select_day(ddd[2])
+                delta = datetime.timedelta(7)
+                cal_set_date(delta, self.cal)
                 return True
 
             if event.keyval == Gdk.KEY_Left:
-                ddd = self.cal.get_date()
-                try:
-                    self.cal.select_day(ddd[2] - 1)
-                except:
-                    self.cal.select_day(ddd[2])
+                delta = datetime.timedelta(-1)
+                cal_set_date(delta, self.cal)
                 return True
 
             if event.keyval == Gdk.KEY_Right:
-                ddd = self.cal.get_date()
-                try:
-                    self.cal.select_day(ddd[2] + 1)
-                except:
-                    self.cal.select_day(ddd[2])
+                delta = datetime.timedelta(1)
+                cal_set_date(delta, self.cal)
                 return True
 
     return None

@@ -1,68 +1,42 @@
 #!/usr/bin/env python
 
-# Action Handler for simple open file dialog
+''' Action Handler for simple open file dialog '''
 
-from __future__ import absolute_import
-from __future__ import print_function
+# pylint disable=C0103
 
-import time, os, re, string, warnings, platform, sys
+import os
+import sys
+import datetime
 
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
-from gi.repository import GLib
-from gi.repository import GObject
-from gi.repository import GdkPixbuf
 
 import pyvpacker
 
-#sys.path.append('..')
-#sys.path.append('..' + os.sep + "pycommon")
+#from pyvguicom import sutil
+from pyvguicom import pgbox
 
-# ------------------------------------------------------------------------
-# An N pixel horizontal spacer. Defaults to X pix
-
-class xSpacer(Gtk.HBox):
-
-    def __init__(self, sp = None):
-        GObject.GObject.__init__(self)
-        #self.pack_start()
-        #if box_testmode:
-        #    col = pgutils.randcolstr(100, 200)
-        #    self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse(col))
-        if sp == None:
-            sp = 6
-        self.set_size_request(sp, sp)
-
-def ovd(vcore = "", self2 = None):
+def ovd(vcore = ""):
 
     ''' open voter dialog. While technically thisis not a class,
         we attach state vers to the dialog class ...
     '''
 
-    warnings.simplefilter("ignore")
-
-    dialog = Gtk.Dialog("Open Voter record",
+    dialog = Gtk.Dialog("Open Record",
                    None,
                    Gtk.DialogFlags.MODAL | \
                    Gtk.DialogFlags.DESTROY_WITH_PARENT,
                    (Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
                     Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
 
-    #dialog.set_transient_for(self2.mained.mywin)
-    if self2:
-        dialog.set_transient_for(self2.get_toplevel())
-    #else:
-    #    dialog.set_transient_for(None)
 
     dialog.set_default_response(Gtk.ResponseType.ACCEPT)
     #dialog.set_position(Gtk.WindowPosition.CENTER)
     dialog.set_size_request(800, 600)
     dialog.set_default_size(800, 600)
-    #print dialog
     dialog.xmulti = []
-    dialog.self2 = self2
     dialog.vcore = vcore
     dialog.packer = pyvpacker.packbin()
 
@@ -72,15 +46,10 @@ def ovd(vcore = "", self2 = None):
     dialog.connect("key-release-event", area_key, dialog)
 
     # Spacers
-    label1  = Gtk.Label("   ");  label2 = Gtk.Label("   ")
-    label3  = Gtk.Label("   ");  label4 = Gtk.Label("   ")
-    label5  = Gtk.Label("   ");  label6 = Gtk.Label("   ")
-    label7  = Gtk.Label("   ");  label8 = Gtk.Label("   ")
-    label9  = Gtk.Label("   ");
-    #label10 = Gtk.Label.new_with_mnemonic(" Open File by Name (click on 'Open _This' to open it) ");
-    label11  = Gtk.Label("  ");  label12 = Gtk.Label(" ");
-    #label13  = Gtk.Label("  ");  label14 = Gtk.Label(" ");
-
+    label1  = Gtk.Label("   ")
+    label2 = Gtk.Label("   ")
+    label3  = Gtk.Label("   ")
+    label4 = Gtk.Label("   ")
     dialog.label11 = Gtk.Label("   ")
     dialog.label12 = Gtk.Label("   ")
 
@@ -90,32 +59,10 @@ def ovd(vcore = "", self2 = None):
     dialog.vbox.pack_start(label4, 0, 0, 0)
     dialog.vbox.pack_start(dialog.pbox, 0, 0, 0)
 
-    #dialog.vbox.pack_start(xSpacer(), 0, 0, 0)
-    #dialog.vbox.pack_start(label10, 0, 0, 0)
-    #dialog.vbox.pack_start(xSpacer(), 0, 0, 0)
-    #
-    #warnings.simplefilter("ignore")
-    #dialog.entry = Gtk.Entry();
-    #warnings.simplefilter("default")
-    #
-    #dialog.entry.set_activates_default(True)
-    #dialog.entry.set_text(fname)
-    #
-    #ot =  Gtk.Button.new_with_mnemonic("Open thi_s")
-
-    hbox2 = Gtk.HBox()
-    #hbox2.pack_start(label6, 0, 0, 0)
-    #hbox2.pack_start(dialog.entry, True, True, 0)
-    #hbox2.pack_start(label11, 0, 0, 0)
-    #hbox2.pack_start(ot, 0, 0, 0)
-    #hbox2.pack_start(label7, 0, 0, 0)
-
-    dialog.vbox.pack_start(hbox2, 0, 0, 0)
-
-    dialog.vbox.pack_start(xSpacer(), 0, 0, 0)
-    label13 = Gtk.Label.new(" Dbl click to select a voter");
+    dialog.vbox.pack_start(pgbox.xSpacer(), 0, 0, 0)
+    label13 = Gtk.Label.new(" Double click to select an entry.")
     dialog.vbox.pack_start(label13, 0, 0, 0)
-    dialog.vbox.pack_start(xSpacer(), 0, 0, 0)
+    dialog.vbox.pack_start(pgbox.xSpacer(), 0, 0, 0)
 
     dialog.ts = Gtk.ListStore(str, str, str, str)
     tview = create_ftree(dialog.ts)
@@ -128,7 +75,8 @@ def ovd(vcore = "", self2 = None):
 
     scroll.add(tview)
 
-    frame2 = Gtk.Frame(); frame2.add(scroll)
+    frame2 = Gtk.Frame()
+    frame2.add(scroll)
 
     hbox3 = Gtk.HBox()
     hbox3.pack_start(label1, 0, 0, 0)
@@ -142,7 +90,6 @@ def ovd(vcore = "", self2 = None):
     populate(dialog)
     dialog.set_focus(tview)
     #dialog.set_focus(dialog.entry)
-    warnings.simplefilter("default")
 
     response = dialog.run()
 
@@ -150,18 +97,20 @@ def ovd(vcore = "", self2 = None):
     if response == Gtk.ResponseType.ACCEPT:
         xmodel = dialog.ts
         sel = tview.get_selection()
+        if not sel:
+            return
         # Is multi selection?
-        iter = xmodel.get_iter_first()
+        iterx = xmodel.get_iter_first()
         while True:
-            #print("iterate", xmodel.get_value(iter, 0))
-            if sel.iter_is_selected(iter):
-                xstr = xmodel.get_value(iter, 0)
-                xstr2 = xmodel.get_value(iter, 1)
-                xstr3 = xmodel.get_value(iter, 2)
-                res.append((xstr, xstr2, xstr3))
-            iter = xmodel.iter_next(iter)
-            if not iter:
+            #print("iterate", xmodel.get_value(iterx, 0))
+            if not iterx:
                 break
+            if sel.iter_is_selected(iterx):
+                xstr = xmodel.get_value(iterx, 0)
+                xstr2 = xmodel.get_value(iterx, 1)
+                xstr3 = xmodel.get_value(iterx, 2)
+                res.append((xstr, xstr2, xstr3))
+            iterx = xmodel.iter_next(iterx)
 
     #print ("response", response, "result", res  )
     dialog.destroy()
@@ -185,15 +134,23 @@ def populate(dialog):
     sss = dialog.vcore.getdbsize()
 
     ddd2 = []
-    for aa in range(sss):
+    for aa in range(sss-1, -1, -1):
         rrr = dialog.vcore.get_rec(aa)
         if not rrr:
             continue
         #print("rrr:", rrr)
         dec = dialog.packer.decode_data(rrr[1])[0]
         #print("dec:", dec)
-        print("dec", dec['name'], dec['dob'], dec['uuid'])
-        ddd2.append((dec['name'], dec['dob'], rrr[0].decode() ))
+        #print("dec", dec['name'], dec['dob'], dec['uuid'])
+        uuu = rrr[0].decode()
+        # See if we have this already
+        found = False
+        for aaa in ddd2:
+            if aaa[2] == uuu:
+                found = True
+        if not found:
+            #print("append")
+            ddd2.append((dec['name'], dec['dob'],  uuu))
 
     for aa in ddd2:
         piter = dialog.ts.append(row=None)
@@ -221,14 +178,25 @@ def ncompare(model, row1, row2, user_data):
     value1 = model.get_value(row1, sort_column)
     value2 = model.get_value(row2, sort_column)
     #print("n", sort_column, value1, value2, type(value1))
-    if int(value1) < int(value2):
+
+    dd = datetime.datetime.now()
+    try:
+        dd2 = dd.strptime(value1, "%Y/%m/%d").timestamp()
+    except:
+        dd2 = 0
+    try:
+        dd3 = dd.strptime(value2, "%Y/%m/%d").timestamp()
+    except:
+        dd3 = 0
+
+    if int(dd2) < int(dd3):
         return -1
-    elif int(value1) == int(value2):
+    elif int(dd2) == int(dd3):
         return 0
     else:
         return 1
 
-def create_ftree(ts, text = None):
+def create_ftree(ts):
 
     # create the tview using ts
     tv = Gtk.TreeView(model=ts)
@@ -275,21 +243,23 @@ def create_ftree(ts, text = None):
 def tree_sel_row(xtree, dialog):
 
     #print("tree_sel_row", xtree)
-    sel = xtree.get_selection()
-    xmodel, xpath = sel.get_selected_rows()
-    if sel:
-        try:
-            xiter2 = xmodel.get_iter(xpath)
-            #xstr = xmodel.get_value(xiter2, 0)
-            #xstr2 = xmodel.get_value(xiter2, 1)
-            #print("tree_sel_row", xstr, xstr2)
-            #dialog.entry.set_text(xstr)
-        except:
-            pass
-            #print("sel row", sys.exc_info())
-    else:
-        pass
-        #dialog.entry.set_text("")
+    #sel = xtree.get_selection()
+    #xmodel, xpath = sel.get_selected_rows()
+    #if sel:
+    #    try:
+    #        #xiter2 = xmodel.get_iter(xpath)
+    #        #xstr = xmodel.get_value(xiter2, 0)
+    #        #xstr2 = xmodel.get_value(xiter2, 1)
+    #        #print("tree_sel_row", xstr, xstr2)
+    #        #dialog.entry.set_text(xstr)
+    #        pass
+    #    except:
+    #        pass
+    #        #print("sel row", sys.exc_info())
+    #else:
+    #    pass
+    #    #dialog.entry.set_text("")
+    pass
 
 def tree_sel(xtree, xiter, xpath, dialog):
 
@@ -307,11 +277,12 @@ def tree_sel(xtree, xiter, xpath, dialog):
 # If directory, change to it
 def click_dir_action(xstr):
     if xstr[0] == "[":
-         xstr = xstr[1:len(xstr)-1]
+        xstr = xstr[1:len(xstr)-1]
     if os.path.isdir(xstr):
         #print ("dir", xstr)
         os.chdir(xstr)
         return True
+    return False
 
 # Call key handler
 def area_key(area, event, self):
@@ -319,64 +290,29 @@ def area_key(area, event, self):
     #print "area_key", event
     # Do key down:
     if  event.type == Gdk.EventType.KEY_PRESS:
+
         if event.keyval == Gdk.KEY_Escape:
             #print "Esc"
-            return
-            #area.destroy()
+            self.response(Gtk.ResponseType.CANCEL)
 
-    if  event.type == Gdk.EventType.KEY_PRESS:
         if event.keyval == Gdk.KEY_Return:
-            #print "Ret"
-            return
-            #area.destroy()
-
-    if  event.type == Gdk.EventType.KEY_PRESS:
-        if event.keyval == Gdk.KEY_BackSpace:
-            os.chdir("..")
-            populate(self)
-            #print "BS"
+            #print("Ret")
+            self.response(Gtk.ResponseType.ACCEPT)
 
         if event.keyval == Gdk.KEY_Alt_L or \
                 event.keyval == Gdk.KEY_Alt_R:
-            self.alt = True;
+            self.alt = True
 
         if event.keyval == Gdk.KEY_x or \
                 event.keyval == Gdk.KEY_X:
             if self.alt:
-                area.destroy()
+                self.response(Gtk.ResponseType.CANCEL)
 
     elif  event.type == Gdk.EventType.KEY_RELEASE:
         if event.keyval == Gdk.KEY_Alt_L or \
               event.keyval == Gdk.KEY_Alt_R:
-            self.alt = False;
+            self.alt = False
 
     return None
 
-# ------------------------------------------------------------------------
-def mode2str(mode):
-
-    #print mode, oct(mode), hex(mode)
-
-    dstr = " "
-    if mode & 0x4000:
-        dstr = "d"
-
-    estr = ""
-    for aa in range(3):
-        xstr = ""
-        if mode & 0x4: xstr += "r"
-        else:        xstr += "-"
-        if mode & 0x2: xstr += "w"
-        else:        xstr += "-"
-        if mode & 0x1: xstr += "x"
-        else:        xstr += "-"
-        mode = mode >> 3
-        estr = xstr + estr  # Reverse
-
-    estr = dstr + estr
-    return estr
-
 # eof
-
-
-

@@ -72,7 +72,7 @@ class MainWin(Gtk.Window):
         self.cnt = 0
         self.old_sss = 1
         self.status_cnt = 0
-        self.set_title("PyVServer Vote Entry")
+        self.set_title("PyVServer Voter Entry")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         self.vcore = twincore.TwinCore("voters.pydb", 0)
@@ -219,7 +219,7 @@ class MainWin(Gtk.Window):
 
         # ----------------------------------------------------------------
 
-        tp1 =("Full Name: ", "name", "Enter full name (TAB to advance)", None)
+        tp1 =("Full Nam_e: ", "name", "Enter full name (TAB to advance)", None)
         tp2 = ("Nick Name: ", "nick", "Enter nick name / Alias if available", None)
         lab1, lab2 = self.gridquad(gridx, rowcnt, 0, tp1, tp2)
         self.dat_dict['name'] = lab1
@@ -231,15 +231,15 @@ class MainWin(Gtk.Window):
         buttx2 = Gtk.Button.new_with_mnemonic("Sele_ct Date")
         lab3, lab4 = self.gridquad(gridx, 0, rowcnt, tp3, tp4, buttx2)
         buttx2.connect("clicked", self.pressed_dob, lab4)
-        self.dat_dict['dob'] = lab3
-        self.dat_dict['lob'] = lab4
+        self.dat_dict['lob'] = lab3
+        self.dat_dict['dob'] = lab4
         rowcnt += 1
 
         gridx.attach(self.vspacer(8), 0, rowcnt, 1, 1)
         rowcnt += 1
 
         tp3x = ("UUID: ", "uuid", "Generate VOTER UID by pressing button", None)
-        butt1 = Gtk.Button.new_with_mnemonic("G_enerate")
+        butt1 = Gtk.Button.new_with_mnemonic("Gene_rate")
         lab3x = self.griddouble(gridx, 0, rowcnt, tp3x, butt1)
         butt1.connect("clicked", self.pressed_uuid, lab3x)
         self.dat_dict['uuid'] = lab3x
@@ -337,12 +337,19 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
 
-        #GLib.timeout_add(500, self.timer)
+        GLib.timeout_add(1000, self.timer)
 
     def vspacer(self, sp):
         hbox = Gtk.HBox()
         hbox.set_size_request(sp, sp)
         return hbox
+
+    def is_changed(self):
+        ccc = False
+        for aa in self.dat_dict.keys():
+            if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
+                ccc = True
+        return ccc
 
     def pressed_dob(self, arg, arg2):
         #arg2.set_text("Developing")
@@ -362,7 +369,7 @@ class MainWin(Gtk.Window):
             org.append(dd.month)
             org.append(dd.day)
 
-        result = pgcal.popcal(org)
+        result = pgcal.PopCal(org)
 
         if result[0] != Gtk.ResponseType.ACCEPT:
             return
@@ -392,23 +399,26 @@ class MainWin(Gtk.Window):
         arg2.set_text(str(uuid.uuid1()))
 
     def gridquad(self, gridx, left, top, entry1, entry2, butt = None):
-        lab1 = Gtk.Label(entry1[0] + "   ")
+        lab1 = Gtk.Label.new_with_mnemonic(entry1[0] + "   ")
         lab1.set_alignment(1, 0)
         lab1.set_tooltip_text(entry1[2])
         gridx.attach(lab1, left, top, 1, 1)
 
         headx = Gtk.Entry();
+        lab1.set_mnemonic_widget(headx)
         headx.set_width_chars(20)
         if entry1[3] != None:
             headx.set_text(entry1[3])
         gridx.attach(headx, left+1, top, 1, 1)
 
-        lab2 = Gtk.Label("    " + entry2[0] + "   ")
+        lab2 = Gtk.Label.new_with_mnemonic("    " + entry2[0] + "   ")
         lab2.set_alignment(1, 0)
         lab2.set_tooltip_text(entry2[2])
         gridx.attach(lab2, left+2, top, 1, 1)
 
         headx2 = Gtk.Entry();
+        lab2.set_mnemonic_widget(headx2)
+
         headx2.set_width_chars(20)
         if entry2[3] != None:
             headx2.set_text(entry2[3])
@@ -506,18 +516,17 @@ class MainWin(Gtk.Window):
             if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
                 ccc = True
         if ccc:
-            msg = "Please save data before creating a new one."
+            msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            self.message(msg)
-            return
+            ret = self.yesno(msg)
+            if ret != Gtk.ResponseType.YES:
+                return True
 
         # Clear, reset
         for aa in self.dat_dict.keys():
             self.dat_dict[aa].set_text("")
-
         self.reset_changed()
-
 
     def load_data(self, arg):
 
@@ -527,7 +536,7 @@ class MainWin(Gtk.Window):
             if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
                 ccc = True
         if ccc:
-            msg = "Please save data before loading new one."
+            msg = "Please save current data before loading a new one."
             self.status.set_text(msg)
             self.status_cnt = 4
             self.message(msg)
@@ -543,9 +552,7 @@ class MainWin(Gtk.Window):
 
         if result != Gtk.ResponseType.ACCEPT:
             return
-
-        print("loadid:", loadid)
-
+        #print("loadid:", loadid)
         try:
             dat = self.vcore.retrieve(loadid[0][2])
         except:
@@ -558,28 +565,49 @@ class MainWin(Gtk.Window):
             self.status.set_text(msg)
             self.status_cnt = 5
             return
-
         #print("dat:", dat)
         dec = self.packer.decode_data(dat[0][1])[0]
-        print("dec:", dec)
+        #print("dec:", dec)
         for aa in dec.keys():
             self.dat_dict[aa].set_text(dec[aa])
 
         # Mark as non changed
-        for aa in self.dat_dict.keys():
-            self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
+        self.reset_changed()
 
     def save_data(self, arg1):
-        for aa in self.dat_dict.keys():
-            print(aa, "=", "'" + self.dat_dict[aa].get_text() + "'")
+
+        # See if changed
+        if not self.is_changed():
+            msg = "Nothing changed, cannot save."
+            self.status.set_text(msg)
+            self.status_cnt = 4
+            self.message(msg)
+            return
+
+        if not self.dat_dict['name'].get_text():
+            msg = "Must have a voter name."
+            self.status.set_text(msg)
+            self.status_cnt = 4
+            self.set_focus(self.dat_dict['name'])
+            self.message(msg)
+            return
+        try:
+            uuu = uuid.UUID(self.dat_dict['uuid'].get_text())
+        except:
+            #print("Gen UUID", sys.exc_info())
+            msg = "Cannot save without a valid UUID"
+            self.status.set_text(msg)
+            self.status_cnt = 4
+            self.message(msg)
+            return
+
         ddd = {}
         for aa in self.dat_dict.keys():
             ddd[aa] = self.dat_dict[aa].get_text()
 
-        print("Save_data", ddd)
-
+        #print("Save_data", ddd)
         enc = self.packer.encode_data("", ddd)
-        print("enc:", enc)
+        #print("enc:", enc)
 
         try:
             ret = self.vcore.save_data(self.dat_dict['uuid'].get_text(), enc)
@@ -598,61 +626,61 @@ class MainWin(Gtk.Window):
             return True
         in_timer = True
 
-        if self.start_anal:
-            if not self.core:
-                dbname = os.path.join(pyservsup.globals.chaindir, "vote", pyservsup.chainfname + ".pydb")
-                self.core = twinchain.TwinChain(dbname)
-                #print("opened", self.core)
-            sss = self.core.getdbsize()
-            #sss = 3 # test
-            if sss != self.old_sss:
-                cnt = 0
-                # Start from one
-                for aa in range(self.old_sss, sss):
-                    rec = self.core.get_rec(aa)
-                    if not rec:
-                        continue
-                    #print("Datamon", rec[1])
-                    pb = pyvpacker.packbin()
-                    dec = pb.decode_data(rec[1])[0]
-                    #print("dec", dec)
-                    decpay  = pb.decode_data(dec['payload'])[0]
-                    pay = decpay['PayLoad']
-                    #print("pay:", pay)
-                    actstr = ["register", "unregister", "cast", "uncast", ]
-                    if pay['Action'] == 'cast':
-                        idx = int(decpay['PayLoad']['Vote'])
-                        if idx >= 11:
-                            print("bad vote value", idx)
-                        self.tally[ idx % 11 ] += 1
-
-                    if pay['Action'] == 'uncast':
-                        idx = int(decpay['PayLoad']['Vote'])
-                        if idx >= 11:
-                            print("bad unvote value", idx)
-                        self.untally[ idx % 11 ] += 1
-                    arrx = [dec['header']]
-                    for aaa in self.fields[1:]:
-                        try:
-                            arrx.append(str(pay[aaa]))
-                        except:
-                            print("Incomplete:", pay)
-                    try:
-                        self.model.append(None, arrx)
-                    except:
-                        print("Bad record:", pay)
-                    #if len(self.fields) !=  len(arrx):
-                    #    print("Len mismatch:", pay)
-
-                    cnt += 1
-                    if cnt % 50 == 0:
-                        self.set_status_text("Getting rec: %d" % cnt)
-                        sutil.usleep(2)
-
-                self.old_sss = sss
-                self.sel_last(self.tree1)
-                #self.led2.set_color("00ff00")
-                #GLib.timeout_add(400, self.led_off, self.led2, "#aaaaaa")
+        #if self.start_anal:
+        #    if not self.core:
+        #        dbname = os.path.join(pyservsup.globals.chaindir, "vote", pyservsup.chainfname + ".pydb")
+        #        self.core = twinchain.TwinChain(dbname)
+        #        #print("opened", self.core)
+        #    sss = self.core.getdbsize()
+        #    #sss = 3 # test
+        #    if sss != self.old_sss:
+        #        cnt = 0
+        #        # Start from one
+        #        for aa in range(self.old_sss, sss):
+        #            rec = self.core.get_rec(aa)
+        #            if not rec:
+        #                continue
+        #            #print("Datamon", rec[1])
+        #            pb = pyvpacker.packbin()
+        #            dec = pb.decode_data(rec[1])[0]
+        #            #print("dec", dec)
+        #            decpay  = pb.decode_data(dec['payload'])[0]
+        #            pay = decpay['PayLoad']
+        #            #print("pay:", pay)
+        #            actstr = ["register", "unregister", "cast", "uncast", ]
+        #            if pay['Action'] == 'cast':
+        #                idx = int(decpay['PayLoad']['Vote'])
+        #                if idx >= 11:
+        #                    print("bad vote value", idx)
+        #                self.tally[ idx % 11 ] += 1
+        #
+        #            if pay['Action'] == 'uncast':
+        #                idx = int(decpay['PayLoad']['Vote'])
+        #                if idx >= 11:
+        #                    print("bad unvote value", idx)
+        #                self.untally[ idx % 11 ] += 1
+        #            arrx = [dec['header']]
+        #            for aaa in self.fields[1:]:
+        #                try:
+        #                    arrx.append(str(pay[aaa]))
+        #                except:
+        #                    print("Incomplete:", pay)
+        #            try:
+        #                self.model.append(None, arrx)
+        #            except:
+        #                print("Bad record:", pay)
+        #            #if len(self.fields) !=  len(arrx):
+        #            #    print("Len mismatch:", pay)
+        #
+        #            cnt += 1
+        #            if cnt % 50 == 0:
+        #                self.set_status_text("Getting rec: %d" % cnt)
+        #                sutil.usleep(2)
+        #
+        #        self.old_sss = sss
+        #        self.sel_last(self.tree1)
+        #        #self.led2.set_color("00ff00")
+        #        #GLib.timeout_add(400, self.led_off, self.led2, "#aaaaaa")
 
         self.cnt += 1
         if self.status_cnt:
@@ -685,7 +713,8 @@ class MainWin(Gtk.Window):
             if ret != Gtk.ResponseType.YES:
                 return True
             else:
-                print("Abandoning", self.dat_dict['name'].get_text())
+                #print("Abandoning", self.dat_dict['name'].get_text())
+                pass
 
         self.exit_all()
 
@@ -702,7 +731,7 @@ class MainWin(Gtk.Window):
 
     def message(self, msg):
         dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
-            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, msg)
+            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, text=msg)
 
         #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
 
@@ -712,7 +741,7 @@ class MainWin(Gtk.Window):
 
     def yesno(self, msg):
         dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
-            Gtk.MessageType.INFO, Gtk.ButtonsType.YES_NO, msg)
+            Gtk.MessageType.INFO, Gtk.ButtonsType.YES_NO, text=msg)
 
         #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
 

@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 
+# pylint disable=C0103
+# pylint disable=E1101
+# pylint disable=C0410
+
 import os, sys
 
 if  sys.version_info[0] < 3:
-        print("Needs python 3 or better.")
-        sys.exit(1)
+    print("Needs python 3 or better.")
+    sys.exit(1)
 
-import getopt, signal, select, socket, time, struct
-import random, string, stat, base64, random, datetime
+''' Voter admin user interface '''
 
 import pyvpacker
 
@@ -34,9 +37,8 @@ except:
     sys.path.append(os.path.join(base,  "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
-import recsel
-
 from pyvguicom import sutil
+
 # Get Parent of module root
 sf = os.path.dirname(sutil.__file__)
 sys.path.append(os.path.join(sf, "..", "pyvguicom"))
@@ -58,6 +60,8 @@ version = "1.00"
 
 def phelp():
 
+    ''' Display help '''
+
     print()
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print()
@@ -72,6 +76,9 @@ def phelp():
 
 # ------------------------------------------------------------------------
 def pversion():
+
+    ''' Show vwersion info '''
+
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
@@ -88,6 +95,9 @@ optarr = \
 conf = comline.ConfigLong(optarr)
 
 def mainfunct():
+
+    ''' Main entry point '''
+
     #print("pyvcpanel started ...")
     args = conf.comline(sys.argv[1:])
     #print("args", args)
