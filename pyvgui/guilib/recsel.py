@@ -77,7 +77,7 @@ def ovd(vcore = "", self2 = None):
     label5  = Gtk.Label("   ");  label6 = Gtk.Label("   ")
     label7  = Gtk.Label("   ");  label8 = Gtk.Label("   ")
     label9  = Gtk.Label("   ");
-    label10 = Gtk.Label.new_with_mnemonic(" Open File by Name (click on 'Open _This' to open it) ");
+    #label10 = Gtk.Label.new_with_mnemonic(" Open File by Name (click on 'Open _This' to open it) ");
     label11  = Gtk.Label("  ");  label12 = Gtk.Label(" ");
     #label13  = Gtk.Label("  ");  label14 = Gtk.Label(" ");
 
@@ -85,36 +85,35 @@ def ovd(vcore = "", self2 = None):
     dialog.label12 = Gtk.Label("   ")
 
     dialog.pbox = Gtk.HBox()
-    fill_path(dialog)
+    #fill_path(dialog)
 
     dialog.vbox.pack_start(label4, 0, 0, 0)
     dialog.vbox.pack_start(dialog.pbox, 0, 0, 0)
 
-    dialog.vbox.pack_start(xSpacer(), 0, 0, 0)
-    dialog.vbox.pack_start(label10, 0, 0, 0)
-    dialog.vbox.pack_start(xSpacer(), 0, 0, 0)
-
-    warnings.simplefilter("ignore")
-    dialog.entry = Gtk.Entry();
-    warnings.simplefilter("default")
-
-    dialog.entry.set_activates_default(True)
+    #dialog.vbox.pack_start(xSpacer(), 0, 0, 0)
+    #dialog.vbox.pack_start(label10, 0, 0, 0)
+    #dialog.vbox.pack_start(xSpacer(), 0, 0, 0)
+    #
+    #warnings.simplefilter("ignore")
+    #dialog.entry = Gtk.Entry();
+    #warnings.simplefilter("default")
+    #
+    #dialog.entry.set_activates_default(True)
     #dialog.entry.set_text(fname)
-
-    ot =  Gtk.Button.new_with_mnemonic("Open thi_s")
-    ot.connect("clicked", butt_this, dialog)
+    #
+    #ot =  Gtk.Button.new_with_mnemonic("Open thi_s")
 
     hbox2 = Gtk.HBox()
-    hbox2.pack_start(label6, 0, 0, 0)
-    hbox2.pack_start(dialog.entry, True, True, 0)
-    hbox2.pack_start(label11, 0, 0, 0)
-    hbox2.pack_start(ot, 0, 0, 0)
-    hbox2.pack_start(label7, 0, 0, 0)
+    #hbox2.pack_start(label6, 0, 0, 0)
+    #hbox2.pack_start(dialog.entry, True, True, 0)
+    #hbox2.pack_start(label11, 0, 0, 0)
+    #hbox2.pack_start(ot, 0, 0, 0)
+    #hbox2.pack_start(label7, 0, 0, 0)
 
     dialog.vbox.pack_start(hbox2, 0, 0, 0)
 
     dialog.vbox.pack_start(xSpacer(), 0, 0, 0)
-    label13 = Gtk.Label.new(" Dbl click to select one File/Dir, or Shift/Ctrl for multi select; then press Alt-O or click OK");
+    label13 = Gtk.Label.new(" Dbl click to select a voter");
     dialog.vbox.pack_start(label13, 0, 0, 0)
     dialog.vbox.pack_start(xSpacer(), 0, 0, 0)
 
@@ -157,8 +156,9 @@ def ovd(vcore = "", self2 = None):
             #print("iterate", xmodel.get_value(iter, 0))
             if sel.iter_is_selected(iter):
                 xstr = xmodel.get_value(iter, 0)
-                xstr2 = os.path.realpath(xstr)
-                res.append(xstr2)
+                xstr2 = xmodel.get_value(iter, 1)
+                xstr3 = xmodel.get_value(iter, 2)
+                res.append((xstr, xstr2, xstr3))
             iter = xmodel.iter_next(iter)
             if not iter:
                 break
@@ -166,62 +166,11 @@ def ovd(vcore = "", self2 = None):
     #print ("response", response, "result", res  )
     dialog.destroy()
     #del dialog
-    return res
-
-def butt_this(butt, dialog):
-    ttt = dialog.entry.get_text()
-    #print("butt_this", ttt)
-    if ttt:
-        # Expand user var
-        ttt = os.path.expanduser(ttt)
-        dialog.self2.mained.openfile(ttt)
-        # Close like we have a file
-        pedconfig.conf.pedwin.update_statusbar("Opened file: '%s'" % ttt);
-        #dialog.destroy()
-        #return [ttt,]
-    else:
-        pedconfig.conf.pedwin.update_statusbar("Please enter filename to open.");
-
-def butt_click(butt, dialog):
-    #print butt.path
-    os.chdir(butt.path)
-    populate(dialog)
-
-def fill_path(dialog):
-
-    cccc = dialog.pbox.get_children()
-    for cc in cccc:
-        dialog.pbox.remove(cc)
-
-    cwd = os.getcwd();
-    darr = cwd.split(os.sep)
-    dialog.pbox.pack_start(dialog.label11, 0, 0, 0)
-
-    if platform.system().find("Win") >= 0:
-        curr = ""
-    else:
-        curr = os.sep
-
-    for aa in darr:
-        butt = Gtk.Button(label=aa)
-        if platform.system().find("Win") >= 0:
-            curr = curr + aa + os.sep
-        else:
-            curr = os.path.join(curr, aa)
-        #print("path aa '%s' '%s'" % (aa, curr) )
-        butt.path = curr
-        butt.set_focus_on_click(False)
-        butt.connect("clicked", butt_click, dialog)
-        dialog.pbox.pack_start(butt, 0, 0, 2)
-
-    dialog.pbox.pack_start(dialog.label12, 0, 0, 0)
-    dialog.show_all()
+    return response, res
 
 # ------------------------------------------------------------------------
 
 def populate(dialog):
-
-    fill_path(dialog)
 
     # Clear old contents:
     while True:
@@ -243,18 +192,14 @@ def populate(dialog):
         #print("rrr:", rrr)
         dec = dialog.packer.decode_data(rrr[1])[0]
         #print("dec:", dec)
-        #for aa in dec.keys():
-        #    print(aa, dec[aa])
-        ddd2.append((dec['name'], rrr[0].decode() ))
+        print("dec", dec['name'], dec['dob'], dec['uuid'])
+        ddd2.append((dec['name'], dec['dob'], rrr[0].decode() ))
 
-    #ddd2 = os.listdir(".")
-    #ddd = sorted(ddd2)
-    #ddd2.sort()
-    print(ddd2)
     for aa in ddd2:
         piter = dialog.ts.append(row=None)
         dialog.ts.set(piter, 0, aa[0])
         dialog.ts.set(piter, 1, aa[1])
+        dialog.ts.set(piter, 2, aa[2])
 
     # --------------------------------------------------------------------
 
@@ -305,15 +250,23 @@ def create_ftree(ts, text = None):
     tvcolumn.set_sort_column_id(0)
     tv.append_column(tvcolumn)
 
+    tvcolumn = Gtk.TreeViewColumn('Date of Birth')
+    tvcolumn.set_min_width(240)
+    tvcolumn.pack_start(cell, True)
+    tvcolumn.add_attribute(cell, 'text', 1)
+    tvcolumn.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+    tvcolumn.set_sort_column_id(1)
+    tv.append_column(tvcolumn)
+
     cell2 = Gtk.CellRendererText()
     tvcolumn2 = Gtk.TreeViewColumn('UUID')
     tvcolumn2.set_min_width(100)
-    tvcolumn2.set_sort_column_id(1)
+    tvcolumn2.set_sort_column_id(2)
     tvcolumn2.pack_start(cell2, True)
-    tvcolumn2.add_attribute(cell2, 'text', 1)
+    tvcolumn2.add_attribute(cell2, 'text', 2)
     tv.append_column(tvcolumn2)
 
-    tv.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
+    #tv.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
 
     return tv
 
@@ -327,7 +280,9 @@ def tree_sel_row(xtree, dialog):
     if sel:
         try:
             xiter2 = xmodel.get_iter(xpath)
-            xstr = xmodel.get_value(xiter2, 0)
+            #xstr = xmodel.get_value(xiter2, 0)
+            #xstr2 = xmodel.get_value(xiter2, 1)
+            #print("tree_sel_row", xstr, xstr2)
             #dialog.entry.set_text(xstr)
         except:
             pass
@@ -342,14 +297,11 @@ def tree_sel(xtree, xiter, xpath, dialog):
     sel = xtree.get_selection()
     xmodel, xpath = sel.get_selected_rows()
     if xpath:
-        for aa in xpath:
-            xiter2 = xmodel.get_iter(aa)
-            xstr = xmodel.get_value(xiter2, 0)
-            #print("mul selstr: ", "'" + xstr + "'" )
-            if click_dir_action(xstr):
-                dialog.xmulti = []
-                populate(dialog)
-                return
+        #for aa in xpath:
+        #    xiter2 = xmodel.get_iter(aa)
+        #    xstr = xmodel.get_value(xiter2, 0)
+        #    xstr2 = xmodel.get_value(xiter2, 1)
+        #    print("mul selstr: ", "'" + xstr + "'" )
         dialog.response(Gtk.ResponseType.ACCEPT)
 
 # If directory, change to it

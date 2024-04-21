@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, getopt, signal, random, time, warnings, uuid
+import os, sys, getopt, signal, random, time, warnings, uuid, datetime
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -18,7 +18,7 @@ from pyvguicom import pggui
 from pymenu import  *
 from pgui import  *
 
-import recsel
+import recsel, pgcal
 
 from pyvcommon import pydata, pyservsup,  crysupp
 
@@ -155,6 +155,10 @@ class MainWin(Gtk.Window):
         lab1 = Gtk.Label(" ");
         hbox4.pack_start(lab1, 1, 1, 0)
 
+        butt2 = Gtk.Button.new_with_mnemonic(" Ne_w entry ")
+        butt2.connect("clicked", self.new_data)
+        hbox4.pack_start(butt2, False, 0, 4)
+
         butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad entry ")
         butt3.connect("clicked", self.load_data)
         hbox4.pack_start(butt3, False, 0, 4)
@@ -224,7 +228,7 @@ class MainWin(Gtk.Window):
 
         tp3 = ("Location of birth: ", "lob", "Location: City / Country", None)
         tp4 = ("Date of birth: ", "dob", "Date of birth, YYYY/MM/DD", None)
-        buttx2 = Gtk.Button.new_with_mnemonic("Sele_ct")
+        buttx2 = Gtk.Button.new_with_mnemonic("Sele_ct Date")
         lab3, lab4 = self.gridquad(gridx, 0, rowcnt, tp3, tp4, buttx2)
         buttx2.connect("clicked", self.pressed_dob, lab4)
         self.dat_dict['dob'] = lab3
@@ -333,8 +337,7 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
 
-        GLib.timeout_add(500, self.timer)
-
+        #GLib.timeout_add(500, self.timer)
 
     def vspacer(self, sp):
         hbox = Gtk.HBox()
@@ -342,7 +345,33 @@ class MainWin(Gtk.Window):
         return hbox
 
     def pressed_dob(self, arg, arg2):
-        arg2.set_text("Developing")
+        #arg2.set_text("Developing")
+
+        dd = datetime.datetime.now()
+
+        org = arg2.get_text().split("/")
+        #print("org:", org)
+
+        if len(org) == 0:
+            org.append(dd.year)
+            org.append(dd.month)
+            org.append(dd.day)
+        elif len(org) == 1:
+            if not org[0]:
+                org[0] = dd.year
+            org.append(dd.month)
+            org.append(dd.day)
+
+        result = pgcal.popcal(org)
+
+        if result[0] != Gtk.ResponseType.ACCEPT:
+            return
+        #print("res:", result)
+
+        #result[1][1] += 1
+
+        arg2.set_text(str(result[1][0]) + "/" + str(result[1][1]) + \
+                            "/" + str(result[1][2]))
 
     def pressed_uuid(self, arg, arg2):
         if arg2.get_text() != "":
@@ -456,9 +485,41 @@ class MainWin(Gtk.Window):
         fr.add(sc)
         return fr, cont
 
-    def load_data(self, arg):
+    def  non_changed(self):
 
-        recsel.ovd(self.vcore)
+        ''' Mark as non changed '''
+        for aa in self.dat_dict.keys():
+            self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
+
+    def  reset_changed(self):
+
+        ''' Reset flags for changed dict '''
+
+        for aa in self.dat_dict.keys():
+            self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
+
+    def new_data(self, arg):
+
+        # See if previous one saved
+        ccc = False
+        for aa in self.dat_dict.keys():
+            if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
+                ccc = True
+        if ccc:
+            msg = "Please save data before creating a new one."
+            self.status.set_text(msg)
+            self.status_cnt = 4
+            self.message(msg)
+            return
+
+        # Clear, reset
+        for aa in self.dat_dict.keys():
+            self.dat_dict[aa].set_text("")
+
+        self.reset_changed()
+
+
+    def load_data(self, arg):
 
         # See if previous one saved
         ccc = False
@@ -472,10 +533,23 @@ class MainWin(Gtk.Window):
             self.message(msg)
             return
 
-        uuid = "119be02c-fc59-11ee-b375-4f23895f805f"
+        # Clear, reset
+        for aa in self.dat_dict.keys():
+            self.dat_dict[aa].set_text("")
+
+        self.reset_changed()
+
+        result, loadid = recsel.ovd(self.vcore)
+
+        if result != Gtk.ResponseType.ACCEPT:
+            return
+
+        print("loadid:", loadid)
+
         try:
-            dat = self.vcore.retrieve(uuid)
+            dat = self.vcore.retrieve(loadid[0][2])
         except:
+            dat = []
             print(sys.exc_info())
             pass
         if not dat:
@@ -603,11 +677,15 @@ class MainWin(Gtk.Window):
             if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
                 ccc = True
         if ccc:
-            msg = "Please save data before exiting"
+            msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            self.message(msg)
-            return True
+            ret = self.yesno(msg)
+            #print("yesno:", ret)
+            if ret != Gtk.ResponseType.YES:
+                return True
+            else:
+                print("Abandoning", self.dat_dict['name'].get_text())
 
         self.exit_all()
 
@@ -630,7 +708,19 @@ class MainWin(Gtk.Window):
 
         # Close dialog on user response
         dialog.connect ("response", lambda d, r: d.destroy())
-        dialog.show()
+        return dialog.run()
+
+    def yesno(self, msg):
+        dialog = Gtk.MessageDialog(None, Gtk.DialogFlags.DESTROY_WITH_PARENT,
+            Gtk.MessageType.INFO, Gtk.ButtonsType.YES_NO, msg)
+
+        #    'Action: "%s" of type "%s"' % (action.get_name(), type(action)))
+
+        # Close dialog on user response
+        #dialog.connect ("response", lambda d, r: d.destroy())
+        ret = dialog.run()
+        dialog.destroy()
+        return  ret
 
     def activate_action(self, action):
 
