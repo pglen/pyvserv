@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os, sys, getopt, signal, random, time, warnings, uuid, datetime
+import os, sys, getopt, signal, random, time
+import string, warnings, uuid, datetime
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -14,6 +15,7 @@ from pyvguicom import pgbox
 from pyvguicom import pgsimp
 from pyvguicom import sutil
 from pyvguicom import pggui
+from pyvguicom import pgutils
 
 from pymenu import  *
 from pgui import  *
@@ -25,6 +27,58 @@ from pyvcommon import pydata, pyservsup,  crysupp
 from pydbase import twincore, twinchain
 
 import pyvpacker
+
+alllett =   string.ascii_lowercase + string.ascii_uppercase
+
+def randascii(lenx):
+
+    ''' Spew a lot of chars, simulate txt by add ' ' an '\n' '''
+
+    strx = ""
+    for aa in range(lenx):
+        ridx = random.randint(0x20, 0x7d)
+        rr = chr(ridx)
+        strx += str(rr)
+        if random.randint(0x00, 40) == 30:
+            strx += "\n"
+        if random.randint(0x00, 12) == 10:
+            strx += " "
+    return strx
+
+def simname(lenx):
+    strx = ""
+    lenz = len(alllett)-1
+
+    spidx = random.randint(0, lenx - 4)
+    ridx = random.randint(0, len(string.ascii_uppercase)-1)
+    strx += string.ascii_uppercase[ridx]
+    for aa in range(spidx):
+        ridx = random.randint(0, len(string.ascii_lowercase)-1)
+        rr = string.ascii_lowercase[ridx]
+        strx += str(rr)
+
+    strx += " "
+    ridx = random.randint(0, len(string.ascii_uppercase)-1)
+    strx += string.ascii_uppercase[ridx]
+
+    for aa in range(lenx - spidx):
+        ridx = random.randint(0, len(string.ascii_lowercase)-1)
+        rr = string.ascii_lowercase[ridx]
+        strx += str(rr)
+
+    return strx
+
+def randate():
+
+    ''' Give us a random date in str '''
+
+    dd = datetime.datetime.now()
+    dd = dd.replace(year=random.randint(1980, 2024),
+                        month=random.randint(1, 12),
+                           day=random.randint(1, 28),
+                             hour=0, minute=0, second=0, microsecond=0)
+
+    return dd.strftime("%Y/%m/%d")
 
 
 class   TextViewx(Gtk.TextView):
@@ -93,7 +147,8 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         self.vcore = twincore.TwinCore("voters.pydb", 0)
-
+        self.exit_flag = 0
+        self.stop = True
         #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
         #window.set_icon(ic.get_pixbuf())
 
@@ -171,6 +226,16 @@ class MainWin(Gtk.Window):
 
         lab1 = Gtk.Label(" ");
         hbox4.pack_start(lab1, 1, 1, 0)
+
+        lab2 = Gtk.Label(" | ");
+        hbox4.pack_start(lab2, 0, 0, 0)
+
+        butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
+        butt2.connect("clicked", self.test_data)
+        hbox4.pack_start(butt2, False, 0, 4)
+
+        lab3 = Gtk.Label(" | ");
+        hbox4.pack_start(lab3, 0, 0, 0)
 
         butt2 = Gtk.Button.new_with_mnemonic(" Dele_te entry ")
         butt2.connect("clicked", self.del_data)
@@ -304,15 +369,22 @@ class MainWin(Gtk.Window):
         rowcnt += 1
 
         tp7b = ("Phone: (secondary)", "phone2", "Secondary phone or text number. ", None)
-        tp8b = ("Email: (Secondary)", "email2", "Secondary Email", None)
+        tp8b = ("Email: (Secondary)", "email2", "Secondary Email, if available: Ex: whatsapp", None)
         lab13, lab14 = self.gridquad(gridx, 0, rowcnt, tp7b, tp8b)
         self.dat_dict['phone2'] = lab13
         self.dat_dict['email2'] = lab14
         rowcnt += 1
 
+        tp9b = ("Now: (date of entry)"," ",  "Autofilled, date of entry", None)
+        tp10b = ("Operator:", " ", "Operator, who entered this record.", None)
+        lab15, lab16 = self.gridquad(gridx, 0, rowcnt, tp9b, tp10b)
+        self.dat_dict['now'] = lab15
+        self.dat_dict['oper'] = lab16
+        rowcnt += 1
+
         tp6x = ("Notes: ", "", "Text for Notes. Press Shift Enter to advance", None)
         lab6x = self.gridsingle(gridx, 0, rowcnt, tp6x)
-        self.dat_dict['Notes'] = lab6x
+        self.dat_dict['notes'] = lab6x
         rowcnt += 1
 
         gridx.attach(self.vspacer(8), 0, rowcnt, 1, 1)
@@ -420,7 +492,7 @@ class MainWin(Gtk.Window):
         arg2.set_text(str(uuid.uuid1()))
 
     def gridquad(self, gridx, left, top, entry1, entry2, butt = None):
-        lab1 = Gtk.Label.new_with_mnemonic(entry1[0] + "   ")
+        lab1 = Gtk.Label.new_with_mnemonic(entry1[0] + "  ")
         lab1.set_alignment(1, 0)
         lab1.set_tooltip_text(entry1[2])
         gridx.attach(lab1, left, top, 1, 1)
@@ -432,7 +504,7 @@ class MainWin(Gtk.Window):
             headx.set_text(entry1[3])
         gridx.attach(headx, left+1, top, 1, 1)
 
-        lab2 = Gtk.Label.new_with_mnemonic("    " + entry2[0] + "   ")
+        lab2 = Gtk.Label.new_with_mnemonic("  " + entry2[0] + "  ")
         lab2.set_alignment(1, 0)
         lab2.set_tooltip_text(entry2[2])
         gridx.attach(lab2, left+2, top, 1, 1)
@@ -606,7 +678,7 @@ class MainWin(Gtk.Window):
 
         self.reset_changed()
 
-        result, loadid = recsel.ovd(self.vcore)
+        result, loadid = recsel.Ovd(self.vcore)
 
         if result != Gtk.ResponseType.ACCEPT:
             return
@@ -631,6 +703,44 @@ class MainWin(Gtk.Window):
 
         # Mark as non changed
         self.reset_changed()
+
+
+    def test_data(self, arg1):
+
+        #print("test started")
+
+        self.stop = not self.stop
+
+        while True:
+            if self.exit_flag:
+                self.reset_changed()
+                break
+
+            if self.stop:
+                self.reset_changed()
+                self.status.set_text("Test Stopped")
+                self.status_cnt = 4
+                break
+
+            for aa in self.dat_dict.keys():
+                if aa == 'uuid':
+                   self.dat_dict[aa].set_text(str(uuid.uuid1()) )
+                elif aa == 'name':
+                   self.dat_dict[aa].set_text(simname(random.randint(12, 22)))
+                elif aa == 'guid':
+                   self.dat_dict[aa].set_text(str(uuid.uuid1()) )
+                elif aa == 'dob':
+                    self.dat_dict[aa].set_text(randate())
+                elif aa == 'notes':
+                    self.dat_dict[aa].set_text(randascii(random.randint(33, 66)))
+                else:
+                    self.dat_dict[aa].set_text(pgutils.randstr(random.randint(6, 22)))
+
+            sleepx = 20
+            sutil.usleep(sleepx)
+            self.save_data(0)
+            self.clear_data()
+
 
     def save_data(self, arg1):
 
@@ -721,6 +831,7 @@ class MainWin(Gtk.Window):
         self.exit_all()
 
     def exit_all(self):
+        self.exit_flag = 1
         Gtk.main_quit()
 
     def key_press_event(self, win, event):

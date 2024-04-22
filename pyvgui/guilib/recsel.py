@@ -12,17 +12,21 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GLib
 
 import pyvpacker
 
-#from pyvguicom import sutil
 from pyvguicom import pgbox
+from pyvguicom import pgsimp
+from pyvguicom import sutil
 
-def ovd(vcore = ""):
+def Ovd(vcore):
 
-    ''' open voter dialog. While technically thisis not a class,
-        we attach state vers to the dialog class ...
+    ''' Open voter dialog. While technically this is not a class,
+        we attach state vers to the dialog class
     '''
+
+    global dialog
 
     dialog = Gtk.Dialog("Open Record",
                    None,
@@ -39,6 +43,9 @@ def ovd(vcore = ""):
     dialog.xmulti = []
     dialog.vcore = vcore
     dialog.packer = pyvpacker.packbin()
+    dialog.rec_cnt = 0
+
+    dialog.w_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
 
     #dialog.set_transient_for(pyedlib.pedconfig.conf.pe.mywin);
 
@@ -46,9 +53,6 @@ def ovd(vcore = ""):
     dialog.connect("key-release-event", area_key, dialog)
 
     # Spacers
-    label1  = Gtk.Label("   ")
-    label2 = Gtk.Label("   ")
-    label3  = Gtk.Label("   ")
     label4 = Gtk.Label("   ")
     dialog.label11 = Gtk.Label("   ")
     dialog.label12 = Gtk.Label("   ")
@@ -58,6 +62,9 @@ def ovd(vcore = ""):
 
     dialog.vbox.pack_start(label4, 0, 0, 0)
     dialog.vbox.pack_start(dialog.pbox, 0, 0, 0)
+
+    simp = pgsimp.LetterNumberSel(lettersel, "Mono 16", " ")
+    dialog.vbox.pack_start(simp, 0, 0, 0)
 
     dialog.vbox.pack_start(pgbox.xSpacer(), 0, 0, 0)
     label13 = Gtk.Label.new(" Double click to select an entry.")
@@ -79,15 +86,26 @@ def ovd(vcore = ""):
     frame2.add(scroll)
 
     hbox3 = Gtk.HBox()
+    label1 = Gtk.Label("   ")
     hbox3.pack_start(label1, 0, 0, 0)
     hbox3.pack_start(frame2, True, True, 0)
+    label2 = Gtk.Label("   ")
     hbox3.pack_start(label2, 0, 0, 0)
 
     dialog.vbox.pack_start(hbox3, True, True, 0)
+
+    label3  = Gtk.Label("  ")
     dialog.vbox.pack_start(label3, 0, 0, 0)
 
+    dialog.abox = dialog.get_action_area()
+    dialog.labsss = Gtk.Label("Loading ...")
+    dialog.abox.pack_start(dialog.labsss, 1, 1, 0)
+    dialog.abox.reorder_child(dialog.labsss, 0)
+
     dialog.show_all()
-    populate(dialog)
+
+    GLib.timeout_add(100, populate, dialog)
+
     dialog.set_focus(tview)
     #dialog.set_focus(dialog.entry)
 
@@ -117,9 +135,23 @@ def ovd(vcore = ""):
     #del dialog
     return response, res
 
+def lettersel(letterx):
+    #print(letterx)
+    populate(dialog, letterx)
+
 # ------------------------------------------------------------------------
 
-def populate(dialog):
+def populate(dialog, filter = ""):
+
+    if len(filter):
+        filter = filter.upper()
+
+    #print("pop", filter)
+
+    dialog.labsss.set_text("Loading ...")
+    sutil.usleep(5)
+
+    dialog.get_window().set_cursor(dialog.w_cursor)
 
     # Clear old contents:
     while True:
@@ -131,6 +163,7 @@ def populate(dialog):
         except:
             print("Exception on rm ts", sys.exc_info())
 
+    dialog.rec_cnt = 0
     sss = dialog.vcore.getdbsize()
 
     ddd2 = []
@@ -141,22 +174,43 @@ def populate(dialog):
         #print("rrr:", rrr)
         dec = dialog.packer.decode_data(rrr[1])[0]
         #print("dec:", dec)
-        #print("dec", dec['name'], dec['dob'], dec['uuid'])
-        uuu = rrr[0].decode()
+        #print("dec:", dec['name'], dec['dob'], dec['uuid'])
+
+        # See if it is filtered:
+        if filter != "ALL":
+            if filter != "":
+                if len(dec['name']):
+                    if filter[0] != dec['name'][0].upper():
+                        #print("Filtered", dec['name'])
+                        continue
+
         # See if we have this already
+        uuu = rrr[0].decode()
         found = False
         for aaa in ddd2:
             if aaa[2] == uuu:
                 found = True
-        if not found:
-            #print("append")
-            ddd2.append((dec['name'], dec['dob'],  uuu))
+                break
+        if found:
+            continue
+
+        #print("append:", dec)
+        ddd2.append((dec['name'], dec['dob'],  uuu))
+        dialog.rec_cnt += 1
+        if dialog.rec_cnt % 100 == 0:
+            dialog.labsss.set_text("Loading %d" % dialog.rec_cnt)
+            dialog.get_window().set_cursor(dialog.w_cursor)
+            sutil.usleep(5)
 
     for aa in ddd2:
         piter = dialog.ts.append(row=None)
         dialog.ts.set(piter, 0, aa[0])
         dialog.ts.set(piter, 1, aa[1])
         dialog.ts.set(piter, 2, aa[2])
+
+    dialog.labsss.set_text("%s records." % dialog.rec_cnt)
+
+    dialog.get_window().set_cursor()
 
     # --------------------------------------------------------------------
 
