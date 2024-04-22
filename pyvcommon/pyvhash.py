@@ -45,6 +45,7 @@ Stamp    = "stamp"
 Iso      = "iso"
 
 datefmt = '%a, %d %b %Y %H:%M:%S'
+isostr  = "%Y-%m-%dT%H:%M:%S"
 
 def DefPayload():
     return {PayLoad : { "Default": "None"}}
@@ -127,6 +128,7 @@ class BcData():
 
         # Add Expected fields:
         dt = datetime.datetime.now()
+        dt = dt.replace(microsecond=0)
         if not PayLoad in self.datax:
             self.datax |= DefPayload()
         if not Header in self.datax:

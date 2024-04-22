@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-''' Action Handler for simple open file dialog '''
+''' Action Handler for simple open records dialog '''
 
 # pylint disable=C0103
 
@@ -19,6 +19,8 @@ import pyvpacker
 from pyvguicom import pgbox
 from pyvguicom import pgsimp
 from pyvguicom import sutil
+
+from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
 
 def Ovd(vcore):
 
@@ -67,7 +69,7 @@ def Ovd(vcore):
     dialog.vbox.pack_start(simp, 0, 0, 0)
 
     dialog.vbox.pack_start(pgbox.xSpacer(), 0, 0, 0)
-    label13 = Gtk.Label.new(" Double click to select an entry.")
+    label13 = Gtk.Label.new("Double click to select an entry.")
     dialog.vbox.pack_start(label13, 0, 0, 0)
     dialog.vbox.pack_start(pgbox.xSpacer(), 0, 0, 0)
 
@@ -98,17 +100,13 @@ def Ovd(vcore):
     dialog.vbox.pack_start(label3, 0, 0, 0)
 
     dialog.abox = dialog.get_action_area()
-    dialog.labsss = Gtk.Label("Loading ...")
+    dialog.labsss = Gtk.Label("Awaiting filter selection ...")
     dialog.abox.pack_start(dialog.labsss, 1, 1, 0)
     dialog.abox.reorder_child(dialog.labsss, 0)
 
     dialog.show_all()
-
-    GLib.timeout_add(100, populate, dialog)
-
+    initial_pop(dialog)
     dialog.set_focus(tview)
-    #dialog.set_focus(dialog.entry)
-
     response = dialog.run()
 
     res = []
@@ -127,7 +125,8 @@ def Ovd(vcore):
                 xstr = xmodel.get_value(iterx, 0)
                 xstr2 = xmodel.get_value(iterx, 1)
                 xstr3 = xmodel.get_value(iterx, 2)
-                res.append((xstr, xstr2, xstr3))
+                xstr4 = xmodel.get_value(iterx, 3)
+                res.append((xstr, xstr2, xstr3, xstr4))
             iterx = xmodel.iter_next(iterx)
 
     #print ("response", response, "result", res  )
@@ -138,6 +137,12 @@ def Ovd(vcore):
 def lettersel(letterx):
     #print(letterx)
     populate(dialog, letterx)
+
+def initial_pop(dialog):
+    piter = dialog.ts.append(row=None)
+    dialog.ts.set(piter, 0, "Select Appropriate filter.")
+    dialog.ts.set(piter, 1, "From TOP row")
+    dialog.ts.set(piter, 2, "Selecting 'All' may take a long time to load")
 
 # ------------------------------------------------------------------------
 
@@ -195,7 +200,7 @@ def populate(dialog, filter = ""):
             continue
 
         #print("append:", dec)
-        ddd2.append((dec['name'], dec['dob'],  uuu))
+        ddd2.append((dec['name'], dec['now'], dec['dob'],  uuu))
         dialog.rec_cnt += 1
         if dialog.rec_cnt % 100 == 0:
             dialog.labsss.set_text("Loading %d" % dialog.rec_cnt)
@@ -204,9 +209,11 @@ def populate(dialog, filter = ""):
 
     for aa in ddd2:
         piter = dialog.ts.append(row=None)
+        #print("row", aa)
         dialog.ts.set(piter, 0, aa[0])
         dialog.ts.set(piter, 1, aa[1])
         dialog.ts.set(piter, 2, aa[2])
+        dialog.ts.set(piter, 3, aa[3])
 
     dialog.labsss.set_text("%s records." % dialog.rec_cnt)
 
@@ -250,6 +257,32 @@ def ncompare(model, row1, row2, user_data):
     else:
         return 1
 
+def dcompare(model, row1, row2, user_data):
+    sort_column, _ = model.get_sort_column_id()
+    value1 = model.get_value(row1, sort_column)
+    value2 = model.get_value(row2, sort_column)
+    #print("n", sort_column, value1, value2, type(value1))
+    dd = datetime.datetime.now()
+    #YYYY-MM-DDTHH:MM
+    try:
+        dd2 = dd.strptime(value1, pyvhash.isostr).timestamp()
+    except:
+        print(sys.exc_info())
+        dd2 = 0
+    try:
+        dd3 = dd.strptime(value2, isostr).timestamp()
+    except:
+        dd3 = 0
+
+    #print("dd 2/3", dd2, dd3)
+
+    if int(dd2) < int(dd3):
+        return -1
+    elif int(dd2) == int(dd3):
+        return 0
+    else:
+        return 1
+
 def create_ftree(ts):
 
     # create the tview using ts
@@ -259,40 +292,49 @@ def create_ftree(ts):
     tv.set_headers_clickable(True)
     #tv.set_enable_search(True)
     ts.set_sort_func(0, compare, None)
-    ts.set_sort_func(1, ncompare, None)
+    ts.set_sort_func(1, dcompare, None)
+    ts.set_sort_func(2, ncompare, None)
 
     # create a CellRendererText to render the data
     cell = Gtk.CellRendererText()
-
     tvcolumn = Gtk.TreeViewColumn('Name')
     tvcolumn.set_min_width(240)
     tvcolumn.pack_start(cell, True)
     tvcolumn.add_attribute(cell, 'text', 0)
-    tvcolumn.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+    tvcolumn.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
     tvcolumn.set_sort_column_id(0)
     tv.append_column(tvcolumn)
 
-    tvcolumn = Gtk.TreeViewColumn('Date of Birth')
-    tvcolumn.set_min_width(240)
-    tvcolumn.pack_start(cell, True)
-    tvcolumn.add_attribute(cell, 'text', 1)
-    tvcolumn.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
-    tvcolumn.set_sort_column_id(1)
-    tv.append_column(tvcolumn)
+    celld = Gtk.CellRendererText()
+    tvcolumn2 = Gtk.TreeViewColumn('Date of Entry')
+    tvcolumn2.set_min_width(100)
+    tvcolumn2.pack_start(celld, True)
+    tvcolumn2.add_attribute(celld, 'text', 1)
+    tvcolumn2.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
+    tvcolumn2.set_sort_column_id(1)
+    tv.append_column(tvcolumn2)
+
+    cellx = Gtk.CellRendererText()
+    tvcolumn3 = Gtk.TreeViewColumn('Date of Birth')
+    tvcolumn3.set_min_width(100)
+    tvcolumn3.pack_start(cellx, True)
+    tvcolumn3.add_attribute(cellx, 'text', 2)
+    tvcolumn3.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
+    tvcolumn3.set_sort_column_id(2)
+    tv.append_column(tvcolumn3)
 
     cell2 = Gtk.CellRendererText()
     tvcolumn2 = Gtk.TreeViewColumn('UUID')
     tvcolumn2.set_min_width(100)
-    tvcolumn2.set_sort_column_id(2)
+    tvcolumn2.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
+    tvcolumn2.set_sort_column_id(3)
     tvcolumn2.pack_start(cell2, True)
-    tvcolumn2.add_attribute(cell2, 'text', 2)
+    tvcolumn2.add_attribute(cell2, 'text', 3)
     tv.append_column(tvcolumn2)
 
     #tv.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
 
     return tv
-
-    #sel.get_selected()
 
 def tree_sel_row(xtree, dialog):
 

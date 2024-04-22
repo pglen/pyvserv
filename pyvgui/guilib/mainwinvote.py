@@ -22,7 +22,7 @@ from pgui import  *
 
 import recsel, pgcal
 
-from pyvcommon import pydata, pyservsup,  crysupp
+from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
 
 from pydbase import twincore, twinchain
 
@@ -67,6 +67,11 @@ def simname(lenx):
         strx += str(rr)
 
     return strx
+
+def randisodate():
+    dd = datetime.datetime.now()
+    dd = dd.replace(microsecond=0)
+    return dd.isoformat()
 
 def randate():
 
@@ -305,20 +310,20 @@ class MainWin(Gtk.Window):
 
         # ----------------------------------------------------------------
 
+        buttx2 = Gtk.Button.new_with_mnemonic("Sele_ct Date")
         tp1 =("Full Nam_e: ", "name", "Enter full name (TAB to advance)", None)
-        tp2 = ("Nick Name: ", "nick", "Enter nick name / Alias if available", None)
-        lab1, lab2 = self.gridquad(gridx, rowcnt, 0, tp1, tp2)
+        tp2 = ("Date o_f birth: ", "dob", "Date of birth, YYYY/MM/DD", None)
+        lab1, lab2 = self.gridquad(gridx, rowcnt, 0, tp1, tp2, buttx2)
+        buttx2.connect("clicked", self.pressed_dob, lab2)
         self.dat_dict['name'] = lab1
-        self.dat_dict['nick'] = lab2
+        self.dat_dict['dob'] = lab2
         rowcnt += 1
 
         tp3 = ("Location of birth: ", "lob", "Location: City / Country", None)
-        tp4 = ("Date of birth: ", "dob", "Date of birth, YYYY/MM/DD", None)
-        buttx2 = Gtk.Button.new_with_mnemonic("Sele_ct Date")
-        lab3, lab4 = self.gridquad(gridx, 0, rowcnt, tp3, tp4, buttx2)
-        buttx2.connect("clicked", self.pressed_dob, lab4)
+        tp4 = ("Nick Name: ", "nick", "Enter nick name / Alias if available", None)
+        lab3, lab4 = self.gridquad(gridx, 0, rowcnt, tp3, tp4)
         self.dat_dict['lob'] = lab3
-        self.dat_dict['dob'] = lab4
+        self.dat_dict['nick'] = lab4
         rowcnt += 1
 
         gridx.attach(self.vspacer(8), 0, rowcnt, 1, 1)
@@ -656,6 +661,13 @@ class MainWin(Gtk.Window):
         # Clear, reset
         for aa in self.dat_dict.keys():
             self.dat_dict[aa].set_text("")
+
+        # Fill in defaults
+        dd = datetime.datetime.now()
+        dd = dd.replace(microsecond=0)
+        self.dat_dict['now'].set_text(dd.isoformat())
+        self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
+
         self.reset_changed()
 
     def load_data(self, arg):
@@ -684,7 +696,7 @@ class MainWin(Gtk.Window):
             return
         #print("loadid:", loadid)
         try:
-            dat = self.vcore.retrieve(loadid[0][2])
+            dat = self.vcore.retrieve(loadid[0][3])
         except:
             dat = []
             print(sys.exc_info())
@@ -708,21 +720,18 @@ class MainWin(Gtk.Window):
     def test_data(self, arg1):
 
         #print("test started")
-
         self.stop = not self.stop
-
         while True:
             if self.exit_flag:
                 self.reset_changed()
                 break
-
             if self.stop:
                 self.reset_changed()
                 self.status.set_text("Test Stopped")
                 self.status_cnt = 4
                 break
-
             for aa in self.dat_dict.keys():
+                # Handle differences
                 if aa == 'uuid':
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == 'name':
@@ -731,16 +740,16 @@ class MainWin(Gtk.Window):
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == 'dob':
                     self.dat_dict[aa].set_text(randate())
+                elif aa == 'now':
+                    self.dat_dict[aa].set_text(randisodate())
                 elif aa == 'notes':
                     self.dat_dict[aa].set_text(randascii(random.randint(33, 66)))
                 else:
                     self.dat_dict[aa].set_text(pgutils.randstr(random.randint(6, 22)))
-
             sleepx = 20
             sutil.usleep(sleepx)
             self.save_data(0)
             self.clear_data()
-
 
     def save_data(self, arg1):
 
