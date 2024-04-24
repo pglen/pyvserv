@@ -6,8 +6,7 @@ descx = '''
         '''
 
 classx = [
-          'Development Status :: Mature',
-          'Environment :: GUI',
+          'Development Status :: 6 - Mature',
           'Intended Audience :: End Users/Desktop',
           'Intended Audience :: Developers',
           'Intended Audience :: System Administrators',
