@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-# pylint disable=C0103
-# pylint disable=E1101
-# pylint disable=C0410
+# pylint: disable=C0103
+# pylint: disable=E1101
+# pylint: disable=C0410
 
 import os, sys
 
@@ -11,8 +11,6 @@ if  sys.version_info[0] < 3:
     sys.exit(1)
 
 ''' Voter admin user interface '''
-
-import pyvpacker
 
 # This repairs the path from local run to pip run.
 # Remove pip version for local tests
@@ -30,6 +28,7 @@ try:
 
 except:
     base = os.path.dirname(__file__)
+    #print("base", base)
     sys.path.append(os.path.join(base,  '..'))
     sys.path.append(os.path.join(base,  '..', "pyvcommon"))
     sys.path.append(os.path.join(base,  '..', "pyvserver"))
@@ -37,18 +36,8 @@ except:
     sys.path.append(os.path.join(base,  "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
-from pyvguicom import sutil
+from pyvcommon import support, comline, pyservsup
 
-# Get Parent of module root
-sf = os.path.dirname(sutil.__file__)
-sys.path.append(os.path.join(sf, "..", "pyvguicom"))
-
-#print("Load:", sys.path[-1])
-
-from pyvcommon import support, comline, pywrap
-from pyvcommon import pydata, pyservsup,  crysupp
-from pyvserver import pyvstate
-from pyvserver import pyvfunc
 from guilib import mainwinvote
 
 # -----------------------------------------------------------------------
