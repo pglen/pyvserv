@@ -292,7 +292,7 @@ class MainWin(Gtk.Window):
         self.dat_dict['nick'] = lab4
         rowcnt += 1
 
-        gridx.attach(self.vspacer(8), 0, rowcnt, 1, 1)
+        gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         rowcnt += 1
 
         tp3x = ("UUID: ", "uuid", "Generate VOTER UID by pressing button", None)
@@ -308,7 +308,7 @@ class MainWin(Gtk.Window):
         butt2.connect("clicked", self.load_uuid, lab4x)
         self.dat_dict['guid'] = lab4x
         rowcnt += 1
-        gridx.attach(self.vspacer(8), 0, rowcnt, 1, 1)
+        gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         rowcnt += 1
 
         tp3a = ("Address Line 1: ", "addr1", "Address line one. (Number, Street)", None)
@@ -358,7 +358,7 @@ class MainWin(Gtk.Window):
         self.dat_dict['notes'] = lab6x
         rowcnt += 1
 
-        gridx.attach(self.vspacer(8), 0, rowcnt, 1, 1)
+        gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         rowcnt += 1
 
         #tp7b = ("Vote:" , "", "Voting entity. ", None)
@@ -402,11 +402,6 @@ class MainWin(Gtk.Window):
         self.show_all()
 
         GLib.timeout_add(1000, self.timer)
-
-    def vspacer(self, sp):
-        hbox = Gtk.HBox()
-        hbox.set_size_request(sp, sp)
-        return hbox
 
     def is_changed(self):
         ccc = False
@@ -535,7 +530,7 @@ class MainWin(Gtk.Window):
         msg = "This will delete: '%s'. \nAre you sure?" % nnn
         self.status.set_text(msg)
         self.status_cnt = 4
-        ret = self.yesno(msg)
+        ret = pggui.yesno(msg)
         if ret != Gtk.ResponseType.YES:
             return True
         ddd = self.dat_dict['uuid'].get_text()
@@ -564,7 +559,7 @@ class MainWin(Gtk.Window):
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            ret = self.yesno(msg)
+            ret = pggui.yesno(msg)
             if ret != Gtk.ResponseType.YES:
                 return True
 
@@ -603,9 +598,7 @@ class MainWin(Gtk.Window):
         sss = recsel.RecSel(self.vcore)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
-
-        print("sss.res:", sss.res)
-
+        #print("sss.res:", sss.res)
         try:
             dat = self.vcore.retrieve(sss.res[0][3])
         except:
@@ -619,13 +612,11 @@ class MainWin(Gtk.Window):
             self.status_cnt = 5
             pggui.message(msg)
             return
-
         #print("dat:", dat)
         dec = self.packer.decode_data(dat[0][1])[0]
         #print("dec:", dec)
         for aa in dec.keys():
             self.dat_dict[aa].set_text(dec[aa])
-
         # Mark as non changed
         self.reset_changed()
 
@@ -681,8 +672,9 @@ class MainWin(Gtk.Window):
             pggui.message(msg)
             return
 
-        if not self.dat_dict['dob'].get_text():
-            msg = "Must have a voter date of birth."
+        dob = self.dat_dict['dob'].get_text()
+        if not dob or len(dob.split("/")) < 3:
+            msg = "Must have a valid voter date of birth."
             self.status.set_text(msg)
             self.status_cnt = 4
             self.set_focus(self.dat_dict['dob'])
@@ -750,7 +742,7 @@ class MainWin(Gtk.Window):
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            ret = self.yesno(msg)
+            ret = pggui.yesno(msg)
             #print("yesno:", ret)
             if ret != Gtk.ResponseType.YES:
                 return True

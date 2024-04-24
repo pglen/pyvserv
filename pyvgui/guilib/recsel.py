@@ -211,13 +211,13 @@ class RecSel(Gtk.Dialog):
 
             # Wed 24.Apr.2024 load all, include history
             # See if we have this already
-            #found = False
-            #for aaa in ddd2:
-            #    if aaa[2] == uuu:
-            #        found = True
-            #        break
-            #if found:
-            #    continue
+            found = False
+            for aaa in ddd2:
+                if aaa[3] == uuu:
+                    found = True
+                    break
+            if found:
+                continue
 
             #print("append:", dec)
             ddd2.append((dec['name'], dec['now'], dec['dob'],  uuu))
@@ -226,15 +226,16 @@ class RecSel(Gtk.Dialog):
                 if self.stop:
                     break
             sig = False
-            if filterx == "All":
-                if self.rec_cnt >= 10000:
+            if filterx == "ALL":
+                if self.rec_cnt >= 5000:
                     sig = True
             else:
                 if self.rec_cnt >= 1000:
                     sig = True
             if sig:
-                msg = "Loaded 10000 records, stopping. \n" \
-                        "If your intended record is not included, please narrow filter."
+                msg = "Loaded %d records, stopping. \n" \
+                        "If your intended record is not included, " \
+                        "please narrow the filter condition." % (self.rec_cnt)
                 pggui.message(msg)
                 self.set_focus(self.tview)
                 break
@@ -344,7 +345,8 @@ class RecSel(Gtk.Dialog):
         tv.set_headers_clickable(True)
         #tv.set_enable_search(True)
         ts.set_sort_func(0, self.compare, None)
-        ts.set_sort_func(1, self.dcompare, None)
+        ts.set_sort_func(1, self.compare, None)
+        #ts.set_sort_func(1, self.dcompare, None)
         ts.set_sort_func(2, self.ncompare, None)
 
         # create a CellRendererText to render the data
@@ -402,7 +404,7 @@ class RecSel(Gtk.Dialog):
             #    xstr = xmodel.get_value(xiter2, 0)
             #    xstr2 = xmodel.get_value(xiter2, 1)
             #    print("mul selstr: ", "'" + xstr + "'" )
-            selfx.response(Gtk.ResponseType.ACCEPT)
+            self.response(Gtk.ResponseType.ACCEPT)
 
     # If directory, change to it
     def click_dir_action(self, xstr):
