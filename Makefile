@@ -65,7 +65,7 @@ tests:
 	@echo "Warning: On empty database this test created demo credentials."
 	@echo "It is recommended to delete all test generated data"
 
-PPP=PYTHONPATH=../pyvcommon:../  python -W ignore::DeprecationWarning `which pdoc` --force --html
+XPATH=PYTHONPATH=../pyvcommon:../../pyvcommon python -W ignore::DeprecationWarning `which pdoc` --force --html
 
 docs:
 	@${XPATH} -o pyvtools/docs pyvtools/pyvgenkeys.py

@@ -703,10 +703,12 @@ class MainWin(Gtk.Window):
             pass
         if not dat:
             msg = "No data"
-            print(msg)
+            #print(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
+            self.message(msg)
             return
+
         #print("dat:", dat)
         dec = self.packer.decode_data(dat[0][1])[0]
         #print("dec:", dec)
@@ -715,7 +717,6 @@ class MainWin(Gtk.Window):
 
         # Mark as non changed
         self.reset_changed()
-
 
     def test_data(self, arg1):
 

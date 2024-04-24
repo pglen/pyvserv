@@ -18,6 +18,7 @@ import pyvpacker
 
 from pyvguicom import pgbox
 from pyvguicom import pgsimp
+from pyvguicom import pgsel
 from pyvguicom import sutil
 
 from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
@@ -38,7 +39,7 @@ def Ovd(vcore):
                     Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
 
 
-    dialog.set_default_response(Gtk.ResponseType.ACCEPT)
+    #dialog.set_default_response(Gtk.ResponseType.ACCEPT)
     #dialog.set_position(Gtk.WindowPosition.CENTER)
     dialog.set_size_request(800, 600)
     dialog.set_default_size(800, 600)
@@ -65,7 +66,10 @@ def Ovd(vcore):
     dialog.vbox.pack_start(label4, 0, 0, 0)
     dialog.vbox.pack_start(dialog.pbox, 0, 0, 0)
 
-    simp = pgsimp.LetterNumberSel(lettersel, "Mono 16", " ")
+    simp = pgsel.LetterNumberSel(lettersel, "Mono 16", " ")
+    simp.set_tooltip_text("Click on selection or navigate " \
+            " to selection, press space to select")
+
     dialog.vbox.pack_start(simp, 0, 0, 0)
 
     dialog.vbox.pack_start(pgbox.xSpacer(), 0, 0, 0)
@@ -136,7 +140,9 @@ def Ovd(vcore):
 
 def lettersel(letterx):
     #print(letterx)
+    sutil.usleep(10)
     populate(dialog, letterx)
+    sutil.usleep(10)
 
 def initial_pop(dialog):
     piter = dialog.ts.append(row=None)
@@ -154,9 +160,8 @@ def populate(dialog, filter = ""):
     #print("pop", filter)
 
     dialog.labsss.set_text("Loading ...")
-    sutil.usleep(5)
-
     dialog.get_window().set_cursor(dialog.w_cursor)
+    sutil.usleep(5)
 
     # Clear old contents:
     while True:
@@ -381,19 +386,21 @@ def click_dir_action(xstr):
     return False
 
 # Call key handler
+
 def area_key(area, event, self):
 
-    #print "area_key", event
+    #print("area_key", event.keyval)
+
     # Do key down:
     if  event.type == Gdk.EventType.KEY_PRESS:
 
-        if event.keyval == Gdk.KEY_Escape:
-            #print "Esc"
-            self.response(Gtk.ResponseType.CANCEL)
-
-        if event.keyval == Gdk.KEY_Return:
-            #print("Ret")
-            self.response(Gtk.ResponseType.ACCEPT)
+        #if event.keyval == Gdk.KEY_Escape:
+        #    print( "Esc")
+        #    self.response(Gtk.ResponseType.CANCEL)
+        #
+        #if event.keyval == Gdk.KEY_Return:
+        #    print("Ret")
+        #    self.response(Gtk.ResponseType.ACCEPT)
 
         if event.keyval == Gdk.KEY_Alt_L or \
                 event.keyval == Gdk.KEY_Alt_R:
