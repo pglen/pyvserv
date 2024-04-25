@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os, sys, getopt, signal, random, time
-import string, warnings, uuid, datetime
+import string, warnings, uuid, datetime, struct, io
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -118,8 +118,15 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         self.vcore = twincore.TwinCore("voters.pydb", 0)
+
+        # We let the core carry vars; make sure they do not collide
+        self.vcore.packer = self.packer
+        self.vcore.hashname  = os.path.splitext(self.vcore.fname)[0] + ".hash.id"
+        self.vcore.hashname2 = os.path.splitext(self.vcore.fname)[0] + ".hash.name"
+
         self.exit_flag = 0
         self.stop = True
+
         #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
         #window.set_icon(ic.get_pixbuf())
 
@@ -198,15 +205,23 @@ class MainWin(Gtk.Window):
         lab1 = Gtk.Label(" ");
         hbox4.pack_start(lab1, 1, 1, 0)
 
-        lab2 = Gtk.Label(" | ");
-        hbox4.pack_start(lab2, 0, 0, 0)
+        lab3 = Gtk.Label(" | ");
+        hbox4.pack_start(lab3, 0, 0, 0)
 
         butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
         butt2.connect("clicked", self.test_data)
-        hbox4.pack_start(butt2, False, 0, 4)
+        hbox4.pack_start(butt2, False, 0, 2)
 
-        lab3 = Gtk.Label(" | ");
-        hbox4.pack_start(lab3, 0, 0, 0)
+        butt2 = Gtk.Button.new_with_mnemonic(" Searc_h Index ")
+        butt2.connect("clicked", self.search_index)
+        hbox4.pack_start(butt2, False, 0, 2)
+
+        butt2 = Gtk.Button.new_with_mnemonic(" Gen _v Index ")
+        butt2.connect("clicked", self.gen_index)
+        hbox4.pack_start(butt2, False, 0, 2)
+
+        lab2 = Gtk.Label(" | ");
+        hbox4.pack_start(lab2, 0, 0, 0)
 
         butt2 = Gtk.Button.new_with_mnemonic(" Dele_te entry ")
         butt2.connect("clicked", self.del_data)
@@ -518,6 +533,47 @@ class MainWin(Gtk.Window):
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
 
+    def search_index(self, arg):
+
+        ''' Search Index '''
+
+        print("search_index:", self.idxname)
+        try:
+            ifp = open(self.core.hashname2, "rb")
+        except:
+            self.gen_index(0)
+            ifp = open(self.core.hashname2, "rb")
+            #return
+        ttt = time.time()
+        buffsize = self.vcore.getsize(ifp)
+        ifp.seek(twincore.HEADSIZE, io.SEEK_SET)
+        datasize = self.vcore.getdbsize()
+        print("buffsize", (buffsize - twincore.HEADSIZE) // 4, "datasize:", datasize)
+
+        idx = 0x4307df40
+
+        cnt = 0
+        while True:
+            val = ifp.read(4)
+            if not val:
+                break;
+            val2 = struct.unpack("I", val)[0]
+            #print("val2:", hex(val2))
+            if idx == val2:
+                print("Found", hex(val2), cnt)
+            cnt += 1
+        ifp.close()
+        print("delta %.3f" % (time.time() - ttt) )
+
+    def gen_index(self, arg):
+        print("(re) gen_index:", self.vcore.fname)
+        ttt = time.time()
+        recsel.append_index(self.vcore, self.vcore.hashname, hashid, None)
+        print("delta %.3f" % (time.time() - ttt) )
+        ttt = time.time()
+        recsel.append_index(self.vcore, self.vcore.hashname2, hashname, None)
+        print("delta2 %.3f" % (time.time() - ttt) )
+
     def del_data(self, arg):
 
         nnn = self.dat_dict['name'].get_text()
@@ -698,12 +754,20 @@ class MainWin(Gtk.Window):
         #print("Save_data", ddd)
         enc = self.packer.encode_data("", ddd)
         #print("enc:", enc)
+        uuu = self.dat_dict['uuid'].get_text()
 
+        # Add index (s) [indice]
+        def callb(c2, id2):
+            recsel.append_index(self.vcore, self.vcore.hashname,  hashid, [uuu, enc])
+            recsel.append_index(self.vcore, self.vcore.hashname2,  hashname, [uuu, enc])
         try:
-            ret = self.vcore.save_data(self.dat_dict['uuid'].get_text(), enc)
+            self.vcore.postexec = callb
+            ret = self.vcore.save_data(uuu, enc)
         except:
             pass
             print("save", sys.exc_info())
+        finally:
+            self.vcore.postexec = None
 
         self.status.set_text("Entry '%s' saved." % self.dat_dict['name'].get_text())
         self.status_cnt = 4

@@ -10,6 +10,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 
 from pyvguicom import pgbox
+from pyvguicom import pggui
 
 def PopCal(ddd):
 
@@ -74,9 +75,9 @@ def PopCal(ddd):
     dialog.pbox.pack_start(helpx, 1, 1, 0)
 
     dialog.pbox.pack_start(dialog.cal, 1, 1, 0)
-    dialog.pbox.pack_start(pgbox.xSpacer(8), 0, 0, 0)
+    dialog.pbox.pack_start(pggui.xSpacer(8), 0, 0, 0)
     dialog.pbox.pack_start(hbox3, 0, 0, 0)
-    dialog.pbox.pack_start(pgbox.xSpacer(8), 0, 0, 0)
+    dialog.pbox.pack_start(pggui.xSpacer(8), 0, 0, 0)
 
     dialog.abox = dialog.get_action_area()
 
