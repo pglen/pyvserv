@@ -212,13 +212,13 @@ class MainWin(Gtk.Window):
         butt2.connect("clicked", self.test_data)
         hbox4.pack_start(butt2, False, 0, 2)
 
-        butt2 = Gtk.Button.new_with_mnemonic(" Searc_h Index ")
-        butt2.connect("clicked", self.search_index)
-        hbox4.pack_start(butt2, False, 0, 2)
-
-        butt2 = Gtk.Button.new_with_mnemonic(" Gen _v Index ")
-        butt2.connect("clicked", self.gen_index)
-        hbox4.pack_start(butt2, False, 0, 2)
+        #butt2 = Gtk.Button.new_with_mnemonic(" Searc_h Index ")
+        #butt2.connect("clicked", self.search_index)
+        #hbox4.pack_start(butt2, False, 0, 2)
+        #
+        #butt2 = Gtk.Button.new_with_mnemonic(" Gen _v Index ")
+        #butt2.connect("clicked", self.gen_index)
+        #hbox4.pack_start(butt2, False, 0, 2)
 
         lab2 = Gtk.Label(" | ");
         hbox4.pack_start(lab2, 0, 0, 0)
@@ -537,19 +537,21 @@ class MainWin(Gtk.Window):
 
         ''' Search Index '''
 
-        print("search_index:", self.idxname)
+        #print("search_index:", self.hashname)
         try:
-            ifp = open(self.core.hashname2, "rb")
+            ifp = open(self.vcore.hashname2, "rb")
         except:
             self.gen_index(0)
-            ifp = open(self.core.hashname2, "rb")
+            ifp = open(self.vcore.hashname2, "rb")
             #return
         ttt = time.time()
         buffsize = self.vcore.getsize(ifp)
         ifp.seek(twincore.HEADSIZE, io.SEEK_SET)
         datasize = self.vcore.getdbsize()
-        print("buffsize", (buffsize - twincore.HEADSIZE) // 4, "datasize:", datasize)
+        print("buffsize", (buffsize - twincore.HEADSIZE) // 4,)
+        print("datasize:", datasize)
 
+        # Test value
         idx = 0x4307df40
 
         cnt = 0
@@ -568,10 +570,10 @@ class MainWin(Gtk.Window):
     def gen_index(self, arg):
         print("(re) gen_index:", self.vcore.fname)
         ttt = time.time()
-        recsel.append_index(self.vcore, self.vcore.hashname, hashid, None)
+        recsel.append_index(self.vcore, self.vcore.hashname, recsel.hashid, None)
         print("delta %.3f" % (time.time() - ttt) )
         ttt = time.time()
-        recsel.append_index(self.vcore, self.vcore.hashname2, hashname, None)
+        recsel.append_index(self.vcore, self.vcore.hashname2, recsel.hashname, None)
         print("delta2 %.3f" % (time.time() - ttt) )
 
     def del_data(self, arg):
