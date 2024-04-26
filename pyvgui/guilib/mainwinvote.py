@@ -99,14 +99,20 @@ class MainWin(Gtk.Window):
 
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
-        try:
-            pixbuf = Gtk.IconTheme.get_default().load_icon("weather-storm", 32, 0)
-            self.set_icon(pixbuf)
-        except:
+        #try:
+        #    pixbuf = Gtk.IconTheme.get_default().load_icon("weather-storm", 32, 0)
+        #    self.set_icon(pixbuf)
+        #except:
+        #
+        #    icon = os.path.join(os.path.dirname(__file__), "weather-storm.png")
+        #    ic = Gtk.Image(); ic.set_from_file(icon)
+        #    self.set_icon(ic.get_pixbuf())
 
-            icon = os.path.join(os.path.dirname(__file__), "weather-storm.png")
-            ic = Gtk.Image(); ic.set_from_file(icon)
+        try:
+            ic = Gtk.Image(); ic.set_from_file("pyvvote.png")
             self.set_icon(ic.get_pixbuf())
+        except:
+            pass
 
         self.start_anal = False
         self.core = None
@@ -211,14 +217,6 @@ class MainWin(Gtk.Window):
         butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
         butt2.connect("clicked", self.test_data)
         hbox4.pack_start(butt2, False, 0, 2)
-
-        #butt2 = Gtk.Button.new_with_mnemonic(" Searc_h Index ")
-        #butt2.connect("clicked", self.search_index)
-        #hbox4.pack_start(butt2, False, 0, 2)
-        #
-        #butt2 = Gtk.Button.new_with_mnemonic(" Gen _v Index ")
-        #butt2.connect("clicked", self.gen_index)
-        #hbox4.pack_start(butt2, False, 0, 2)
 
         lab2 = Gtk.Label(" | ");
         hbox4.pack_start(lab2, 0, 0, 0)
@@ -533,50 +531,9 @@ class MainWin(Gtk.Window):
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
 
-    def search_index(self, arg):
-
-        ''' Search Index '''
-
-        #print("search_index:", self.hashname)
-        try:
-            ifp = open(self.vcore.hashname2, "rb")
-        except:
-            self.gen_index(0)
-            ifp = open(self.vcore.hashname2, "rb")
-            #return
-        ttt = time.time()
-        buffsize = self.vcore.getsize(ifp)
-        ifp.seek(twincore.HEADSIZE, io.SEEK_SET)
-        datasize = self.vcore.getdbsize()
-        print("buffsize", (buffsize - twincore.HEADSIZE) // 4,)
-        print("datasize:", datasize)
-
-        # Test value
-        idx = 0x4307df40
-
-        cnt = 0
-        while True:
-            val = ifp.read(4)
-            if not val:
-                break;
-            val2 = struct.unpack("I", val)[0]
-            #print("val2:", hex(val2))
-            if idx == val2:
-                print("Found", hex(val2), cnt)
-            cnt += 1
-        ifp.close()
-        print("delta %.3f" % (time.time() - ttt) )
-
-    def gen_index(self, arg):
-        print("(re) gen_index:", self.vcore.fname)
-        ttt = time.time()
-        recsel.append_index(self.vcore, self.vcore.hashname, recsel.hashid, None)
-        print("delta %.3f" % (time.time() - ttt) )
-        ttt = time.time()
-        recsel.append_index(self.vcore, self.vcore.hashname2, recsel.hashname, None)
-        print("delta2 %.3f" % (time.time() - ttt) )
-
     def del_data(self, arg):
+
+        ''' Delete currently active data '''
 
         nnn = self.dat_dict['name'].get_text()
         if not nnn:
@@ -592,14 +549,22 @@ class MainWin(Gtk.Window):
         if ret != Gtk.ResponseType.YES:
             return True
         ddd = self.dat_dict['uuid'].get_text()
-        #print("deleting:", ddd)
-        try:
-            dat = self.vcore.del_rec_bykey(ddd)
-            #print("dat:", dat)
-        except:
-            dat = []
-            print(sys.exc_info())
-            pass
+
+        print("deleting:", ddd)
+
+        #try:
+        #    dat = self.vcore.del_rec_bykey(ddd)
+        #    #print("dat:", dat)
+        #except:
+        #    dat = []
+        #    print(sys.exc_info())
+        #    pass
+        # Find it via index
+        #search_idx(self, arg2, arg3, hashname, hashfunc):
+
+        ddd2 = recsel.search_index(self.vcore, self.vcore.hashname, ddd, recsel.hashid)
+        print("del ddd2:", ddd2)
+
         self.status.set_text("Record '%s' deleted." % nnn)
         self.status_cnt = 4
         # Clear, reset
@@ -671,7 +636,11 @@ class MainWin(Gtk.Window):
             pggui.message(msg)
             return
         #print("dat:", dat)
-        dec = self.packer.decode_data(dat[0][1])[0]
+        try:
+            dec = self.packer.decode_data(dat[0][1])[0]
+        except:
+            dec = {}
+            pass
         #print("dec:", dec)
         for aa in dec.keys():
             self.dat_dict[aa].set_text(dec[aa])
@@ -758,10 +727,22 @@ class MainWin(Gtk.Window):
         #print("enc:", enc)
         uuu = self.dat_dict['uuid'].get_text()
 
-        # Add index (s) [indice]
+        # Add index indices
         def callb(c2, id2):
-            recsel.append_index(self.vcore, self.vcore.hashname,  hashid, [uuu, enc])
-            recsel.append_index(self.vcore, self.vcore.hashname2,  hashname, [uuu, enc])
+            # Replicate saved locally
+            dddd = [uuu, enc.encode()]
+            #print("dddd:", dddd)
+            try:
+                recsel.append_index(self.vcore, self.vcore.hashname,
+                                                        recsel.hashid, dddd)
+            except:
+                print("exc save callb hash", sys.exc_info())
+            try:
+                recsel.append_index(self.vcore, self.vcore.hashname2,
+                                                        recsel.hashname, dddd)
+            except:
+                print("exc save callb name", sys.exc_info())
+
         try:
             self.vcore.postexec = callb
             ret = self.vcore.save_data(uuu, enc)
