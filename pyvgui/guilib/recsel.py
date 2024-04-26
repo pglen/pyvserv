@@ -140,13 +140,29 @@ def hashname(vcore, rrr):
     hhh = vcore.hash32(sss.encode())
     return hhh
 
-''' Open voter dialog. We attach state vars to the class,
-    it was attached to the dialog in the original incarnation.
-'''
+def audit(acore, packer, eventstr, rrr):
+
+    auditx = {};
+    auditx['header'] = str(uuid.uuid1())
+    auditx['event'] = eventstr
+    dd = datetime.datetime.now()
+    auditx['now'] = dd.isoformat()
+    try:
+        auditx['rec'] = packer.decode_data(rrr)[0]
+    except:
+        print("exc audit decode:", sys.exc_info())
+        auditx['rec'] = "Could not decode"
+
+    rrrr = packer.encode_data("", auditx)
+    acore.save_data(auditx['header'], rrrr)
 
 class RecSel(Gtk.Dialog):
 
-    def __init__(self, vcore):
+    ''' Open record selection dialog. We attach state vars to the class,
+    it was attached to the dialog in the original incarnation.
+    '''
+
+    def __init__(self, vcore, acore):
         super().__init__(self)
 
         self.set_title("Open Record(s)")
@@ -159,6 +175,7 @@ class RecSel(Gtk.Dialog):
         self.alt = False
         self.xmulti = []
         self.vcore = vcore
+        self.acore = acore
         self.packer = pyvpacker.packbin()
         self.rec_cnt = 0
         self.scan_cnt = 0
@@ -199,8 +216,7 @@ class RecSel(Gtk.Dialog):
         butt3 = Gtk.Button.new_with_mnemonic("  Find ID   ")
         tp5x = ("_Find ID:", "get", "Search for record ID. Must be valid UUID", None)
         lab5x = pgentry.griddouble(gridx, 0, rowcnt, tp5x, butt3)
-        #butt3.connect("clicked", self.search_id, lab5x)
-        butt3.connect("clicked", self.search_idx, lab5x, self.vcore.hashname, hashid)
+        butt3.connect("clicked", self.search_id, lab5x, self.vcore.hashname, hashid)
         rowcnt += 1
 
         butt2 = Gtk.Button.new_with_mnemonic("  Sea_rch   ")
@@ -339,7 +355,7 @@ class RecSel(Gtk.Dialog):
                     uuu = 0
                     pass
                 try:
-                    dec = self.vcore.packer.decode_data(rrr[1])[0]
+                    dec = self.packer.decode_data(rrr[1])[0]
                 except:
                     # This way the user knows
                     print("Damaged:", cnt, sys.exc_info(), rrr)
@@ -363,7 +379,7 @@ class RecSel(Gtk.Dialog):
         self.labsss.set_text("%s records. (%.2fs)" % (self.rec_cnt, delta))
         self.get_window().set_cursor()
 
-    def search_id(self, butt, entry):
+    def search_id(self, arg2, entry, hashname, hashfunc):
         ttt = entry.get_text()
         #print("Search ID:", ttt)
         try:
@@ -373,8 +389,7 @@ class RecSel(Gtk.Dialog):
             print(msg)
             pggui.message(msg)
             return
-
-        self.populateid(ttt)
+        self.search_idx(arg2, entry, hashname, hashfunc)
 
     def stopload(self, butt):
 
@@ -432,6 +447,7 @@ class RecSel(Gtk.Dialog):
         print("lll", lll)
         for aa in lll:
             rrr = self.vcore.get_rec_byoffs(aa)
+
             dec = self.packer.decode_data(rrr[1])[0]
             uuu = rrr[0].decode()
             ddd2.append((dec['name'], dec['now'], dec['dob'],  uuu))
@@ -453,6 +469,19 @@ class RecSel(Gtk.Dialog):
         delta = (time.time() - ttt)
         self.labsss.set_text("%s records. (%.1fs)" % (self.rec_cnt, delta))
         self.get_window().set_cursor()
+
+    def dec_rec(self, rrr):
+
+        ''' Decode record, handle excptions by returning empty data '''
+        try:
+            dec = self.packer.decode_data(rrr[1])[0]
+        except:
+            dec = {}
+        try:
+            uuu = rrr[0].decode()
+        except:
+            uuu = ""
+        return uuu, dec
 
     def populate(self, filterx = "", searchx = ""):
 
@@ -728,15 +757,45 @@ class RecSel(Gtk.Dialog):
                     for aa in xpath:
                         xiter2 = xmodel.get_iter(aa)
                         xstr = xmodel.get_value(xiter2, 3)
-                        print("Tree sel right click:", xstr)
+                        #print("Tree sel right click:", xstr)
                         self.menu3 = Gtk.Menu()
-                        self.menu3.append(self.create_menuitem("Open Selected Record", self.open_rec, 1))
-                        self.menu3.append(self.create_menuitem("Delete Selected Record", self.del_rec, 1))
+                        self.menu3.append(self.create_menuitem("Open Selected Record", self.open_rec, xstr))
+                        self.menu3.append(self.create_menuitem("Delete Selected Record", self.del_rec, xstr))
                         self.menu3.popup(None, None, None, None, event.button, event.time)
                         break
 
-    def del_rec(self, arg2, arg3, arg4):
-        print("Del rec", arg2, arg3, arg4)
+    def del_rec(self, arg2, arg3, textx):
+
+        ''' Delete record driven by menu interface '''
+
+        #print("Del rec", arg2, arg3, textx)
+
+        ddd2 = search_index(self.vcore, self.vcore.hashname, textx, hashid)
+        for aa in ddd2:
+            #print("deleting:", ddd2)
+            try:
+                rrr = self.vcore.get_rec(aa)
+                self.vcore.del_rec(aa)
+                #print("del rrr", rrr)
+                audit(self.acore, self.packer, "Deleted Record (from Menu)", rrr[1])
+            except:
+                print("delrec,", sys.exc_info())
+                pgutils.put_exception("delrec")
+
+            # Remove from displayed list
+            iterx = self.ts.get_iter_first()
+            while True:
+                if not iterx:
+                    break
+                xstr = self.ts.get_value(iterx, 3)
+                #print("xstr:", xstr)
+                if xstr == textx:
+                    try:
+                        self.ts.remove(iterx)
+                    except:
+                        print("Exception on del from tree", sys.exc_info())
+                    break
+                iterx = self.ts.iter_next(iterx)
 
     def open_rec(self, arg2, arg3, arg4):
         print("open rec", arg2, arg3, arg4)

@@ -54,7 +54,6 @@ def randascii(lenx):
 def simname(lenx):
     strx = ""
     lenz = len(alllett)-1
-
     spidx = random.randint(0, lenx - 4)
     ridx = random.randint(0, len(string.ascii_uppercase)-1)
     strx += string.ascii_uppercase[ridx]
@@ -62,16 +61,13 @@ def simname(lenx):
         ridx = random.randint(0, len(string.ascii_lowercase)-1)
         rr = string.ascii_lowercase[ridx]
         strx += str(rr)
-
     strx += " "
     ridx = random.randint(0, len(string.ascii_uppercase)-1)
     strx += string.ascii_uppercase[ridx]
-
     for aa in range(lenx - spidx):
         ridx = random.randint(0, len(string.ascii_lowercase)-1)
         rr = string.ascii_lowercase[ridx]
         strx += str(rr)
-
     return strx
 
 def randisodate():
@@ -124,6 +120,7 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         self.vcore = twincore.TwinCore("voters.pydb", 0)
+        self.acore = twincore.TwinCore("audit.pydb", 0)
 
         # We let the core carry vars; make sure they do not collide
         self.vcore.packer = self.packer
@@ -152,7 +149,7 @@ class MainWin(Gtk.Window):
         if www == 0 or hhh == 0:
             www = Gdk.screen_width(); hhh = Gdk.screen_height();
 
-        self.set_default_size(6*www/8, 6*hhh/8)
+        #self.set_default_size(6*www/8, 6*hhh/8)
 
         self.dat_dict = {}
         self.dat_dict_org = {}
@@ -173,7 +170,24 @@ class MainWin(Gtk.Window):
             pass
 
         vbox = Gtk.VBox()
-        hbox4 = Gtk.HBox()
+
+        hbox4a = Gtk.HBox()
+        hbox4a.pack_start(Gtk.Label("   "), 1, 1, 0)
+        lab3 = Gtk.Label(" | ");
+        hbox4a.pack_start(lab3, 0, 0, 0)
+
+        butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
+        butt2.connect("clicked", self.test_data)
+        hbox4a.pack_start(butt2, 0, 0, 2)
+
+        lab2 = Gtk.Label(" | ");
+        hbox4a.pack_start(lab2, 0, 0, 0)
+
+        butt2 = Gtk.Button.new_with_mnemonic(" Dele_te entry ")
+        butt2.connect("clicked", self.del_data)
+        hbox4a.pack_start(butt2, False, 0, 2)
+
+        hbox4a.pack_start(Gtk.Label("   "), 0, 0, 2)
 
         merge = Gtk.UIManager()
         #self.mywin.set_data("ui-manager", merge)
@@ -198,12 +212,13 @@ class MainWin(Gtk.Window):
         #bbox.pack_start(self.tbar, 0,0, 0)
         #vbox.pack_start(bbox, False, 0, 0)
 
+        hbox4 = Gtk.HBox()
         lab1 = Gtk.Label("   ");
         hbox4.pack_start(lab1, 0, 0, 0)
         lab2a = Gtk.Label(" Initializing ");
         hbox4.pack_start(lab2a, 1, 1, 0)
         lab2a.set_xalign(0)
-        lab2a.set_size_request(300, -1)
+        lab2a.set_size_request(150, -1)
 
         self.status = lab2a
         self.status_cnt = 1
@@ -211,44 +226,23 @@ class MainWin(Gtk.Window):
         lab1 = Gtk.Label(" ");
         hbox4.pack_start(lab1, 1, 1, 0)
 
-        lab3 = Gtk.Label(" | ");
-        hbox4.pack_start(lab3, 0, 0, 0)
-
-        butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
-        butt2.connect("clicked", self.test_data)
-        hbox4.pack_start(butt2, False, 0, 2)
-
-        lab2 = Gtk.Label(" | ");
-        hbox4.pack_start(lab2, 0, 0, 0)
-
-        butt2 = Gtk.Button.new_with_mnemonic(" Dele_te entry ")
-        butt2.connect("clicked", self.del_data)
-        hbox4.pack_start(butt2, False, 0, 4)
-
         butt2 = Gtk.Button.new_with_mnemonic(" Ne_w entry ")
         butt2.connect("clicked", self.new_data)
-        hbox4.pack_start(butt2, False, 0, 4)
+        hbox4.pack_start(butt2, False, 0, 2)
 
         butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad entry ")
         butt3.connect("clicked", self.load_data)
-        hbox4.pack_start(butt3, False, 0, 4)
+        hbox4.pack_start(butt3, False, 0, 2)
 
         butt1 = Gtk.Button.new_with_mnemonic(" _Save entry ")
         butt1.connect("clicked", self.save_data)
-        hbox4.pack_start(butt1, False, 0, 4)
+        hbox4.pack_start(butt1, False, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic(" E_xit ")
         butt2.connect("clicked", self.OnExit, self)
-        hbox4.pack_start(butt2, False, 0, 4)
+        hbox4.pack_start(butt2, False, 0, 2)
 
         lab2 = Gtk.Label("   ");  hbox4.pack_start(lab2, 0, 0, 0)
-
-        #hbox2 = Gtk.HBox()
-        #lab3 = Gtk.Label("");  hbox2.pack_start(lab3, 0, 0, 0)
-        #lab4 = Gtk.Label("");  hbox2.pack_start(lab4, 0, 0, 0)
-        #vbox.pack_start(hbox2, False, 0, 0)
-
-        #self.edit1 = pgsimp.SimpleEdit();
 
         # This is what is coming in:
         #{'Default': 'None', 'Vote': 4,
@@ -352,7 +346,7 @@ class MainWin(Gtk.Window):
         self.dat_dict['email'] = lab12
         rowcnt += 1
 
-        tp7b = ("Phone: (secondary)", "phone2", "Secondary phone or text number. ", None)
+        tp7b = ("Phone: (Secondary)", "phone2", "Secondary phone or text number. ", None)
         tp8b = ("Email: (Secondary)", "email2", "Secondary Email, if available: Ex: whatsapp", None)
         lab13, lab14 = pgentry.gridquad(gridx, 0, rowcnt, tp7b, tp8b)
         self.dat_dict['phone2'] = lab13
@@ -371,8 +365,8 @@ class MainWin(Gtk.Window):
         self.dat_dict['notes'] = lab6x
         rowcnt += 1
 
-        gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
-        rowcnt += 1
+        #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
+        #rowcnt += 1
 
         #tp7b = ("Vote:" , "", "Voting entity. ", None)
         #tp8b = ("Secondary Vote", "", "Secondary Entity", None)
@@ -394,22 +388,21 @@ class MainWin(Gtk.Window):
         ##hboxtop.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaa44"))
         #vbox.pack_start(hboxtop, 0, 0, 0)
 
+        #pggui.set_testmode(1)
+        vbox.pack_start(pggui.ySpacer(4), 0, 0, 0)
+
+        #sumx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaaa"))
         sumx.pack_start(Gtk.Label("   "), 0, 0, 0)
-        sumx.pack_start(gridx, 0, 0, 0)
-        sumx.pack_start(Gtk.Label("   "), 1, 1, 0)
+        sumx.pack_start(gridx, 1, 1, 0)
+        sumx.pack_start(Gtk.Label("   "), 0, 0, 0)
+
+        #vbox.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaff"))
 
         vbox.pack_start(sumx, 1, 1, 2)
         #sumx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaa88"))
 
-        #fill = Gtk.VBox()
-        #vbox.pack_start(fill, 0, 0, 2)
-
-        #hbox3 = Gtk.HBox()
-        #hbox3.pack_start(Gtk.Label("q"),1,1,0)
-        #hbox3.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaaa"))
-        #vbox.pack_start(hbox3, 0, 0, 2)
-
-        vbox.pack_start(hbox4, False, 0, 4)
+        vbox.pack_start(hbox4a, False, 0, 2)
+        vbox.pack_start(hbox4, False, 0, 2)
 
         self.add(vbox)
         self.show_all()
@@ -549,24 +542,20 @@ class MainWin(Gtk.Window):
         if ret != Gtk.ResponseType.YES:
             return True
         ddd = self.dat_dict['uuid'].get_text()
-
-        print("deleting:", ddd)
-
-        #try:
-        #    dat = self.vcore.del_rec_bykey(ddd)
-        #    #print("dat:", dat)
-        #except:
-        #    dat = []
-        #    print(sys.exc_info())
-        #    pass
         # Find it via index
-        #search_idx(self, arg2, arg3, hashname, hashfunc):
-
         ddd2 = recsel.search_index(self.vcore, self.vcore.hashname, ddd, recsel.hashid)
-        print("del ddd2:", ddd2)
+        for aa in ddd2:
+            #print("deleting:", ddd2)
+            try:
+                rrr = self.vcore.get_rec(aa)
+                ret = self.vcore.del_rec(aa)
+                #print(aa, "del ret:", ret)
+                recsel.audit(self.acore, self.packer, "Deleted Record", rrr[1])
+                self.status.set_text("Record '%s' deleted." % nnn)
+                self.status_cnt = 4
+            except:
+                print(sys.exc_info())
 
-        self.status.set_text("Record '%s' deleted." % nnn)
-        self.status_cnt = 4
         # Clear, reset
         self.clear_data()
         self.reset_changed()
@@ -618,7 +607,7 @@ class MainWin(Gtk.Window):
 
         self.reset_changed()
 
-        sss = recsel.RecSel(self.vcore)
+        sss = recsel.RecSel(self.vcore, self.acore)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
         #print("sss.res:", sss.res)
