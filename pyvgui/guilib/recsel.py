@@ -182,6 +182,7 @@ class RecSel(Gtk.Dialog):
         self.stop = False
         self.w_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.sort_cnt = 0
+        #self.vbox = self.get_content_area()
 
         try:
             ic = Gtk.Image(); ic.set_from_file("pyvvote_sub.png")
@@ -192,8 +193,8 @@ class RecSel(Gtk.Dialog):
         self.connect("key-press-event", self.area_key)
         self.connect("key-release-event", self.area_key)
 
-        self.pbox = Gtk.HBox()
-        self.vbox.pack_start(self.pbox, 0, 0, 0)
+        #self.pbox = Gtk.HBox()
+        #self.vbox.pack_start(self.pbox, 0, 0, 0)
 
         simp = pgsel.LetterNumberSel(self.lettersel, "Mono 16", " ")
         simp.set_tooltip_text("Click on selection or navigate " \

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, getopt, signal, random, time
+import os, sys, getopt, signal, random, time, base64
 import string, warnings, uuid, datetime, struct, io
 
 import gi
@@ -26,13 +26,15 @@ from pyvguicom import pgutils
 from pymenu import  *
 from pgui import  *
 
-import recsel, pgcal
+import recsel, pgcal, config
 
 from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
 
 from pydbase import twincore, twinchain
 
 import pyvpacker
+
+from Crypto.Cipher import AES
 
 alllett =   string.ascii_lowercase + string.ascii_uppercase
 
@@ -111,7 +113,7 @@ class MainWin(Gtk.Window):
             pass
 
         self.start_anal = False
-        self.core = None
+        #self.core = None
         self.in_timer = False
         self.cnt = 0
         self.old_sss = 1
@@ -121,6 +123,7 @@ class MainWin(Gtk.Window):
         self.packer = pyvpacker.packbin()
         self.vcore = twincore.TwinCore("voters.pydb", 0)
         self.acore = twincore.TwinCore("audit.pydb", 0)
+        self.authcore = twincore.TwinCore("auth.pydb", 0)
 
         # We let the core carry vars; make sure they do not collide
         self.vcore.packer = self.packer
@@ -172,16 +175,21 @@ class MainWin(Gtk.Window):
         vbox = Gtk.VBox()
 
         hbox4a = Gtk.HBox()
+        hbox4a.pack_start(Gtk.Label("   "), 0, 0, 0)
+
+        #lab3 = Gtk.Label(" | ");
+        #hbox4a.pack_start(lab3, 0, 0, 0)
+        #butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
+        #butt2.connect("clicked", self.test_data)
+        #hbox4a.pack_start(butt2, 0, 0, 2)
+        #lab2 = Gtk.Label(" | ");
+        #hbox4a.pack_start(lab2, 0, 0, 0)
+
+        butt2a = Gtk.Button.new_with_mnemonic(" Config_ure ")
+        butt2a.connect("clicked", self.config_dlg)
+        hbox4a.pack_start(butt2a, False, 0, 2)
+
         hbox4a.pack_start(Gtk.Label("   "), 1, 1, 0)
-        lab3 = Gtk.Label(" | ");
-        hbox4a.pack_start(lab3, 0, 0, 0)
-
-        butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
-        butt2.connect("clicked", self.test_data)
-        hbox4a.pack_start(butt2, 0, 0, 2)
-
-        lab2 = Gtk.Label(" | ");
-        hbox4a.pack_start(lab2, 0, 0, 0)
 
         butt2 = Gtk.Button.new_with_mnemonic(" Dele_te entry ")
         butt2.connect("clicked", self.del_data)
@@ -238,7 +246,7 @@ class MainWin(Gtk.Window):
         butt1.connect("clicked", self.save_data)
         hbox4.pack_start(butt1, False, 0, 2)
 
-        butt2 = Gtk.Button.new_with_mnemonic(" E_xit ")
+        butt2 = Gtk.Button.new_with_mnemonic("     E_xit    ")
         butt2.connect("clicked", self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
 
@@ -408,6 +416,21 @@ class MainWin(Gtk.Window):
         self.show_all()
 
         GLib.timeout_add(1000, self.timer)
+
+    def config_dlg(self, arg2):
+
+        # Transmittted encrypted from dialog
+        dlg = config.PassDlg(True)
+        #print(dlg.res)
+        uuu = base64.b64decode(dlg.res[1])
+        key =  b"1234567890" * 4
+        cipher = AES.new(key[:32], AES.MODE_CTR,
+                        use_aesni=True, nonce = key[-8:])
+        decr = cipher.decrypt(dlg.res[2])
+        print("uuu", uuu, "decr", decr)
+
+
+        #config.ConfigDlg(self.vcore, self.acore)
 
     def is_changed(self):
         ccc = False
