@@ -20,6 +20,7 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
+from gi.repository import GdkPixbuf
 
 import pyvpacker
 from pydbase import twincore, twinchain
@@ -59,6 +60,8 @@ class ConfigDlg(Gtk.Dialog):
         self.sort_cnt = 0
         #self.vbox = self.get_content_area()
 
+        self.vbox3 = Gtk.VBox()
+
         try:
             ic = Gtk.Image(); ic.set_from_file("pyvvote_sub.png")
             self.set_icon(ic.get_pixbuf())
@@ -69,7 +72,7 @@ class ConfigDlg(Gtk.Dialog):
         self.connect("key-release-event", self.area_key)
 
         self.pbox = Gtk.HBox()
-        self.vbox.pack_start(self.pbox, 0, 0, 0)
+        self.vbox3.pack_start(self.pbox, 0, 0, 0)
 
         gridx = Gtk.Grid()
         gridx.set_column_spacing(6)
@@ -91,7 +94,7 @@ class ConfigDlg(Gtk.Dialog):
         hbox4.pack_start(gridx, 0, 0, 4)
         hbox4.pack_start(pggui.xSpacer(), 1, 1, 4)
 
-        self.vbox.pack_start(hbox4, 0, 0, 4)
+        self.vbox3.pack_start(hbox4, 0, 0, 4)
 
         self.abox = self.get_action_area()
 
@@ -129,6 +132,9 @@ class ConfigDlg(Gtk.Dialog):
             if event.keyval in (Gdk.KEY_Alt_L, Gdk.KEY_Alt_R):
                 self.alt = False
 
+BACKGROUND_IMAGE  = "pyvvote.png"
+
+
 class PassDlg(Gtk.Dialog):
 
     ''' Open password dialog.  '''
@@ -144,6 +150,33 @@ class PassDlg(Gtk.Dialog):
         #self.set_skip_pager_hint(False)
         #self.set_skip_taskbar_hint(False)
 
+        self.overlay = Gtk.Overlay()
+        self.bg = Gtk.Image()
+        # Load file. Optionally scale it for window
+        self.bg.set_from_file(BACKGROUND_IMAGE)
+
+        self.offs = 0
+        self.dirx = 1
+        pix = self.bg.get_pixbuf()
+        #print("image", self.bg, pix)
+
+        www = pix.get_width();   hhh = pix.get_height()
+        #print("www", www, "hhh", hhh)
+
+        # Water mark it
+        self.pix2 = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB,
+                               True, 8, www, hhh)
+        pix.composite(self.pix2, 0, 0, www, hhh, 0, 0, 1, 1,
+                                GdkPixbuf.InterpType.NEAREST, 30)
+        self.bg.set_from_pixbuf(self.pix2)
+
+         # Wrapping in the Scrollable make it resizable.
+        #scrollable_wrapper = Gtk.ScrolledWindow()
+        #scrollable_wrapper.add(self.bg)
+        #scrollable_wrapper.set_size_request(300, 400)
+        #self.overlay.add(scrollable_wrapper)
+        self.overlay.add_overlay(self.bg)
+
         self.set_default_response(Gtk.ResponseType.ACCEPT)
 
         self.firsttime = firsttime
@@ -155,7 +188,7 @@ class PassDlg(Gtk.Dialog):
         self.stop = False
         self.w_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.sort_cnt = 0
-        #self.vbox = self.get_content_area()
+        #self.vbox3 = self.get_content_area()
 
         try:
             ic = Gtk.Image(); ic.set_from_file("pyvvote_sub.png")
@@ -167,7 +200,9 @@ class PassDlg(Gtk.Dialog):
         self.connect("key-release-event", self.area_key)
         self.connect("response", self.response_pre)
 
-        self.vbox.pack_start(pggui.ySpacer(8), 0, 0, 0)
+        self.vbox3 = Gtk.VBox()
+
+        self.vbox3.pack_start(pggui.ySpacer(8), 0, 0, 0)
 
         pbox = Gtk.HBox()
 
@@ -187,14 +222,14 @@ class PassDlg(Gtk.Dialog):
             pbox3.pack_start(lab3, 1, 1, 0)
             vbox2.pack_start(pbox3, 0, 0, 0)
 
-            self.vbox.pack_start(vbox2, 0, 0, 0)
+            self.vbox3.pack_start(vbox2, 0, 0, 0)
 
         else:
             lab1 = Gtk.Label.new("Please Enter User or Administrator password.")
             pbox.pack_start(lab1, 1, 1, 0)
-            self.vbox.pack_start(pbox, 0, 0, 0)
+            self.vbox3.pack_start(pbox, 0, 0, 0)
 
-        self.vbox.pack_start(pggui.ySpacer(8), 0, 0, 0)
+        self.vbox3.pack_start(pggui.ySpacer(8), 0, 0, 0)
 
         gridx = Gtk.Grid()
         gridx.set_column_spacing(6)
@@ -222,16 +257,26 @@ class PassDlg(Gtk.Dialog):
             self.lab5x.set_visibility(False)
         rowcnt += 1
 
-        gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
-        rowcnt += 1
+        #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
+        #rowcnt += 1
 
         hbox4.pack_start(pggui.xSpacer(), 1, 1, 4)
         hbox4.pack_start(gridx, 0, 0, 4)
-        hbox4.pack_start(pggui.xSpacer(), 1, 1, 4)
+        #hbox4.pack_start(pggui.xSpacer(), 1, 1, 4)
 
-        self.vbox.pack_start(hbox4, 0, 0, 4)
+        self.vbox3.pack_start(hbox4, 0, 0, 4)
+        self.vbox3.pack_start(\
+            Gtk.Label("Watermark animation is to assure authenticity."), 0, 0, 4)
+
+        self.overlay.add(self.vbox3)
+        self.vbox.pack_start(self.overlay, 1, 1, 1)
+
+        #self.set_size_request(640, 280)
+
         #self.abox = self.get_action_area()
         self.show_all()
+        self.overlay.reorder_overlay(self.bg, 0)
+
         self.res = []
         GLib.timeout_add(1000, self.timer)
 
@@ -247,10 +292,19 @@ class PassDlg(Gtk.Dialog):
         self.destroy()
 
     def timer(self):
-        #print("Timer")
-        #col = Gdk.Color.from_floats(.99, .99, .99)
-        #self.modify_bg(Gtk.StateType.NORMAL, col)
-        #self.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaaa"))
+
+        www =   self.pix2.get_width();   hhh = self.pix2.get_height()
+
+        if self.offs > 10:
+            self.dirx = -1
+        if self.offs == 0:
+            self.dirx = 1
+        self.offs += self.dirx
+        pix3 = GdkPixbuf.Pixbuf.new(GdkPixbuf.Colorspace.RGB,
+                               True, 8, www + self.offs, hhh + self.offs)
+        self.pix2.composite(pix3, + self.offs, + self.offs, www, hhh, self.offs, self.offs, 1, 1,
+                                GdkPixbuf.InterpType.NEAREST, 255)
+        self.bg.set_from_pixbuf(pix3)
         return True
 
     # Evaluate respoonse

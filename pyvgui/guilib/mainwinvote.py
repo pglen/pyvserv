@@ -93,7 +93,7 @@ def randate():
 
 class MainWin(Gtk.Window):
 
-    def __init__(self):
+    def __init__(self, globals):
 
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
@@ -106,6 +106,9 @@ class MainWin(Gtk.Window):
         #    ic = Gtk.Image(); ic.set_from_file(icon)
         #    self.set_icon(ic.get_pixbuf())
 
+        print("globals", globals.myhome)
+
+        self.auth = 0
         try:
             ic = Gtk.Image(); ic.set_from_file("pyvvote.png")
             self.set_icon(ic.get_pixbuf())
@@ -415,22 +418,53 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
 
+        self.en_dis_all(False)
+
+        GLib.timeout_add(100, self.pass_dlg, 0)
         GLib.timeout_add(1000, self.timer)
 
     def config_dlg(self, arg2):
+        print("config_dlg")
 
-        # Transmittted encrypted from dialog
-        dlg = config.PassDlg(True)
-        #print(dlg.res)
-        uuu = base64.b64decode(dlg.res[1])
-        key =  b"1234567890" * 4
-        cipher = AES.new(key[:32], AES.MODE_CTR,
-                        use_aesni=True, nonce = key[-8:])
-        decr = cipher.decrypt(dlg.res[2])
-        print("uuu", uuu, "decr", decr)
+    def pass_dlg(self, arg2):
+        passwd = pyservsup.Passwd()
+        cnt = passwd.count()
+        print("pass count", cnt)
+
+        while True:
+            # Transmittted encrypted from dialog
+            dlg = config.PassDlg(cnt == 0)
+            #print(dlg.res)
+            if dlg.res[0] == Gtk.ResponseType.ACCEPT:
+                uuu = base64.b64decode(dlg.res[1])
+                key =  b"1234567890" * 4
+                cipher = AES.new(key[:32], AES.MODE_CTR,
+                                use_aesni=True, nonce = key[-8:])
+                decr = cipher.decrypt(dlg.res[2])
+                print("uuu", uuu, "decr", decr)
+                if cnt == 0:
+                    ret = passwd.auth(uuu.decode(), decr.decode(),
+                                    pyservsup.PERM_INI, pyservsup.USER_ADD)
+                    print("auth:", ret)
+                else:
+                    ret = passwd.auth(uuu.decode(), decr.decode(),
+                                    0, pyservsup.USER_AUTH)
+                    print("auth:", ret)
+                    if ret[0] == 1:
+                        self.auth = 1
+                        self.status.set_text("Authenticated '%s'" % uuu.decode())
+                        self.status_cnt = 5
+                        self.en_dis_all(True)
+                        break
+                    else:
+                        pggui.message("Bad user or password")
+            else:
+                pggui.message("Must authenticate")
 
 
-        #config.ConfigDlg(self.vcore, self.acore)
+    def en_dis_all(self, flag):
+        for aa in self.dat_dict.keys():
+            self.dat_dict[aa].set_sensitive(flag)
 
     def is_changed(self):
         ccc = False

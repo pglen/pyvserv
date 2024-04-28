@@ -73,13 +73,13 @@ def pversion():
 
     # option, var_name, initial_val, function
 optarr = \
-    ["d:",  "debug=",   "pgdebug",  0,      None],      \
-    ["p:",  "port=",    "port",     9999,   None],      \
-    ["v",   "verbose",  "verbose",  0,      None],      \
-    ["q",   "quiet",    "quiet",    0,      None],      \
-    ["r:",  "dataroot=", "droot",   "pyvserver",     None],      \
-    ["V",   "version",  None,       None,   pversion],  \
-    ["h",   "help",     None,       None,   phelp]      \
+    ["d:",  "debug=",   "pgdebug",  0,              None],      \
+    ["p:",  "port=",    "port",     6666,           None],      \
+    ["v",   "verbose",  "verbose",  0,              None],      \
+    ["q",   "quiet",    "quiet",    0,              None],      \
+    ["r:",  "dataroot=", "droot",   "pyvclient",    None],      \
+    ["V",   "version",  None,       None,           pversion],  \
+    ["h",   "help",     None,       None,           phelp]      \
 
 conf = comline.ConfigLong(optarr)
 
@@ -94,7 +94,18 @@ def mainfunct():
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
 
-    mw = mainwinvote.MainWin()
+    pyservsup.globals.softmkdir(pyservsup.globals.myhome)
+
+    # Change directory to the data dir
+    os.chdir(pyservsup.globals.myhome)
+    if conf.verbose:
+        print("cwd", os.getcwd())
+
+    # Create support objects
+    pyservsup.globals.config(pyservsup.globals.myhome, conf)
+    pyservsup.gl_passwd = pyservsup.Passwd()
+
+    mw = mainwinvote.MainWin(pyservsup.globals)
     mw.main()
     sys.exit(0)
 
