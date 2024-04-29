@@ -12,6 +12,8 @@ import uuid
 import io
 import struct
 import random
+import array
+from io import BytesIO
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -51,7 +53,6 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
             ccc.gen_index(0)
         ifp = open(hashname, "rb")
 
-    #ttt = time.time()
     buffsize = vcore.getsize(ifp)
     ifp.seek(twincore.HEADSIZE, io.SEEK_SET)
     datasize = vcore.getdbsize()
@@ -60,21 +61,63 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
     enc = vcore.packer.encode_data("", fakedict)
     # We populate all indexed entries, as they are the only significant field
     hhh = hashfunc(vcore, [textx, enc])
+    #hhh = struct.unpack("I", hhh)[0]
+    # reverse
+    hhh2  = hhh.to_bytes(4, 'little')
+    #print("hhh2",  hhh2)
+
+    #ttt = time.time()
     cnt = 0
     ddd3 = []
+
+    # Tried it ... 140 ms
+    #while True:
+    #    if ccc:
+    #        if ccc.stop:
+    #            break
+    #    val = ifp.read(4)
+    #    if not val:
+    #        break;
+    #    val2 = struct.unpack("I", val)[0]
+    #    if hhh == val2:
+    #        ddd3.append(cnt)
+    #    cnt += 1
+
+    # Tried it .... 7 seconds
+    #arr4 = array.array('i')
+    #arr4.frombytes(data)
+    #buf = arr4.buffer()
+    #arr4.byteswap()
+    #for aa in range(len(arr4)):
+    #   if val == hhh:
+    #       print("found", aa)
+    #       ddd3.append(cnt)
+
+    # Tried it ... 80 ms
     while True:
         if ccc:
             if ccc.stop:
                 break
-        val = ifp.read(4)
-        if not val:
+        data = ifp.read(10000)
+        if not data:
             break;
-        val2 = struct.unpack("I", val)[0]
-        if hhh == val2:
-            ddd3.append(cnt)
-        cnt += 1
+        cnt2 = 0
+        fp = BytesIO(data)
+        while True:
+            val = fp.read(4)
+            if not val:
+                break
+            #if cnt2 < 3:
+            #    print(val)
+            if val == hhh2:
+                ddd3.append(cnt + cnt2)
+                #print("Found", cnt2 + cnt)
+            cnt2 += 1
+        cnt += 10000 // 4
+
     ifp.close()
-    #print("delta %.3f" % (time.time() - ttt) )
+
+    #print("search delta %.2f ms" % (1000 * (time.time() - ttt)) )
     return ddd3
 
 # ---------------------------------------------------------------
@@ -301,7 +344,7 @@ class RecSel(Gtk.Dialog):
         self.response = self.run()
 
         self.res = []
-        if self.response == Gtk.ResponseType.ACCEPT:
+        if self.response == (Gtk.ResponseType.ACCEPT):
             xmodel = self.ts
             sel = self.tview.get_selection()
             if not sel:
@@ -380,14 +423,17 @@ class RecSel(Gtk.Dialog):
                     #dec['dob'] = ""
                 ddd2.append((dec['name'], dec['now'], dec['dob'],  uuu))
 
+        ddd_dup = []
         for aa in ddd2:
-            try:
-                piter = self.ts.append(row=None)
-                #print("row", aa)
-                for cc in range(4):
-                    self.ts.set(piter, cc, aa[cc])
-            except:
-                print("Malformed record:", aa)
+            if aa[3] not in ddd_dup:
+                ddd_dup.append(aa[3])
+                try:
+                    piter = self.ts.append(row=None)
+                    #print("row", aa)
+                    for cc in range(4):
+                        self.ts.set(piter, cc, aa[cc])
+                except:
+                    print("Malformed record:", aa)
 
         delta = (time.time() - ttt)
         self.labsss.set_text("%s records. (%.2fs)" % (self.rec_cnt, delta))
@@ -812,7 +858,8 @@ class RecSel(Gtk.Dialog):
                 iterx = self.ts.iter_next(iterx)
 
     def open_rec(self, arg2, arg3, arg4):
-        print("open rec", arg2, arg3, arg4)
+        #print("open rec", arg2, arg3, arg4)
+        self.response(Gtk.ResponseType.ACCEPT)
 
     def tree_sel(self, xtree, xiter, xpath):
 

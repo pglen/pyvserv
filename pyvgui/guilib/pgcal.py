@@ -55,9 +55,11 @@ def PopCal(ddd):
     dialog.entry.connect("key-release-event", entry_key, dialog)
 
     # Adjust for zero based
-    dialog.cal.select_month(int(ddd[1])-1, int(ddd[0]))
-    dialog.cal.select_day(int(ddd[2]))
-
+    try:
+        dialog.cal.select_month(int(ddd[1])-1, int(ddd[0]))
+        dialog.cal.select_day(int(ddd[2]))
+    except:
+        pass
     helpx = Gtk.Label(  \
         "Day --      \tLeft-Arrow            \tDay ++    \t     \tRight-Arrow\n"
         "Week --     \tUp-Arrow              \tWeek ++   \t     \tUp-Arrow\n"

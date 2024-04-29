@@ -118,7 +118,7 @@ class MainWin(Gtk.Window):
         self.cnt = 0
         self.old_sss = 1
         self.status_cnt = 0
-        self.set_title("PyVServer Voter Entry")
+        self.set_title("PyVServer Client Entry")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         self.vcore = twincore.TwinCore("voters.pydb", 0)
@@ -259,15 +259,15 @@ class MainWin(Gtk.Window):
         #  'Test': 'test'}
 
         # Field names (set positional displays except header)
-        self.fields = \
-        ("Header", "Action", "Vote", "SubVote", "UID", "RUID",
-            "TUID", )
-        #  "Test", "Default")
-
-        tt = type(""); fff = []
-        for ccc in range(len(self.fields)):
-            fff.append(tt)
-        self.model = Gtk.TreeStore(*fff)
+        #self.fields = \
+        #("Header", "Action", "Vote", "SubVote", "UID", "RUID",
+        #    "TUID", )
+        ##  "Test", "Default")
+        #
+        #tt = type(""); fff = []
+        #for ccc in range(len(self.fields)):
+        #    fff.append(tt)
+        #self.model = Gtk.TreeStore(*fff)
 
         #self.tree1s, self.tree1 = self.wrap(Gtk.TreeView(self.model))
         #self.cells = []; cntf = 0
@@ -309,22 +309,22 @@ class MainWin(Gtk.Window):
         gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         rowcnt += 1
 
-        tp3x = ("User / Client UUID: ", "uuid", "Generate VOTER UID by pressing button", None)
+        tp3x = ("User / Client UUID: ", "uuid", "Generate Client UID by pressing button", None)
         butt1 = Gtk.Button.new_with_mnemonic("Gene_rate")
         lab3x = pgentry.griddouble(gridx, 0, rowcnt, tp3x, butt1)
-        butt1.connect("clicked", self.pressed_uuid, lab3x)
+        butt1.connect("clicked", self.load_uuid, lab3x)
         self.dat_dict['uuid'] = lab3x
         rowcnt += 1
 
         tp4x = ("Site UUID: ", "guid", "Group / Site UID", None)
-        butt2 = Gtk.Button.new_with_mnemonic("Loa_d")
+        butt2 = Gtk.Button.new_with_mnemonic("Load")
         lab4x = pgentry.griddouble(gridx, 0, rowcnt, tp4x, butt2)
         butt2.connect("clicked", self.load_site_uuid, lab4x)
         self.dat_dict['guid'] = lab4x
         rowcnt += 1
 
         tp6x = ("Operator UUID: ", "guid", "Operator UUID", None)
-        butt2 = Gtk.Button.new_with_mnemonic("Loa_d")
+        butt2 = Gtk.Button.new_with_mnemonic("Load")
         lab6x = pgentry.griddouble(gridx, 0, rowcnt, tp6x, butt2)
         butt2.connect("clicked", self.load_op_uuid, lab6x)
         self.dat_dict['ouid'] = lab6x
@@ -367,9 +367,12 @@ class MainWin(Gtk.Window):
         self.dat_dict['email2'] = lab14
         rowcnt += 1
 
+        butt2o = Gtk.Button.new_with_mnemonic("Load")
         tp9b = ("Now: (date of entry)"," ",  "Autofilled, date of entry", None)
         tp10b = ("Operator:", " ", "Operator, who entered this record.", None)
-        lab15, lab16 = pgentry.gridquad(gridx, 0, rowcnt, tp9b, tp10b)
+        lab15, lab16 = pgentry.gridquad(gridx, 0, rowcnt, tp9b, tp10b, butt2o)
+        butt2o.connect("clicked", self.load_op_name, lab16, lab15)
+
         self.dat_dict['now'] = lab15
         self.dat_dict['oper'] = lab16
         rowcnt += 1
@@ -516,14 +519,18 @@ class MainWin(Gtk.Window):
         arg2.set_text(str(result[1][0]) + "/" + str(result[1][1]) + \
                             "/" + str(result[1][2]))
 
-    def pressed_uuid(self, arg, arg2):
+    def load_op_name(self, arg, arg2, arg3):
         if arg2.get_text() != "":
-            msg = "Already has a UUID; Cannot set."
+            msg = "Already has operator; Cannot set."
             pggui.message(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
             return
-        arg2.set_text(str(uuid.uuid1()))
+        arg2.set_text(self.operator)
+        #if arg3.get_text() == "":
+        dd = datetime.datetime.now()
+        dd = dd.replace(microsecond=0)
+        arg3.set_text(dd.isoformat())
 
     def load_uuid(self, arg, arg2):
         if arg2.get_text() != "":
@@ -536,16 +543,16 @@ class MainWin(Gtk.Window):
 
     def load_op_uuid(self, arg, arg2):
         if arg2.get_text() != "":
-            msg = "Already has a GUID; Cannot set."
+            msg = "Already has a OUID; Cannot set."
             pggui.message(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
             return
-        arg2.set_text(str(uuid.uuid1()))
+        arg2.set_text(self.ouid)
 
     def load_site_uuid(self, arg, arg2):
         if arg2.get_text() != "":
-            msg = "Already has a GUID; Cannot set."
+            msg = "Already has a Site UUID; Cannot set."
             pggui.message(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
@@ -773,7 +780,7 @@ class MainWin(Gtk.Window):
             return
 
         if not self.dat_dict['name'].get_text():
-            msg = "Must have a voter name."
+            msg = "Must have a FULL name."
             self.status.set_text(msg)
             self.status_cnt = 4
             self.set_focus(self.dat_dict['name'])
@@ -782,13 +789,14 @@ class MainWin(Gtk.Window):
 
         dob = self.dat_dict['dob'].get_text()
         if not dob or len(dob.split("/")) < 3:
-            msg = "Must have a valid voter date of birth."
+            msg = "Must have a valid Client date of birth. (yyyy/mm/dd)"
             self.status.set_text(msg)
             self.status_cnt = 4
             self.set_focus(self.dat_dict['dob'])
             pggui.message(msg)
             return
 
+        # This we can generate, but the user better know about it
         try:
             uuu = uuid.UUID(self.dat_dict['uuid'].get_text())
         except:
@@ -798,6 +806,19 @@ class MainWin(Gtk.Window):
             self.status_cnt = 4
             pggui.message(msg)
             return
+
+        # Commemorate event by setting a fresh date
+        #if  self.dat_dict['now'].get_text() == "":
+        dd = datetime.datetime.now()
+        dd = dd.replace(microsecond=0)
+        self.dat_dict['now'].set_text(dd.isoformat())
+
+        # Autofill what we can
+        #self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
+        self.dat_dict['guid'].set_text(str(self.conf.siteid))
+        self.dat_dict['ouid'].set_text(str(self.ouid))
+        self.dat_dict['oper'].set_text(str(self.operator))
+
 
         ddd = {}
         for aa in self.dat_dict.keys():
