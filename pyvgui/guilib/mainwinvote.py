@@ -26,7 +26,7 @@ from pyvguicom import pgutils
 from pymenu import  *
 from pgui import  *
 
-import recsel, pgcal, config
+import recsel, pgcal, config, passdlg
 
 from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
 
@@ -97,20 +97,17 @@ class MainWin(Gtk.Window):
 
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
-        #try:
-        #    pixbuf = Gtk.IconTheme.get_default().load_icon("weather-storm", 32, 0)
-        #    self.set_icon(pixbuf)
-        #except:
-        #
-        #    icon = os.path.join(os.path.dirname(__file__), "weather-storm.png")
-        #    ic = Gtk.Image(); ic.set_from_file(icon)
-        #    self.set_icon(ic.get_pixbuf())
+        #print("globals", globals.myhome)
 
-        print("globals", globals.myhome)
-
-        self.auth = 0
+        self.authcnt    = 0
+        self.powers     = 0
+        self.conf       = globals.conf
+        self.conf.iconf  = os.path.dirname(globals.conf.me) + os.sep + "pyvvote.png"
+        self.conf.iconf2 = os.path.dirname(globals.conf.me) + os.sep + "pyvvote_sub.png"
+        self.conf.siteid = globals.siteid
         try:
-            ic = Gtk.Image(); ic.set_from_file("pyvvote.png")
+            #print("iconf", self.conf.iconf)
+            ic = Gtk.Image(); ic.set_from_file(self.conf.iconf)
             self.set_icon(ic.get_pixbuf())
         except:
             pass
@@ -178,26 +175,29 @@ class MainWin(Gtk.Window):
         vbox = Gtk.VBox()
 
         hbox4a = Gtk.HBox()
-        hbox4a.pack_start(Gtk.Label("   "), 0, 0, 0)
-
-        #lab3 = Gtk.Label(" | ");
-        #hbox4a.pack_start(lab3, 0, 0, 0)
-        #butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
-        #butt2.connect("clicked", self.test_data)
-        #hbox4a.pack_start(butt2, 0, 0, 2)
-        #lab2 = Gtk.Label(" | ");
-        #hbox4a.pack_start(lab2, 0, 0, 0)
-
         butt2a = Gtk.Button.new_with_mnemonic(" Config_ure ")
         butt2a.connect("clicked", self.config_dlg)
+        hbox4a.pack_start(Gtk.Label("   "), 0, 0, 0)
         hbox4a.pack_start(butt2a, False, 0, 2)
 
+        if globals.conf.testx:
+            lab3 = Gtk.Label(" | ");
+            hbox4a.pack_start(lab3, 0, 0, 0)
+            butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
+            butt2.connect("clicked", self.test_data)
+            hbox4a.pack_start(butt2, 0, 0, 2)
+            lab2 = Gtk.Label(" | ");
+            hbox4a.pack_start(lab2, 0, 0, 0)
+
         hbox4a.pack_start(Gtk.Label("   "), 1, 1, 0)
+
+        butt2 = Gtk.Button.new_with_mnemonic(" Ne_w entry ")
+        butt2.connect("clicked", self.new_data)
+        hbox4a.pack_start(butt2, False, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic(" Dele_te entry ")
         butt2.connect("clicked", self.del_data)
         hbox4a.pack_start(butt2, False, 0, 2)
-
         hbox4a.pack_start(Gtk.Label("   "), 0, 0, 2)
 
         merge = Gtk.UIManager()
@@ -237,17 +237,13 @@ class MainWin(Gtk.Window):
         lab1 = Gtk.Label(" ");
         hbox4.pack_start(lab1, 1, 1, 0)
 
-        butt2 = Gtk.Button.new_with_mnemonic(" Ne_w entry ")
-        butt2.connect("clicked", self.new_data)
-        hbox4.pack_start(butt2, False, 0, 2)
+        butt1 = Gtk.Button.new_with_mnemonic(" _Save entry ")
+        butt1.connect("clicked", self.save_data)
+        hbox4.pack_start(butt1, False, 0, 2)
 
         butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad entry ")
         butt3.connect("clicked", self.load_data)
         hbox4.pack_start(butt3, False, 0, 2)
-
-        butt1 = Gtk.Button.new_with_mnemonic(" _Save entry ")
-        butt1.connect("clicked", self.save_data)
-        hbox4.pack_start(butt1, False, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic("     E_xit    ")
         butt2.connect("clicked", self.OnExit, self)
@@ -313,38 +309,45 @@ class MainWin(Gtk.Window):
         gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         rowcnt += 1
 
-        tp3x = ("UUID: ", "uuid", "Generate VOTER UID by pressing button", None)
+        tp3x = ("User / Client UUID: ", "uuid", "Generate VOTER UID by pressing button", None)
         butt1 = Gtk.Button.new_with_mnemonic("Gene_rate")
         lab3x = pgentry.griddouble(gridx, 0, rowcnt, tp3x, butt1)
         butt1.connect("clicked", self.pressed_uuid, lab3x)
         self.dat_dict['uuid'] = lab3x
         rowcnt += 1
 
-        tp4x = ("GUID: ", "guid", "Load GROUP UID by pressing button", None)
+        tp4x = ("Site UUID: ", "guid", "Group / Site UID", None)
         butt2 = Gtk.Button.new_with_mnemonic("Loa_d")
         lab4x = pgentry.griddouble(gridx, 0, rowcnt, tp4x, butt2)
-        butt2.connect("clicked", self.load_uuid, lab4x)
+        butt2.connect("clicked", self.load_site_uuid, lab4x)
         self.dat_dict['guid'] = lab4x
+        rowcnt += 1
+
+        tp6x = ("Operator UUID: ", "guid", "Operator UUID", None)
+        butt2 = Gtk.Button.new_with_mnemonic("Loa_d")
+        lab6x = pgentry.griddouble(gridx, 0, rowcnt, tp6x, butt2)
+        butt2.connect("clicked", self.load_op_uuid, lab6x)
+        self.dat_dict['ouid'] = lab6x
         rowcnt += 1
         gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         rowcnt += 1
 
         tp3a = ("Address Line 1: ", "addr1", "Address line one. (Number, Street)", None)
-        tp4a = ("Address Line 2: ", "addr2", "Addressline two. (if applicable)", None)
+        tp4a = ("Address Line 2: ", "addr2", "Address line two. (if applicable)", None)
         lab5, lab6 = pgentry.gridquad(gridx, 0, rowcnt, tp3a, tp4a)
         self.dat_dict['addr1'] = lab5
         self.dat_dict['addr2'] = lab6
         rowcnt += 1
 
         tp5 = ("City: ", "city", "City or Township", None)
-        tp6 = ("State / Territory: ", "county", "County or Teritory or Borough", None)
+        tp6 = ("State / Territory: ", "county", "State / County / Teritory / Borough", None)
         lab7, lab8 = pgentry.gridquad(gridx, 0, rowcnt, tp5, tp6)
         self.dat_dict['city'] = lab7
         self.dat_dict['terr'] = lab8
         rowcnt += 1
 
         tp7 = ("Zip: ", "zip", "Zip code or Postal code", None)
-        tp8 = ("Country: ", "country", "Coutry of residence", None)
+        tp8 = ("Country: ", "country", "Country of residence", None)
         lab9, lab10 = pgentry.gridquad(gridx, 0, rowcnt, tp7, tp8)
         self.dat_dict['zip'] = lab9
         self.dat_dict['country'] = lab10
@@ -417,50 +420,61 @@ class MainWin(Gtk.Window):
 
         self.add(vbox)
         self.show_all()
-
         self.en_dis_all(False)
-
-        GLib.timeout_add(100, self.pass_dlg, 0)
+        GLib.timeout_add(100, self.start_pass_dlg, 0)
         GLib.timeout_add(1000, self.timer)
 
     def config_dlg(self, arg2):
-        print("config_dlg")
+        #print("config_dlg")
+        #print("pass pow:", self.powers)
+        if self.powers != "Yes":
+            pgutils.message("Only Admin can Configure.")
+        else:
+            config.ConfigDlg(self.vcore, self.acore, self.authcore, self.conf)
 
-    def pass_dlg(self, arg2):
-        passwd = pyservsup.Passwd()
-        cnt = passwd.count()
-        print("pass count", cnt)
-
+    def start_pass_dlg(self, arg2):
         while True:
-            # Transmittted encrypted from dialog
-            dlg = config.PassDlg(cnt == 0)
+            datasize = self.authcore.getdbsize()
+            dlg = passdlg.PassDlg(datasize == 0, self.conf)
             #print(dlg.res)
             if dlg.res[0] == Gtk.ResponseType.ACCEPT:
-                uuu = base64.b64decode(dlg.res[1])
-                key =  b"1234567890" * 4
-                cipher = AES.new(key[:32], AES.MODE_CTR,
-                                use_aesni=True, nonce = key[-8:])
-                decr = cipher.decrypt(dlg.res[2])
-                print("uuu", uuu, "decr", decr)
-                if cnt == 0:
-                    ret = passwd.auth(uuu.decode(), decr.decode(),
-                                    pyservsup.PERM_INI, pyservsup.USER_ADD)
-                    print("auth:", ret)
-                else:
-                    ret = passwd.auth(uuu.decode(), decr.decode(),
-                                    0, pyservsup.USER_AUTH)
-                    print("auth:", ret)
-                    if ret[0] == 1:
-                        self.auth = 1
-                        self.status.set_text("Authenticated '%s'" % uuu.decode())
-                        self.status_cnt = 5
-                        self.en_dis_all(True)
-                        break
-                    else:
-                        pggui.message("Bad user or password")
-            else:
-                pggui.message("Must authenticate")
+                cipher = AES.new(passdlg.COMMONKEY[:32], AES.MODE_CTR,
+                                use_aesni=True, nonce = passdlg.COMMONKEY[-8:])
+                userx = cipher.decrypt(dlg.res[1]).decode()
+                cipher = AES.new(passdlg.COMMONKEY[:32], AES.MODE_CTR,
+                                use_aesni=True, nonce = passdlg.COMMONKEY[-8:])
+                decr = cipher.decrypt(dlg.res[2]).decode()
 
+                #print("userx", userx, "decr", decr)
+                if datasize == 0:
+                    ret = passdlg.addauth(self.authcore, self.packer, userx, decr, "Yes")
+                else:
+                    ret = passdlg.auth(self.authcore, self.packer, userx, decr)
+
+                #print("auth:", ret)
+                if ret[0] == 1:
+                    self.operator = ret[1][0]
+                    self.powers   = ret[1][4]
+                    self.ouid     = ret[1][5]
+                    #print("pow", self.powers, self.operator, self.ouid)
+                    self.status.set_text("Authenticated '%s'" % userx)
+                    self.status_cnt = 5
+                    self.en_dis_all(True)
+                    recsel.audit(self.acore, self.packer, "Successful Login", userx)
+                    break
+                else:
+                    self.authcnt += 1
+                    if self.authcnt > 3:
+                        pggui.message("Too May unsuccessful attempts, exiting.")
+                        sys.exit(1)
+                    pggui.message("Bad user or password")
+            else:
+                self.authcnt += 1
+                if self.authcnt > 3:
+                    pggui.message("Too May tries, exiting.")
+                    sys.exit(1)
+                else:
+                    pggui.message("Must authenticate")
 
     def en_dis_all(self, flag):
         for aa in self.dat_dict.keys():
@@ -520,6 +534,23 @@ class MainWin(Gtk.Window):
             return
         arg2.set_text(str(uuid.uuid1()))
 
+    def load_op_uuid(self, arg, arg2):
+        if arg2.get_text() != "":
+            msg = "Already has a GUID; Cannot set."
+            pggui.message(msg)
+            self.status.set_text(msg)
+            self.status_cnt = 5
+            return
+        arg2.set_text(str(uuid.uuid1()))
+
+    def load_site_uuid(self, arg, arg2):
+        if arg2.get_text() != "":
+            msg = "Already has a GUID; Cannot set."
+            pggui.message(msg)
+            self.status.set_text(msg)
+            self.status_cnt = 5
+            return
+        arg2.set_text(str(self.conf.siteid))
 
     def cellx(self, idx):
         cell = Gtk.CellRendererText()
@@ -641,8 +672,12 @@ class MainWin(Gtk.Window):
         dd = dd.replace(microsecond=0)
         self.dat_dict['now'].set_text(dd.isoformat())
         self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
+        self.dat_dict['guid'].set_text(str(self.conf.siteid))
+        self.dat_dict['ouid'].set_text(str(self.ouid))
+        self.dat_dict['oper'].set_text(str(self.operator))
 
         self.reset_changed()
+        self.set_focus(self.dat_dict['name'])
 
     def load_data(self, arg):
 

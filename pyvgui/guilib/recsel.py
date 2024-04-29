@@ -11,6 +11,7 @@ import time
 import uuid
 import io
 import struct
+import random
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -26,6 +27,16 @@ from pyvguicom import pgutils
 from pyvguicom import pgentry
 
 from pyvcommon import pyvhash
+
+# Make even and odd flags for obfuscation. This way boolean desision
+# is made on an integer instead of 0 and 1
+
+for aa in range(6):
+    r1 = random.randint(0, 100000); FLAG_ON  =  (r1 // 2) * 2
+    r2 = random.randint(0, 100000); FLAG_OFF =  (r2 // 2) * 2 + 1
+    # Unlikely, but catch it
+    if FLAG_ON != FLAG_OFF:
+        break
 
 def search_index(vcore, hashname, textx, hashfunc, ccc = None):
 
@@ -150,8 +161,10 @@ def audit(acore, packer, eventstr, rrr):
     try:
         auditx['rec'] = packer.decode_data(rrr)[0]
     except:
-        print("exc audit decode:", sys.exc_info())
-        auditx['rec'] = "Could not decode"
+        #print("exc audit decode:", sys.exc_info())
+        #auditx['rec'] = "Could not decode"
+        # Was not data, just add
+        auditx['rec'] = rrr
 
     rrrr = packer.encode_data("", auditx)
     acore.save_data(auditx['header'], rrrr)
