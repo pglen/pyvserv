@@ -464,7 +464,6 @@ class ConfigDlg(Gtk.Dialog):
     def create_ftree(self, ts):
 
         ''' worker function for tree creation '''
-
         # create the tview using ts
         tv = Gtk.TreeView(model=ts)
 
