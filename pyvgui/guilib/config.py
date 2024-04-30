@@ -34,10 +34,9 @@ from pyvguicom import pgentry
 
 from pyvcommon import pyvhash
 
-import passdlg
+import passdlg, recsel
 
 class Blank(): pass
-
 
 class ConfigDlg(Gtk.Dialog):
 
@@ -123,8 +122,12 @@ class ConfigDlg(Gtk.Dialog):
         butt3 = Gtk.Button.new_with_mnemonic(" Add ne_w User ")
         hbox3.pack_start(butt3, 0, 0, 2)
         butt3.connect("clicked", self.add_user)
-        butt5 = Gtk.Button.new_with_mnemonic(" _Delete Selected User ")
+        butt5 = Gtk.Button.new_with_mnemonic(" _Toggle Enable flag ")
+        butt5.connect("clicked", self.toggle_enable)
         hbox3.pack_start(butt5, 0, 0, 2)
+        butt6 = Gtk.Button.new_with_mnemonic(" _Delete Selected User ")
+        butt6.connect("clicked", self.del_user)
+        hbox3.pack_start(butt6, 0, 0, 2)
         hbox3.pack_start(pggui.xSpacer(), 1, 1, 4)
         self.vbox3.pack_start(hbox3, 0, 0, 4)
         self.vbox.pack_start(self.vbox3, 1, 1, 4)
@@ -140,29 +143,149 @@ class ConfigDlg(Gtk.Dialog):
             pass
         self.destroy()
 
+    def toggle_enable(self, arg2):
+        #print("toggle_enable")
+        sel = self.tview.get_selection()
+        xmodel, xpath = sel.get_selected_rows()
+        if not xpath:
+            return
+        for aa in xpath:
+            xiter2 = xmodel.get_iter(aa)
+            xstr = xmodel.get_value(xiter2, 0)
+            xid = xmodel.get_value(xiter2, 5)
+            #print("Toggle", xstr, xid)
+            lll = self.authcore.find_key(xid)
+            #print("lll", lll)
+            for aa in lll:
+                rrr = self.authcore.get_rec_byoffs(aa)
+                dec = self.packer.decode_data(rrr[1])[0]
+                if dec[2] == "Enabled":
+                    dec[2] = "Disabled"
+                else:
+                    dec[2] = "Enabled"
+
+                dd = datetime.datetime.now().replace(microsecond=0)
+                dec[3] = dd.isoformat()
+                # Make sure it is not tempered with
+                dec = dec[:-1]
+                hhh = SHA256.new();
+                hhh.update(bytes(str(dec), "utf-8"))
+                dec.append(hhh.hexdigest())
+                #print("toggled rrr", dec)
+                try:
+                    enc = self.packer.encode_data("", dec)
+                except:
+                    print("packer", sys.exc_info())
+                    enc = ""
+                    pass
+                self.authcore.save_data(rrr[0], enc)
+                recsel.audit(self.acore, self.packer, "Toggled Enable flag to:", rrr[1])
+                break
+            # Relaad screen
+            iters = []
+            iterx = self.model.get_iter_first()
+            while True:
+                if not iterx:
+                    break
+                iters.append(iterx)
+                iterx = self.model.iter_next(iterx)
+            for aa in iters:
+                self.model.remove(aa)
+            self.loaddata()
+            break
+
+    def del_user(self, arg2):
+        #print("Del user")
+        sel = self.tview.get_selection()
+        xmodel, xpath = sel.get_selected_rows()
+        if not xpath:
+            return
+
+        for aa in xpath:
+            xiter2 = xmodel.get_iter(aa)
+            xstr = xmodel.get_value(xiter2, 0)
+            xid = xmodel.get_value(xiter2, 5)
+            #print("Delete", xstr, xid)
+            msg = "About to delete user: '%s' \nAre you sure?" % xstr
+            ret = pggui.yesno(msg)
+            if ret != Gtk.ResponseType.YES:
+                return True
+            try:
+                lll = self.authcore.find_key(xid)
+                #print("lll", lll)
+                # Delete all occurances
+                for aa in lll:
+                    rrr = self.authcore.get_rec_byoffs(aa)
+                    dec = self.packer.decode_data(rrr[1])[0]
+                    uuu = rrr[0].decode()
+                    self.authcore.del_rec_offs(aa)
+                    #print("del rrr", rrr)
+                    recsel.audit(self.acore, self.packer, "Deleted User", rrr[1])
+
+            except:
+                print("exc on delrec,", sys.exc_info())
+                pgutils.put_exception("del_user")
+
+            # Remove from displayed list
+            iterx = self.model.get_iter_first()
+            while True:
+                if not iterx:
+                    break
+                xstr = self.model.get_value(iterx, 5)
+                #print("xstr:", xstr)
+                if xstr == xid:
+                    try:
+                        self.model.remove(iterx)
+                    except:
+                        print("Exception on del from tree", sys.exc_info())
+                    break
+                iterx = self.model.iter_next(iterx)
+            break
+
+    def create_menuitem(self, string, action, arg = None):
+        rclick_menu = Gtk.MenuItem(string)
+        if action:
+            rclick_menu.connect("activate", action, string, arg)
+        rclick_menu.show()
+        return rclick_menu
+
+    def toggle_rec(self, arg2, arg3, textx):
+
+        #print("Toggle rec", arg2, arg3, textx)
+        self.toggle_enable(0)
+
+    def del_rec(self, arg2, arg3, textx):
+
+        ''' Delete record driven by menu interface '''
+        #print("Del rec", arg2, arg3, textx)
+        self.del_user(0)
+
     def loaddata(self):
         ddd2 = []
         datasize = self.authcore.getdbsize()
         for aa in range(datasize -1, -1, -1):
             rrr = self.authcore.get_rec(aa)
             if not rrr:
-                pass
+                continue
             try:
                 dec = self.packer.decode_data(rrr[1])[0]
             except:
-                dec = {}
-
-            if not dec[0] in ddd2:
-                ddd2.append(dec[0])
-                #print("dec", dec)
-                # Check:
-                hhh = SHA256.new();
-                hhh.update(bytes(str(dec[:-1]), "utf-8"))
-                #print("sums:", hhh.hexdigest(), dec[-1])
-                if hhh.hexdigest() != dec[-1]:
-                    print("Bad sum on:", dec[0])
-                else:
-                    self.model.append(None, dec[:-1])
+                print("Cannot read", sys.exc_info(), rrr)
+                dec = [0]
+            try:
+                if not dec[0] in ddd2:
+                    #print("dec", dec)
+                    # Check:
+                    hhh = SHA256.new();
+                    hhh.update(bytes(str(dec[:-1]), "utf-8"))
+                    #print("sums:", hhh.hexdigest(), dec[-1])
+                    if hhh.hexdigest() != dec[-1]:
+                        print("Bad sum on:", dec[0], aa)
+                    else:
+                        self.model.append(None, dec[:-1])
+                        ddd2.append(dec[0])
+            except:
+                pass
 
     def nextfield(self, treeview, path, next_column):
 
@@ -269,6 +392,14 @@ class ConfigDlg(Gtk.Dialog):
         #print("Add admin")
         self.add_user_admin("No")
 
+    def popmenu(self, event, xstr):
+
+        self.menu3.append(self.create_menuitem("Toggle Enable / Disable User",
+                            self.toggle_rec, xstr))
+        self.menu3.append(self.create_menuitem("Delete Selected User",
+                            self.del_rec, xstr))
+        self.menu3.popup(None, None, None, None, event.button, event.time)
+
     def tree_butt(self, arg2, event, arg4):
         #print("tree_but:", arg3)
         if event.type == Gdk.EventType.BUTTON_PRESS:
@@ -278,13 +409,12 @@ class ConfigDlg(Gtk.Dialog):
                 if xpath:
                     for aa in xpath:
                         xiter2 = xmodel.get_iter(aa)
-                        xstr = xmodel.get_value(xiter2, 3)
+                        xstr = xmodel.get_value(xiter2, 5)
                         #print("Tree sel right click:", xstr)
                         self.menu3 = Gtk.Menu()
-                        self.menu3.append(self.create_menuitem("Open Selected Record", self.open_rec, xstr))
-                        self.menu3.append(self.create_menuitem("Delete Selected Record", self.del_rec, xstr))
-                        self.menu3.popup(None, None, None, None, event.button, event.time)
+                        self.popmenu(event, xstr)
                         break
+
     def tree_sel(self, xtree, xiter, xpath):
 
         #print ("tree_sel", xtree, xiter, xpath)

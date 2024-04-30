@@ -807,6 +807,14 @@ class RecSel(Gtk.Dialog):
         rclick_menu.show()
         return rclick_menu
 
+    def popmenu(self, event, xstr):
+
+        self.menu3.append(self.create_menuitem("Open Selected Record",
+                            self.open_rec, xstr))
+        self.menu3.append(self.create_menuitem("Delete Selected Record",
+                            self.del_rec, xstr))
+        self.menu3.popup(None, None, None, None, event.button, event.time)
+
     def tree_butt(self, arg2, event, arg4):
         #print("tree_but:", arg3)
         if event.type == Gdk.EventType.BUTTON_PRESS:
@@ -819,9 +827,7 @@ class RecSel(Gtk.Dialog):
                         xstr = xmodel.get_value(xiter2, 3)
                         #print("Tree sel right click:", xstr)
                         self.menu3 = Gtk.Menu()
-                        self.menu3.append(self.create_menuitem("Open Selected Record", self.open_rec, xstr))
-                        self.menu3.append(self.create_menuitem("Delete Selected Record", self.del_rec, xstr))
-                        self.menu3.popup(None, None, None, None, event.button, event.time)
+                        self.popmenu(event, xstr)
                         break
 
     def del_rec(self, arg2, arg3, textx):

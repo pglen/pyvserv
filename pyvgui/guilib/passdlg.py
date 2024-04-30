@@ -99,29 +99,35 @@ def auth(authcore, packer, uname, passx):
     for aa in range(datasize -1, -1, -1):
         rrr = authcore.get_rec(aa)
         if not rrr:
-            pass
+            continue
         try:
             dec = packer.decode_data(rrr[1])[0]
         except:
-            dec = {}
+            #print("Cannot decode:", rrr)
+            dec = [0]
 
-        if not dec[0] in ddd2:
-            ddd2.append(dec[0])
-            #print("dec", dec)
-            if uname == dec[0]:
-                # Check:
-                hhh = SHA256.new();
-                hhh.update(bytes(str(dec[:-1]), "utf-8"))
-                #print("sums:", hhh.hexdigest(), dec[-1])
-                if hhh.hexdigest() != dec[-1]:
-                    print("Bad sum on:", dec[0], dec[6])
-                    continue
-                unsaltx = dbunsalt(passx, dec[6])
-                #print("auth", dec[0], dec[6], unsaltx)
-                if unsaltx == dec[6]:
-                    ret[0] = 1
-                    ret.append(dec)
-                    break
+        try:
+            #print("dec:", dec)
+            if not dec[0] in ddd2:
+                ddd2.append(dec[0])
+                #print("dec", dec)
+                if uname == dec[0]:
+                    # Check:
+                    hhh = SHA256.new();
+                    hhh.update(bytes(str(dec[:-1]), "utf-8"))
+                    #print("sums:", hhh.hexdigest(), dec[-1])
+                    if hhh.hexdigest() != dec[-1]:
+                        print("Bad sum on:", dec[0], dec[6])
+                        continue
+                    unsaltx = dbunsalt(passx, dec[6])
+                    #print("auth", dec[0], dec[6], unsaltx)
+                    if unsaltx == dec[6]:
+                        ret[0] = 1
+                        ret.append(dec)
+                        break
+        except:
+            print("exc dec rec", dec)
+
     return(ret)
 
 class PassDlg(Gtk.Dialog):
