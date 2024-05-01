@@ -122,11 +122,16 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         self.score = twincore.TwinCore("votes.pydb", 0)
-        self.vcore = twincore.TwinCore("voters.pydb", 0)
         self.acore = twincore.TwinCore("audit.pydb", 0)
         self.authcore = twincore.TwinCore("auth.pydb", 0)
 
+        self.bcore = twincore.TwinCore("ballots.pydb", 0)
+        self.bcore.packer = self.packer
+        self.bcore.hashname  = os.path.splitext(self.bcore.fname)[0] + ".hash.id"
+        self.bcore.hashname2 = os.path.splitext(self.bcore.fname)[0] + ".hash.name"
+
         # We let the core carry vars; make sure they do not collide
+        self.vcore = twincore.TwinCore("voters.pydb", 0)
         self.vcore.packer = self.packer
         self.vcore.hashname  = os.path.splitext(self.vcore.fname)[0] + ".hash.id"
         self.vcore.hashname2 = os.path.splitext(self.vcore.fname)[0] + ".hash.name"
@@ -174,16 +179,6 @@ class MainWin(Gtk.Window):
             pass
 
         vbox = Gtk.VBox()
-
-        #butt2 = Gtk.Button.new_with_mnemonic(" Ne_w Vote ")
-        #butt2.connect("clicked", self.new_data)
-        #hbox4a.pack_start(butt2, False, 0, 2)
-
-        #butt2 = Gtk.Button.new_with_mnemonic(" Dele_te entry ")
-        #butt2.connect("clicked", self.del_data)
-        #hbox4a.pack_start(butt2, False, 0, 2)
-        #hbox4a.pack_start(Gtk.Label("   "), 0, 0, 2)
-
         merge = Gtk.UIManager()
         #self.mywin.set_data("ui-manager", merge)
 
@@ -229,7 +224,7 @@ class MainWin(Gtk.Window):
         butt4.connect("clicked", self.save_data)
         hbox4.pack_start(butt4, False, 0, 2)
 
-        butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad Voter ")
+        butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad Vote ")
         butt3.connect("clicked", self.load_data)
         hbox4.pack_start(butt3, False, 0, 2)
 
@@ -241,30 +236,30 @@ class MainWin(Gtk.Window):
 
         #sg = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
         sumx = Gtk.HBox()
-        gridx = Gtk.Grid()
-        gridx.set_column_spacing(6)
-        gridx.set_row_spacing(6)
+        self.gridx = Gtk.Grid()
+        self.gridx.set_column_spacing(6)
+        self.gridx.set_row_spacing(6)
 
-        #gridx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaaa"))
+        #self.gridx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaaa"))
 
         rowcnt = 0
 
-        #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
+        #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
 
         tp3x = ("User / Client UUID: ", "uuid", "Load / Select Client ID", None)
         butt1 = Gtk.Button.new_with_mnemonic("Load voter")
-        lab3x = pgentry.griddouble(gridx, 0, rowcnt, tp3x, butt1)
+        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, butt1)
         butt1.connect("clicked", self.load_data)
         self.dat_dict['uuid'] = lab3x
         rowcnt += 1
 
-        #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
+        #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
 
         tp1 = ("Full Nam_e: ", "name", "Enter full name (TAB to advance)", None)
         tp2 = ("Date o_f birth: ", "dob", "Date of birth, YYYY/MM/DD", None)
-        lab1, lab2 = pgentry.gridquad(gridx, 0, rowcnt,  tp1, tp2, None)
+        lab1, lab2 = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1, tp2, None)
         lab1.set_editable(False);   lab2.set_editable(False);
         self.dat_dict['name'] = lab1
         self.dat_dict['dob'] = lab2
@@ -272,7 +267,7 @@ class MainWin(Gtk.Window):
 
         tp9b = ("Date of entry:"," ",  "Autofilled, date of entry", None)
         tp10b = ("Entered by:", " ", "Operator, who entered this record.", None)
-        lab15, lab16 = pgentry.gridquad(gridx, 0, rowcnt, tp9b, tp10b, None)
+        lab15, lab16 = pgentry.gridquad(self.gridx, 0, rowcnt, tp9b, tp10b, None)
         lab15.set_editable(False);   lab16.set_editable(False);
 
         self.dat_dict['now'] = lab15
@@ -281,42 +276,41 @@ class MainWin(Gtk.Window):
 
         tp7a = ("Phone: ", "phone", "Phone or text number. ", None)
         tp8a = ("Email: ", "email", "Primary Email", None)
-        lab11, lab12 = pgentry.gridquad(gridx, 0, rowcnt, tp7a, tp8a)
+        lab11, lab12 = pgentry.gridquad(self.gridx, 0, rowcnt, tp7a, tp8a)
         self.dat_dict['phone'] = lab11
         self.dat_dict['email'] = lab12
         rowcnt += 1
 
         #tp6x = ("Notes: ", "", "Text for Notes. Press Shift Enter to advance", None)
-        #lab6x = pgentry.gridsingle(gridx, 0, rowcnt, tp6x)
+        #lab6x = pgentry.gridsingle(self.gridx, 0, rowcnt, tp6x)
         #lab6x.set_editable(False);
         #self.dat_dict['notes'] = lab6x
         #rowcnt += 1
 
         # ----------------------------------------------------------------
 
-        #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
         frame = Gtk.Frame()
-        gridx.attach(frame, 1, rowcnt, 3, 1)
+        self.gridx.attach(frame, 1, rowcnt, 3, 1)
         rowcnt += 1
 
         tp4z = ("Vote UUID: ", "vuuid", "Vote UID", None)
         butt2z = Gtk.Button.new_with_mnemonic("Load")
-        lab4z = pgentry.griddouble(gridx, 0, rowcnt, tp4z, butt2z)
+        lab4z = pgentry.griddouble(self.gridx, 0, rowcnt, tp4z, butt2z)
         butt2z.connect("clicked", self.load_vote_uuid, lab4z)
         self.dat_dict['vuuid'] = lab4z
         rowcnt += 1
 
         tp4x = ("Site UUID: ", "guid", "Group / Site UID", None)
         butt2 = Gtk.Button.new_with_mnemonic("Load")
-        lab4x = pgentry.griddouble(gridx, 0, rowcnt, tp4x, butt2)
+        lab4x = pgentry.griddouble(self.gridx, 0, rowcnt, tp4x, butt2)
         butt2.connect("clicked", self.load_site_uuid, lab4x)
         self.dat_dict['vguid'] = lab4x
         rowcnt += 1
 
         tp6x = ("Operator UUID: ", "ouid", "Operator UUID", None)
         butt2 = Gtk.Button.new_with_mnemonic("Load")
-        lab6x = pgentry.griddouble(gridx, 0, rowcnt, tp6x, butt2)
+        lab6x = pgentry.griddouble(self.gridx, 0, rowcnt, tp6x, butt2)
         butt2.connect("clicked", self.load_op_uuid, lab6x)
         self.dat_dict['vouid'] = lab6x
         rowcnt += 1
@@ -324,7 +318,7 @@ class MainWin(Gtk.Window):
         butt2o = Gtk.Button.new_with_mnemonic("Load")
         tp9b = ("Now: (date of entry)"," ",  "Autofilled, date of entry", None)
         tp10b = ("Operator:", " ", "Operator, who entered this record.", None)
-        lab15, lab16 = pgentry.gridquad(gridx, 0, rowcnt, tp9b, tp10b, butt2o)
+        lab15, lab16 = pgentry.gridquad(self.gridx, 0, rowcnt, tp9b, tp10b, butt2o)
         butt2o.connect("clicked", self.load_op_name, lab16, lab15)
         rowcnt += 1
 
@@ -333,75 +327,48 @@ class MainWin(Gtk.Window):
 
         # ----------------------------------------------------------------
 
-        #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
+        #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
         frame = Gtk.Frame()
-        gridx.attach(frame, 1, rowcnt, 3, 1)
+        self.gridx.attach(frame, 1, rowcnt, 3, 1)
         rowcnt += 1
-        #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
+        #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
+
+        butt1 = Gtk.Button.new_with_mnemonic("Load Ballot")
+        tpb = ("Load Ballot: ", "pri", "Load new Ballot if not pre loaded", "")
+        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tpb, butt1)
+        butt1.connect("clicked", self.load_ballot)
+        rowcnt += 1
+
+        # Create table from updated fields
+        self.candarr = []
+
+        for aa in range(1, 9):
+            self.candarr.append(Gtk.Entry())
+
+        #for aa in self.candarr:
+        #    aa.connect("focus-out-event", self.lost_focus)
+
+        self.candstr =  [\
+            "None", ]
+        for aa in range(8):
+            self.candstr.append("Candidate %d" % (aa + 1))
+        #print("candarr:", candarr)
+
+        self.labrow = rowcnt
+        rowcnt = self.preview(self.labrow)
 
         tp7 = ("Primary Vote: ", "pri", "Select primary vote", None)
         tp8 = ("Secondary vote: ", "sec", "Enter secondary vote. (if applicable)", None)
-        lab9, lab10 = pgentry.gridquad(gridx, 0, rowcnt, tp7, tp8)
+        lab9, lab10 = pgentry.gridquad(self.gridx, 0, rowcnt, tp7, tp8)
         lab9.set_editable(False)
         self.dat_dict['vprim'] = lab9
         self.dat_dict['vsec']  = lab10
         rowcnt += 1
 
-        candstr =  (\
-            "None",        "Candidate 1", "Candidate 2",
-            "Candidate 3", "Candidate 4", "Candidate 5",
-            "Candidate 6", "Candidate 7", "Candidate 8",
-            #"Candidate 9", "Candidate 10", "Candidate 11",
-            )
-
-        def _checked(arg2):
-            #print("Checked", arg2.get_active(), arg2.get_label())
-            if arg2.get_active():
-                txtx = arg2.textx #get_label()
-                # Clear it to empty
-                if txtx == "None":
-                    txtx = ""
-                self.dat_dict['vprim'].set_text(txtx)
-
-        cnt = 0; rrr = None; col = 0
-
-        for aa in candstr:
-            tooltip = "Click to activate selection."
-            if len(aa) > 24:
-                bb = aa[:24] + ".."
-                tooltip = aa
-            else:
-                bb = aa
-            radiox = Gtk.RadioButton.new_with_label(None, bb)
-            radiox.set_tooltip_text(tooltip)
-            radiox.textx = aa
-            radiox.connect("toggled", _checked)
-            if cnt == 0:
-                rrr = radiox
-            else:
-                radiox.join_group(rrr)
-            #scroll = Gtk.ScrolledWindow()
-            #scroll.add(radiox)
-            gridx.attach(radiox, col % 3 +  1, rowcnt, 1, 1)
-            if col % 3 == 2:
-                rowcnt += 1
-            col += 1 ; cnt += 1
-
-        rowcnt += 1
-
-        tp6x = ("Vote Notes: ", "", "Text for vote Notes. Press Shift+Enter key to advance", None)
-        lab6x = pgentry.gridsingle(gridx, 0, rowcnt, tp6x)
-        self.dat_dict['vnotes'] = lab6x
-        rowcnt += 1
-
-        #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
-        #rowcnt += 1
         frame = Gtk.Frame()
-        gridx.attach(frame, 1, rowcnt, 3, 1)
-        rowcnt += 1
-        gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
+        self.gridx.attach(frame, 1, rowcnt, 3, 1)
         rowcnt += 1
 
         # ----------------------------------------------------------------
@@ -412,19 +379,13 @@ class MainWin(Gtk.Window):
 
         #pggui.set_testmode(1)
         vbox.pack_start(pggui.ySpacer(4), 0, 0, 0)
-
-        #sumx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaaa"))
         sumx.pack_start(Gtk.Label("   "), 0, 0, 0)
-        sumx.pack_start(gridx, 1, 1, 0)
+        sumx.pack_start(self.gridx, 1, 1, 0)
         sumx.pack_start(Gtk.Label("   "), 0, 0, 0)
 
         #vbox.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaff"))
 
         vbox.pack_start(sumx, 1, 1, 2)
-        vbox.pack_start(frame, 0, 10, 0)
-        #sumx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaa88"))
-
-        #vbox.pack_start(hbox4a, False, 0, 2)
         vbox.pack_start(hbox4, False, 0, 2)
 
         self.add(vbox)
@@ -432,6 +393,81 @@ class MainWin(Gtk.Window):
         self.en_dis_all(False)
         GLib.timeout_add(100, self.start_pass_dlg, 0)
         GLib.timeout_add(1000, self.timer)
+
+    def load_ballot(self, arg2):
+
+        sss = recsel.RecSel(self.bcore, self.acore)
+        if sss.response != Gtk.ResponseType.ACCEPT:
+            return
+        print(sss.res)
+
+
+    def preview(self, rowcnt):
+
+        #print("rowcnt", rowcnt)
+
+        def _checked(arg2):
+            #print("Checked", arg2.get_active(), arg2.get_label())
+            if arg2.get_active():
+                txtx = arg2.textx #get_label()
+                # Clear it to empty
+                if txtx == "None":
+                    txtx = ""
+                #self.dat_dict['vprim'].set_text(txtx)
+                self.status.set_text("Selected: '%s'" % txtx)
+                self.status_cnt = 5
+
+        rrr = None; col = 0
+
+        # Create the 'None' entry
+        nnn = "None"
+        rrr = self.gridx.get_child_at(col % 3 +  1, rowcnt)
+        if not rrr:
+            radiox = Gtk.RadioButton.new_with_label(None, nnn)
+            rrr = radiox
+            self.gridx.attach(radiox, col % 3 +  1, rowcnt, 1, 1)
+        else:
+            rrr.textx = nnn
+            rrr.set_label(nnn)
+        col += 1
+
+        for cc in range(len(self.candarr)):
+            txtx = self.candarr[cc].get_text()
+            tooltip = "Click to activate selection."
+            if len(txtx) > 24:
+                bb = txtx[:24] + ".."
+                tooltip = txtx
+            else:
+                if not txtx:
+                    bb = "Candidate %d" % (col + 1)
+                else:
+                    bb = txtx
+
+            radiox = Gtk.RadioButton.new_with_label(None, bb)
+            radiox.set_tooltip_text(tooltip)
+            radiox.textx = txtx
+            radiox.connect("toggled", _checked)
+            radiox.join_group(rrr)
+
+            ccc = self.gridx.get_child_at(col % 3 +  1, rowcnt)
+            if not ccc:
+                ccc = radiox
+                self.gridx.attach(radiox, col % 3 +  1, rowcnt, 1, 1)
+            else:
+                #print("ccc", ccc.textx)
+                ccc.textx = txtx
+                ccc.set_label(bb)
+
+            if not txtx:
+                ccc.set_sensitive(False)
+            else:
+                ccc.set_sensitive(True)
+
+            if col % 3 == 2:
+                rowcnt += 1
+            col += 1
+
+        return rowcnt
 
     def config_dlg(self, arg2):
         #print("config_dlg")

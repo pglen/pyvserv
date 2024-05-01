@@ -629,7 +629,13 @@ class RecSel(Gtk.Dialog):
             #    continue
 
             #print("append:", dec)
-            ddd2.append((dec['name'], dec['now'], dec['dob'],  uuu))
+            try:
+                ddd2.append((dec['name'], dec['now'], dec['dob'],  uuu))
+            except:
+                print("Exc Cannot append rec", dec)
+                print(sys.exc_info())
+                pass
+
             self.rec_cnt += 1
             if self.rec_cnt % 100 == 0:
                 if self.stop:

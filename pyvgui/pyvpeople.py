@@ -38,7 +38,7 @@ except:
 
 from pyvcommon import support, comline, pyservsup
 
-from guilib import winpeople
+from guilib import mainwinpeople
 
 # -----------------------------------------------------------------------
 # Globals
@@ -123,7 +123,7 @@ def mainfunct():
 
     pyservsup.gl_passwd = pyservsup.Passwd()
 
-    mw = winpeople.MainWin(pyservsup.globals)
+    mw = mainwinpeople.MainWin(pyservsup.globals)
     mw.main()
     sys.exit(0)
 

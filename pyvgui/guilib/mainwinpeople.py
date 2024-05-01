@@ -178,18 +178,18 @@ class MainWin(Gtk.Window):
         butt2a = Gtk.Button.new_with_mnemonic(" Config_ure ")
         butt2a.connect("clicked", self.config_dlg)
         hbox4a.pack_start(Gtk.Label("   "), 0, 0, 0)
-        hbox4a.pack_start(butt2a, False, 0, 2)
 
         if globals.conf.testx:
-            lab3 = Gtk.Label(" | ");
-            hbox4a.pack_start(lab3, 0, 0, 0)
-            butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
+            #lab3 = Gtk.Label(" | ");
+            #hbox4a.pack_start(lab3, 0, 0, 0)
+            butt2 = Gtk.Button.new_with_mnemonic(" Te_zt generate data")
             butt2.connect("clicked", self.test_data)
             hbox4a.pack_start(butt2, 0, 0, 2)
-            lab2 = Gtk.Label(" | ");
-            hbox4a.pack_start(lab2, 0, 0, 0)
+            #lab2 = Gtk.Label(" | ");
+            #hbox4a.pack_start(lab2, 0, 0, 0)
 
         hbox4a.pack_start(Gtk.Label("   "), 1, 1, 0)
+        hbox4a.pack_start(butt2a, False, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic(" Ne_w entry ")
         butt2.connect("clicked", self.new_data)

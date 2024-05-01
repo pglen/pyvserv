@@ -36,59 +36,6 @@ import pyvpacker
 
 from Crypto.Cipher import AES
 
-alllett =   string.ascii_lowercase + string.ascii_uppercase
-
-def randascii(lenx):
-
-    ''' Spew a lot of chars, simulate txt by add ' ' an '\n' '''
-
-    strx = ""
-    for aa in range(lenx):
-        ridx = random.randint(0x20, 0x7d)
-        rr = chr(ridx)
-        strx += str(rr)
-        if random.randint(0x00, 40) == 30:
-            strx += "\n"
-        if random.randint(0x00, 12) == 10:
-            strx += " "
-    return strx
-
-def simname(lenx):
-    strx = ""
-    lenz = len(alllett)-1
-    spidx = random.randint(0, lenx - 4)
-    ridx = random.randint(0, len(string.ascii_uppercase)-1)
-    strx += string.ascii_uppercase[ridx]
-    for aa in range(spidx):
-        ridx = random.randint(0, len(string.ascii_lowercase)-1)
-        rr = string.ascii_lowercase[ridx]
-        strx += str(rr)
-    strx += " "
-    ridx = random.randint(0, len(string.ascii_uppercase)-1)
-    strx += string.ascii_uppercase[ridx]
-    for aa in range(lenx - spidx):
-        ridx = random.randint(0, len(string.ascii_lowercase)-1)
-        rr = string.ascii_lowercase[ridx]
-        strx += str(rr)
-    return strx
-
-def randisodate():
-    dd = datetime.datetime.now()
-    dd = dd.replace(microsecond=0)
-    return dd.isoformat()
-
-def randate():
-
-    ''' Give us a random date in str '''
-
-    dd = datetime.datetime.now()
-    dd = dd.replace(year=random.randint(1980, 2024),
-                        month=random.randint(1, 12),
-                           day=random.randint(1, 28),
-                             hour=0, minute=0, second=0, microsecond=0)
-
-    return dd.strftime("%Y/%m/%d")
-
 # ------------------------------------------------------------------------
 
 class MainWin(Gtk.Window):
@@ -121,15 +68,14 @@ class MainWin(Gtk.Window):
         self.set_title("PyVServer Ballot Configuration")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
-        self.score = twincore.TwinCore("votes.pydb", 0)
-        self.vcore = twincore.TwinCore("voters.pydb", 0)
+        # We let the core carry vars; make sure they do not collide
+        self.bcore = twincore.TwinCore("ballots.pydb", 0)
+        self.bcore.packer = self.packer
+        self.bcore.hashname  = os.path.splitext(self.bcore.fname)[0] + ".hash.id"
+        self.bcore.hashname2 = os.path.splitext(self.bcore.fname)[0] + ".hash.name"
+
         self.acore = twincore.TwinCore("audit.pydb", 0)
         self.authcore = twincore.TwinCore("auth.pydb", 0)
-
-        # We let the core carry vars; make sure they do not collide
-        self.vcore.packer = self.packer
-        self.vcore.hashname  = os.path.splitext(self.vcore.fname)[0] + ".hash.id"
-        self.vcore.hashname2 = os.path.splitext(self.vcore.fname)[0] + ".hash.name"
 
         self.exit_flag = 0
         self.stop = True
@@ -252,22 +198,22 @@ class MainWin(Gtk.Window):
         #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
 
-        tp3x = ("Ballot UUID: ", "uuid", "Load / Select Client ID", None)
-        butt1 = Gtk.Button.new_with_mnemonic("Load Ballot")
-        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, butt1)
-        butt1.connect("clicked", self.load_data)
-        self.dat_dict['uuid'] = lab3x
-        rowcnt += 1
-
         #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
 
         tp1 = ("Ballot Nam_e: ", "name", "Enter ballot name (TAB to advance)", None)
         tp2 = ("Date o_f Election: ", "dob", "Election Day, YYYY/MM/DD", None)
         lab1, lab2 = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1, tp2, None)
-        lab1.set_editable(False);   lab2.set_editable(False);
-        self.dat_dict['ename'] = lab1
-        self.dat_dict['doe'] = lab2
+        #lab1.set_editable(False);   lab2.set_editable(False);
+        self.dat_dict['name'] = lab1
+        self.dat_dict['dob']  = lab2
+        rowcnt += 1
+
+        tp3x = ("Ballot UUID: ", "uuid", "Load / Select Client ID", None)
+        butt1 = Gtk.Button.new_with_mnemonic("Load")
+        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, butt1)
+        butt1.connect("clicked", self.load_uuid, lab3x)
+        self.dat_dict['uuid'] = lab3x
         rowcnt += 1
 
         #tp9b = ("Date of entry:"," ",  "Autofilled, date of entry", None)
@@ -299,13 +245,6 @@ class MainWin(Gtk.Window):
         self.gridx.attach(frame, 1, rowcnt, 3, 1)
         rowcnt += 1
 
-        #tp4z = ("Vote UUID: ", "vuuid", "Vote UID", None)
-        #butt2z = Gtk.Button.new_with_mnemonic("Load")
-        #lab4z = pgentry.griddouble(self.gridx, 0, rowcnt, tp4z, butt2z)
-        #butt2z.connect("clicked", self.load_vote_uuid, lab4z)
-        #self.dat_dict['vuuid'] = lab4z
-        #rowcnt += 1
-
         tp4x = ("Site UUID: ", "guid", "Group / Site UID", None)
         butt2 = Gtk.Button.new_with_mnemonic("Load")
         lab4x = pgentry.griddouble(self.gridx, 0, rowcnt, tp4x, butt2)
@@ -317,7 +256,7 @@ class MainWin(Gtk.Window):
         butt2 = Gtk.Button.new_with_mnemonic("Load")
         lab6x = pgentry.griddouble(self.gridx, 0, rowcnt, tp6x, butt2)
         butt2.connect("clicked", self.load_op_uuid, lab6x)
-        self.dat_dict['ouid'] = lab6x
+        self.dat_dict['bouid'] = lab6x
         rowcnt += 1
 
         butt2o = Gtk.Button.new_with_mnemonic("Load")
@@ -327,7 +266,7 @@ class MainWin(Gtk.Window):
         butt2o.connect("clicked", self.load_op_name, lab16, lab15)
         rowcnt += 1
 
-        self.dat_dict['bnow'] = lab15
+        self.dat_dict['now'] = lab15
         self.dat_dict['boper'] = lab16
 
         # ----------------------------------------------------------------
@@ -336,49 +275,46 @@ class MainWin(Gtk.Window):
         self.gridx.attach(frame, 1, rowcnt, 3, 1)
         rowcnt += 1
 
-        tp7 = ("Candidaate 1: ", "pri", "Enter candidate, keep it less than 24 chars", None)
-        tp8 = ("Candidate 2: ", "sec", "Enter candidate, keep it less than 24 chars", None)
+        tp7 = ("Candidate _1: ", "pri", "Enter candidate, keep it less than 24 chars", None)
+        tp8 = ("Candidate _2: ", "sec", "Enter candidate, keep it less than 24 chars", None)
         lab9c, lab10c = pgentry.gridquad(self.gridx, 0, rowcnt, tp7, tp8)
         self.dat_dict['can1'] = lab9c
         self.dat_dict['can2'] = lab10c
         rowcnt += 1
 
-        tp7 = ("Candidaate 3: ", "pri", "Enter candidate, keep it less than 24 chars", None)
-        tp8 = ("Candidate 4: ", "sec", "Enter candidate, keep it less than 24 chars", None)
+        tp7 = ("Candidate _3: ", "pri", "Enter candidate, keep it less than 24 chars", None)
+        tp8 = ("Candidate _4: ", "sec", "Enter candidate, keep it less than 24 chars", None)
         lab9c, lab10c = pgentry.gridquad(self.gridx, 0, rowcnt, tp7, tp8)
         self.dat_dict['can3'] = lab9c
         self.dat_dict['can4'] = lab10c
         rowcnt += 1
 
-        tp7 = ("Candidaate 5: ", "pri", "Enter candidate, keep it less than 24 chars", None)
-        tp8 = ("Candidate 6: ", "sec", "Enter candidate, keep it less than 24 chars", None)
+        tp7 = ("Candidate _5: ", "pri", "Enter candidate, keep it less than 24 chars", None)
+        tp8 = ("Candidate _6: ", "sec", "Enter candidate, keep it less than 24 chars", None)
         lab9c, lab10c = pgentry.gridquad(self.gridx, 0, rowcnt, tp7, tp8)
         self.dat_dict['can5'] = lab9c
         self.dat_dict['can6'] = lab10c
         rowcnt += 1
 
-        tp7 = ("Candidaate 7: ", "pri", "Enter candidate, keep it less than 24 chars", None)
-        tp8 = ("Candidate 8: ", "sec", "Enter candidate, keep it less than 24 chars", None)
+        tp7 = ("Candidate _7: ", "pri", "Enter candidate, keep it less than 24 chars", None)
+        tp8 = ("Candidate _8: ", "sec", "Enter candidate, keep it less than 24 chars", None)
         lab9c, lab10c = pgentry.gridquad(self.gridx, 0, rowcnt, tp7, tp8)
         self.dat_dict['can7'] = lab9c
         self.dat_dict['can8'] = lab10c
         rowcnt += 1
 
-        # Create table fropr update
+        # Create table from updated fields
         self.candarr = []
         for aa in range(1, 9):
             self.candarr.append(self.dat_dict['can%d' % (aa)])
 
         for aa in self.candarr:
-            aa.connect("focus-out-event", self.lost)
+            aa.connect("focus-out-event", self.lost_focus)
 
         self.candstr =  [\
-            "None",        "Candidate 1", "Candidate 2",
-            "Candidate 3", "Candidate 4", "Candidate 5",
-            "Candidate 6", "Candidate 7", "Candidate 8",
-            #"Candidate 9", "Candidate 10", "Candidate 11",
-            ]
-
+            "None", ]
+        for aa in range(8):
+            self.candstr.append("Candidate %d" % (aa + 1))
         #print("candarr:", candarr)
 
         hbox5 = Gtk.HBox()
@@ -386,7 +322,8 @@ class MainWin(Gtk.Window):
         hbox5.pack_start(Gtk.Label("Ballot preview:   "), 0, 0, 0)
         self.gridx.attach(hbox5, 0, rowcnt, 1, 1)
 
-        rowcnt = self.preview(self.gridx, rowcnt)
+        self.labrow = rowcnt
+        rowcnt = self.preview(self.labrow)
 
         #lab9.set_editable(False)
         #self.dat_dict['vprim'] = lab9
@@ -425,7 +362,7 @@ class MainWin(Gtk.Window):
         #vbox.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaff"))
 
         vbox.pack_start(sumx, 1, 1, 2)
-        vbox.pack_start(frame, 0, 10, 0)
+        #vbox.pack_start(frame, 0, 10, 0)
         #sumx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaa88"))
 
         #vbox.pack_start(hbox4a, False, 0, 2)
@@ -434,33 +371,18 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
         self.en_dis_all(False)
+
         GLib.timeout_add(100, self.start_pass_dlg, 0)
         GLib.timeout_add(1000, self.timer)
 
-    def lost(self, arg2, arg3):
-        print("last focus")
-        self.preview(self.gridx, 11)
+    def lost_focus(self, arg2, arg3):
+        #print("last focus")
+        # Update if label focus changes
+        self.preview(self.labrow)
 
-    def config_dlg(self, arg2):
-        #print("config_dlg")
-        #print("pass pow:", self.powers)
-        if self.powers != "Yes":
-            pgutils.message("Only Admin can Configure.")
-        else:
-            config.ConfigDlg(self.vcore, self.acore, self.authcore, self.conf)
+    def preview(self, rowcnt):
 
-    def preview(self, gridx, rowcnt):
-
-        print("rowcnt", rowcnt)
-
-        cnt = 1
-        for aa in range(len(self.candarr)):
-            txtx = self.candarr[aa].get_text()
-            if txtx == "":
-                txtx = "Candidate %d" % cnt
-            self.candstr[aa+1] = txtx
-            #self.candarr[aa].set_text(txtx)
-            cnt += 1
+        #print("rowcnt", rowcnt)
 
         def _checked(arg2):
             #print("Checked", arg2.get_active(), arg2.get_label())
@@ -473,36 +395,55 @@ class MainWin(Gtk.Window):
                 self.status.set_text("Selected: '%s'" % txtx)
                 self.status_cnt = 5
 
-        cnt = 0; rrr = None; col = 0
+        rrr = None; col = 0
 
-        for aa in self.candstr:
+        # Create the 'None' entry
+        nnn = "None"
+        rrr = self.gridx.get_child_at(col % 3 +  1, rowcnt)
+        if not rrr:
+            radiox = Gtk.RadioButton.new_with_label(None, nnn)
+            rrr = radiox
+            self.gridx.attach(radiox, col % 3 +  1, rowcnt, 1, 1)
+        else:
+            rrr.textx = nnn
+            rrr.set_label(nnn)
+        col += 1
+
+        for cc in range(len(self.candarr)):
+            txtx = self.candarr[cc].get_text()
             tooltip = "Click to activate selection."
-            if len(aa) > 24:
-                bb = aa[:24] + ".."
-                tooltip = aa
+            if len(txtx) > 24:
+                bb = txtx[:24] + ".."
+                tooltip = txtx
             else:
-                bb = aa
+                if not txtx:
+                    bb = "Candidate %d" % (col + 1)
+                else:
+                    bb = txtx
+
             radiox = Gtk.RadioButton.new_with_label(None, bb)
             radiox.set_tooltip_text(tooltip)
-            radiox.textx = aa
+            radiox.textx = txtx
             radiox.connect("toggled", _checked)
-            if cnt == 0:
-                rrr = radiox
-            else:
-                radiox.join_group(rrr)
-            #scroll = Gtk.ScrolledWindow()
-            #scroll.add(radiox)
+            radiox.join_group(rrr)
+
             ccc = self.gridx.get_child_at(col % 3 +  1, rowcnt)
             if not ccc:
+                ccc = radiox
                 self.gridx.attach(radiox, col % 3 +  1, rowcnt, 1, 1)
             else:
                 #print("ccc", ccc.textx)
-                ccc.textx = aa
+                ccc.textx = txtx
                 ccc.set_label(bb)
+
+            if not txtx:
+                ccc.set_sensitive(False)
+            else:
+                ccc.set_sensitive(True)
 
             if col % 3 == 2:
                 rowcnt += 1
-            col += 1 ; cnt += 1
+            col += 1
 
         return rowcnt
 
@@ -549,6 +490,8 @@ class MainWin(Gtk.Window):
                     sys.exit(1)
                 else:
                     pggui.message("Must authenticate")
+
+        self.set_focus(self.dat_dict['name'])
 
     def en_dis_all(self, flag):
         for aa in self.dat_dict.keys():
@@ -623,7 +566,7 @@ class MainWin(Gtk.Window):
 
     def load_vote_uuid(self, arg, arg2):
         if arg2.get_text() != "":
-            msg = "Already has a Vote UUID; Cannot set."
+            msg = "Already has a UUID; Cannot set."
             pggui.message(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
@@ -718,12 +661,12 @@ class MainWin(Gtk.Window):
             return True
         ddd = self.dat_dict['uuid'].get_text()
         # Find it via index
-        ddd2 = recsel.search_index(self.vcore, self.vcore.hashname, ddd, recsel.hashid)
+        ddd2 = recsel.search_index(self.bcore, self.bcore.hashname, ddd, recsel.hashid)
         for aa in ddd2:
             #print("deleting:", ddd2)
             try:
-                rrr = self.vcore.get_rec(aa)
-                ret = self.vcore.del_rec(aa)
+                rrr = self.bcore.get_rec(aa)
+                ret = self.bcore.del_rec(aa)
                 #print(aa, "del ret:", ret)
                 recsel.audit(self.acore, self.packer, "Deleted Record", rrr[1])
                 self.status.set_text("Record '%s' deleted." % nnn)
@@ -756,11 +699,11 @@ class MainWin(Gtk.Window):
 
         # Fill in defaults
         dd = datetime.datetime.now().replace(microsecond=0)
-        self.dat_dict['vnow'].set_text(dd.isoformat())
-        self.dat_dict['vuuid'].set_text(str(uuid.uuid1()))
-        self.dat_dict['vguid'].set_text(str(self.conf.siteid))
-        self.dat_dict['vouid'].set_text(str(self.ouid))
-        self.dat_dict['voper'].set_text(str(self.operator))
+        self.dat_dict['now'].set_text(dd.isoformat())
+        self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
+        self.dat_dict['bguid'].set_text(str(self.conf.siteid))
+        self.dat_dict['bouid'].set_text(str(self.ouid))
+        self.dat_dict['boper'].set_text(str(self.operator))
 
         self.reset_changed()
         self.set_focus(self.dat_dict['name'])
@@ -773,23 +716,19 @@ class MainWin(Gtk.Window):
             if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
                 ccc = True
         if ccc:
-            msg = "Please save current data before loading a new one."
+            msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            pggui.message(msg)
-            return
+            ret = pggui.yesno(msg)
+            if ret != Gtk.ResponseType.YES:
+                return True
 
-        # Clear, reset
-        #for aa in self.dat_dict.keys():
-        #    self.dat_dict[aa].set_text("")
-        #self.reset_changed()
-
-        sss = recsel.RecSel(self.vcore, self.acore)
+        sss = recsel.RecSel(self.bcore, self.acore)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
         #print("sss.res:", sss.res)
         try:
-            dat = self.vcore.retrieve(sss.res[0][3])
+            dat = self.bcore.retrieve(sss.res[0][3])
         except:
             dat = []
             print(sys.exc_info())
@@ -813,8 +752,11 @@ class MainWin(Gtk.Window):
                 self.dat_dict[aa].set_text(dec[aa])
             except:
                 pass
+
         # Mark as non changed
-        #self.reset_changed()
+        self.reset_changed()
+        # Preview
+        self.preview(self.labrow)
 
     def test_data(self, arg1):
 
@@ -861,7 +803,7 @@ class MainWin(Gtk.Window):
             return
 
         if not self.dat_dict['name'].get_text():
-            msg = "Must have a FULL name."
+            msg = "Must have a Ballot name."
             self.status.set_text(msg)
             self.status_cnt = 4
             self.set_focus(self.dat_dict['name'])
@@ -870,21 +812,10 @@ class MainWin(Gtk.Window):
 
         dob = self.dat_dict['dob'].get_text()
         if not dob or len(dob.split("/")) < 3:
-            msg = "Must have a valid Client date of birth. (yyyy/mm/dd)"
+            msg = "Must have a valid Ballot date. (yyyy/mm/dd)"
             self.status.set_text(msg)
             self.status_cnt = 4
-            self.set_focus(self.dat_dict['dob'])
-            pggui.message(msg)
-            return
-
-        # This we can generate, but the user better know about it
-        try:
-            uuu = uuid.UUID(self.dat_dict['uuid'].get_text())
-        except:
-            #print("Gen UUID", sys.exc_info())
-            msg = "Cannot save without a valid UUID"
-            self.status.set_text(msg)
-            self.status_cnt = 4
+            self.set_focus(self.dat_dict['bdate'])
             pggui.message(msg)
             return
 
@@ -896,19 +827,70 @@ class MainWin(Gtk.Window):
 
         # Autofill what we can
         dd = datetime.datetime.now().replace(microsecond=0)
-        self.dat_dict['vnow'].set_text(dd.isoformat())
-        if self.dat_dict['vuuid'].get_text() == "":
-            self.dat_dict['vuuid'].set_text(str(uuid.uuid1()))
+        self.dat_dict['now'].set_text(dd.isoformat())
+        if self.dat_dict['uuid'].get_text() == "":
+            self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
 
-        self.dat_dict['vguid'].set_text(str(self.conf.siteid))
-        self.dat_dict['vouid'].set_text(str(self.ouid))
-        self.dat_dict['voper'].set_text(str(self.operator))
+        self.dat_dict['bguid'].set_text(str(self.conf.siteid))
+        self.dat_dict['bouid'].set_text(str(self.ouid))
+        self.dat_dict['boper'].set_text(str(self.operator))
 
-        if not self.dat_dict['vprim'].get_text():
-            msg = "Must have at least a primary vote."
+        # Enough votes?
+        cancnt = 0
+        for aa in self.candarr:
+            strx = aa.get_text()
+            #print("strx", strx)
+            if strx != "":
+                cancnt += 1
+        if cancnt < 2:
+            msg = "Must have at least two candidates."
             self.status.set_text(msg)
             self.status_cnt = 4
-            self.set_focus(self.dat_dict['vprim'])
+            self.set_focus(self.dat_dict['can1'])
+            pggui.message(msg)
+            return
+
+        # Duplicate votes?
+        dupcnt = 0; dup = ""; dabs = 0; breakit = False
+        for aa in self.candarr:
+            if breakit:
+                break
+            strx = aa.get_text()
+            if strx != "":
+                dabs = 0; dupcnt = 0
+                for bb in self.candarr:
+                    stry = bb.get_text()
+                    if strx == stry:
+                        dupcnt += 1
+                    if dupcnt > 1:
+                        dup = stry
+                        breakit = True
+                        break
+                    dabs += 1
+        if dupcnt > 1:
+            msg = "Duplicate candidates detected at '%s' please correct." % dup
+            self.status.set_text(msg)
+            self.status_cnt = 4
+            self.set_focus(self.dat_dict['can%d' % (dabs+1)])
+            pggui.message(msg)
+            return
+
+        # Empty gap?
+        gap = False; wasempty = False; gcnt = 0
+        for aa in self.candarr:
+            strx = aa.get_text()
+            if strx == "":
+                wasempty = True
+            else:
+                if wasempty:
+                    gap = True
+                    break
+            gcnt += 1
+        if gap:
+            msg = "Gap detected at offset '%s'. Please correct." % (gcnt)
+            self.status.set_text(msg)
+            self.status_cnt = 4
+            self.set_focus(self.dat_dict['can%d' % (gcnt)])
             pggui.message(msg)
             return
 
@@ -919,7 +901,7 @@ class MainWin(Gtk.Window):
         print("Save_data", ddd)
         enc = self.packer.encode_data("", ddd)
         #print("enc:", enc)
-        uuu = self.dat_dict['vuuid'].get_text()
+        uuu = self.dat_dict['uuid'].get_text()
 
         # Add index indices
         def callb(c2, id2):
@@ -938,15 +920,15 @@ class MainWin(Gtk.Window):
                 print("exc save callb name", sys.exc_info())
 
         try:
-            #self.score.postexec = callb
-            ret = self.score.save_data(uuu, enc)
+            #self.ccore.postexec = callb
+            ret = self.bcore.save_data(uuu, enc)
         except:
             pass
             print("save", sys.exc_info())
         finally:
-            self.score.postexec = None
+            self.bcore.postexec = None
 
-        self.status.set_text("Vote for '%s' saved." % self.dat_dict['name'].get_text())
+        self.status.set_text("Ballot '%s' saved." % self.dat_dict['name'].get_text())
         self.status_cnt = 4
 
         for aa in self.dat_dict.keys():
