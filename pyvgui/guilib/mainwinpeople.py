@@ -99,10 +99,9 @@ class MainWin(Gtk.Window):
 
         #print("globals", globals.myhome)
 
-        self.authcnt    = 0
         self.powers     = 0
         self.conf       = globals.conf
-        self.conf.iconf  = os.path.dirname(globals.conf.me) + os.sep + "pyvvote.png"
+        self.conf.iconf  = os.path.dirname(globals.conf.me) + os.sep + "pyvpeople.png"
         self.conf.iconf2 = os.path.dirname(globals.conf.me) + os.sep + "pyvvote_sub.png"
         self.conf.siteid = globals.siteid
         try:
@@ -226,13 +225,13 @@ class MainWin(Gtk.Window):
         hbox4 = Gtk.HBox()
         lab1 = Gtk.Label("   ");
         hbox4.pack_start(lab1, 0, 0, 0)
-        lab2a = Gtk.Label(" Initializing ");
+        lab2a = Gtk.Label(" Initializing ...");
         hbox4.pack_start(lab2a, 1, 1, 0)
         lab2a.set_xalign(0)
         lab2a.set_size_request(150, -1)
 
         self.status = lab2a
-        self.status_cnt = 1
+        self.status_cnt = 4
 
         lab1 = Gtk.Label(" ");
         hbox4.pack_start(lab1, 1, 1, 0)
@@ -436,50 +435,37 @@ class MainWin(Gtk.Window):
             config.ConfigDlg(self.vcore, self.acore, self.authcore, self.conf)
 
     def start_pass_dlg(self, arg2):
+
+        authcnt = 0
         while True:
-            datasize = self.authcore.getdbsize()
-            dlg = passdlg.PassDlg(datasize == 0, self.conf)
-            #print(dlg.res)
-            if dlg.res[0] == Gtk.ResponseType.ACCEPT:
-                cipher = AES.new(passdlg.COMMONKEY[:32], AES.MODE_CTR,
-                                use_aesni=True, nonce = passdlg.COMMONKEY[-8:])
-                userx = cipher.decrypt(dlg.res[1]).decode()
-                cipher = AES.new(passdlg.COMMONKEY[:32], AES.MODE_CTR,
-                                use_aesni=True, nonce = passdlg.COMMONKEY[-8:])
-                decr = cipher.decrypt(dlg.res[2]).decode()
-
-                #print("userx", userx, "decr", decr)
-                if datasize == 0:
-                    ret = passdlg.addauth(self.authcore, self.packer, userx, decr, "Yes")
-                else:
-                    ret = passdlg.auth(self.authcore, self.packer, userx, decr)
-
-                #print("auth:", ret)
-                if ret[0] == 1:
-                    self.operator = ret[1][0]
-                    self.powers   = ret[1][4]
-                    self.ouid     = ret[1][5]
-                    #print("pow", self.powers, self.operator, self.ouid)
-                    self.status.set_text("Authenticated '%s'" % userx)
-                    self.status_cnt = 5
-                    self.en_dis_all(True)
-                    recsel.audit(self.acore, self.packer, "Successful Login", userx)
-                    break
-                else:
-                    self.authcnt += 1
-                    if self.authcnt > 3:
-                        pggui.message("Too May unsuccessful attempts, exiting.")
-                        sys.exit(1)
-                    pggui.message("Bad user or password")
-            else:
-                self.authcnt += 1
-                if self.authcnt > 3:
-                    pggui.message("Too May tries, exiting.")
-                    sys.exit(1)
-                else:
-                    pggui.message("Must authenticate")
+            if authcnt > 3:
+                pggui.message("Too May tries, exiting.")
+                sys.exit(1)
+            ret = passdlg.auth_initial(self.authcore, self.packer, self.conf)
+            #print("ret:", ret)
+            if not ret[0]:
+                authcnt += 1
+                continue
+            if ret[1][2] != "Enabled":
+                authcnt += 1
+                msg = "Cannot log in, user '%s' is disbled " % ret[1][0]
+                self.status.set_text(msg)
+                self.status_cnt = 5
+                pggui.message(msg)
+                continue
+            # Success
+            self.operator = ret[1][0]
+            self.powers   = ret[1][4]
+            self.ouid     = ret[1][5]
+            #print("pow", self.powers, self.operator, self.ouid)
+            self.status.set_text("Authenticated '%s'" % ret[1][0])
+            self.status_cnt = 5
+            self.en_dis_all(True)
+            recsel.audit(self.acore, self.packer, "Successful Login", ret[1][0])
+            break
 
     def en_dis_all(self, flag):
+
         for aa in self.dat_dict.keys():
             self.dat_dict[aa].set_sensitive(flag)
 

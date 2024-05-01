@@ -19,6 +19,8 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GLib
+from gi.repository import GObject
 
 import pyvpacker
 from pydbase import twincore, twinchain
@@ -218,7 +220,7 @@ class RecSel(Gtk.Dialog):
     it was attached to the dialog in the original incarnation.
     '''
 
-    def __init__(self, vcore, acore):
+    def __init__(self, vcore, acore, duplicates=False):
         super().__init__(self)
 
         self.set_title("Open Record(s)")
@@ -369,6 +371,7 @@ class RecSel(Gtk.Dialog):
     def search_entry(self, butt, entry):
         #print("Search:", entry.get_text())
         self.populate("", entry.get_text())
+        self.set_focus(self.tview)
 
     def search_idx(self, arg2, entry, hashname, hashfunc):
 
@@ -438,6 +441,7 @@ class RecSel(Gtk.Dialog):
         delta = (time.time() - ttt)
         self.labsss.set_text("%s records. (%.2fs)" % (self.rec_cnt, delta))
         self.get_window().set_cursor()
+        self.set_focus(self.tview)
 
     def search_id(self, arg2, entry, hashname, hashfunc):
         ttt = entry.get_text()
@@ -450,6 +454,7 @@ class RecSel(Gtk.Dialog):
             pggui.message(msg)
             return
         self.search_idx(arg2, entry, hashname, hashfunc)
+        self.set_focus(self.tview)
 
     def stopload(self, butt):
 
@@ -666,6 +671,7 @@ class RecSel(Gtk.Dialog):
         delta = (time.time() - ttt)
         self.labsss.set_text("%s records. (%.1fs)" % (self.rec_cnt, delta))
         self.get_window().set_cursor()
+        self.set_focus(self.tview)
 
         # --------------------------------------------------------------------
 
@@ -916,5 +922,34 @@ class RecSel(Gtk.Dialog):
         elif  event.type == Gdk.EventType.KEY_RELEASE:
             if event.keyval in (Gdk.KEY_Alt_L, Gdk.KEY_Alt_R):
                 self.alt = False
+
+class Status(Gtk.Label):
+
+    ''' Status that disappears after a while '''
+
+    def __init__(self):
+        #super().__init__(self)
+        Gtk.Label.__init__(self)
+        self.set_xalign(0)
+        self.set_size_request(150, -1)
+        self.status_cnt = 0
+        self.set_status_text("Initial ..")
+        GLib.timeout_add(1000, self._timer)
+
+    def set_status_text(self, *textx):
+        sum = ""
+        for aa in textx:
+            sum += aa + " "
+        #print("set_text", textx)
+        self.set_text(sum)
+        self.status_cnt = len(sum) // 4
+
+    def _timer(self):
+        #print("timer",  self.status_cnt)
+        if self.status_cnt:
+            self.status_cnt -= 1
+            if self.status_cnt == 0:
+                self.set_text("Idle.")
+        return True
 
 # EOF

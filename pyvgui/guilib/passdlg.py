@@ -72,13 +72,41 @@ def gen_def_data(uname, passx, flag):
 
     return ddd
 
+def auth_initial(authcore, packer, conf):
+
+    ret = [0, ]
+    datasize = authcore.getdbsize()
+    dlg = PassDlg(datasize == 0, conf)
+    #print(dlg.res)
+    if dlg.res[0] == Gtk.ResponseType.ACCEPT:
+        cipher = AES.new(COMMONKEY[:32], AES.MODE_CTR,
+                        use_aesni=True, nonce = COMMONKEY[-8:])
+        userx = cipher.decrypt(dlg.res[1]).decode()
+        cipher = AES.new(COMMONKEY[:32], AES.MODE_CTR,
+                        use_aesni=True, nonce = COMMONKEY[-8:])
+        decr = cipher.decrypt(dlg.res[2]).decode()
+        #print("userx", userx, "decr", decr)
+        if datasize == 0:
+            ret = addauth(authcore, packer, userx, decr, "Yes")
+        else:
+            ret = auth(authcore, packer, userx, decr)
+        #print("auth:", ret)
+        if ret[0] != 1:
+            pggui.message("Bad user or password")
+    else:
+        pggui.message("Must authenticate")
+
+    return ret
+
 def addauth(authcore, packer, uname, passx, flag):
 
     ''' Replicate what the UI does, no tree update '''
 
     #print("AddAuth:", "'" + uname + "'" , "'" + passx + "'")
 
-    #uuuu = str(uuid.uuid1())
+    # Assumng success in creation
+    ret = [1,]
+
     salt = dbsalt(passx)
     ddd = gen_def_data(uname, passx, flag)
     try:
@@ -88,13 +116,15 @@ def addauth(authcore, packer, uname, passx, flag):
         enc = ""
         pass
     authcore.save_data(ddd[5], enc)
+    ret.append(ddd)
+    return ret
 
 def auth(authcore, packer, uname, passx):
 
     #print("Auth:", "'" + uname + "'" , "'" + passx + "'")
 
-    ddd2 = []; dec = {}
     ret = [0,]
+    ddd2 = []; dec = {}
     datasize = authcore.getdbsize()
     for aa in range(datasize -1, -1, -1):
         rrr = authcore.get_rec(aa)
@@ -105,7 +135,6 @@ def auth(authcore, packer, uname, passx):
         except:
             #print("Cannot decode:", rrr)
             dec = [0]
-
         try:
             #print("dec:", dec)
             if not dec[0] in ddd2:
@@ -154,7 +183,7 @@ class PassDlg(Gtk.Dialog):
         self.overlay = Gtk.Overlay()
         self.bg = Gtk.Image()
         # Load file. Optionally scale it for window
-        self.bg.set_from_file(conf.iconf)
+        self.bg.set_from_file(conf.iconf2)
         try:
             pix = self.bg.get_pixbuf()
             #print("image", self.bg, pix)
@@ -203,7 +232,7 @@ class PassDlg(Gtk.Dialog):
             vbox2.pack_start(pbox2, 0, 0, 0)
 
             pbox3 = Gtk.HBox()
-            lab3 = Gtk.Label.new("for administering this program. Please Make a note of this password.")
+            lab3 = Gtk.Label.new("for administering the program. Please Make a note of this password.")
             pbox3.pack_start(lab3, 1, 1, 0)
             vbox2.pack_start(pbox3, 0, 0, 0)
             self.vbox3.pack_start(vbox2, 0, 0, 0)
@@ -299,6 +328,8 @@ class PassDlg(Gtk.Dialog):
                             use_aesni=True, nonce = COMMONKEY[-8:])
             cyph = cipher.encrypt(self.passx.get_text().encode())
             self.res.append(cyph)
+        else:
+            self.res.append("")
         self.destroy()
 
     def timer(self):
