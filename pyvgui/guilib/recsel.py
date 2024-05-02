@@ -48,7 +48,7 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
         Use hash for searching index. Regenerate if not available.
     '''
 
-    print("Search_index()", os.path.realpath(hashname), textx)
+    #print("Search_index()", os.path.realpath(hashname), textx)
 
     if ccc:
         ccc.rec_cnt = 0
@@ -199,7 +199,7 @@ def   append_index(vcore, idxname,  hashx, rrr, ccc = None):
             ifp.write(pp)
             cnt += 1
 
-        print("gen_index done %.2fs" % (time.time() - ttt) )
+        #print("gen_index done %.2fs" % (time.time() - ttt) )
 
         if ccc:
             ccc.labsss.set_text("Indexing: %d of %d" % (cnt, datasize))
@@ -263,15 +263,16 @@ class RecSelDlg(Gtk.Dialog):
 
     '''
 
-    def __init__(self, vcore, acore, conf, duplicates=False):
+    def __init__(self, vcore, acore, conf, duplicates=False, headers=[]):
+
+        #print("dup:", duplicates, "heads:", headers)
+
         super().__init__(self)
 
+        self.headers = headers
         self.set_title("Open Record(s)")
         self.add_buttons(   Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
                             Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
-
-        #self.set_default_response(Gtk.ResponseType.ACCEPT)
-        #self.set_position(Gtk.WindowPosition.CENTER)
 
         self.set_size_request(800, 600)
         self.alt = False
@@ -284,7 +285,6 @@ class RecSelDlg(Gtk.Dialog):
         self.stop = False
         self.w_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.sort_cnt = 0
-        #self.vbox = self.get_content_area()
 
         try:
             ic = Gtk.Image(); ic.set_from_file(conf.iconf2)
@@ -312,8 +312,8 @@ class RecSelDlg(Gtk.Dialog):
 
         butt4 = Gtk.Button.new_with_mnemonic("  Fin_d Name   ")
         tp6x = ("Find Full N_ame:", "get", "Search for record by full name. Case insesitive.", None)
-        lab6x = pgentry.griddouble(gridx, 0, rowcnt, tp6x, butt4)
-        butt4.connect("clicked", self.search_idx, lab6x, self.vcore.hashname2, hashname)
+        self.namex = pgentry.griddouble(gridx, 0, rowcnt, tp6x, butt4)
+        butt4.connect("clicked", self.search_idx, self.namex, self.vcore.hashname2, hashname)
         rowcnt += 1
 
         butt3 = Gtk.Button.new_with_mnemonic("  Find UUID   ")
@@ -371,6 +371,8 @@ class RecSelDlg(Gtk.Dialog):
         self.vbox.pack_start(label13, 0, 0, 0)
         #self.vbox.pack_start(pggui.xSpacer(), 0, 0, 0)
 
+        #self.set_focus(self.namex)
+
         self.abox = self.get_action_area()
 
         self.stopbutt = Gtk.Button.new_with_mnemonic("Stop Lo_ading")
@@ -423,8 +425,12 @@ class RecSelDlg(Gtk.Dialog):
         ''' Search Name Index. Fast '''
 
         textx = entry.get_text()
+        if not textx:
+            msg = "Search text cannot be empty."
+            pgutils.message(msg)
+            return
+
         #print("Search for:", textx)
-        #print("search_index:", self.vcore.hashname2)
 
         self.stop = False
         self.labsss.set_text("Loading ...")
@@ -499,9 +505,10 @@ class RecSelDlg(Gtk.Dialog):
             uuu = uuid.UUID(ttt)
         except:
             msg = "Must be a valid UUID"
-            print(msg)
+            #print(msg)
             pggui.message(msg)
             return
+
         self.search_idx(arg2, entry, hashname, hashfunc)
         self.set_focus(self.tview)
 
@@ -810,62 +817,39 @@ class RecSelDlg(Gtk.Dialog):
         # create the tview using ts
         tv = Gtk.TreeView(model=ts)
 
+        self.stock_headers = ["Name", "Date of entry", "Date of birth",
+                         "UUID", "Position"]
+        realheaders = []
+        # Padd it from the two header arrays; missing or empty -> sub stock
+        for aa in range(len(self.stock_headers)):
+            try:
+                sss = self.headers[aa]
+                if not sss:
+                    sss = self.stock_headers[aa]
+            except:
+                sss = self.stock_headers[aa]
+
+            realheaders.append(sss)
+
         tv.set_search_column(0)
         tv.set_headers_clickable(True)
         #tv.set_enable_search(True)
         ts.set_sort_func(0, self.compare, None)
         ts.set_sort_func(1, self.compare, None)
         #ts.set_sort_func(1, self.dcompare, None)
-        ts.set_sort_func(2, self.ncompare, None)
+        #ts.set_sort_func(2, self.ncompare, None)
 
-        # create a CellRendererText to render the data
-        cell = Gtk.CellRendererText()
-        tvcolumn = Gtk.TreeViewColumn('Name')
-        tvcolumn.set_min_width(240)
-        tvcolumn.pack_start(cell, True)
-        tvcolumn.add_attribute(cell, 'text', 0)
-        tvcolumn.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
-        tvcolumn.set_sort_column_id(0)
-        tv.append_column(tvcolumn)
-
-        celld = Gtk.CellRendererText()
-        tvcolumn2 = Gtk.TreeViewColumn('Date of Entry')
-        tvcolumn2.set_min_width(100)
-        tvcolumn2.pack_start(celld, True)
-        tvcolumn2.add_attribute(celld, 'text', 1)
-        tvcolumn2.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
-        tvcolumn2.set_sort_column_id(1)
-        tv.append_column(tvcolumn2)
-
-        cellx = Gtk.CellRendererText()
-        tvcolumn3 = Gtk.TreeViewColumn('Date of Birth')
-        tvcolumn3.set_min_width(100)
-        tvcolumn3.pack_start(cellx, True)
-        tvcolumn3.add_attribute(cellx, 'text', 2)
-        tvcolumn3.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
-        tvcolumn3.set_sort_column_id(2)
-        tv.append_column(tvcolumn3)
-
-        cell2 = Gtk.CellRendererText()
-        tvcolumn2 = Gtk.TreeViewColumn('UUID')
-        tvcolumn2.set_min_width(100)
-        tvcolumn2.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
-        tvcolumn2.set_sort_column_id(3)
-        tvcolumn2.pack_start(cell2, True)
-        tvcolumn2.add_attribute(cell2, 'text', 3)
-        tv.append_column(tvcolumn2)
-
-        cell = Gtk.CellRendererText()
-        tvcolumn2 = Gtk.TreeViewColumn('Position')
-        tvcolumn2.set_min_width(100)
-        tvcolumn2.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
-        tvcolumn2.set_sort_column_id(4)
-        tvcolumn2.pack_start(cell, True)
-        tvcolumn2.add_attribute(cell, 'text', 4)
-        tv.append_column(tvcolumn2)
-
-        #tv.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
-
+        # Create CellRendererTexts to render the data to
+        for idx in range(len(realheaders)):
+            cell = Gtk.CellRendererText()
+            tvcolumn = Gtk.TreeViewColumn(realheaders[idx])
+            tvcolumn.set_min_width(100)
+            tvcolumn.pack_start(cell, True)
+            tvcolumn.add_attribute(cell, 'text', idx)
+            tvcolumn.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
+            tvcolumn.set_sort_column_id(idx)
+            tv.append_column(tvcolumn)
+            idx += 1
         return tv
 
     def tree_sel_row(self, xtree):

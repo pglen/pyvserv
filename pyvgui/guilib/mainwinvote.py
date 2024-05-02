@@ -338,6 +338,12 @@ class MainWin(Gtk.Window):
         self.dat_dict['buuid'] = lab3x
         rowcnt += 1
 
+        tp1x = ("Ballot Nam_e: ", "name", "Autofilled, Ballot Name", None)
+        tp2x = ("Election Date: ", "dob", "Autofilled, Election Date, YYYY/MM/DD", None)
+        lab1x, lab2x = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1x, tp2x, None)
+        lab1x.set_gray(True);  lab2x.set_gray(True)
+        rowcnt += 1
+
         # Create table from updated fields
         self.candarr = []
 
@@ -399,7 +405,8 @@ class MainWin(Gtk.Window):
 
     def load_ballot(self, arg2):
 
-        sss = recsel.RecSel(self.bcore, self.acore)
+        heads = ["", "", "Election Date", "", ""]
+        sss = recsel.RecSelDlg(self.bcore, self.acore, self.conf, headers=heads)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
         try:
@@ -786,7 +793,7 @@ class MainWin(Gtk.Window):
         #    self.dat_dict[aa].set_text("")
         #self.reset_changed()
 
-        sss = recsel.RecSel(self.vcore, self.acore)
+        sss = recsel.RecSelDlg(self.vcore, self.acore, self.conf)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
         #print("sss.res:", sss.res)

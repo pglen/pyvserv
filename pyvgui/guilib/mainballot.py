@@ -707,7 +707,8 @@ class MainWin(Gtk.Window):
             if ret != Gtk.ResponseType.YES:
                 return True
 
-        sss = recsel.RecSel(self.bcore, self.acore)
+        heads = ["", "", "Election Date", "", ""]
+        sss = recsel.RecSelDlg(self.bcore, self.acore, self.conf, headers=heads)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
         #print("sss.res:", sss.res)
