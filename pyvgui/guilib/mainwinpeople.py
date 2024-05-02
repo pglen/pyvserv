@@ -250,34 +250,6 @@ class MainWin(Gtk.Window):
 
         lab2 = Gtk.Label("   ");  hbox4.pack_start(lab2, 0, 0, 0)
 
-        # This is what is coming in:
-        #{'Default': 'None', 'Vote': 4,
-        #'UID': '64839bff-fae7-11ee-bb58-0fa03c52389e',
-        #'SubVote': 6, 'TUID': '64839c00-fae7-11ee-bb58-0fa03c52389e',
-        # 'Action': 'register', 'RUID': '64839c01-fae7-11ee-bb58-0fa03c52389e',
-        #  'Test': 'test'}
-
-        # Field names (set positional displays except header)
-        #self.fields = \
-        #("Header", "Action", "Vote", "SubVote", "UID", "RUID",
-        #    "TUID", )
-        ##  "Test", "Default")
-        #
-        #tt = type(""); fff = []
-        #for ccc in range(len(self.fields)):
-        #    fff.append(tt)
-        #self.model = Gtk.TreeStore(*fff)
-
-        #self.tree1s, self.tree1 = self.wrap(Gtk.TreeView(self.model))
-        #self.cells = []; cntf = 0
-        #for aa in self.fields:
-        #    col = Gtk.TreeViewColumn(aa, self.cellx(cntf), text=cntf)
-        #    col.set_resizable(True)
-        #    self.tree1.append_column(col)
-        #    cntf += 1
-        #hbox3.pack_start(self.tree1s, True, True, 6)
-
-        #sg = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
         gridx = Gtk.Grid()
         gridx.set_column_spacing(6)
         gridx.set_row_spacing(6)
@@ -689,15 +661,18 @@ class MainWin(Gtk.Window):
         # Clear, reset
         for aa in self.dat_dict.keys():
             self.dat_dict[aa].set_text("")
-
         self.reset_changed()
 
-        sss = recsel.RecSel(self.vcore, self.acore)
+        sss = recsel.RecSelDlg(self.vcore, self.acore, self.conf)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
         #print("sss.res:", sss.res)
         try:
-            dat = self.vcore.retrieve(sss.res[0][3])
+            # Slow ...
+            #dat = self.vcore.retrieve(sss.res[0][3])
+            # New data: abs. position added
+            #print("get_rec", int(sss.res[0][4]))
+            dat = self.vcore.get_rec(int(sss.res[0][4]))
         except:
             dat = []
             print(sys.exc_info())
@@ -711,7 +686,10 @@ class MainWin(Gtk.Window):
             return
         #print("dat:", dat)
         try:
-            dec = self.packer.decode_data(dat[0][1])[0]
+            # dec array[0] if retrieve
+            #dec = self.packer.decode_data(dat[1])[0]
+            # dec array if get_rec
+            dec = self.packer.decode_data(dat[1])[0]
         except:
             dec = {}
             pass
@@ -755,6 +733,12 @@ class MainWin(Gtk.Window):
             self.save_data(0)
             self.clear_data()
 
+    def autofill(self, idxname, newid):
+        try:
+            uuu = uuid.UUID(self.dat_dict[idxname].get_text())
+        except:
+            self.dat_dict[idxname].set_text(str(newid))
+
     def save_data(self, arg1):
 
         # See if changed
@@ -782,29 +766,19 @@ class MainWin(Gtk.Window):
             pggui.message(msg)
             return
 
-        # This we can generate, but the user better know about it
-        try:
-            uuu = uuid.UUID(self.dat_dict['uuid'].get_text())
-        except:
-            #print("Gen UUID", sys.exc_info())
-            msg = "Cannot save without a valid UUID"
-            self.status.set_text(msg)
-            self.status_cnt = 4
-            pggui.message(msg)
-            return
-
         # Commemorate event by setting a fresh date
         #if  self.dat_dict['now'].get_text() == "":
-        dd = datetime.datetime.now()
-        dd = dd.replace(microsecond=0)
+        dd = datetime.datetime.now().replace(microsecond=0)
         self.dat_dict['now'].set_text(dd.isoformat())
 
-        # Autofill what we can
-        #self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
-        self.dat_dict['guid'].set_text(str(self.conf.siteid))
-        self.dat_dict['ouid'].set_text(str(self.ouid))
-        self.dat_dict['oper'].set_text(str(self.operator))
+        # This we can generate, but the user better know about it
+        # Wed 01.May.2024 Auto generated
+        self.autofill('uuid', uuid.uuid1())
 
+        # Autofill what we can
+        self.autofill('guid', self.conf.siteid)
+        self.autofill('ouid', self.ouid)
+        self.autofill('oper', self.operator)
 
         ddd = {}
         for aa in self.dat_dict.keys():
@@ -815,19 +789,17 @@ class MainWin(Gtk.Window):
         #print("enc:", enc)
         uuu = self.dat_dict['uuid'].get_text()
 
-        # Add index indices
+        # Add index
         def callb(c2, id2):
-            # Replicate saved locally
+            # Replicate fields from local data
             dddd = [uuu, enc.encode()]
             #print("dddd:", dddd)
             try:
-                recsel.append_index(self.vcore, self.vcore.hashname,
-                                                        recsel.hashid, dddd)
+                recsel.append_index(c2, self.vcore.hashname,  recsel.hashid, dddd)
             except:
                 print("exc save callb hash", sys.exc_info())
             try:
-                recsel.append_index(self.vcore, self.vcore.hashname2,
-                                                        recsel.hashname, dddd)
+                recsel.append_index(c2, self.vcore.hashname2, recsel.hashname, dddd)
             except:
                 print("exc save callb name", sys.exc_info())
 

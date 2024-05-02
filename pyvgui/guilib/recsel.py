@@ -44,16 +44,24 @@ for aa in range(6):
 
 def search_index(vcore, hashname, textx, hashfunc, ccc = None):
 
+    '''
+        Use hash for searching index. Regenerate if not available.
+    '''
+
+    print("Search_index()", os.path.realpath(hashname), textx)
+
     if ccc:
         ccc.rec_cnt = 0
     try:
         ifp = open(hashname, "rb")
     except:
-        print("cannot open hash", hashname)
-        return
-        if ccc:
-            ccc.gen_index(0)
-        ifp = open(hashname, "rb")
+        #print("Regenerate hash", hashname)
+        append_index(vcore, hashname, hashfunc, None, ccc)
+        try:
+            ifp = open(hashname, "rb")
+        except:
+            print("Cannot generate hash", hashname)
+            return
 
     buffsize = vcore.getsize(ifp)
     ifp.seek(twincore.HEADSIZE, io.SEEK_SET)
@@ -61,6 +69,7 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
     fakedict = {}
     fakedict['name'] = textx
     enc = vcore.packer.encode_data("", fakedict)
+
     # We populate all indexed entries, as they are the only significant field
     hhh = hashfunc(vcore, [textx, enc])
     #hhh = struct.unpack("I", hhh)[0]
@@ -68,7 +77,7 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
     hhh2  = hhh.to_bytes(4, 'little')
     #print("hhh2",  hhh2)
 
-    #ttt = time.time()
+    ttt = time.time()
     cnt = 0
     ddd3 = []
 
@@ -85,7 +94,7 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
     #        ddd3.append(cnt)
     #    cnt += 1
 
-    # Tried it .... 7 seconds
+    # Tried it .... 7 seconds ! ouch
     #arr4 = array.array('i')
     #arr4.frombytes(data)
     #buf = arr4.buffer()
@@ -95,14 +104,23 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
     #       print("found", aa)
     #       ddd3.append(cnt)
 
-    # Tried it ... 80 ms
+    # Tried it ... 80 ms with the 'in' method 6 ms
+    # Algorythm: 1.) Load Slice 2.) bulk search it
+    # 3.) Convert it into BytesIO buffer 4.) Detail search it
+
+    slice = 10000        # Make sure it is divisible by 4
     while True:
         if ccc:
             if ccc.stop:
                 break
-        data = ifp.read(10000)
+        data = ifp.read(slice)
         if not data:
             break;
+
+        # Bulk search it first
+        if not hhh2 in data:
+            cnt += slice // 4
+            continue
         cnt2 = 0
         fp = BytesIO(data)
         while True:
@@ -115,23 +133,26 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
                 ddd3.append(cnt + cnt2)
                 #print("Found", cnt2 + cnt)
             cnt2 += 1
-        cnt += 10000 // 4
+        cnt += slice // 4
 
     ifp.close()
 
+    # Reverse findings, as sequencial read was in forward direction
+    ddd4 = ddd3[::-1]
     #print("search delta %.2f ms" % (1000 * (time.time() - ttt)) )
-    return ddd3
+
+    return ddd4
 
 # ---------------------------------------------------------------
 
-def   append_index(vcore, idxname,  hashx, rrr):
+def   append_index(vcore, idxname,  hashx, rrr, ccc = None):
 
     ''' append hashx to index file.
         generate / re - index if not there. If no hash passed,
-        just regenerate '
+        just regenerate
     '''
 
-    #print("append_index", rrr)
+    #print("append_index", idxname, rrr)
 
     ttt = time.time()
     ifp = vcore.softcreate(idxname)
@@ -149,22 +170,41 @@ def   append_index(vcore, idxname,  hashx, rrr):
     if ddiff:
         #print("re-hash:", ddiff)
         ddd2 = []
+        cnt = 0
         for aa in range(bsize, datasize):
             rrrr = vcore.get_rec(aa)
             #print("rrrr:", rrrr)
             if not rrrr:
                 # Deleted record has empty hash, keeps offset correct
-                rrrr[0] = ""
+                rrrr.append("")
             try:
                 hhh = hashx(vcore, rrrr)
             except:
                 hhh = 0
-            # print last entry for test
+
+            # Print last entry for timing test
             #if aa == datasize - 1:
-            #print("hhh gen", hex(hhh))
+            #    print("lastrec: hhh gen", cnt, rrrr)
+
+            # Print progress
+            #if cnt % 10000 == 0:
+            #    print("hhh gen", cnt, hex(hhh))
+
+            if cnt % 5000 == 0:
+                if ccc:
+                    ccc.labsss.set_text("Indexing: %d of %d" % (cnt, datasize))
+                    pgutils.usleep(5)
+
             pp = struct.pack("I", hhh)
             ifp.write(pp)
-        #print("gen_index done %.2fs" % (time.time() - ttt) )
+            cnt += 1
+
+        print("gen_index done %.2fs" % (time.time() - ttt) )
+
+        if ccc:
+            ccc.labsss.set_text("Indexing: %d of %d" % (cnt, datasize))
+            pgutils.usleep(5)
+
     else:
         if rrr:
             hhh = hashx(vcore, rrr)
@@ -214,13 +254,16 @@ def audit(acore, packer, eventstr, rrr):
     rrrr = packer.encode_data("", auditx)
     acore.save_data(auditx['header'], rrrr)
 
-class RecSel(Gtk.Dialog):
+class RecSelDlg(Gtk.Dialog):
 
-    ''' Open record selection dialog. We attach state vars to the class,
-    it was attached to the dialog in the original incarnation.
+    ''' The record selection dialog. We attach state vars to the class,
+    it was attached to the dialog in the original version.
+
+    Using hash for fast retrieval.
+
     '''
 
-    def __init__(self, vcore, acore, duplicates=False):
+    def __init__(self, vcore, acore, conf, duplicates=False):
         super().__init__(self)
 
         self.set_title("Open Record(s)")
@@ -229,6 +272,7 @@ class RecSel(Gtk.Dialog):
 
         #self.set_default_response(Gtk.ResponseType.ACCEPT)
         #self.set_position(Gtk.WindowPosition.CENTER)
+
         self.set_size_request(800, 600)
         self.alt = False
         self.xmulti = []
@@ -243,7 +287,7 @@ class RecSel(Gtk.Dialog):
         #self.vbox = self.get_content_area()
 
         try:
-            ic = Gtk.Image(); ic.set_from_file("pyvvote_sub.png")
+            ic = Gtk.Image(); ic.set_from_file(conf.iconf2)
             self.set_icon(ic.get_pixbuf())
         except:
             pass
@@ -272,7 +316,7 @@ class RecSel(Gtk.Dialog):
         butt4.connect("clicked", self.search_idx, lab6x, self.vcore.hashname2, hashname)
         rowcnt += 1
 
-        butt3 = Gtk.Button.new_with_mnemonic("  Find ID   ")
+        butt3 = Gtk.Button.new_with_mnemonic("  Find UUID   ")
         tp5x = ("_Find ID:", "get", "Search for record ID. Must be valid UUID", None)
         lab5x = pgentry.griddouble(gridx, 0, rowcnt, tp5x, butt3)
         butt3.connect("clicked", self.search_id, lab5x, self.vcore.hashname, hashid)
@@ -300,7 +344,7 @@ class RecSel(Gtk.Dialog):
         #hbox3.pack_start(butt, 0, 0, 4)
         #self.vbox.pack_start(hbox3, 0, 0, 4)
 
-        self.ts = Gtk.ListStore(str, str, str, str)
+        self.ts = Gtk.ListStore(str, str, str, str, str)
         self.tview = self.create_ftree(self.ts)
 
         scroll = Gtk.ScrolledWindow()
@@ -358,11 +402,12 @@ class RecSel(Gtk.Dialog):
                 if not iterx:
                     break
                 if sel.iter_is_selected(iterx):
-                    xstr = xmodel.get_value(iterx, 0)
+                    xstr  = xmodel.get_value(iterx, 0)
                     xstr2 = xmodel.get_value(iterx, 1)
                     xstr3 = xmodel.get_value(iterx, 2)
                     xstr4 = xmodel.get_value(iterx, 3)
-                    self.res.append((xstr, xstr2, xstr3, xstr4))
+                    xstr5 = xmodel.get_value(iterx, 4)
+                    self.res.append((xstr, xstr2, xstr3, xstr4, xstr5))
                 iterx = xmodel.iter_next(iterx)
 
         #print ("response", self.response, "result", self.res)
@@ -373,7 +418,7 @@ class RecSel(Gtk.Dialog):
         self.populate("", entry.get_text())
         self.set_focus(self.tview)
 
-    def search_idx(self, arg2, entry, hashname, hashfunc):
+    def search_idx(self, arg2, entry, hashname, hashfunc, duplicates=True):
 
         ''' Search Name Index. Fast '''
 
@@ -382,7 +427,6 @@ class RecSel(Gtk.Dialog):
         #print("search_index:", self.vcore.hashname2)
 
         self.stop = False
-        ttt = time.time()
         self.labsss.set_text("Loading ...")
         self.stopbutt.set_sensitive(True)
         self.get_window().set_cursor(self.w_cursor)
@@ -398,6 +442,7 @@ class RecSel(Gtk.Dialog):
             except:
                 print("Exception on rm ts", sys.exc_info())
 
+        ttt = time.time()
         ddd3 =  search_index(self.vcore, hashname, textx, hashfunc, self)
 
         # Fill in results
@@ -420,23 +465,27 @@ class RecSel(Gtk.Dialog):
                     # This way the user knows
                     print("Damaged:", cnt, sys.exc_info(), rrr)
                     continue
-                    #dec = {}       # Was a fake record ... now just print
-                    #dec['name'] = "Damaged record:", cnt
-                    #dec['now'] = ""
-                    #dec['dob'] = ""
-                ddd2.append((dec['name'], dec['now'], dec['dob'],  uuu))
+                fff = (dec['name'], dec['now'], dec['dob'],  uuu, str(aa))
+                #print("found:", fff)
+                ddd2.append(fff)
 
         ddd_dup = []
         for aa in ddd2:
-            if aa[3] not in ddd_dup:
-                ddd_dup.append(aa[3])
-                try:
-                    piter = self.ts.append(row=None)
-                    #print("row", aa)
-                    for cc in range(4):
-                        self.ts.set(piter, cc, aa[cc])
-                except:
-                    print("Malformed record:", aa)
+            if duplicates:
+                pass
+            else:
+                if aa[3] in ddd_dup:
+                    continue
+                ddd_dup.append(aaa[3])
+
+            ddd_dup.append(aa[3])
+            try:
+                piter = self.ts.append(row=None)
+                #print("row", aa)
+                for cc in range(5):
+                    self.ts.set(piter, cc, aa[cc])
+            except:
+                print("Malformed record:", aa)
 
         delta = (time.time() - ttt)
         self.labsss.set_text("%s records. (%.2fs)" % (self.rec_cnt, delta))
@@ -485,7 +534,7 @@ class RecSel(Gtk.Dialog):
 
         ''' populate tree with ID'''
 
-        #print("pop", idval)
+        print("pop", idval)
 
         self.stop = False
         ttt = time.time()
@@ -512,17 +561,17 @@ class RecSel(Gtk.Dialog):
         print("lll", lll)
         for aa in lll:
             rrr = self.vcore.get_rec_byoffs(aa)
-
             dec = self.packer.decode_data(rrr[1])[0]
             uuu = rrr[0].decode()
-            ddd2.append((dec['name'], dec['now'], dec['dob'],  uuu))
+            aaa = (dec['name'], dec['now'], dec['dob'], uuu, str(aa))
+            ddd2.append(aaa)
 
         # Fill in results
         self.stopbutt.set_sensitive( False )
         for aa in ddd2:
             piter = self.ts.append(row=None)
             #print("row", aa)
-            for cc in range(4):
+            for cc in range(5):
                 self.ts.set(piter, cc, aa[cc])
 
         #print("index %.1fs" % (time.time() - ttt) )
@@ -635,7 +684,8 @@ class RecSel(Gtk.Dialog):
 
             #print("append:", dec)
             try:
-                ddd2.append((dec['name'], dec['now'], dec['dob'],  uuu))
+                aaa = (dec['name'], dec['now'], dec['dob'], uuu, str(aa))
+                ddd2.append(aaa)
             except:
                 print("Exc Cannot append rec", dec)
                 print(sys.exc_info())
@@ -665,7 +715,7 @@ class RecSel(Gtk.Dialog):
         for aa in ddd2:
             piter = self.ts.append(row=None)
             #print("row", aa)
-            for cc in range(4):
+            for cc in range(5):
                 self.ts.set(piter, cc, aa[cc])
 
         delta = (time.time() - ttt)
@@ -803,6 +853,15 @@ class RecSel(Gtk.Dialog):
         tvcolumn2.set_sort_column_id(3)
         tvcolumn2.pack_start(cell2, True)
         tvcolumn2.add_attribute(cell2, 'text', 3)
+        tv.append_column(tvcolumn2)
+
+        cell = Gtk.CellRendererText()
+        tvcolumn2 = Gtk.TreeViewColumn('Position')
+        tvcolumn2.set_min_width(100)
+        tvcolumn2.set_sizing(Gtk.TreeViewColumnSizing.AUTOSIZE)
+        tvcolumn2.set_sort_column_id(4)
+        tvcolumn2.pack_start(cell, True)
+        tvcolumn2.add_attribute(cell, 'text', 4)
         tv.append_column(tvcolumn2)
 
         #tv.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)

@@ -119,6 +119,10 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         self.score = twincore.TwinCore("votes.pydb", 0)
+        self.score.packer = self.packer
+        self.score.hashname  = os.path.splitext(self.score.fname)[0] + ".hash.id"
+        self.score.hashname2 = os.path.splitext(self.score.fname)[0] + ".hash.name"
+
         self.acore = twincore.TwinCore("audit.pydb", 0)
         self.authcore = twincore.TwinCore("auth.pydb", 0)
 
@@ -416,7 +420,7 @@ class MainWin(Gtk.Window):
         except:
             dec = {}
             pass
-        print("dec:", dec)
+        #print("dec:", dec)
         # Assign to form
         self.dat_dict['buuid'].set_text(dec['uuid'])
         for aa in range(8):
@@ -436,7 +440,7 @@ class MainWin(Gtk.Window):
                 if txtx == "None":
                     txtx = ""
                 self.dat_dict['vprim'].set_text(txtx)
-                self.status.set_statu_text("Selected: '%s'" % txtx)
+                self.status.set_status_text("Selected: '%s'" % txtx)
 
         rrr = None; col = 0
 
@@ -914,11 +918,10 @@ class MainWin(Gtk.Window):
         for aa in self.dat_dict.keys():
             ddd[aa] = self.dat_dict[aa].get_text()
 
-        print("Save_data", ddd)
+        #print("Save_data", ddd)
         enc = self.packer.encode_data("", ddd)
         #print("enc:", enc)
         uuu = self.dat_dict['vuuid'].get_text()
-
 
         # Add index indices
         def callb(c2, id2):
@@ -935,9 +938,8 @@ class MainWin(Gtk.Window):
                                                         recsel.hashname, dddd)
             except:
                 print("exc save callb name", sys.exc_info())
-
         try:
-            #self.score.postexec = callb
+            self.score.postexec = callb
             ret = self.score.save_data(uuu, enc)
         except:
             pass
