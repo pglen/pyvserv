@@ -113,10 +113,8 @@ class MainWin(Gtk.Window):
 
         self.start_anal = False
         #self.core = None
-        self.in_timer = False
         self.cnt = 0
         self.old_sss = 1
-        self.status_cnt = 0
         self.set_title("PyVServer Client Entry")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
@@ -230,8 +228,7 @@ class MainWin(Gtk.Window):
         lab2a.set_xalign(0)
         lab2a.set_size_request(150, -1)
 
-        self.status = lab2a
-        self.status_cnt = 4
+        self.status = recsel.Status()
 
         lab1 = Gtk.Label(" ");
         hbox4.pack_start(lab1, 1, 1, 0)
@@ -395,14 +392,14 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
         self.en_dis_all(False)
+
         GLib.timeout_add(100, self.start_pass_dlg, 0)
-        GLib.timeout_add(1000, self.timer)
 
     def config_dlg(self, arg2):
         #print("config_dlg")
         #print("pass pow:", self.powers)
         if self.powers != "Yes":
-            pgutils.message("Only Admin can Configure.")
+            pggui.message("Only Admin can Configure.")
         else:
             config.ConfigDlg(self.vcore, self.acore, self.authcore, self.conf)
 
@@ -421,8 +418,7 @@ class MainWin(Gtk.Window):
             if ret[1][2] != "Enabled":
                 authcnt += 1
                 msg = "Cannot log in, user '%s' is disbled " % ret[1][0]
-                self.status.set_text(msg)
-                self.status_cnt = 5
+                self.status.set_status_text(msg)
                 pggui.message(msg)
                 continue
             # Success
@@ -430,11 +426,12 @@ class MainWin(Gtk.Window):
             self.powers   = ret[1][4]
             self.ouid     = ret[1][5]
             #print("pow", self.powers, self.operator, self.ouid)
-            self.status.set_text("Authenticated '%s'" % ret[1][0])
-            self.status_cnt = 5
+            self.status.set_status_text("Authenticated '%s'" % ret[1][0])
             self.en_dis_all(True)
             recsel.audit(self.acore, self.packer, "Successful Login", ret[1][0])
             break
+
+        self.set_focus(self.dat_dict['name'])
 
     def en_dis_all(self, flag):
 
@@ -481,8 +478,7 @@ class MainWin(Gtk.Window):
         if arg2.get_text() != "":
             msg = "Already has operator; Cannot set."
             pggui.message(msg)
-            self.status.set_text(msg)
-            self.status_cnt = 5
+            self.status.set_status_text(msg)
             return
         arg2.set_text(self.operator)
         #if arg3.get_text() == "":
@@ -494,8 +490,7 @@ class MainWin(Gtk.Window):
         if arg2.get_text() != "":
             msg = "Already has a GUID; Cannot set."
             pggui.message(msg)
-            self.status.set_text(msg)
-            self.status_cnt = 5
+            self.status.set_status_text(msg)
             return
         arg2.set_text(str(uuid.uuid1()))
 
@@ -503,8 +498,7 @@ class MainWin(Gtk.Window):
         if arg2.get_text() != "":
             msg = "Already has a OUID; Cannot set."
             pggui.message(msg)
-            self.status.set_text(msg)
-            self.status_cnt = 5
+            self.status.set_status_text(msg)
             return
         arg2.set_text(self.ouid)
 
@@ -512,8 +506,7 @@ class MainWin(Gtk.Window):
         if arg2.get_text() != "":
             msg = "Already has a Site UUID; Cannot set."
             pggui.message(msg)
-            self.status.set_text(msg)
-            self.status_cnt = 5
+            self.status.set_status_text(msg)
             return
         arg2.set_text(str(self.conf.siteid))
 
@@ -584,14 +577,12 @@ class MainWin(Gtk.Window):
         nnn = self.dat_dict['name'].get_text()
         if not nnn:
             msg = "Empty record, cannot delete."
-            self.status.set_text(msg)
-            self.status_cnt = 4
+            self.status.set_status_text(msg)
             pggui.message(msg)
             return
         msg = "This will delete: '%s'. \nAre you sure?" % nnn
-        self.status.set_text(msg)
-        self.status_cnt = 4
-        ret = pggui.yesno(msg)
+        self.status.set_status_text(msg)
+        ret = pggui.yes_no(msg, default="No")
         if ret != Gtk.ResponseType.YES:
             return True
         ddd = self.dat_dict['uuid'].get_text()
@@ -604,8 +595,7 @@ class MainWin(Gtk.Window):
                 ret = self.vcore.del_rec(aa)
                 #print(aa, "del ret:", ret)
                 recsel.audit(self.acore, self.packer, "Deleted Record", rrr[1])
-                self.status.set_text("Record '%s' deleted." % nnn)
-                self.status_cnt = 4
+                self.status.set_status_text("Record '%s' deleted." % nnn)
             except:
                 print(sys.exc_info())
 
@@ -622,9 +612,8 @@ class MainWin(Gtk.Window):
                 ccc = True
         if ccc:
             msg = "Unsaved data. Are you sure you want to abandon it?"
-            self.status.set_text(msg)
-            self.status_cnt = 4
-            ret = pggui.yesno(msg)
+            self.status.set_status_text(msg)
+            ret = pggui.yes_no(msg, default="No")
             if ret != Gtk.ResponseType.YES:
                 return True
 
@@ -652,10 +641,10 @@ class MainWin(Gtk.Window):
             if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
                 ccc = True
         if ccc:
-            msg = "Please save current data before loading a new one."
-            self.status.set_text(msg)
-            self.status_cnt = 4
-            pggui.message(msg)
+            msg = "Please save data before loading a new record.\n" \
+                  "Current changes would be discarded. Are you sure?"
+            self.status.set_status_text(msg)
+            pggui.yes_no(msg, default="No")
             return
 
         # Clear, reset
@@ -680,8 +669,7 @@ class MainWin(Gtk.Window):
         if not dat:
             msg = "No data selected."
             #print(msg)
-            self.status.set_text(msg)
-            self.status_cnt = 5
+            self.status.set_status_text(msg)
             pggui.message(msg)
             return
         #print("dat:", dat)
@@ -709,8 +697,7 @@ class MainWin(Gtk.Window):
                 break
             if self.stop:
                 self.reset_changed()
-                self.status.set_text("Test Stopped")
-                self.status_cnt = 4
+                self.status.set_status_text("Test Stopped")
                 break
             for aa in self.dat_dict.keys():
                 # Handle differences
@@ -744,15 +731,13 @@ class MainWin(Gtk.Window):
         # See if changed
         if not self.is_changed():
             msg = "Nothing changed, cannot save."
-            self.status.set_text(msg)
-            self.status_cnt = 4
+            self.status.set_status_text(msg)
             pggui.message(msg)
             return
 
         if not self.dat_dict['name'].get_text():
             msg = "Must have a FULL name."
-            self.status.set_text(msg)
-            self.status_cnt = 4
+            self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['name'])
             pggui.message(msg)
             return
@@ -760,8 +745,7 @@ class MainWin(Gtk.Window):
         dob = self.dat_dict['dob'].get_text()
         if not dob or len(dob.split("/")) < 3:
             msg = "Must have a valid Client date of birth. (yyyy/mm/dd)"
-            self.status.set_text(msg)
-            self.status_cnt = 4
+            self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['dob'])
             pggui.message(msg)
             return
@@ -812,29 +796,10 @@ class MainWin(Gtk.Window):
         finally:
             self.vcore.postexec = None
 
-        self.status.set_text("Entry '%s' saved." % self.dat_dict['name'].get_text())
-        self.status_cnt = 4
+        self.status.set_status_text("Entry '%s' saved." % self.dat_dict['name'].get_text())
 
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
-
-    def timer(self):
-
-        #print("Called timer")
-        if self.in_timer:
-            return True
-        in_timer = True
-        self.cnt += 1
-        if self.status_cnt:
-            self.status_cnt -= 1
-            if not self.status_cnt:
-                self.status.set_text("Idle.")
-        in_timer = False
-        return True
-
-    def set_status_text(self, text):
-        self.status.set_text(text)
-        self.status_cnt = 4
 
     def main(self):
         Gtk.main()
@@ -847,10 +812,10 @@ class MainWin(Gtk.Window):
                 ccc = True
         if ccc:
             msg = "Unsaved data. Are you sure you want to abandon it?"
-            self.status.set_text(msg)
+            self.status.set_status_text(msg)
             self.status_cnt = 4
-            ret = pggui.yesno(msg)
-            #print("yesno:", ret)
+            ret = pggui.yes_no(msg, default="No")
+            #print("yes_no:", ret)
             if ret != Gtk.ResponseType.YES:
                 return True
             else:

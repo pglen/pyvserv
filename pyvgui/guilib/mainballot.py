@@ -640,7 +640,7 @@ class MainWin(Gtk.Window):
         msg = "This will delete: '%s'. \nAre you sure?" % nnn
         self.status.set_text(msg)
         self.status_cnt = 4
-        ret = pggui.yesno(msg)
+        ret = pggui.yes_no(msg)
         if ret != Gtk.ResponseType.YES:
             return True
         ddd = self.dat_dict['uuid'].get_text()
@@ -673,7 +673,7 @@ class MainWin(Gtk.Window):
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            ret = pggui.yesno(msg)
+            ret = pggui.yes_no(msg)
             if ret != Gtk.ResponseType.YES:
                 return True
 
@@ -703,7 +703,7 @@ class MainWin(Gtk.Window):
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            ret = pggui.yesno(msg)
+            ret = pggui.yes_no(msg)
             if ret != Gtk.ResponseType.YES:
                 return True
 
@@ -950,8 +950,8 @@ class MainWin(Gtk.Window):
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            ret = pggui.yesno(msg)
-            #print("yesno:", ret)
+            ret = pggui.yes_no(msg)
+            #print("yes_no:", ret)
             if ret != Gtk.ResponseType.YES:
                 return True
             else:

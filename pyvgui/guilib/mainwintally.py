@@ -12,7 +12,7 @@ from gi.repository import Pango
 
 from pyvguicom import pgbox
 from pyvguicom import pgsimp
-from pyvguicom import sutil
+#from pyvguicom import sutil
 from pyvguicom import pggui
 
 from pymenu import  *
@@ -81,12 +81,13 @@ class MainWin(Gtk.Window):
 
         self.oldtally = [0,0,0,0,0,0,0,0,0,0,0,]
 
+        numofcols = 8
         self.tally = []
-        for aa in range(11):
+        for aa in range(numofcols):
             self.tally.append(0)
 
         self.untally = []
-        for aa in range(11):
+        for aa in range(numofcols):
             self.untally.append(0)
 
         try:
@@ -180,9 +181,9 @@ class MainWin(Gtk.Window):
 
         self.tallyarr = []
         hbox5 = Gtk.HBox()
-        for aa in range(10):
+        for aa in range(numofcols):
             vbox_1 = Gtk.VBox()
-            vbox_1.pack_start(Gtk.Label("Tally %s" % aa), 1, 1, 2)
+            vbox_1.pack_start(Gtk.Label("Tally %s" % (aa+1)), 1, 1, 2)
             self.tallyarr.append(Gtk.Label("0"))
             vbox_1.pack_start(self.tallyarr[aa], 1, 1, 2)
             hbox5.pack_start(vbox_1, 1, 1,2)
@@ -190,9 +191,9 @@ class MainWin(Gtk.Window):
 
         self.untallyarr = []
         hbox6 = Gtk.HBox()
-        for aa in range(10):
+        for aa in range(numofcols):
             vbox_1 = Gtk.VBox()
-            vbox_1.pack_start(Gtk.Label("Un %s" % aa), 1, 1, 2)
+            vbox_1.pack_start(Gtk.Label("Un %s" % (aa+1)), 1, 1, 2)
             self.untallyarr.append(Gtk.Label("0"))
             vbox_1.pack_start(self.untallyarr[aa], 1, 1, 2)
             hbox6.pack_start(vbox_1, 1, 1,2)
@@ -200,9 +201,9 @@ class MainWin(Gtk.Window):
 
         self.sumarr = []
         hbox7 = Gtk.HBox()
-        for aa in range(10):
+        for aa in range(numofcols):
             vbox_1 = Gtk.VBox()
-            vbox_1.pack_start(Gtk.Label("Sum %s" % aa), 1, 1, 2)
+            vbox_1.pack_start(Gtk.Label("Sum %s" % (aa+1)), 1, 1, 2)
             self.sumarr.append(Gtk.Label("0"))
             vbox_1.pack_start(self.sumarr[aa], 1, 1, 2)
             hbox7.pack_start(vbox_1, 1, 1,2)
@@ -290,15 +291,15 @@ class MainWin(Gtk.Window):
                     actstr = ["register", "unregister", "cast", "uncast", ]
                     if pay['Action'] == 'cast':
                         idx = int(decpay['PayLoad']['Vote'])
-                        if idx >= 11:
+                        if idx >= numofcols:
                             print("bad vote value", idx)
-                        self.tally[ idx % 11 ] += 1
+                        self.tally[ idx % numofcols ] += 1
 
                     if pay['Action'] == 'uncast':
                         idx = int(decpay['PayLoad']['Vote'])
-                        if idx >= 11:
+                        if idx >= numofcols:
                             print("bad unvote value", idx)
-                        self.untally[ idx % 11 ] += 1
+                        self.untally[ idx % numofcols ] += 1
                     arrx = [dec['header']]
                     for aaa in self.fields[1:]:
                         try:

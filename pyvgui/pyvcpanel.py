@@ -35,9 +35,9 @@ except:
     sys.path.append(os.path.join(base,  "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
-from pyvguicom import sutil
+from pyvguicom import pgutils
 # Get Parent of module root
-sf = os.path.dirname(sutil.__file__)
+sf = os.path.dirname(pgutils.__file__)
 sys.path.append(os.path.join(sf, "..", "pyvguicom"))
 
 #print("Load:", sys.path[-1])

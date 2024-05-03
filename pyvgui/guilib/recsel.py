@@ -285,6 +285,7 @@ class RecSelDlg(Gtk.Dialog):
         self.stop = False
         self.w_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.sort_cnt = 0
+        self.reentry = False
 
         try:
             ic = Gtk.Image(); ic.set_from_file(conf.iconf2)
@@ -334,15 +335,7 @@ class RecSelDlg(Gtk.Dialog):
 
         self.vbox.pack_start(hbox4, 0, 0, 4)
 
-        #self.vbox.pack_start(pggui.xSpacer(), 0, 0, 0)
         hbox3 = Gtk.HBox()
-
-        #label13 = Gtk.Label.new("   Find an entry containing:   ")
-        #hbox3.pack_start(label13, 0, 0, 0)
-        #self.entry = Gtk.Entry()
-        #hbox3.pack_start(self.entry, 1, 1, 0)
-        #hbox3.pack_start(butt, 0, 0, 4)
-        #self.vbox.pack_start(hbox3, 0, 0, 4)
 
         self.ts = Gtk.ListStore(str, str, str, str, str)
         self.tview = self.create_ftree(self.ts)
@@ -416,9 +409,14 @@ class RecSelDlg(Gtk.Dialog):
         self.destroy()
 
     def search_entry(self, butt, entry):
+        if  self.reentry:
+            return
+        self.reentry = True
+
         #print("Search:", entry.get_text())
         self.populate("", entry.get_text())
         self.set_focus(self.tview)
+        self.reentry = False
 
     def search_idx(self, arg2, entry, hashname, hashfunc, duplicates=True):
 
@@ -427,7 +425,7 @@ class RecSelDlg(Gtk.Dialog):
         textx = entry.get_text()
         if not textx:
             msg = "Search text cannot be empty."
-            pgutils.message(msg)
+            pggui.message(msg, parent=self)
             return
 
         #print("Search for:", textx)
@@ -499,6 +497,10 @@ class RecSelDlg(Gtk.Dialog):
         self.set_focus(self.tview)
 
     def search_id(self, arg2, entry, hashname, hashfunc):
+
+        if  self.reentry:
+            return
+        self.reentry = True
         ttt = entry.get_text()
         #print("Search ID:", ttt)
         try:
@@ -506,11 +508,12 @@ class RecSelDlg(Gtk.Dialog):
         except:
             msg = "Must be a valid UUID"
             #print(msg)
-            pggui.message(msg)
+            pggui.message(msg, parent=self)
+            self.reentry = False
             return
-
         self.search_idx(arg2, entry, hashname, hashfunc)
         self.set_focus(self.tview)
+        self.reentry = False
 
     def stopload(self, butt):
 
@@ -713,7 +716,7 @@ class RecSelDlg(Gtk.Dialog):
                 msg = "Loaded %d records, stopping. \n" \
                         "If your intended record is not included, " \
                         "please narrow the filter condition." % (self.rec_cnt)
-                pggui.message(msg)
+                pggui.message(msg, parent=self)
                 self.set_focus(self.tview)
                 break
 

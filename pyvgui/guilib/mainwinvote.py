@@ -251,7 +251,6 @@ class MainWin(Gtk.Window):
         butt1 = Gtk.Button.new_with_mnemonic("Load vote_r")
         lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, butt1)
         butt1.connect("clicked", self.load_data)
-        lab3x.set_editable(False);
         self.dat_dict['uuid'] = lab3x
         rowcnt += 1
 
@@ -333,15 +332,17 @@ class MainWin(Gtk.Window):
 
         butt1 = Gtk.Button.new_with_mnemonic("Load _Ballot")
         tpb = ("Load Ballot: ", "pri", "Load new Ballot. (if not pre loaded)", "")
-        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tpb, butt1)
+        lab3b = pgentry.griddouble(self.gridx, 0, rowcnt, tpb, butt1)
         butt1.connect("clicked", self.load_ballot)
-        self.dat_dict['buuid'] = lab3x
+        self.dat_dict['buuid'] = lab3b
         rowcnt += 1
 
         tp1x = ("Ballot Nam_e: ", "name", "Autofilled, Ballot Name", None)
         tp2x = ("Election Date: ", "dob", "Autofilled, Election Date, YYYY/MM/DD", None)
-        lab1x, lab2x = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1x, tp2x, None)
-        lab1x.set_gray(True);  lab2x.set_gray(True)
+        lab1b, lab2b = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1x, tp2x, None)
+        lab1b.set_gray(True);  lab2b.set_gray(True)
+        self.dat_dict['bname'] = lab1b
+        self.dat_dict['bdate'] = lab2b
         rowcnt += 1
 
         # Create table from updated fields
@@ -427,9 +428,12 @@ class MainWin(Gtk.Window):
         except:
             dec = {}
             pass
-        #print("dec:", dec)
+        print("dec:", dec)
         # Assign to form
         self.dat_dict['buuid'].set_text(dec['uuid'])
+        self.dat_dict['bname'].set_text(dec['name'])
+        self.dat_dict['bdate'].set_text(dec['dob'])
+
         for aa in range(8):
             idx = "can%d" % (aa+1)
             self.candarr[aa].set_text(dec[idx])
@@ -523,7 +527,7 @@ class MainWin(Gtk.Window):
         #print("config_dlg")
         #print("pass pow:", self.powers)
         if self.powers != "Yes":
-            pgutils.message("Only Admin can Configure.")
+            pggui.message("Only Admin can Configure.")
         else:
             config.ConfigDlg(self.vcore, self.acore, self.authcore, self.conf)
 
@@ -711,7 +715,7 @@ class MainWin(Gtk.Window):
             return
         msg = "This will delete: '%s'. \nAre you sure?" % nnn
         self.status.set_status_text(msg)
-        ret = pggui.yesno(msg)
+        ret = pggui.yes_no(msg, default="No")
         if ret != Gtk.ResponseType.YES:
             return True
         ddd = self.dat_dict['uuid'].get_text()
@@ -745,7 +749,7 @@ class MainWin(Gtk.Window):
         if ccc:
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_status_text(msg)
-            ret = pggui.yesno(msg)
+            ret = pggui.yes_no(msg, default="No")
             if ret != Gtk.ResponseType.YES:
                 return True
 
@@ -780,8 +784,8 @@ class MainWin(Gtk.Window):
         #if ccc:
         #    msg = "Unsaved data. Are you sure you want to abandon it?"
         #    self.status.set_status_text(msg)
-        #    ret = pggui.yesno(msg)
-        #    #print("yesno:", ret)
+        #    ret = pggui.yes_no(msg)
+        #    #print("yes_no:", ret)
         #    if ret != Gtk.ResponseType.YES:
         #        return True
         #    else:
@@ -793,12 +797,12 @@ class MainWin(Gtk.Window):
         #    self.dat_dict[aa].set_text("")
         #self.reset_changed()
 
-        sss = recsel.RecSelDlg(self.vcore, self.acore, self.conf)
+        sss = recsel.RecSelDlg(self.score, self.acore, self.conf)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
-        #print("sss.res:", sss.res)
+        print("sss.res:", sss.res)
         try:
-            dat = self.vcore.retrieve(sss.res[0][3])
+            dat = self.score.retrieve(sss.res[0][3])
         except:
             dat = []
             print(sys.exc_info())
@@ -971,8 +975,8 @@ class MainWin(Gtk.Window):
         if ccc:
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_status_text(msg)
-            ret = pggui.yesno(msg)
-            #print("yesno:", ret)
+            ret = pggui.yes_no(msg, default="No")
+            #print("yes_no:", ret)
             if ret != Gtk.ResponseType.YES:
                 return True
             else:

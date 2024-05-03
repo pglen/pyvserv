@@ -18,7 +18,7 @@ classx = [
         ]
 
 includex = ["*", "pyvgui/", "pyvgui/guilib/", "pyvclient/", "pyvserver/",
-                    "pyvcommon/", "pyvtools/", ]
+                    "pyvcommon/", "pyvtools/",]
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -121,7 +121,8 @@ setuptools.setup(
                 "pyvserver/pyvreplic.py",
                 "pyvtools/pyvgenkey.py", "pyvtools/pyvgenkeys.py",
                 "pyvgui/pyvservui.py", "pyvgui/pyvcpanel.py",
-                "pyvgui/pyvtally.py",
+                "pyvgui/pyvtally.py",  "pyvgui/pyvvote.py",
+                "pyvgui/pyvpeople.py",  "pyvgui/pyvballot.py",
                 *test_scripts,
                 ],
     package_dir = {
@@ -137,6 +138,20 @@ setuptools.setup(
                         "pyvclient" : cdoclist,
                         "pyvtools"  : tdoclist,
                    },
+
+    data_files =  [
+                    ("pyvgui", [
+                                "pyvgui/pyvpeople.png",
+                                "pyvgui/pyvballot.png",
+                                "pyvgui/pyvvote.png",
+                                "pyvgui/vote.png",
+                                "pyvgui/pyvvote_sub.png"]),
+                    ("pyvgui/docs", [
+                                "pyvgui/docs/pyvtally.html",
+                                "pyvgui/docs/pyvcpanel.html",
+                                 "pyvgui/docs/pyvservui.html"]),
+                    ],
+
     python_requires='>=3',
     install_requires=deplist,
     entry_points={
@@ -147,6 +162,9 @@ setuptools.setup(
                              "pyvservui=pyvservui:mainfunct",
                              "pyvcpanel=pyvcpanel:mainfunct",
                              "pyvtally=pyvtally:mainfunct",
+                             "pyvvote=pyvvote:mainfunct",
+                             "pyvpeople=pyvpeople:mainfunct",
+                             "pyvballot=pyvballot:mainfunct",
                              test_exec,
             ],
     },

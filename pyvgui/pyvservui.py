@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -30,9 +30,9 @@ except:
     sys.path.append(os.path.join(base, "..", "pyvgui", "guilib"))
     from pyvcommon import support
 
-from pyvguicom import sutil
+from pyvguicom import pgutils
 # Get Parent of module root
-sf = os.path.dirname(sutil.__file__)
+sf = os.path.dirname(pgutils.__file__)
 sys.path.append(os.path.join(sf, "..", "pyvguicom"))
 
 from pyvcommon import support, comline, pywrap

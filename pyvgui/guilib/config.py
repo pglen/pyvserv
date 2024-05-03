@@ -207,7 +207,7 @@ class ConfigDlg(Gtk.Dialog):
             xid = xmodel.get_value(xiter2, 5)
             #print("Delete", xstr, xid)
             msg = "About to delete user: '%s' \nAre you sure?" % xstr
-            ret = pggui.yesno(msg)
+            ret = pggui.yes_no(msg, default="No")
             if ret != Gtk.ResponseType.YES:
                 return True
             try:
@@ -373,7 +373,7 @@ class ConfigDlg(Gtk.Dialog):
             # Is this a duplicate user?
             for aa in self.model:
                 if aa[0] == userx:
-                    pgutils.message("Duplicate user, cannot add.")
+                    pggui.message("Duplicate user, cannot add.", parent=self)
                     return
             ddd = passdlg.gen_def_data(userx, passx, flag)
             self.model.append(None, ddd[:-1])

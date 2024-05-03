@@ -15,8 +15,8 @@ from gi.repository import Pango
 
 from pyvguicom import pgbox
 from pyvguicom import pgsimp
-from pyvguicom import sutil
 from pyvguicom import pggui
+from pyvguicom import pgutils
 
 from pymenu import  *
 from pgui import  *
@@ -353,7 +353,7 @@ class MainWin(Gtk.Window):
                 #print(aa)
                 bb = aa.split()
                 self.tree2.append([bb[0], bb[1], bb[2], " ".join(bb[3:]) ])
-                sutil.usleep(10)
+                pgutils.usleep(10)
                 got = True
 
             if got:
@@ -384,7 +384,7 @@ class MainWin(Gtk.Window):
                 #print(aa)
                 bb = aa.split()
                 self.tree1.append([bb[0], bb[1], bb[2], " ".join(bb[3:]) ])
-                sutil.usleep(10)
+                pgutils.usleep(10)
                 got = True
 
             if got:
