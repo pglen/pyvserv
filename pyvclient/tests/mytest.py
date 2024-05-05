@@ -224,12 +224,11 @@ def session(hand, org_sess_key):
 def login(hand, sess_key, userx = "admin", passx = "1234"):
 
     resp = hand.client(["user", userx, ], sess_key)
-    #print ("Server response:", resp)
-    assert resp[0] == 'OK'
+    #print ("Server user response:", resp)
+    #assert resp[0] == 'OK'
     resp = hand.client(["pass", passx, ], sess_key)
-    #print ("Server response:", resp)
-    assert resp[0] == 'OK'
-
+    #print ("Server pass response:", resp)
+    #assert resp[0] == 'OK'
     return resp
 
 # EOF

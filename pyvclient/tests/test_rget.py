@@ -42,20 +42,20 @@ def teardown_module(module):
     #stop_server()
     #assert 0
 
-# We remember one for speed (no proof generation needed)
+# We remember one for speed (so no proof generation delay needed)
 
 ddd = \
-    {'header': '878fbcf2-f648-11ee-bd37-d563af48cd29',
-    'PayLoad': {'Default': 'None', 'Vote': 0,
-    'UID': '878fbcf3-f648-11ee-bd37-d563af48cd29',
-    'SubVote': 9, 'TUID': '878fbcf4-f648-11ee-bd37-d563af48cd29',
-    'Action': 'unregister', 'RUID': '878fbcf6-f648-11ee-bd37-d563af48cd29',
-    'TEST': 'Do NOT use'},
-    'now': 'Tue, 09 Apr 2024 04:09:46`',
-    'Replicated': 0,
-    '_Hash': 'ac4d4bb2eba2700c9c6784be1b931497b5ffcc8ca26863981ff5e468172686ca',
-    '_PowRand': b'\xbfl\x0b\xc2\xf6~\x8a\xba`\x1dk\xb8',
-    '_Proof': 'e937341b783ab963f926f58606fdd389fec8f770c1e5b26f58311ef3e6490000'}
+{'header': '67de6532-0a3b-11ef-bd5d-970b3bb6a2c6',
+ 'PayLoad': {'Default': 'None', 'Vote': 10,
+ 'UID': '67de6533-0a3b-11ef-bd5d-970b3bb6a2c6', 'SubVote': 9,
+ 'TUID': '67de6534-0a3b-11ef-bd5d-970b3bb6a2c6',
+  'Action': 'cast', 'RUID': '67de6536-0a3b-11ef-bd5d-970b3bb6a2c6',
+  'TEST': 'Do NOT use'}, 'now': 'Sat, 04 May 2024 13:26:13',
+  'stamp': '1714843573.0', 'iso': '2024-05-04T13:26:13',
+  'Replicated': 0,
+  '_Hash': '3cc15d44cf02ad340d50fae522b5c9aecbff622060e61c0c3298944f1cf4ae9b',
+  '_PowRand': b'\xc5\xbfI\xc9\xc82\xd0\x17\xc2\xdc"\xed',
+  '_Proof': '160b6ff47fbded54ce1f98ae8dcdbca8c93983ef784c900d63993e2928aed000'}
 
 # The code that was used to generate above entry:
 #pvh = pyvhash.BcData()
@@ -92,13 +92,14 @@ def test_func(capsys):
 
     ret = hand.start_session(conf)
 
-    cresp = hand.client(["user", "admin"], conf.sess_key)
-    #print ("Server user respo:", cresp)
-
-    #ttt = time.time()
-    cresp = hand.client(["pass", "1234"], conf.sess_key)
+    cresp = login(hand, conf.sess_key, "admin", "1234")
     #print("pass %.3fms" % ((time.time() - ttt) * 1000) )
-    #print ("Server pass resp:", cresp)
+    print ("Server pass resp:", cresp)
+    if cresp != "OK":
+        resp5 = hand.client(["uini", "admin", "1234", ], conf.sess_key, False)
+        print("uini resp:", resp5)
+        cresp = login(hand, conf.sess_key, "admin", "1234")
+        print ("Server pass resp:", cresp)
 
     cresp = hand.client(["dmode",], conf.sess_key)
     #print("dmode", cresp)
@@ -122,13 +123,13 @@ def test_func(capsys):
 
     cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
                          dd_end.timestamp()], conf.sess_key)
-    #print ("Server  rlist response:", cresp)
+    print ("Server rlist response:", cresp)
 
     if cresp[0] != "OK" or len(cresp[1]) < 1:
         # Put one, if none exist
         pvh = pyvhash.BcData(ddd)
         cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
-        #print ("Server rput response:", cresp)
+        print ("Server rput response:", cresp)
         assert cresp[0] == 'OK'
 
         cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
@@ -151,5 +152,7 @@ def test_func(capsys):
     resp = hand.client(["quit"], conf.sess_key)
     hand.close()
     #assert resp[0] == 'OK'
+
+    #assert 0
 
 # EOF

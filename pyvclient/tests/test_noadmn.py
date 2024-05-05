@@ -75,7 +75,11 @@ def test_func(capsys):
     print("uadd Response:", resp)
     #assert resp[0] ==  "OK"
 
-    resp = login(hand, sess_key, "peterx", "1234")
+    resp = hand.client(["logout", ], sess_key)
+    print("logout Response:", resp)
+    assert resp[0] ==  "OK"
+
+    resp = login(hand, sess_key, "peterx", "1234" )
     print("login2:", resp)
     assert resp[0] == 'OK'
 
@@ -87,6 +91,10 @@ def test_func(capsys):
     resp = hand.client(["uadd", "petery", "1234"], sess_key)
     print("add Response:", resp)
     assert resp[0] ==  "ERR"
+
+    resp = hand.client(["logout", ], sess_key)
+    print("logout Response:", resp)
+    assert resp[0] ==  "OK"
 
     # Log back in as admin
     resp = login(hand, sess_key)

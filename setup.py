@@ -52,7 +52,7 @@ fp = open("pyvcommon/pyservsup.py", "rt")
 vvv = fp.read(); fp.close()
 loc_vers =  '1.0.0'     # Default
 for aa in vvv.split("\n"):
-    idx = aa.find("version =")
+    idx = aa.find("VERSION =")
     if idx == 0:        # At the beginning of line
         try:
             loc_vers = aa.split()[2].replace('"', "")
@@ -60,6 +60,7 @@ for aa in vvv.split("\n"):
         except:
             pass
 #print("loc_vers:", loc_vers)
+#sys.exit(0)
 
 # Dependency list, generate separate for windows
 # Sat 06.Apr.2024 same for all
@@ -74,7 +75,7 @@ try:
 except:
     # No fnctl, windows
     deplist = ["pyvpacker", "pydbase", "pycryptodome",
-                        "pyvecc", "pyvguicom"],
+                        "pyvecc", "pyvguicom", ],
 
 doclist = []; droot = "pyvserver/docs/"
 doclistx = os.listdir(droot)
@@ -100,6 +101,12 @@ for aa in tdoclistx:
 #print("tdoclist:", tdoclist)
 #sys.exit(1)
 
+classx = [
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ]
+
 setuptools.setup(
     name="pyvserv",
     version=loc_vers,
@@ -109,11 +116,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/pglen/pyvserv",
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-    ],
+    classifiers=classx,
     packages=setuptools.find_packages(include=includex),
     include_package_data = True,
     scripts = [

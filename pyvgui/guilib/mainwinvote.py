@@ -104,6 +104,10 @@ class MainWin(Gtk.Window):
         self.conf.iconf  = os.path.dirname(globals.conf.me) + os.sep + "pyvvote.png"
         self.conf.iconf2 = os.path.dirname(globals.conf.me) + os.sep + "pyvvote_sub.png"
         self.conf.siteid = globals.siteid
+        self.oneshot = False
+
+        self.radioarr = {}
+
         try:
             #print("iconf", self.conf.iconf)
             ic = Gtk.Image(); ic.set_from_file(self.conf.iconf)
@@ -225,7 +229,7 @@ class MainWin(Gtk.Window):
         hbox4.pack_start(butt4, False, 0, 2)
 
         butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad Vote ")
-        butt3.connect("clicked", self.load_data)
+        butt3.connect("clicked", self.load_vote)
         hbox4.pack_start(butt3, False, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic("     E_xit    ")
@@ -250,7 +254,7 @@ class MainWin(Gtk.Window):
         tp3x = ("User / Client UUID: ", "uuid", "Load / Select Client UUID", None)
         butt1 = Gtk.Button.new_with_mnemonic("Load vote_r")
         lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, butt1)
-        butt1.connect("clicked", self.load_data)
+        butt1.connect("clicked", self.load_voter)
         self.dat_dict['uuid'] = lab3x
         rowcnt += 1
 
@@ -297,7 +301,7 @@ class MainWin(Gtk.Window):
         self.dat_dict['vuuid'] = lab4z
         rowcnt += 1
 
-        tp4x = ("Site UUID: ", "guid", "Group / Site UID", None)
+        tp4x = ("Site GUID: ", "guid", "Group / Site UID", None)
         butt2 = Gtk.Button.new_with_mnemonic("Load")
         lab4x = pgentry.griddouble(self.gridx, 0, rowcnt, tp4x, butt2)
         butt2.connect("clicked", self.load_site_uuid, lab4x)
@@ -346,22 +350,24 @@ class MainWin(Gtk.Window):
         rowcnt += 1
 
         # Create table from updated fields
-        self.candarr = []
+        self.cand_dict = {}
+        for aa in range(9):
+            candidx = "can%d" % (aa)
+            self.cand_dict[candidx] = Gtk.Entry()
 
-        for aa in range(1, 9):
-            self.candarr.append(Gtk.Entry())
-
-        #for aa in self.candarr:
+        #print("cand_dict", self.cand_dict.keys())
+        #for aa in self.cand_dict:
         #    aa.connect("focus-out-event", self.lost_focus)
 
         self.candstr =  [\
             "None", ]
         for aa in range(8):
             self.candstr.append("Candidate %d" % (aa + 1))
-        #print("candarr:", candarr)
+        #print("candstr:", self.candstr)
+        #print("cand_dict:", cand_dict)
 
         self.labrow = rowcnt
-        rowcnt = self.preview(self.labrow)
+        rowcnt = self.preview()
 
         tp7 = ("Primary Vote: ", "pri", "Select primary vote", None)
         tp8 = ("Secondary vote: ", "sec", "Write in secondary vote. (if applicable)", None)
@@ -376,6 +382,7 @@ class MainWin(Gtk.Window):
         lab6x = pgentry.gridsingle(self.gridx, 0, rowcnt, tp6x)
         self.dat_dict['vnotes'] = lab6x
         rowcnt += 1
+
 
         frame = Gtk.Frame()
         self.gridx.attach(frame, 1, rowcnt, 3, 1)
@@ -406,6 +413,18 @@ class MainWin(Gtk.Window):
 
     def load_ballot(self, arg2):
 
+        # See if previous one saved
+        #if self.is_changed():
+        #    msg = "Unsaved data. Are you sure you want to abandon it?"
+        #    self.status.set_status_text(msg)
+        #    ret = pggui.yes_no(msg)
+        #    #print("yes_no:", ret)
+        #    if ret != Gtk.ResponseType.YES:
+        #        return True
+        #    else:
+        #        #print("Abandoning", self.dat_dict['name'].get_text())
+        #        pass
+
         heads = ["", "", "Election Date", "", ""]
         sss = recsel.RecSelDlg(self.bcore, self.acore, self.conf, headers=heads)
         if sss.response != Gtk.ResponseType.ACCEPT:
@@ -428,19 +447,28 @@ class MainWin(Gtk.Window):
         except:
             dec = {}
             pass
-        print("dec:", dec)
+        #print("dec:", dec)
         # Assign to form
         self.dat_dict['buuid'].set_text(dec['uuid'])
         self.dat_dict['bname'].set_text(dec['name'])
         self.dat_dict['bdate'].set_text(dec['dob'])
 
-        for aa in range(8):
-            idx = "can%d" % (aa+1)
-            self.candarr[aa].set_text(dec[idx])
-        self.preview(self.labrow)
+        self.dat_dict['vprim'].set_text("")
+        self.dat_dict['vsec'].set_text("")
 
-    def preview(self, rowcnt):
+        for aa in range(1, 9):
+            candidx = "can%d" % (aa)
+            self.cand_dict[candidx].set_text(dec[candidx])
 
+        # Voter data changed
+        #self.reset_changed()
+        self.preview()
+        # Select the NONE entry
+        self.noneradio.set_active(True)
+
+    def preview(self):
+
+        rowcnt = self.labrow
         #print("rowcnt", rowcnt)
 
         def _checked(arg2):
@@ -450,27 +478,29 @@ class MainWin(Gtk.Window):
                 # Clear it to empty
                 if txtx == "None":
                     txtx = ""
-                self.dat_dict['vprim'].set_text(txtx)
+                if not self.oneshot:
+                    self.dat_dict['vprim'].set_text(txtx)
+                self.oneshot = False
                 self.status.set_status_text("Selected: '%s'" % txtx)
 
-        rrr = None; col = 0
+        col = 0
 
         # Generate matching random index for
-        lenx = len(self.candarr)
-        randarr = [-1 for _ in range(lenx)]
+        lenx = len(self.cand_dict) - 1
+        self.randarr = [-1 for _ in range(lenx)]
         cnt = 0
         # Shuffle
         while True:
             xx = random.randint(0, lenx-1)
             # Make sure it is unique
-            if randarr[xx] != -1:
+            if self.randarr[xx] != -1:
                 continue
-            randarr[xx] = cnt
+            self.randarr[xx] = cnt + 1
             cnt += 1
             # Are we done?
             if cnt >= lenx:
                 break
-        #print("rarr:", randarr)
+        #print("rarr:", self.randarr)
 
         # Create the 'None' entry
         nnn = "None"
@@ -478,15 +508,18 @@ class MainWin(Gtk.Window):
         if not rrr:
             radiox = Gtk.RadioButton.new_with_label(None, nnn)
             radiox.connect("toggled", _checked)
-            rrr = radiox
+            self.noneradio = radiox
             self.gridx.attach(radiox, col % 3 +  1, rowcnt, 1, 1)
         else:
-            rrr.textx = nnn
-            rrr.set_label(nnn)
+            self.noneradio.textx = nnn
+            self.noneradio.set_label(nnn)
         col += 1
 
-        for cc in range(len(self.candarr)):
-            txtx = self.candarr[randarr[cc]].get_text()
+        # All others
+        cnt = 0
+        for cc in list(self.cand_dict.keys())[1:]:
+            candidx = "can%d" % (self.randarr[cnt])
+            txtx = self.cand_dict[candidx].get_text()
             tooltip = "Click to activate selection."
             if len(txtx) > 24:
                 bb = txtx[:24] + ".."
@@ -496,31 +529,30 @@ class MainWin(Gtk.Window):
                     bb = "Candidate %d" % (col)
                 else:
                     bb = txtx
-
-            radiox = Gtk.RadioButton.new_with_label(None, bb)
-            radiox.set_tooltip_text(tooltip)
-            radiox.textx = txtx
-            radiox.connect("toggled", _checked)
-            radiox.join_group(rrr)
-
             ccc = self.gridx.get_child_at(col % 3 +  1, rowcnt)
             if not ccc:
-                ccc = radiox
+                radiox = Gtk.RadioButton.new_with_label(None, bb)
+                radiox.set_tooltip_text(tooltip)
+                radiox.textx = txtx
+                radiox.connect("toggled", _checked)
+                radiox.join_group(self.noneradio)
                 self.gridx.attach(radiox, col % 3 +  1, rowcnt, 1, 1)
+                ccc = radiox
+
+                radidx = "can%d" % (cnt)
+                self.radioarr[radidx] = radiox
             else:
                 #print("ccc", ccc.textx)
                 ccc.textx = txtx
                 ccc.set_label(bb)
-
             if not txtx:
                 ccc.set_sensitive(False)
             else:
                 ccc.set_sensitive(True)
-
             if col % 3 == 2:
                 rowcnt += 1
-            col += 1
-
+            col += 1; cnt += 1
+        #print("radioarr", self.radioarr)
         return rowcnt
 
     def config_dlg(self, arg2):
@@ -563,11 +595,16 @@ class MainWin(Gtk.Window):
         for aa in self.dat_dict.keys():
             self.dat_dict[aa].set_sensitive(flag)
 
-    def is_changed(self):
-        ccc = False
-        for aa in self.dat_dict.keys():
-            if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
-                ccc = True
+    def is_changed(self, keyx = None):
+
+        if not keyx:
+            ccc = False
+            for aa in self.dat_dict.keys():
+                if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
+                    ccc = True
+        else:
+            return self.dat_dict_org[keyx] != self.dat_dict[keyx].get_text()
+
         return ccc
 
     def pressed_dob(self, arg, arg2):
@@ -613,7 +650,7 @@ class MainWin(Gtk.Window):
 
     def load_uuid(self, arg, arg2):
         if arg2.get_text() != "":
-            msg = "Already has a UUID; Cannot set."
+            msg = "Already has a UUID; Cannot set, clear it first."
             pggui.message(msg)
             self.status.set_status_text(msg)
             return
@@ -621,7 +658,7 @@ class MainWin(Gtk.Window):
 
     def load_op_uuid(self, arg, arg2):
         if arg2.get_text() != "":
-            msg = "Already has a OUID; Cannot set."
+            msg = "Already has a OUID; Cannot set, clear it first."
             pggui.message(msg)
             self.status.set_status_text(msg)
             return
@@ -629,7 +666,7 @@ class MainWin(Gtk.Window):
 
     def load_vote_uuid(self, arg, arg2):
         if arg2.get_text() != "":
-            msg = "Already has a Vote UUID; Cannot set."
+            msg = "Already has a Vote UUID; Cannot set, clear it first."
             pggui.message(msg)
             self.status.set_status_text(msg)
             return
@@ -637,7 +674,7 @@ class MainWin(Gtk.Window):
 
     def load_site_uuid(self, arg, arg2):
         if arg2.get_text() != "":
-            msg = "Already has a Site UUID; Cannot set."
+            msg = "Already has a Site UUID; Cannot set, clear it first."
             pggui.message(msg)
             self.status.set_status_text(msg)
             return
@@ -724,10 +761,10 @@ class MainWin(Gtk.Window):
         for aa in ddd2:
             #print("deleting:", ddd2)
             try:
-                rrr = self.vcore.get_rec(aa)
+                rrrr = self.vcore.get_rec(aa)
                 ret = self.vcore.del_rec(aa)
                 #print(aa, "del ret:", ret)
-                recsel.audit(self.acore, self.packer, "Deleted Record", rrr[1])
+                recsel.audit(self.acore, self.packer, "Deleted Record", rrrr[1])
                 self.status.set_status_text("Record '%s' deleted." % nnn)
             except:
                 print(sys.exc_info())
@@ -742,11 +779,7 @@ class MainWin(Gtk.Window):
     def new_data(self, arg):
 
         # See if previous one saved
-        ccc = False
-        for aa in self.dat_dict.keys():
-            if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
-                ccc = True
-        if ccc:
+        if self.is_changed():
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_status_text(msg)
             ret = pggui.yes_no(msg, default="No")
@@ -758,51 +791,37 @@ class MainWin(Gtk.Window):
             self.dat_dict[aa].set_text("")
 
         # Fill in defaults
-        dd = datetime.datetime.now().replace(microsecond=0)
-        self.dat_dict['vnow'].set_text(dd.isoformat())
-        self.dat_dict['vuuid'].set_text(str(uuid.uuid1()))
-        self.dat_dict['vguid'].set_text(str(self.conf.siteid))
-        self.dat_dict['vouid'].set_text(str(self.ouid))
-        self.dat_dict['voper'].set_text(str(self.operator))
+        #dd = datetime.datetime.now().replace(microsecond=0)
+        #self.dat_dict['vnow'].set_text(dd.isoformat())
+        #self.dat_dict['vuuid'].set_text(str(uuid.uuid1()))
+        #self.dat_dict['vguid'].set_text(str(self.conf.siteid))
+        #self.dat_dict['vouid'].set_text(str(self.ouid))
+        #self.dat_dict['voper'].set_text(str(self.operator))
 
         self.reset_changed()
         self.set_focus(self.dat_dict['name'])
 
-    def load_data(self, arg):
+    def load_vote(self, arg):
 
         # See if previous one saved
-        #ccc = False
-        #for aa in self.dat_dict.keys():
-        #    if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
-        #        ccc = True
-
-        #if ccc:
-        #    msg = "Please save current data before loading a new one."
-        #    self.status.set_status_text(msg)
-        #    pggui.message(msg)
-        #    return
-        #if ccc:
-        #    msg = "Unsaved data. Are you sure you want to abandon it?"
-        #    self.status.set_status_text(msg)
-        #    ret = pggui.yes_no(msg)
-        #    #print("yes_no:", ret)
-        #    if ret != Gtk.ResponseType.YES:
-        #        return True
-        #    else:
-        #        #print("Abandoning", self.dat_dict['name'].get_text())
-        #        pass
-
-        # Clear, reset
-        #for aa in self.dat_dict.keys():
-        #    self.dat_dict[aa].set_text("")
-        #self.reset_changed()
+        if self.is_changed():
+            msg = "Unsaved data. Are you sure you want to abandon it?"
+            self.status.set_status_text(msg)
+            ret = pggui.yes_no(msg, default="No")
+            #print("yes_no:", ret)
+            if ret != Gtk.ResponseType.YES:
+                return True
+            else:
+                #print("Abandoning", self.dat_dict['name'].get_text())
+                pass
 
         sss = recsel.RecSelDlg(self.score, self.acore, self.conf)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
-        print("sss.res:", sss.res)
+        #print("sss.res:", sss.res)
         try:
-            dat = self.score.retrieve(sss.res[0][3])
+            #dat = self.score.retrieve(sss.res[0][3])
+            dat = self.score.get_rec(int(sss.res[0][4]))
         except:
             dat = []
             print(sys.exc_info())
@@ -815,11 +834,87 @@ class MainWin(Gtk.Window):
             return
         #print("dat:", dat)
         try:
-            dec = self.packer.decode_data(dat[0][1])[0]
+            dec = self.packer.decode_data(dat[1])[0]
         except:
             dec = {}
             pass
         #print("dec:", dec)
+        for aa in dec.keys():
+            #print("Key:", aa[:3])
+            try:
+                if aa[:3] == "can":
+                    #print("Cand", aa)
+                    self.cand_dict[aa].set_text(dec[aa])
+                self.dat_dict[aa].set_text(dec[aa])
+            except:
+                pass
+
+        self.preview()
+
+        # Select matching entry:
+        cntc = 0
+        cc = self.dat_dict['vprim'].get_text()
+        #print("anchor:", cc)
+        for aa in range(len(self.cand_dict)-1):  #.keys():
+            candidx = "can%d" % (self.randarr[cntc])
+            bb = self.cand_dict[candidx].get_text()
+            if bb == cc:
+                #print("found bb:", bb, "ref:", aa)
+                posidx = "can%d" % (aa)
+                self.oneshot = True
+                self.radioarr[posidx].set_active(True)
+                #break
+            cntc += 1
+
+        # Mark as non changed (disabled)
+        self.reset_changed()
+
+        msg = "Loaded vote: '%s'" % dec['name']
+        self.status.set_status_text(msg)
+        #self.status.set_status_text("Loaded:", dec['name'])
+
+    def load_voter(self, arg):
+
+        # See if previous one saved
+        if self.is_changed("uuid"):
+            msg = "Unsaved data. Are you sure you want to abandon it?"
+            self.status.set_status_text(msg)
+            ret = pggui.yes_no(msg, default="No")
+            #print("yes_no:", ret)
+            if ret != Gtk.ResponseType.YES:
+                return True
+            else:
+                #print("Abandoning", self.dat_dict['name'].get_text())
+                pass
+
+        sss = recsel.RecSelDlg(self.vcore, self.acore, self.conf)
+        if sss.response != Gtk.ResponseType.ACCEPT:
+            return
+        #print("sss.res:", sss.res)
+        try:
+            #dat = self.score.retrieve(sss.res[0][3])
+            dat = self.vcore.get_rec(int(sss.res[0][4]))
+        except:
+            dat = []
+            print(sys.exc_info())
+            pass
+        if not dat:
+            msg = "No data selected."
+            #print(msg)
+            self.status.set_status_text(msg)
+            pggui.message(msg)
+            return
+        #print("dat:", dat)
+        try:
+            dec = self.packer.decode_data(dat[1])[0]
+        except:
+            dec = {}
+            pass
+        #print("dec:", dec)
+        #for aa in dec.keys():
+        #    print("Key:", aa)
+
+        # Partial fill, redirect fields
         for aa in dec.keys():
             try:
                 self.dat_dict[aa].set_text(dec[aa])
@@ -829,7 +924,7 @@ class MainWin(Gtk.Window):
         # Mark as non changed (disabled)
         #self.reset_changed()
 
-        msg = "Loaded: '%s'" % dec['name']
+        msg = "Loaded voter: '%s'" % dec['name']
         self.status.set_status_text(msg)
         #self.status.set_status_text("Loaded:", dec['name'])
 
@@ -862,16 +957,24 @@ class MainWin(Gtk.Window):
                 else:
                     self.dat_dict[aa].set_text(pgutils.randstr(random.randint(6, 22)))
             sleepx = 20
-            pgutils.usleep(sleepx)
+            pgutils.usleep(sleep)
             self.save_data(0)
             self.clear_data()
 
     def save_data(self, arg1):
 
-        # See if changed
+        ''' See if data changed, save_vote '''
+
         if not self.is_changed():
             msg = "Nothing changed, cannot save."
             self.status.set_status_text(msg)
+            pggui.message(msg)
+            return
+
+        if not self.dat_dict['uuid'].get_text():
+            msg = "Must have a Voter UUID."
+            self.status.set_status_text(msg)
+            self.set_focus(self.dat_dict['name'])
             pggui.message(msg)
             return
 
@@ -890,19 +993,27 @@ class MainWin(Gtk.Window):
             pggui.message(msg)
             return
 
+        buuid = self.dat_dict['buuid'].get_text()
+        if not buuid:
+            msg = "Must have a ballot loaded."
+            self.status.set_status_text(msg)
+            self.set_focus(self.dat_dict['dob'])
+            pggui.message(msg)
+            return
+
         # This we can generate but the user better know about it
         # Wed 01.May.2024, no, we just generate
-        try:
-            uuu = uuid.UUID(self.dat_dict['uuid'].get_text())
-        except:
-            #print("Gen UUID", sys.exc_info())
-            #msg = "Cannot save without a valid UUID"
-            #self.status.set_status_text(msg)
-            #pggui.message(msg)
-            #return
-            self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
+        #try:
+        #    uuu = uuid.UUID(self.dat_dict['uuid'].get_text())
+        #except:
+        #    #print("Gen UUID", sys.exc_info())
+        #    #msg = "Cannot save without a valid UUID"
+        #    #self.status.set_status_text(msg)
+        #    #pggui.message(msg)
+        #    #return
+        #    self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
 
-        # Commemorate event by setting a fresh date
+        # Commemorate the event by setting a fresh date
         #if  self.dat_dict['now'].get_text() == "":
         dd = datetime.datetime.now()
         dd = dd.replace(microsecond=0)
@@ -911,12 +1022,28 @@ class MainWin(Gtk.Window):
         # Autofill what we can
         dd = datetime.datetime.now().replace(microsecond=0)
         self.dat_dict['vnow'].set_text(dd.isoformat())
+
         if self.dat_dict['vuuid'].get_text() == "":
             self.dat_dict['vuuid'].set_text(str(uuid.uuid1()))
+        # These are constant, save them
+        if self.dat_dict['vguid'].get_text() == "":
+            self.dat_dict['vguid'].set_text(str(self.conf.siteid))
+        if self.dat_dict['vouid'].get_text() == "":
+            self.dat_dict['vouid'].set_text(str(self.ouid))
+        if self.dat_dict['voper'].get_text() == "":
+            self.dat_dict['voper'].set_text(str(self.operator))
 
-        self.dat_dict['vguid'].set_text(str(self.conf.siteid))
-        self.dat_dict['vouid'].set_text(str(self.ouid))
-        self.dat_dict['voper'].set_text(str(self.operator))
+        # Check id IDs are in order:
+        checklist = ("uuid", "vuuid", "vguid", "vouid", )
+        for aa in checklist:
+            try:
+                uuu = uuid.UUID(self.dat_dict[aa].get_text())
+            except:
+                msg = "Invalid '" + aa.upper() + "' please correct."
+                self.status.set_status_text(msg)
+                self.set_focus(self.dat_dict[aa])
+                pggui.message(msg)
+                return
 
         if not self.dat_dict['vprim'].get_text():
             msg = "Must have at least a primary vote."
@@ -929,7 +1056,11 @@ class MainWin(Gtk.Window):
         for aa in self.dat_dict.keys():
             ddd[aa] = self.dat_dict[aa].get_text()
 
-        #print("Save_data", ddd)
+        # Save Ballot as well:
+        for aa in list(self.cand_dict.keys.sort())[1:]:
+            ddd[aa] = self.cand_dict[aa].get_text()
+
+        print("Save_data", ddd)
         enc = self.packer.encode_data("", ddd)
         #print("enc:", enc)
         uuu = self.dat_dict['vuuid'].get_text()
@@ -968,11 +1099,7 @@ class MainWin(Gtk.Window):
 
     def  OnExit(self, arg, srg2 = None):
 
-        ccc = False
-        for aa in self.dat_dict.keys():
-            if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
-                ccc = True
-        if ccc:
+        if self.is_changed():
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_status_text(msg)
             ret = pggui.yes_no(msg, default="No")

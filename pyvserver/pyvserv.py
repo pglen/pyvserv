@@ -24,7 +24,7 @@ import socket
 import threading
 import tracemalloc
 import datetime
-import distro
+#import distro
 
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
@@ -170,7 +170,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         if conf.pglog > 0:
             pysyslog.syslog("Connected " + " " + str(self.client_address))
 
-        response =  ["OK", "pyvserv %s ready" % pyservsup.version, self.name]
+        response =  ["OK", "pyvserv %s ready" % pyservsup.VERSION, self.name]
 
         # Connected, acknowledge it
         self.datahandler.putencode(response, "")
@@ -434,7 +434,7 @@ class serve_one():
         if conf.pglog > 0:
             pysyslog.syslog("Connected ", str(self.client_address))
 
-        response =  ["OK", "pyvserv %s ready" % pyservsup.version]
+        response =  ["OK", "pyvserv %s ready" % pyservsup.VERSION]
         # Connected, acknowledge it
         self.datahandler.putencode(response, "")
 
@@ -594,17 +594,21 @@ def start_server():
 def signon_message():
 
     ''' message for the terminal '''
+
     if not conf.quiet:
         if not pyservsup.globals.conf.pmode:
             print("Warning! Devmode ON. Use -P to allow 2FA auth")
-        try:
-            strx = distro.name()
-        except:
-            strx = "Win or Unkn."
+
+        # Sat 04.May.2024 Dropped the distro, so can be installed on pipx
+        #try:
+        #    strx = distro.name()
+        #except:
+        #    strx = "Win or Unkn."
+
         print("MainSiteID:      ", pyservsup.globals.siteid)
         print("Server running: ", "'"+conf.host+"'", "Port:", conf.port)
         #pyver = support.list2str(sys.version_info) #[0:3], ".")
-        print("Running python", platform.python_version(), "on", platform.system(), strx)
+        print("Running python", platform.python_version(), "on", platform.system())
 
 def set_sigs():
 

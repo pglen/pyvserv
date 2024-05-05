@@ -1318,7 +1318,7 @@ def get_ver_func(self, strx):
     if pyservsup.globals.conf.pgdebug > 1:
         print( "get_ver_func()", strx)
 
-    res = [OK, "%s" % pyservsup.version,
+    res = [OK, "%s" % pyservsup.VERSION,
                         "%s" % pyservsup.globals.siteid, self.name]
 
     if pyservsup.globals.conf.pgdebug > 4:
@@ -1388,16 +1388,17 @@ def get_lout_func(self, strx):
         return
 
     if pyservsup.globals.conf.pglog > 0:
-        stry = "Logout", _wr(resp.user), \
+        stry = "Logout", _wr(self.resp.user), \
                 str(self.resp.client_address)
         pysyslog.syslog(*stry)
 
     if self.pgdebug > 3:
         print("logout", self.resp.user)
 
-    if resp.user:
-        pyservsup.SHARED_LOGINS.deldat(resp.user)
+    if self.resp.user:
+        pyservsup.SHARED_LOGINS.deldat(self.resp.user)
 
+    olduser = self.resp.user
     self.resp.user = ""
 
     response = [OK, "Logged out.", olduser, ]
