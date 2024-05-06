@@ -76,6 +76,9 @@ previous record. Utilities to verify the data are also provided.
 
     pip install pyvserv
 
+ Newer Linux-es do not allow pip to modify the system, pyvserv may be installed
+ with pipx, which separates the sever process into a virtual environment.
+
  Dependencies:
 
  Most linux systems already have all the dependencies by default. Some dependencies
@@ -83,7 +86,7 @@ previous record. Utilities to verify the data are also provided.
 
      pydbase, pyvpacker, pyvecc, pyvguicom
 
- The firewall needs to be opened for incoming connections on port xxxx
+ The firewall needs to be opened for incoming connections on port NN
 
 For example (assuming port 6666):
 
@@ -106,17 +109,24 @@ For example (assuming port 6666):
 It is ported to Windows MSYS2, with all major functions operating as expected.
 
  On Fedora, the service files need to be re-written to accomodate the
-quirk that the Fedora systectl does not allow user executables. Install
-the 'pip pyvserv' as root, and adjust the service file accordingly. If you want
-to use pyvserv with  particular data directory, use the -r option.
+quirk that the Fedora systectl does not allow user executables.
 
- On Debian and newer (23+) Ubuntu the system needs the --break-system-packages
- on pip. (unless one creates a venv for it) This is a cutionary arrangement
- for the OS, pyvserv does not break anything.
+One solution is to install the 'pip pyvserv' as root, and adjust the service
+file accordingly. If you want to use pyvserv with particular data directory,
+use the -r option.
+
+On Debian and newer Ubuntu-s (23+) the system needs the --break-system-packages
+option on pip. If that is not desired, one may create a venv for pyvserv.
+This is a cautionary arrangement for the OS, pyvserv does not break anything.
+The other solution is to use pipx.
 
     pip install pyvserv --break-system-packages
 
-Also the scripts are installed in ~/.local/bin, so add the following line
+or ..
+
+    pipx install pyvserv
+
+pip installs the scripts in ~/.local/bin, so add the following line
   to the end of ~/.bashrc:
 
     PATH=$PATH:~/.local/bin
@@ -129,22 +139,22 @@ This workaround is not needed if one installs pyvserv in a virtual environment.
     pip install pyvserv
     ... continue as needed.
 
-The makefile target 'make installvirt' will install pyvserv in a virtual
+ The makefile target 'make installvirt' will install pyvserv in a virtual
 environment.
 
- Running pyvserv as a system daemon from virtual environment needs extra
+  Running pyvserv as a system daemon from virtual environment needs extra
 configuration steps. You may use the make target: 'make genservice_virt'
 and activate with 'make instservice'
 Please see the relevant systemctl manuals.
 
 #### Quick map:
 
-    Server.     subdir: pyvserver       -- Server has most all the commands done
+    Server.     subdir: pyvserver       -- Server has most all the commands
     Client.     subdir: pyvclient       -- Exercise server commands / demo code
     Test Suite. subdir: pyvclient/tests -- official pytest tests
-    Tool Suite. subdir: pyvtools        -- Key generation etc ...
-    GUI base    subdir: pyvgui          -- Monitoring / administering the server
-    Studies.    subdir: study           -- testing/learning subsystems (ignore it)
+    Tool Suite. subdir: pyvtools        -- Key generation ... etc
+    GUI base    subdir: pyvgui          -- Monitoring / Administering the server
+    Studies.    subdir: study           -- Testing/learning subsystems (ignore it)
 
 #### Quick start:
 
@@ -177,23 +187,23 @@ Quick rundown of the above test:
 
 This interaction is typical of all the commands.
 
-The unique ID is the session's thread ID and it is not cryptographically secure;
-Mostly useful for identifying the session on the client side.
+The unique ID is the session's thread ID and it is not meant to be used other than
+identifying the session on the client side.
 
  The best way to learn about the operation of the server is to look at the
 sample client examples in the client source tree. (Files named pyvcli_*)
 
 ## The pip install
 
- Scripts are provided for the server, and some test clients. The
-  server can be started as
+Scripts are provided for the server, and some test clients. The
+server can be started as
 
     pyvserver
 
  The -P option is for non Developer mode, enabling 2FA authentication.
- (two factor authentication)
+(two factor authentication)
 
- The command line client can be started as:
+The command line client can be started as:
 
     pyvcli_cli
 
@@ -280,14 +290,14 @@ The hour is in 24 hour notation.
 The following are all valid dates specs, specifying the same date
 (in 2024 apr 15 at 00:00):
 
-    2024-04-15 2024-04-15+0:0 04-15 04-15+00:00
+    '2024-04-15' '2024-04-15+0:0' '04-15 04-15+00:00'
 
 ## Testing:
 
- All pytest cases pass successfully. Note that for the pytest client
- tests one needs to start the server. ('./pyvserv.py' or pyvserv if installed)
- The server --port and --dataroot option can be used to start the server in
- an alternate 'universe', so it does not interfere with production.
+   All pytest cases pass successfully. Note that for the pytest client
+tests one needs to start the server. ('./pyvserv.py' or pyvserv if installed)
+The server --port and --dataroot option can be used to start the server in
+an alternate 'universe', so it does not interfere with production.
 
     ============================ test session starts ==============================
     platform linux -- Python 3.10.12, pytest-7.4.3, pluggy-1.0.0
@@ -318,16 +328,19 @@ Additional tests can be found in the tests/ directory. The pyvcli_* files in the
 Once the testing phase is complete, deploying it for production needs a
 complete wipe of the data. There are Makefile targets that do that
 (make cleanall). Restarting the server will create the new environment without
-any users. To allow operation one may create the initial user with the uini
-functions and / or scripts.
+any users. To allow operation one may create the initial user with the pyvcli_uini
+functions and / or scripts. Make sure you create strong passwords.
 The uini command can only operate successfully if there are no users present in the
 pyvserv system, and it is executed from the loopback interface. For example,
 the command line utility ./pyvcli_uini.py can be used;
-For production, it can executed with the -t option to prompt for a password.
+For production, uini should executed with the -t option to prompt for a password.
 
 ## Screen shots:
 
-Screen shot of the Monitoring tool:
+ Following, a set of screen shots to demonstrate the sub systems from entering
+voter data, casting votes, monitoring vote servers, watching vote tallies.
+
+### Screen shot of the Monitoring tool:
 
 ![Screen Shot](montool.png)
 
@@ -340,6 +353,29 @@ originally formatted, without the blockchain and hash details.
 
   All views monitor the live log files, on the default setup. The montor functions
 operate, without interfering with any of the operations.
+
+### Screen shot of the Voter Entry tool:
+
+![Screen Shot](people.png)
+
+The UUID fields serve identification of the voter, the organization hosting
+the record entry, and the operator that entered this record.
+
+### Screen shot of the Ballot Editing tool:
+
+![Screen Shot](ballot.png)
+
+The UUID fields serve identification of the ballot, the organization hosting
+the ballot entry, and the operator that entered this record.
+
+### Screen shot of the Vote Casting tool:
+
+![Screen Shot](cast.png)
+
+The vote choices are presented in random order, as recent studies show the
+order influences the voting process.
+The UUID fields serve identification of the vote, the organization hosting
+the ballot entry, and the operator that entered this record.
 
 ## Windows compatibility
 
@@ -368,6 +404,7 @@ The project is functional in MSYS2, but for real deployment we recommend Linux.
     1.0.1   Fri 15.Mar.2024    Added LIC, verification, doc, tally
     1.0.3   Wed 03.Apr.2024    Ported to MSYS2, throttle, for multiprocess
     1.0.4   Tue 09.Apr.2024    Cleanup, uman fman rman completed
+    1.0.4   Mon 06.May.2024    Progress on vote tools
 
 ## Statistics
 

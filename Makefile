@@ -1,13 +1,11 @@
+# Use it to build modules, generate service files, install sevices
 #
-# Used to build modules, generate service file, install sevice file
-#
-
-# These scripts work on the default installation
+# These scripts work on the default configuration
 
 .PHONY: tests clean docs
 
 all:
-	@echo Targets: git tests clean deb -- for more targets see make help
+	@echo Targets: git tests clean -- for more targets see: make help
 
 help:
 	@echo  "\tgit         --  checkin to git (for developers)      "
@@ -47,9 +45,6 @@ clean:
 	@rm -rf  build/*
 	@rm -f pyvserv.service
 	@rm -rf pip_pyvserv/*
-
-freshdata:
-	@rm -rf ~/pyvserver/*
 
 cleanall:
 	@rm -rf ~/pyvserver/*
@@ -131,7 +126,13 @@ disableservice:
 	sudo systemctl disable --now pyvserv.service
 
 # The pyvserv may be installed in a virtual environment.
-# Control it froom here
+# Control it from here
+
+install:
+	./pyvserv_install.sh
+
+uninstall:
+	./pyvserv_uninstall.sh
 
 installvirt:
 	./pyvserv_venv_install.sh
@@ -139,5 +140,14 @@ installvirt:
 startvirt:
 	./pyvserv_venv.sh
 
+git2:
+	@$(eval AAA=$(shell zenity --entry --text "Enter Git Commit Message:"))
+	git add .
+	git commit -m $AAA
+	git push
+
+testinput:
+	@$(eval AAA=$(shell zenity --entry --text "Shell Prompt:"))
+	@echo Typed text: \"${AAA}\"
 
 # EOF
