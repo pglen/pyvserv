@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import os, sys, getopt, signal, random, time, base64
-import string, warnings, uuid, datetime, struct, io
+import string, warnings, uuid, datetime, struct, io, threading
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -27,68 +27,13 @@ from pyvguicom import pgtests
 from pymenu import  *
 from pgui import  *
 
-import recsel, pgcal, config, passdlg
+import recsel, pgcal, config, passdlg, pymisc
 
 from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
-
 from pydbase import twincore, twinchain
-
 import pyvpacker
 
 from Crypto.Cipher import AES
-
-alllett =   string.ascii_lowercase + string.ascii_uppercase
-
-def randascii(lenx):
-
-    ''' Spew a lot of chars, simulate txt by add ' ' an '\n' '''
-
-    strx = ""
-    for aa in range(lenx):
-        ridx = random.randint(0x20, 0x7d)
-        rr = chr(ridx)
-        strx += str(rr)
-        if random.randint(0x00, 40) == 30:
-            strx += "\n"
-        if random.randint(0x00, 12) == 10:
-            strx += " "
-    return strx
-
-def simname(lenx):
-    strx = ""
-    lenz = len(alllett)-1
-    spidx = random.randint(0, lenx - 4)
-    ridx = random.randint(0, len(string.ascii_uppercase)-1)
-    strx += string.ascii_uppercase[ridx]
-    for aa in range(spidx):
-        ridx = random.randint(0, len(string.ascii_lowercase)-1)
-        rr = string.ascii_lowercase[ridx]
-        strx += str(rr)
-    strx += " "
-    ridx = random.randint(0, len(string.ascii_uppercase)-1)
-    strx += string.ascii_uppercase[ridx]
-    for aa in range(lenx - spidx):
-        ridx = random.randint(0, len(string.ascii_lowercase)-1)
-        rr = string.ascii_lowercase[ridx]
-        strx += str(rr)
-    return strx
-
-def randisodate():
-    dd = datetime.datetime.now()
-    dd = dd.replace(microsecond=0)
-    return dd.isoformat()
-
-def randate():
-
-    ''' Give us a random date in str '''
-
-    dd = datetime.datetime.now()
-    dd = dd.replace(year=random.randint(1980, 2024),
-                        month=random.randint(1, 12),
-                           day=random.randint(1, 28),
-                             hour=0, minute=0, second=0, microsecond=0)
-
-    return dd.strftime("%Y/%m/%d")
 
 # ------------------------------------------------------------------------
 
@@ -211,7 +156,7 @@ class MainWin(Gtk.Window):
         hbox4 = Gtk.HBox()
         lab1 = Gtk.Label("   ");
         hbox4.pack_start(lab1, 0, 0, 0)
-        self.status = recsel.Status()
+        self.status = pymisc.Status()
         hbox4.pack_start(self.status, 1, 1, 0)
 
         lab1 = Gtk.Label(" ");
@@ -275,8 +220,8 @@ class MainWin(Gtk.Window):
         self.dat_dict['ndob'] = lab2
         rowcnt += 1
 
-        tp9b = ("Date of entry:"," ",  "Autofilled, date of entry", None)
-        tp10b = ("Entered by:", " ", "Autofilled, Operator, who entered this voter.", None)
+        tp9b = ("Date of entry:","nnow",  "Autofilled, date of entry", None)
+        tp10b = ("Entered by:", "noper", "Autofilled, Operator, who entered this voter.", None)
         lab15, lab16 = pgentry.gridquad(self.gridx, 0, rowcnt, tp9b, tp10b, None)
         lab15.set_gray(True);  lab16.set_gray(True)
 
@@ -285,13 +230,6 @@ class MainWin(Gtk.Window):
         self.dat_dict['nnow'] = lab15
         self.dat_dict['noper'] = lab16
         rowcnt += 1
-
-        #tp7a = ("Phone: ", "phone", "Phone or text number. ", None)
-        #tp8a = ("Email: ", "email", "Primary Email", None)
-        #lab11, lab12 = pgentry.gridquad(self.gridx, 0, rowcnt, tp7a, tp8a)
-        #self.dat_dict['phone'] = lab11
-        #self.dat_dict['email'] = lab12
-        #rowcnt += 1
 
         # ----------------------------------------------------------------
 
@@ -324,11 +262,11 @@ class MainWin(Gtk.Window):
         rowcnt += 1
 
         butt2o = Gtk.Button.new_with_mnemonic("Load")
-        tp9b = ("Now: (date of entry)"," ",  "Autofilled, date of entry", None)
-        tp10b = ("Operator:", " ", "Autofilled, Operator, who entered this record.", None)
+        tp9b = ("Now: (date of entry)","now",  "Autofilled, date of entry", None)
+        tp10b = ("Operator:", "voper", "Autofilled, Operator, who entered this record.", None)
         lab15, lab16 = pgentry.gridquad(self.gridx, 0, rowcnt, tp9b, tp10b, butt2o)
+        lab15.set_gray(False);   lab16.set_gray(False);
         butt2o.connect("clicked", self.load_op_name, lab16, lab15)
-        #lab15.set_editable(False);   lab16.set_editable(False);
         rowcnt += 1
 
         self.dat_dict['now'] = lab15
@@ -341,13 +279,13 @@ class MainWin(Gtk.Window):
         rowcnt += 1
 
         butt1 = Gtk.Button.new_with_mnemonic("Load _Ballot")
-        tpb = ("Ballot: ", "pri", "Load new Ballot. (if not pre loaded)", "")
+        tpb = ("Ballot UUID: ", "bbuid", "Load new Ballot. (if not pre loaded)", "")
         lab3b = pgentry.griddouble(self.gridx, 0, rowcnt, tpb, butt1)
         butt1.connect("clicked", self.load_ballot)
         self.dat_dict['buuid'] = lab3b
         rowcnt += 1
 
-        tp1x = ("Ballot Nam_e: ", "name", "Autofilled, Ballot Name", None)
+        tp1x = ("Ballot Nam_e: ", "bname", "Autofilled, Ballot Name", None)
         tp2x = ("Election Date: ", "dob", "Autofilled, Election Date, YYYY/MM/DD", None)
         lab1b, lab2b = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1x, tp2x, None)
         lab1b.set_gray(True);  lab2b.set_gray(True)
@@ -412,6 +350,9 @@ class MainWin(Gtk.Window):
         vbox.pack_start(hbox4, False, 0, 2)
 
         self.preload_vote()
+        if self.conf.soundx > 1:
+            self.conf.playsound.play_sound("")
+            #self.conf.playsound.play_all()
 
         self.add(vbox)
         self.show_all()
@@ -578,18 +519,27 @@ class MainWin(Gtk.Window):
         while True:
             if authcnt > 3:
                 pggui.message("Too May tries, exiting.")
-                sys.exit(1)
+                self.exit_all()
+                break
+
             ret = passdlg.auth_initial(self.authcore, self.packer, self.conf)
             #print("ret:", ret)
+            if ret[0] < 0:
+                # Cancel
+                self.exit_all()
+                break
+
             if not ret[0]:
                 authcnt += 1
                 continue
+
             if ret[1][2] != "Enabled":
                 authcnt += 1
                 msg = "Cannot log in, user '%s' is disbled " % ret[1][0]
                 self.status.set_status_text(msg)
                 pggui.message(msg)
                 continue
+
             # Success
             self.operator = ret[1][0]
             self.powers   = ret[1][4]
@@ -762,9 +712,18 @@ class MainWin(Gtk.Window):
             if ret != Gtk.ResponseType.YES:
                 return True
 
-        # Clear, reset
+        # Clear everything except the ballot
         for aa in self.dat_dict.keys():
-            self.dat_dict[aa].set_text("")
+            if aa == 'dob':
+                pass
+            elif aa == 'buuid':
+                pass
+            elif aa == 'bname':
+                pass
+            else:
+                self.dat_dict[aa].set_text("")
+
+        self.preview()
 
         # Fill in defaults
         #dd = datetime.datetime.now().replace(microsecond=0)
@@ -801,7 +760,7 @@ class MainWin(Gtk.Window):
         except:
             dec = {}
             pass
-        print("preload dec:", dec)
+        #print("preload dec:", dec)
 
         # Assign preview to form
         self.dat_dict['buuid'].set_text(dec['buuid'])
@@ -956,10 +915,8 @@ class MainWin(Gtk.Window):
         if self.dat_dict['nuuid'].get_text():
             msg = "This record already has a voter. Please create a new record."
             self.status.set_status_text(msg)
-            ret = pggui.yes_no(msg, default="No")
-            #print("yes_no:", ret)
-            if ret != Gtk.ResponseType.YES:
-                return True
+            ret = pggui.message(msg)
+            return True
 
         # See if previous one saved
         if self.is_changed("nuuid"):
@@ -1105,20 +1062,20 @@ class MainWin(Gtk.Window):
         if not self.is_changed():
             msg = "Nothing changed, cannot save."
             self.status.set_status_text(msg)
-            pggui.message(msg)
+            pymisc.message(msg, conf=self.conf)
             return
 
         if not self.dat_dict['nuuid'].get_text():
             msg = "Must have a Voter UUID."
             self.status.set_status_text(msg)
-            self.set_focus(self.dat_dict['name'])
+            self.set_focus(self.dat_dict['nuuid'])
             pggui.message(msg)
             return
 
         if not self.dat_dict['name'].get_text():
             msg = "Must have a Voter name."
             self.status.set_status_text(msg)
-            self.set_focus(self.dat_dict['name'])
+            self.set_focus(self.dat_dict['nuuid'])
             pggui.message(msg)
             return
 
@@ -1126,7 +1083,7 @@ class MainWin(Gtk.Window):
         if not ndob or len(ndob.split("/")) < 3:
             msg = "Must have a valid Voter date of birth. (yyyy/mm/dd)"
             self.status.set_status_text(msg)
-            self.set_focus(self.dat_dict['dob'])
+            self.set_focus(self.dat_dict['nuuid'])
             pggui.message(msg)
             return
 
@@ -1134,7 +1091,7 @@ class MainWin(Gtk.Window):
         if not buuid:
             msg = "Must have a ballot loaded."
             self.status.set_status_text(msg)
-            self.set_focus(self.dat_dict['dob'])
+            self.set_focus(self.dat_dict['buuid'])
             pggui.message(msg)
             return
 
@@ -1214,6 +1171,7 @@ class MainWin(Gtk.Window):
         finally:
             self.votecore.postexec = None
 
+        self.sound.play_sound("shutter")
         self.status.set_status_text("Vote for '%s' saved." % self.dat_dict['name'].get_text())
 
         for aa in self.dat_dict.keys():

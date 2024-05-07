@@ -978,38 +978,4 @@ class RecSelDlg(Gtk.Dialog):
             if event.keyval in (Gdk.KEY_Alt_L, Gdk.KEY_Alt_R):
                 self.alt = False
 
-MAXSTATLEN = 36
-class Status(Gtk.Label):
-
-    ''' Status that disappears after a while '''
-
-    def __init__(self):
-        #super().__init__(self)
-        Gtk.Label.__init__(self)
-        self.set_xalign(0)
-        self.set_size_request(150, -1)
-        self.status_cnt = 0
-        self.set_status_text("Initial ..")
-        GLib.timeout_add(1000, self._timer)
-
-    def set_status_text(self, *textx):
-        sum = ""
-        for aa in textx:
-            sum += aa + " "
-        #print("set_text", textx)
-        self.set_tooltip_text(sum)
-        if len(sum) > MAXSTATLEN:
-            sum = sum[:MAXSTATLEN] + ".."
-        self.set_text(sum)
-        self.status_cnt = len(sum) // 4
-
-    def _timer(self):
-        #print("timer",  self.status_cnt)
-        if self.status_cnt:
-            self.status_cnt -= 1
-            if self.status_cnt == 0:
-                self.set_text("Idle.")
-                self.set_tooltip_text("")
-        return True
-
 # EOF

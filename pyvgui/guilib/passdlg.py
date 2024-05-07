@@ -90,12 +90,14 @@ def auth_initial(authcore, packer, conf):
             ret = addauth(authcore, packer, userx, decr, "Yes")
         else:
             ret = auth(authcore, packer, userx, decr)
-        #print("auth:", ret)
         if ret[0] != 1:
             pggui.message("Bad user or password")
     else:
-        pggui.message("Must authenticate")
+        dret = pggui.yes_no("Must authenticate. Cancel login process?")
+        if dret == Gtk.ResponseType.YES:
+            ret = [-1]
 
+    #print("auth ret:", ret)
     return ret
 
 def addauth(authcore, packer, uname, passx, flag):

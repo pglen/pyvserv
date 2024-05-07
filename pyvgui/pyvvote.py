@@ -4,7 +4,7 @@
 # pylint: disable=E1101
 # pylint: disable=C0410
 
-import os, sys
+import os, sys, getopt
 
 if  sys.version_info[0] < 3:
     print("Needs python 3 or better.")
@@ -38,7 +38,7 @@ except:
 
 from pyvcommon import support, comline, pyservsup
 
-from guilib import mainwinvote
+from guilib import mainwinvote, pymisc
 
 # -----------------------------------------------------------------------
 # Globals
@@ -47,23 +47,26 @@ version = "1.00"
 
 # ------------------------------------------------------------------------
 
-def phelp():
+def phelploc():
 
     ''' Display help '''
 
-    print( "Voter adminstration utility. Add / Review / Delete voters.")
+    print( "Vote editing utility. Add / Review / Delete voters.")
     print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -v        - Verbose. Print more info.")
-    print( "            -u        - User Name. Defult: 'admin'")
-    print( "            -a        - Clear text password. For test only. Default: '1234'")
+    print( "            -u name   - User Name. Defult: 'admin'")
+    print( "            -a pass   - Clear text password. For test only. Default: '1234'")
     print( "            -V        - Print version number.")
     print( "            -t        - Test mode. Extra buttons.")
+    print( "            -e        - Enable sounds.")
     print( "            -q        - Quiet. Less printing.")
     print( "            -h        - Help (This screen)")
-    sys.exit(0)
 
+    #print( "            -s val    - Tests value")
     #print( "            -p        - Port to use (default: 6666)")
+
+    sys.exit(0)
 
 # ------------------------------------------------------------------------
 def pversion():
@@ -76,15 +79,18 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "debug=",       "pgdebug",  0,              None],      \
-    ["p:",  "port=",        "port",     6666,           None],      \
     ["v",   "verbose",      "verbose",  0,              None],      \
     ["q",   "quiet",        "quiet",    0,              None],      \
+    ["e",   "soundx",       "soundx",   0,              None],      \
     ["u:",  "user=",        "user",     "admin",        None],      \
     ["a:",  "pass=",        "apass",    "1234",         None],      \
-    ["t",   "testx",        "testx",    0,              None],      \
+    ["t",   "test",         "testx",    0,              None],      \
     ["r:",  "dataroot=",    "droot",    "pyvclient",    None],      \
     ["V",   "version",      None,       None,           pversion],  \
-    ["h",   "help",         None,       None,           phelp]      \
+    ["h",   "help",         None,       None,           phelploc]      \
+
+#    ["p:",  "port=",        "port",     6666,           None],      \
+#    ["s:",  "tests=",       "tests",    0.,              None],      \
 
 conf = comline.ConfigLong(optarr)
 
@@ -93,12 +99,27 @@ def mainfunct():
     ''' Main entry point '''
 
     #print("pyvcpanel started ...")
-    args = conf.comline(sys.argv[1:])
+    try:
+        args = conf.comline(sys.argv[1:])
+
+    except getopt.GetoptError:
+        sys.exit(1)
+    except SystemExit:
+        sys.exit()
+    except:
+        print(sys.exc_info())
+
     #print("args", args)
 
-    # To know where the icon file is
+    # To know where the icon files are
     conf.me = __file__
     #print(dir(conf))
+    #print("conf.soundx", conf.soundx)
+    #print("conf.tests", conf.tests)
+    conf.printvars()
+
+    if conf.soundx:
+        conf.playsound = pymisc.Soundx()
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
@@ -123,12 +144,15 @@ def mainfunct():
 
     pyservsup.gl_passwd = pyservsup.Passwd()
 
+    #phelploc()
+
     mw = mainwinvote.MainWin(pyservsup.globals)
     mw.main()
-    sys.exit(0)
+    #sys.exit(0)
 
 if __name__ == '__main__':
 
     mainfunct()
+    sys.exit(1)
 
 # EOF

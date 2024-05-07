@@ -237,13 +237,14 @@ class ConfigLong:
                     self.__dict__[self._optarr[bb][2]] = None
                 elif type(self._optarr[bb][3]) == type(0):
                     self.__dict__[self._optarr[bb][2]] = int(self._optarr[bb][3])
+                elif type(self._optarr[bb][3]) == type(0.):
+                    self.__dict__[self._optarr[bb][2]] = float(self._optarr[bb][3])
                 elif type(self._optarr[bb][3]) == type(""):
                     self.__dict__[self._optarr[bb][2]] = str(self._optarr[bb][3])
                 else:
-                    print("Can only have int and str type not", type(self._optarr[bb][3]))
-                    raise ValueError("Can only None, have int and string - not %s" \
+                    print("Can only have int and str type; not", type(self._optarr[bb][3]))
+                    raise ValueError("Can only None, int, float and string type - not %s" \
                                              % (type(self._optarr[bb][3])))
-
 
     def printvars(self):
         print("Variables -----")
@@ -264,6 +265,9 @@ class ConfigLong:
         print("End Variables -----")
 
     def comline(self, argv):
+
+        ''' Parse what is comong from the command line '''
+
         optletters = "";  longopt = []
         for aa in self._optarr:
             if aa[0] in optletters:
@@ -300,7 +304,7 @@ class ConfigLong:
                     ddd = ddd[:-1]
                     eee = eee[:-1]
 
-                #print ("aa",  aa, "one opt", self.optarr[bb][:-1], ddd, eee)
+                #print ("aa",  aa, "bb", bb, "one opt", self._optarr[bb][:-1], ddd, eee)
                 if aa[0] == ddd or aa[0] == eee:
                     #print ("match", aa, ddd)
                     if len(self._optarr[bb][0]) > 1:
@@ -318,7 +322,7 @@ class ConfigLong:
                     else:
                         #print ("set", self._optarr[bb][1], self._optarr[bb][2])
                         if self._optarr[bb][3] != None:
-                            self.__dict__[self._optarr[bb][1]] = 1
+                            self.__dict__[self._optarr[bb][1]] += 1
                         #print ("call", self.optarr[bb][3])
                         if self._optarr[bb][4] != None:
                             self._optarr[bb][4]()
