@@ -192,7 +192,7 @@ class MainWin(Gtk.Window):
         butt2.connect("clicked", self.new_data)
         hbox4a.pack_start(butt2, False, 0, 2)
 
-        butt2 = Gtk.Button.new_with_mnemonic(" Dele_te entry ")
+        butt2 = Gtk.Button.new_with_mnemonic(" _Delete entry ")
         butt2.connect("clicked", self.del_data)
         hbox4a.pack_start(butt2, False, 0, 2)
         hbox4a.pack_start(Gtk.Label("   "), 0, 0, 2)
@@ -223,12 +223,9 @@ class MainWin(Gtk.Window):
         hbox4 = Gtk.HBox()
         lab1 = Gtk.Label("   ");
         hbox4.pack_start(lab1, 0, 0, 0)
-        lab2a = Gtk.Label(" Initializing ...");
-        hbox4.pack_start(lab2a, 1, 1, 0)
-        lab2a.set_xalign(0)
-        lab2a.set_size_request(150, -1)
 
         self.status = recsel.Status()
+        hbox4.pack_start(self.status, 1, 1, 0)
 
         lab1 = Gtk.Label(" ");
         hbox4.pack_start(lab1, 1, 1, 0)
@@ -430,7 +427,6 @@ class MainWin(Gtk.Window):
             self.en_dis_all(True)
             recsel.audit(self.acore, self.packer, "Successful Login", ret[1][0])
             break
-
         self.set_focus(self.dat_dict['name'])
 
     def en_dis_all(self, flag):
@@ -594,7 +590,8 @@ class MainWin(Gtk.Window):
                 rrr = self.vcore.get_rec(aa)
                 ret = self.vcore.del_rec(aa)
                 #print(aa, "del ret:", ret)
-                recsel.audit(self.acore, self.packer, "Deleted Record", rrr[1])
+                dec = self.packer.decode_data(rrr[1])[0]
+                recsel.audit(self.acore, self.packer, "Deleted Record", dec)
                 self.status.set_status_text("Record '%s' deleted." % nnn)
             except:
                 print(sys.exc_info())

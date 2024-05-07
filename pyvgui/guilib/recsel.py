@@ -32,6 +32,9 @@ from pyvguicom import pgentry
 
 from pyvcommon import pyvhash
 
+# Maximum records to show in dialog
+MAXREC = 1000
+
 # Make even and odd flags for obfuscation. This way boolean desision
 # is made on an integer instead of 0 and 1
 
@@ -116,7 +119,7 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
         data = ifp.read(slice)
         if not data:
             break;
-
+        #print("data", data)
         # Bulk search it first
         if not hhh2 in data:
             cnt += slice // 4
@@ -238,6 +241,8 @@ def hashname(vcore, rrr):
 
 def audit(acore, packer, eventstr, rrr):
 
+    #print("Audit:", eventstr, rrr)
+
     auditx = {};
     auditx['header'] = str(uuid.uuid1())
     auditx['event'] = eventstr
@@ -256,16 +261,21 @@ def audit(acore, packer, eventstr, rrr):
 
 class RecSelDlg(Gtk.Dialog):
 
-    ''' The record selection dialog. We attach state vars to the class,
-    it was attached to the dialog in the original version.
-
-    Using hash for fast retrieval.
-
+    '''
+        The record selection dialog. We attach state vars to the class,
+        it was attached to the dialog in the original version.
+        Using pydbase hash for fast retrieval.
     '''
 
     def __init__(self, vcore, acore, conf, duplicates=False, headers=[]):
 
         #print("dup:", duplicates, "heads:", headers)
+
+        # Overridden by passed headers
+        self.stock_headers = ["Name", "Date of entry", "Date of birth",
+                         "UUID", "Position"]
+
+        self.stock_fields = ["name", "now", "dob", "uuid", "pos"]
 
         super().__init__(self)
 
@@ -707,10 +717,10 @@ class RecSelDlg(Gtk.Dialog):
                     break
             sig = False
             if filterx == "ALL":
-                if self.rec_cnt >= 5000:
+                if self.rec_cnt >= MAXREC * 2:
                     sig = True
             else:
-                if self.rec_cnt >= 1000:
+                if self.rec_cnt >= MAXREC:
                     sig = True
             if sig:
                 msg = "Loaded %d records, stopping. \n" \
@@ -820,8 +830,6 @@ class RecSelDlg(Gtk.Dialog):
         # create the tview using ts
         tv = Gtk.TreeView(model=ts)
 
-        self.stock_headers = ["Name", "Date of entry", "Date of birth",
-                         "UUID", "Position"]
         realheaders = []
         # Padd it from the two header arrays; missing or empty -> sub stock
         for aa in range(len(self.stock_headers)):
@@ -896,11 +904,12 @@ class RecSelDlg(Gtk.Dialog):
 
         ddd2 = search_index(self.vcore, self.vcore.hashname, textx, hashid)
         for aa in ddd2:
-            #print("deleting:", ddd2)
+            print("deleting:", ddd2)
             try:
                 rrr = self.vcore.get_rec(aa)
-                self.vcore.del_rec(aa)
                 #print("del rrr", rrr)
+                ret = self.vcore.del_rec(aa)
+                #print("delrec ret:", ret)
                 audit(self.acore, self.packer, "Deleted Record (from Menu)", rrr[1])
             except:
                 print("delrec,", sys.exc_info())
@@ -969,6 +978,7 @@ class RecSelDlg(Gtk.Dialog):
             if event.keyval in (Gdk.KEY_Alt_L, Gdk.KEY_Alt_R):
                 self.alt = False
 
+MAXSTATLEN = 36
 class Status(Gtk.Label):
 
     ''' Status that disappears after a while '''
@@ -987,6 +997,9 @@ class Status(Gtk.Label):
         for aa in textx:
             sum += aa + " "
         #print("set_text", textx)
+        self.set_tooltip_text(sum)
+        if len(sum) > MAXSTATLEN:
+            sum = sum[:MAXSTATLEN] + ".."
         self.set_text(sum)
         self.status_cnt = len(sum) // 4
 
@@ -996,6 +1009,7 @@ class Status(Gtk.Label):
             self.status_cnt -= 1
             if self.status_cnt == 0:
                 self.set_text("Idle.")
+                self.set_tooltip_text("")
         return True
 
 # EOF
