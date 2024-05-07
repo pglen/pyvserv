@@ -84,13 +84,11 @@ STATE_FNAME   = "rstate.pydb"
 
 MAX_DBSIZE = 20                 # Size of DB when vacuum
 
-class Blank(): pass
+class Blank():
+    ''' Empty class for config data '''
+    pass
 
 TIMING = Blank()
-
-class Blank():
-    ''' Empth class for config data '''
-
 
 def cutid(strx, beg = 13, end = 8):
     ''' Return a shortened string with '...' separator '''
@@ -638,7 +636,7 @@ optarr.append ( ["e",  "showdel=", "sdel",  0,
 optarr.append ( ["t:",  "time=", "timedel",  2,
                         None, "Time between replications default='2s'"] )
 optarr.append ( ["l:",  "loglevel=", "loglev",  1,
-                        None, "Log level 0=none 1=success 2=reason default='1'"] )
+                        None, "Log level 0=none 1=pass 2=fail default='1'"] )
 optarr.append ( ["s",  "ttime", "ttime",  0,
                         None, "Test timing (vs production)"] )
 

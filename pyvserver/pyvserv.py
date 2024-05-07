@@ -45,17 +45,16 @@ else:
 __doc__ = ''' <pre>\
 The main pyvserv excutable.
 Usage: pyvserv.py [options]
-  options:
-        -n   --host      host       -  Set server hostname / interface.
-        -r   --dataroot  droot      -  Set data root for server.
-        -l   --loglevel  pglog      -  Log level (0 - 10) default = 1
-        -d   --debug     pgdebug    -  Debug level 0-10
-        -p   --port      port       -  Listen on port
-        -v   --verbose              -  Verbose. Show more info.
-        -q   --quiet                -  Quiet. Show less info.
-        -V   --version              -  Print Version string
-        -h   --help                 -  Show Help. (this screen)
-        -P   --pmode                -  Production mode ON. (allow 2FA)
+options: -n   --host      host     -  Set server hostname / interface.
+         -r   --dataroot  droot    -  Set data root for server.
+         -l   --loglevel  pglog    -  Log level (0 - 10) default = 1
+         -d   --debug     pgdebug  -  Debug level 0-10
+         -p   --port      port     -  Listen on port
+         -v   --verbose            -  Verbose. Show more info.
+         -q   --quiet              -  Quiet. Show less info.
+         -V   --version            -  Print Version string
+         -h   --help               -  Show Help. (this screen)
+         -P   --pmode              -  Production mode ON. (allow 2FA)
 Use quotes for multiple option strings. </pre>'''
 
 progname = os.path.split(sys.argv[0])[1]
@@ -487,17 +486,17 @@ def simple_server(Host, Port):
 # Tue 02.Apr.2024 made devmode default
 
 optarr =  []
-optarr.append ( ["n:",  "host=",     "host",   "127.0.0.1",
-            None, "Set server hostname / interface. default=127.0.0.1"] )
+optarr.append ( ["n:",  "hostname=",     "host",   "127.0.0.1",
+            None, "Set server interface name."] )
 optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
-            None, "Set data root for server. default:~/pyvserver "] )
+            None, "Set data root. default:~/pyvserver "] )
 optarr.append ( ["l:",  "loglevel=", "pglog",       1,
             None, "Log level. 0=none 10=noisy default=1"] )
 
 optarr += comline.optarrlong
 
 optarr.append ( ["m",   "mem",       "mem",         0,
-                                None, "Show memory trace. (Advanced users only.)"] )
+                                None, "Show memory trace. (Advanced usage only.)"] )
 #optarr.append ( ["N",   "norepl",    "norepl",      0,
 #                            None, "No replication. (for testing)"] )
 optarr.append ( ["P",   "pmode",     "pmode",       0,
@@ -507,7 +506,7 @@ comline.sethead("The main pyvserv excutable.")
 #comline.setprog(os.path.basename(sys.argv[0]))
 comline.setprog(os.path.basename(__file__))
 comline.setargs("[options]")
-comline.setfoot("Use quotes for multiple option strings.")
+#comline.setfoot("Use quotes for multiple option strings.")
 
 conf = comline.ConfigLong(optarr)
 #conf.printvars()

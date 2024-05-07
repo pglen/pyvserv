@@ -76,6 +76,15 @@ def auth_initial(authcore, packer, conf):
 
     ret = [0, ]
     datasize = authcore.getdbsize()
+    if datasize > 0:
+        # Check if pre-auth
+        if conf.prompt:
+            ret = auth(authcore, packer, conf.user, conf.apass)
+            if ret[0] == 1:
+                return ret
+            else:
+                pggui.message("Invalid user / pass from command line prompt.")
+
     dlg = PassDlg(datasize == 0, conf)
     #print(dlg.res)
     if dlg.res[0] == Gtk.ResponseType.ACCEPT:

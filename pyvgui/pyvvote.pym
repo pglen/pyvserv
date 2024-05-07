@@ -4,7 +4,7 @@
 # pylint: disable=E1101
 # pylint: disable=C0410
 
-import os, sys, getopt, signal
+import os, sys, getopt
 
 if  sys.version_info[0] < 3:
     print("Needs python 3 or better.")
@@ -58,11 +58,13 @@ def phelploc():
     print( "            -u name   - User Name. Defult: 'admin'")
     print( "            -a pass   - Clear text password. For test only. Default: '1234'")
     print( "            -V        - Print version number.")
-    print( "            -t        - Prompt for pass")
-    print( "            -s        - Disable sounds.")
-    print( "            -z        - Test mode. Extra buttons.")
+    print( "            -t        - Test mode. Extra buttons.")
+    print( "            -e        - Enable sounds.")
     print( "            -q        - Quiet. Less printing.")
     print( "            -h        - Help (This screen)")
+
+    #print( "            -s val    - Tests value")
+    #print( "            -p        - Port to use (default: 6666)")
 
     sys.exit(0)
 
@@ -77,16 +79,18 @@ def pversion():
     # option, var_name, initial_val, function
 optarr = \
     ["d:",  "debug=",       "pgdebug",  0,              None],      \
-    ["u:",  "user=",        "user",     "admin",        None],      \
-    ["a:",  "pass=",        "apass",    "1234",         None],      \
-    ["r:",  "dataroot=",    "droot",    "pyvclient",    None],      \
-    ["t",   "prompt",       "prompt",   0,              None],      \
     ["v",   "verbose",      "verbose",  0,              None],      \
     ["q",   "quiet",        "quiet",    0,              None],      \
-    ["s",   "sound",        "soundx",   0,              None],      \
-    ["z",   "test",         "testx",    0,              None],      \
-    ["V",   "version",       None,       None,          pversion],  \
-    ["h",   "help",          None,       None,          phelploc]      \
+    ["e",   "soundx",       "soundx",   0,              None],      \
+    ["u:",  "user=",        "user",     "admin",        None],      \
+    ["a:",  "pass=",        "apass",    "1234",         None],      \
+    ["t",   "test",         "testx",    0,              None],      \
+    ["r:",  "dataroot=",    "droot",    "pyvclient",    None],      \
+    ["V",   "version",      None,       None,           pversion],  \
+    ["h",   "help",         None,       None,           phelploc]      \
+
+#    ["p:",  "port=",        "port",     6666,           None],      \
+#    ["s:",  "tests=",       "tests",    0.,              None],      \
 
 conf = comline.ConfigLong(optarr)
 
@@ -94,6 +98,7 @@ def mainfunct():
 
     ''' Main entry point '''
 
+    #print("pyvcpanel started ...")
     try:
         args = conf.comline(sys.argv[1:])
     except getopt.GetoptError:
@@ -103,34 +108,21 @@ def mainfunct():
     except:
         print(sys.exc_info())
 
-    if conf.pgdebug > 4:
-        print("args", args)
+    #print("args", args)
 
     # To know where the icon files are
     conf.me = __file__
-    if conf.pgdebug > 4:
-        conf.printvars()
+    #print(dir(conf))
+    #print("conf.soundx", conf.soundx)
+    #print("conf.tests", conf.tests)
+    conf.printvars()
 
-    if not conf.soundx:
+    if conf.soundx:
         conf.playsound = pymisc.Soundx()
-    else:
-        conf.playsound = None
-
-    if conf.prompt:
-        def soft_terminate(arg2, arg3):
-            print("Ctrl-C pressed, exiting ...")
-            sys.exit(0)
-        signal.signal(signal.SIGINT, soft_terminate)
-        import getpass
-        strx = getpass.getpass("Enter Pass: ")
-        if not strx:
-            print("Empty pass, aborting ...")
-            sys.exit(0)
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        conf.apass  = strx
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
+
     pyservsup.globals.softmkdir(pyservsup.globals.myhome)
 
     # Change directory to the data dir

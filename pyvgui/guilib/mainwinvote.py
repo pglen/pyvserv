@@ -350,9 +350,8 @@ class MainWin(Gtk.Window):
         vbox.pack_start(hbox4, False, 0, 2)
 
         self.preload_vote()
-        if self.conf.soundx > 1:
+        if self.conf.playsound:
             self.conf.playsound.play_sound("")
-            #self.conf.playsound.play_all()
 
         self.add(vbox)
         self.show_all()
@@ -388,7 +387,7 @@ class MainWin(Gtk.Window):
             msg = "No data selected."
             #print(msg)
             self.status.set_status_text(msg)
-            pggui.message(msg)
+            pymisc.message(msg)
             return
         #print("dat:", dat)
         try:
@@ -509,7 +508,7 @@ class MainWin(Gtk.Window):
         #print("config_dlg")
         #print("pass pow:", self.powers)
         if self.powers != "Yes":
-            pggui.message("Only Admin can Configure.")
+            pymisc.message("Only Admin can Configure.")
         else:
             config.ConfigDlg(self.vcore, self.acore, self.authcore, self.conf)
 
@@ -518,7 +517,7 @@ class MainWin(Gtk.Window):
         authcnt = 0
         while True:
             if authcnt > 3:
-                pggui.message("Too May tries, exiting.")
+                pymisc.message("Too May tries, exiting.")
                 self.exit_all()
                 break
 
@@ -537,7 +536,7 @@ class MainWin(Gtk.Window):
                 authcnt += 1
                 msg = "Cannot log in, user '%s' is disbled " % ret[1][0]
                 self.status.set_status_text(msg)
-                pggui.message(msg)
+                pymisc.message(msg)
                 continue
 
             # Success
@@ -598,7 +597,7 @@ class MainWin(Gtk.Window):
     def load_op_name(self, arg, arg2, arg3):
         if arg2.get_text() != "":
             msg = "Already has operator; Cannot set."
-            pggui.message(msg)
+            pymisc.message(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(self.operator)
@@ -610,7 +609,7 @@ class MainWin(Gtk.Window):
     def load_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a UUID; Cannot set, clear it first."
-            pggui.message(msg)
+            pymisc.message(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(str(uuid.uuid1()))
@@ -618,7 +617,7 @@ class MainWin(Gtk.Window):
     def load_op_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a OUID; Cannot set, clear it first."
-            pggui.message(msg)
+            pymisc.message(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(self.ouid)
@@ -626,7 +625,7 @@ class MainWin(Gtk.Window):
     def load_vote_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a Vote UUID; Cannot set, clear it first."
-            pggui.message(msg)
+            pymisc.message(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(str(uuid.uuid1()))
@@ -634,7 +633,7 @@ class MainWin(Gtk.Window):
     def load_site_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a Site UUID; Cannot set, clear it first."
-            pggui.message(msg)
+            pymisc.message(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(str(self.conf.siteid))
@@ -812,7 +811,7 @@ class MainWin(Gtk.Window):
             msg = "No data selected."
             #print(msg)
             self.status.set_status_text(msg)
-            pggui.message(msg)
+            pymisc.message(msg)
             return
         #print("dat:", dat)
         try:
@@ -862,7 +861,7 @@ class MainWin(Gtk.Window):
         if not nnn:
             msg = "Empty record, cannot delete."
             self.status.set_status_text(msg)
-            pggui.message(msg)
+            pymisc.message(msg)
             return
 
         msg = "This will delete vote from: '%s'.\nAre you sure?" % nnn
@@ -915,7 +914,7 @@ class MainWin(Gtk.Window):
         if self.dat_dict['nuuid'].get_text():
             msg = "This record already has a voter. Please create a new record."
             self.status.set_status_text(msg)
-            ret = pggui.message(msg)
+            ret = pymisc.message(msg)
             return True
 
         # See if previous one saved
@@ -946,7 +945,7 @@ class MainWin(Gtk.Window):
             msg = "No data selected."
             #print(msg)
             self.status.set_status_text(msg)
-            pggui.message(msg)
+            pymisc.message(msg)
             return
         #print("dat:", dat)
         try:
@@ -985,7 +984,7 @@ class MainWin(Gtk.Window):
             msg = "Must have a ballot loaded for tests."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['dob'])
-            pggui.message(msg)
+            pymisc.message(msg)
             return
 
         #print("test started")
@@ -1062,21 +1061,21 @@ class MainWin(Gtk.Window):
         if not self.is_changed():
             msg = "Nothing changed, cannot save."
             self.status.set_status_text(msg)
-            pymisc.message(msg, conf=self.conf)
+            pymisc.message(msg, conf=self.conf, sound="error")
             return
 
         if not self.dat_dict['nuuid'].get_text():
             msg = "Must have a Voter UUID."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['nuuid'])
-            pggui.message(msg)
+            pymisc.message(msg)
             return
 
         if not self.dat_dict['name'].get_text():
             msg = "Must have a Voter name."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['nuuid'])
-            pggui.message(msg)
+            pymisc.message(msg)
             return
 
         ndob = self.dat_dict['ndob'].get_text()
@@ -1084,7 +1083,7 @@ class MainWin(Gtk.Window):
             msg = "Must have a valid Voter date of birth. (yyyy/mm/dd)"
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['nuuid'])
-            pggui.message(msg)
+            pymisc.message(msg)
             return
 
         buuid = self.dat_dict['buuid'].get_text()
@@ -1092,7 +1091,7 @@ class MainWin(Gtk.Window):
             msg = "Must have a ballot loaded."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['buuid'])
-            pggui.message(msg)
+            pymisc.message(msg)
             return
 
         # Commemorate the event by setting a fresh date
@@ -1117,7 +1116,7 @@ class MainWin(Gtk.Window):
             self.dat_dict['voper'].set_text(str(self.operator))
 
         # Check id IDs are in order:
-        checklist = ("nuuid", "uuid", "vguid", "vouid", )
+        checklist = ("nuuid", "uuid", "vguid", "vouid", "buuid")
         for aa in checklist:
             try:
                 uuu = uuid.UUID(self.dat_dict[aa].get_text())
@@ -1125,14 +1124,14 @@ class MainWin(Gtk.Window):
                 msg = "Invalid '" + aa.upper() + "' please correct."
                 self.status.set_status_text(msg)
                 self.set_focus(self.dat_dict[aa])
-                pggui.message(msg)
+                pymisc.message(msg)
                 return
 
         if not self.dat_dict['vprim'].get_text():
             msg = "Must have at least a primary vote."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['vprim'])
-            pggui.message(msg)
+            pymisc.message(msg, conf=self.conf, sound="error")
             return
 
         ddd = {}
@@ -1171,7 +1170,7 @@ class MainWin(Gtk.Window):
         finally:
             self.votecore.postexec = None
 
-        self.sound.play_sound("shutter")
+        self.conf.playsound.play_sound("shutter")
         self.status.set_status_text("Vote for '%s' saved." % self.dat_dict['name'].get_text())
 
         for aa in self.dat_dict.keys():

@@ -125,11 +125,18 @@ def  message(*args, **kwargs):
 
     ''' Decorate message with sound '''
 
+    print("pgmisc message", args, kwargs)
+
+    sss = kwargs.get("sound")
     ccc = kwargs.get("conf")
+
     if ccc:
-        if ccc.soundx:
-            ccc.playsound.play_sound("")
-        del kwargs["conf"]          # Remove extra keyword
+        ppp = getattr(ccc, "playsound")
+        if ppp:
+            ppp.play_sound(sss)
+        del kwargs["conf"]               # Remove extra keyword
+    if sss:
+        del kwargs['sound']
 
     pggui.message(args[0], **kwargs)
 

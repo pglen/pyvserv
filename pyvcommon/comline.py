@@ -2,9 +2,14 @@
 
 from __future__ import print_function
 
-import os, sys, string, time,  traceback, getopt, random, glob
+import os, sys, string, time,  traceback, getopt
+import random, glob, warnings
 
 version = 1.0
+
+#warnings.simplefilter("ignore")
+#warnings.simplefilter("default")
+#warnings.simplefilter("always")
 
 # ------------------------------------------------------------------------
 
@@ -92,7 +97,10 @@ optarr = [\
 
 class Config:
 
+    warnings.warn("Config Class obsolete, use ConfigLong", DeprecationWarning)
+
     def __init__(self, optarr):
+
 
         ddd = dupoptcheck(optarr)
         if ddd:
@@ -107,6 +115,8 @@ class Config:
         self.sess_key = ""
 
     def comline(self, argv):
+        #warnings.warn("Config Class obsolete, use ConfigLong")
+
         optletters = ""
         for aa in self.optarr:
             optletters += aa[0]
@@ -137,7 +147,7 @@ class Config:
                 if aa[0][1] == self.optarr[bb][0][0]:
                     #print( "match", aa, self.optarr[bb])
                     if len(self.optarr[bb][0]) > 1:
-                        print( "arg", self.optarr[bb][1], aa[1])
+                        #print( "arg", self.optarr[bb][1], aa[1])
                         if self.optarr[bb][2] != None:
                             if type(self.optarr[bb][2]) == type(0):
                                 self.__dict__[self.optarr[bb][1]] = int(aa[1])
@@ -264,7 +274,7 @@ class ConfigLong:
                 pass
         print("End Variables -----")
 
-    def comline(self, argv):
+    def comline(self, argv, pgdebug = 0):
 
         ''' Parse what is comong from the command line '''
 
@@ -285,7 +295,8 @@ class ConfigLong:
             print("Invalid option(s) on command line: %s" % err)
             raise
 
-        #print ("opts", opts, "args", args)
+        if pgdebug:
+            print ("opts", opts, "args", args)
         for aa in opts:
             for bb in range(len(self._optarr)):
                 ddd = None
@@ -297,6 +308,7 @@ class ConfigLong:
                     eee = "-" + self._optarr[bb][1]
                 else:
                     ddd = self._optarr[bb]
+
                 if ddd[-1:] == "=":
                     ddd = ddd[:-1]
                     eee = eee[:-1]
@@ -304,11 +316,13 @@ class ConfigLong:
                     ddd = ddd[:-1]
                     eee = eee[:-1]
 
-                #print ("aa",  aa, "bb", bb, "one opt", self._optarr[bb][:-1], ddd, eee)
+                if pgdebug:
+                        print ("aa",  aa, "bb", bb, "one opt =", self._optarr[bb][:-1], ddd, eee)
                 if aa[0] == ddd or aa[0] == eee:
                     #print ("match", aa, ddd)
                     if len(self._optarr[bb][0]) > 1:
-                        #print ("arg", self._optarr[bb][2], self._optarr[bb][3], aa)
+                        if pgdebug:
+                            print ("arg", self._optarr[bb][2], self._optarr[bb][3], aa)
                         if self._optarr[bb][3] != None:
                             if type(self._optarr[bb][3]) == type(0):
                                 if aa[1][:2] == "0x" or aa[1][:2] == "0X":
@@ -320,9 +334,12 @@ class ConfigLong:
                             elif type(self._optarr[bb][2]) == type(""):
                                 self.__dict__[self._optarr[bb][2]] = str(aa[1])
                     else:
-                        #print ("set", self._optarr[bb][1], self._optarr[bb][2])
+                        if pgdebug:
+                            print ("set 1",
+                                self._optarr[bb][1], "set 2", self._optarr[bb][2],
+                                    "set 3", self._optarr[bb][3])
                         if self._optarr[bb][3] != None:
-                            self.__dict__[self._optarr[bb][1]] += 1
+                            self.__dict__[self._optarr[bb][2]] += 1
                         #print ("call", self.optarr[bb][3])
                         if self._optarr[bb][4] != None:
                             self._optarr[bb][4]()

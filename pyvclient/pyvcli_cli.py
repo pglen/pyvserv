@@ -121,18 +121,18 @@ def pversion():
     # option, var_name, initial_val, function
 
 optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["l:",  "login",    "admin",    None],      \
-    ["s:",  "lpass",    "1234",     None],      \
-    ["t",   "prompt",   0,          None],      \
-    ["x:",  "comm",     "",         None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
+    ["d:",  "pgdebug=",  "pgdebug",   0,          None],      \
+    ["p:",  "port=",     "port",      6666,       None],      \
+    ["l:",  "login=",    "login",     "admin",    None],      \
+    ["s:",  "lpass=",    "lpass",     "1234",     None],      \
+    ["x:",  "comm=",     "comm",      "",         None],      \
+    ["t",   "prompt",    "prompt",    0,          None],      \
+    ["v",   "verbose",   "verbose",   0,          None],      \
+    ["q",   "quiet",     "quiet",     0,          None],      \
+    ["V",   "verbose",   "vervose",   None,       pversion],  \
+    ["h",   "help",      "help",      None,       phelp]      \
 
-conf = comline.Config(optarr)
+conf = comline.ConfigLong(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -147,18 +147,25 @@ def mainfunct():
     except SystemExit:
         sys.exit(0)
     except:
-        print(sys.exc_info())
+        print("comline:", sys.exc_info())
+        support.put_exception("comline")
         sys.exit(1)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
 
+    def soft_terminate(arg2, arg3):
+        print("Ctrl-c pressed, exiting ...")
+        sys.exit(0)
+
     if conf.prompt:
+        signal.signal(signal.SIGINT, soft_terminate)
         import getpass
         strx = getpass.getpass("Enter Pass: ")
         if not strx:
             print("Aborting ...")
             sys.exit(0)
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
         conf.lpass  = strx
 
     if len(args) == 0:
