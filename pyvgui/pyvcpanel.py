@@ -51,38 +51,51 @@ from guilib import mainwin
 # -----------------------------------------------------------------------
 # Globals
 
-version = "1.00"
-
-# ------------------------------------------------------------------------
+VERSION = "1.00"
 
 def phelp():
 
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 9999)")
-    print( "            -v        - Verbose")
-    print( "            -V        - Version")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print()
+    ''' Display help '''
+
+    comline.phelplong()
+    sys.exit(0)
+
+def pversion():
+
+    ''' Show vwersion info '''
+
+    comline.pversion(VERSION)
     sys.exit(0)
 
 # ------------------------------------------------------------------------
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
+# option, var_name, initial_val, function, helpstr
 
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "debug=",   "pgdebug",  0,      None],      \
-    ["p:",  "port=",    "port",     9999,   None],      \
-    ["v",   "verbose",  "verbose",  0,      None],      \
-    ["q",   "quiet",    "quiet",    0,      None],      \
-    ["r:",  "dataroot=", "droot",   "pyvserver",     None],      \
-    ["V",   "version",  None,       None,   pversion],  \
-    ["h",   "help",     None,       None,   phelp]      \
+optarr = [\
+    ["d:",  "debug=",       "pgdebug",  0,              None,
+                                        "Debug level 0-10", ],
+    ["r:",  "dataroot=",    "droot",    "pyvclient",    None,
+                                        "Directory for data. Default: ~/pyvclient", ],
+    ["u:",  "user=",        "user",     "admin",        None,
+                                        "User Name. Default: 'admin'", ],
+    ["a:",  "pass=",        "apass",    "1234",         None,
+                                        "Password. For test only. Default: '1234'", ],
+    ["t",   "prompt",    "prompt",   0,          None,
+                                        "Prompt for password on command line.", ],
+    ["z",   "testx",        "testx",    0,              None,
+                                        "Test mode. Extra buttons.", ],
+    ["v",   "verbose",      "verbose",  0,              None,
+                                        "Verbose. Print more info.", ],
+    ["q",   "quiet",        "quiet",    0,              None,
+                                        "Quiet. Less printing.", ],
+    ["V",   "version",      None,       None,           pversion,
+                                        "Print version number.", ],
+    ["h",   "help",         None,       None,           phelp,
+                                        "Help (This screen)", ],
+    ]
+
+comline.setprog(os.path.basename(__file__) + " [options]" )
+comline.sethead("PyvServer adminstration panel.")
+comline.setfoot("Wlii use default settings to monitor.")
 
 conf = comline.ConfigLong(optarr)
 

@@ -125,7 +125,7 @@ def  message(*args, **kwargs):
 
     ''' Decorate message with sound '''
 
-    print("pgmisc message", args, kwargs)
+    #print("pgmisc message", args, kwargs)
 
     sss = kwargs.get("sound")
     ccc = kwargs.get("conf")

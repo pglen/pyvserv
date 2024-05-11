@@ -43,51 +43,56 @@ from guilib import mainwinvote, pymisc
 # -----------------------------------------------------------------------
 # Globals
 
-version = "1.00"
+VERSION = "1.00"
 
 # ------------------------------------------------------------------------
 
-def phelploc():
+def phelp():
 
     ''' Display help '''
 
-    print( "Vote editing utility. Add / Review / Delete voters.")
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -v        - Verbose. Print more info.")
-    print( "            -u name   - User Name. Defult: 'admin'")
-    print( "            -a pass   - Clear text password. For test only. Default: '1234'")
-    print( "            -V        - Print version number.")
-    print( "            -t        - Prompt for pass")
-    print( "            -s        - Disable sounds.")
-    print( "            -z        - Test mode. Extra buttons.")
-    print( "            -q        - Quiet. Less printing.")
-    print( "            -h        - Help (This screen)")
+    comline.phelplong()
 
     sys.exit(0)
 
 # ------------------------------------------------------------------------
+
 def pversion():
 
     ''' Show vwersion info '''
 
-    print( os.path.basename(sys.argv[0]), "Version", version)
+    comline.pversion(VERSION)
     sys.exit(0)
 
     # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "debug=",       "pgdebug",  0,              None],      \
-    ["u:",  "user=",        "user",     "admin",        None],      \
-    ["a:",  "pass=",        "apass",    "1234",         None],      \
-    ["r:",  "dataroot=",    "droot",    "pyvclient",    None],      \
-    ["t",   "prompt",       "prompt",   0,              None],      \
-    ["v",   "verbose",      "verbose",  0,              None],      \
-    ["q",   "quiet",        "quiet",    0,              None],      \
-    ["s",   "sound",        "soundx",   0,              None],      \
-    ["z",   "test",         "testx",    0,              None],      \
-    ["V",   "version",       None,       None,          pversion],  \
-    ["h",   "help",          None,       None,          phelploc]      \
+optarr = [\
+ ["d:",  "debug=",    "pgdebug",  0,          None,
+                                        "Debug Level. 0=None 9=Noisy", ],
+ ["r:",  "dataroot=", "droot",    "pyvclient",None,
+                                        "Directory for data. Default: ~/pyvclient", ],
+ ["u:",  "user=",     "user",     "admin",    None,
+                                        "User name. Default: admin",     ],
+ ["a:",  "pass=",     "apass",    "1234",     None,
+                                        "Password. Default: 1234 For tests only.",],
+ ["t",   "prompt",    "prompt",   0,          None,
+                                        "Prompt for password on command line.", ],
+ ["s",   "sound",     "soundx",   0,          None,
+                                        "Turn off sound",     ],
+ ["v",   "verbose",   "verbose",  0,          None,
+                                        "Print more information",     ],
+ ["q",   "quiet",     "quiet",    0,          None,
+                                        "Print less information",     ],
+ ["z",   "test",      "testx",    0,          None,
+                                        "Display test buttons",     ],
+ ["V",   "version",    None,       None,      pversion,
+                                        "Show program version", ],
+ ["h",   "help",       None,       None,      phelp,
+                                        "Show help. (this screen)",  ],
+]
 
+comline.setprog(os.path.basename(__file__))
+comline.sethead("Create / Administer / Delete Votes.")
+comline.setfoot("User / Password is needed.")
 conf = comline.ConfigLong(optarr)
 
 def mainfunct():

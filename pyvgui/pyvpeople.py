@@ -47,25 +47,6 @@ version = "1.00"
 
 # ------------------------------------------------------------------------
 
-def phelp():
-
-    ''' Display help '''
-
-    print( "Voter adminstration utility. Add / Review / Delete voters.")
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -v        - Verbose. Print more info.")
-    print( "            -u        - User Name. Defult: 'admin'")
-    print( "            -a        - Clear text password. For test only. Default: '1234'")
-    print( "            -V        - Print version number.")
-    print( "            -t        - Test mode. Extra buttons.")
-    print( "            -q        - Quiet. Less printing.")
-    print( "            -h        - Help (This screen)")
-    sys.exit(0)
-
-    #print( "            -p        - Port to use (default: 6666)")
-
-# ------------------------------------------------------------------------
 def pversion():
 
     ''' Show vwersion info '''
@@ -73,19 +54,41 @@ def pversion():
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "debug=",       "pgdebug",  0,              None],      \
-    ["p:",  "port=",        "port",     6666,           None],      \
-    ["v",   "verbose",      "verbose",  0,              None],      \
-    ["q",   "quiet",        "quiet",    0,              None],      \
-    ["u:",  "user=",        "user",     "admin",        None],      \
-    ["a:",  "pass=",        "apass",    "1234",         None],      \
-    ["t",   "testx",        "testx",    0,              None],      \
-    ["r:",  "dataroot=",    "droot",    "pyvclient",    None],      \
-    ["V",   "version",      None,       None,           pversion],  \
-    ["h",   "help",         None,       None,           phelp]      \
+def phelp():
 
+    ''' Display help '''
+
+    comline.phelplong()
+    sys.exit(0)
+
+# ------------------------------------------------------------------------
+# option, var_name, initial_val, function, helpstr
+
+optarr = [\
+    ["d:",  "debug=",       "pgdebug",  0,              None,
+                                        "Debug level 0-10", ],
+    ["r:",  "dataroot=",    "droot",    "pyvclient",    None,
+                                        "Directory for data. Default: ~/pyvclient", ],
+    ["u:",  "user=",        "user",     "admin",        None,
+                                        "User Name. Default: 'admin'", ],
+    ["a:",  "pass=",        "apass",    "1234",         None,
+                                        "Password. For test only. Default: '1234'", ],
+    ["t",   "prompt",    "prompt",   0,          None,
+                                        "Prompt for password on command line.", ],
+    ["z",   "testx",        "testx",    0,              None,
+                                        "Test mode. Extra buttons.", ],
+    ["v",   "verbose",      "verbose",  0,              None,
+                                        "Verbose. Print more info.", ],
+    ["q",   "quiet",        "quiet",    0,              None,
+                                        "Quiet. Less printing.", ],
+    ["V",   "version",      None,       None,           pversion,
+                                        "Print version number.", ],
+    ["h",   "help",         None,       None,           phelp,
+                                        "Help (This screen)", ],
+    ]
+comline.setprog(os.path.basename(__file__) + " [options]" )
+comline.sethead("Voter adminstration utility. Add / Review / Delete voters.")
+comline.setfoot("User / Password is needed.")
 conf = comline.ConfigLong(optarr)
 
 def mainfunct():

@@ -5,17 +5,13 @@ from __future__ import print_function
 import os, sys, string, time,  traceback, getopt
 import random, glob, warnings
 
-version = 1.0
+VERSION = 1.0
 
 #warnings.simplefilter("ignore")
 #warnings.simplefilter("default")
 #warnings.simplefilter("always")
 
 # ------------------------------------------------------------------------
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
 
 glargs = ""
 glhead = ""
@@ -24,6 +20,10 @@ glfoot = ""
 glprog = "proname"
 gloptarr = []
 glsoptarr = []
+
+def pversion(ver):
+    print(glprog, "Version", ver)
+    sys.exit(0)
 
 def setargs(args):
     global glargs
@@ -174,20 +174,23 @@ def phelplong():
 
     print( "Usage:", glprog, glargs)
     print( "  options:")
-    for aa in gloptarr:
-        longop = aa[1].replace("=", "")
-        if "=" in aa[1]:
-            arg = aa[2]
-        else:
-            arg = " "
+    try:
+        for aa in gloptarr:
+            longop = aa[1].replace("=", "")
+            if "=" in aa[1]:
+                arg = aa[2]
+            else:
+                arg = " "
 
-        pad  = " " * (8 - len(longop))
-        pad2 = " " * (8 - len(arg))
+            pad  = " " * (8 - len(longop))
+            pad2 = " " * (8 - len(arg))
 
-        print("   ", "-" + aa[0][0], " ",
-                        "--" + longop, pad, arg, pad2,"- ", aa[5])
-    if glfoot:
-        print(glfoot)
+            print("   ", "-" + aa[0][0], " ",
+                            "--" + longop, pad, arg, pad2,"- ", aa[5])
+        if glfoot:
+            print(glfoot)
+    except:
+        pass
 
     sys.exit(0)
 

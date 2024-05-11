@@ -26,7 +26,7 @@ from pyvguicom import pgutils
 from pymenu import  *
 from pgui import  *
 
-import recsel, pgcal, config, passdlg
+import recsel, pgcal, config, passdlg, pymisc
 
 from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
 
@@ -224,7 +224,7 @@ class MainWin(Gtk.Window):
         lab1 = Gtk.Label("   ");
         hbox4.pack_start(lab1, 0, 0, 0)
 
-        self.status = recsel.Status()
+        self.status = pymisc.Status()
         hbox4.pack_start(self.status, 1, 1, 0)
 
         lab1 = Gtk.Label(" ");
