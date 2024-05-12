@@ -17,7 +17,7 @@ from Crypto.Hash import SHA256
 
 import pyvpacker
 
-from pyvcommon import support, pyservsup, pyclisup, pysyslog, pyvhash
+from pyvcommon import support, pyservsup, pyclisup, pysyslog, pyvhash, pyvindex
 from pyvserver import pyvstate
 
 from pydbase import twincore, twinchain
@@ -972,17 +972,18 @@ def get_rget_func(self, strx):
     datax = []
     if type(strx[2]) == type(""):
         strx[2] = strx[2].split()
+
     for aa in strx[2]:
         #print("aa", aa)
         # Validate uuid
         try:
             uuidx = uuid.UUID(aa)
         except:
-            print("getting UUID", sys.exc_info())
-            #response = [ERR, "Header must be a real UUID.", strx[2],]
-            #self.resp.datahandler.putencode(response, self.resp.ekey)
-            #return
-            continue
+            #print("exc getting UUID", sys.exc_info())
+            response = [ERR, "Header must be a real UUID.", strx[2],]
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+            #continue
 
         data = []; ddd = []
         try:
@@ -1070,11 +1071,26 @@ def get_rput_func(self, strx):
     #print("rput strx[2]", strx[2])
     if pyservsup.globals.conf.pgdebug > 0:
         print("rput", strx[1], strx[2]['header'])
+    try:
+        uuu = uuid.UUID(strx[2]['header'])
+    except:
+        response = [ERR, "Header must be a valid UUID, not saved", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
 
     pvh = pyvhash.BcData(strx[2])
     #print("pvh", pvh.datax)
+    #print("check", pvh.checkpow(), pvh.datax['_Proof'])
+
     if not pvh.checkhash():
         response = [ERR, "Error on block hash.", strx[0]]
+        self.resp.datahandler.putencode(response, self.resp.ekey)
+        return
+
+    strength = pvh.getstrength()
+    if not pyservsup.globals.conf.test and strength < 4:
+        #print("strength:", strength)
+        response = [ERR, "Insufficient hash strength (%x)" % strength, strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -1086,14 +1102,23 @@ def get_rput_func(self, strx):
     cfname = os.path.join(dname, pyservsup.chainfname + ".pydb")
     #print("cfname", cfname)
     savecore = twinchain.TwinChain(cfname)
-    #print("db op2 %.3f" % ((time.time() - ttt) * 1000) )
+    savecore.hashname  = os.path.splitext(cfname)[0] + ".hash.id"
+    #print("hashname:", savecore.hashname)
 
-    #print("Got:", strx[2])
+    #dbsize = savecore.getdbsize()
+    #print("rput %d current size" % dbsize)
+
+    ttt = time.time()
 
     # Do we have it already?:
-    #ttt = time.time()
-    retoffs = savecore.get_payoffs_bykey(strx[2]['header'])
-    #print("db get offs  %.3f" % ((time.time() - ttt) * 1000) )
+    # Search normally: (250 ms / 13000 records)
+    #retoffs = savecore.get_payoffs_bykey(strx[2]['header'])
+    # Use index:
+    # Find it via index (0.2 ms / 13000 records)
+    retoffs = pyvindex.search_index(savecore, savecore.hashname,
+                                strx[2]['header'], pyvindex.hashid)
+    #print("index", retoffs)
+    #print("db get offs  %.3f ms" % ((time.time() - ttt) * 1000) )
     if retoffs:
         if self.pgdebug > 2:
             print("Duplicate block, retoffs", retoffs[0])
@@ -1109,8 +1134,17 @@ def get_rput_func(self, strx):
     if self.pgdebug > 7:
         print("Save data:", undec)
 
+    # Add index
+    def callb(c2, id2):
+        #print("callb", c2, id2)
+        # Replicate fields from local data
+        try:
+            pyvindex.append_index(c2, c2.hashname,  pyvindex.hashid, strx[2]['header'])
+        except:
+            print("exc save callb hash", sys.exc_info())
     try:
         #savecore.pgdebug = 10
+        savecore.postexec = callb
         ret = savecore.appendwith(strx[2]['header'], undec)
     except:
         del savecore
@@ -1118,7 +1152,10 @@ def get_rput_func(self, strx):
         response = [ERR, "Cannot save record.", str(sys.exc_info()[1]) ]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
-    del savecore
+    finally:
+        #savecore.postexec = None
+        #del savecore
+        pass
 
     # if it is not replicated already, add replicate request
     if not strx[2]["Replicated"]:

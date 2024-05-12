@@ -23,7 +23,9 @@ glsoptarr = []
 
 def pversion(ver):
     print(glprog, "Version", ver)
-    sys.exit(0)
+
+    if sys.stdout.isatty():
+        sys.exit(0)
 
 def setargs(args):
     global glargs
@@ -76,7 +78,8 @@ def phelp():
     if glfoot:
         print("s", glfoot)
 
-    sys.exit(0)
+    if sys.stdout.isatty():
+        sys.exit(0)
 
 # ------------------------------------------------------------------------
 # option [:],  var_name, initial_val, function, helpstr
@@ -192,7 +195,9 @@ def phelplong():
     except:
         pass
 
-    sys.exit(0)
+     # Sat 11.May.2024 only exit if real stdout
+    if sys.stdout.isatty():
+        sys.exit(0)
 
 # ------------------------------------------------------------------------
 # Handle command line. Interpret optarray and decorate the class;

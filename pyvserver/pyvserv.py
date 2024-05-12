@@ -55,6 +55,7 @@ options: -n   --host      host     -  Set server hostname / interface.
          -V   --version            -  Print Version string
          -h   --help               -  Show Help. (this screen)
          -P   --pmode              -  Production mode ON. (allow 2FA)
+         -t   --test               -  Test mode. Allow weak hash
 Use quotes for multiple option strings. </pre>'''
 
 progname = os.path.split(sys.argv[0])[1]
@@ -496,15 +497,19 @@ optarr.append ( ["l:",  "loglevel=", "pglog",       1,
 optarr += comline.optarrlong
 
 optarr.append ( ["m",   "mem",       "mem",         0,
-                                None, "Show memory trace. (Advanced usage only.)"] )
-#optarr.append ( ["N",   "norepl",    "norepl",      0,
-#                            None, "No replication. (for testing)"] )
+                                None, "Show memory trace. (For testing only.)"] )
 optarr.append ( ["P",   "pmode",     "pmode",       0,
                             None, "Production mode ON. (allow 2FA)"] )
 
+optarr.append ( ["t",   "test",     "test",       0,
+                            None, "Test mode. Allow weak hash."] )
+
+#optarr.append ( ["N",   "norepl",    "norepl",      0,
+#                            None, "No replication. (for testing)"] )
+
 comline.sethead("The main pyvserv excutable.")
 #comline.setprog(os.path.basename(sys.argv[0]))
-comline.setprog(os.path.basename(__file__))
+comline.setprog(os.path.basename(__file__) + " [options] ")
 comline.setargs("[options]")
 #comline.setfoot("Use quotes for multiple option strings.")
 
@@ -596,7 +601,9 @@ def signon_message():
 
     if not conf.quiet:
         if not pyservsup.globals.conf.pmode:
-            print("Warning! Devmode ON. Use -P to allow 2FA auth")
+            print("Warning! DevMode  ON. Use -P to allow 2FA auth")
+        if pyservsup.globals.conf.test:
+            print("Warning! TestMode ON. Weak hashes are allowed")
 
         # Sat 04.May.2024 Dropped the distro, so can be installed on pipx
         #try:

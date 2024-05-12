@@ -387,7 +387,7 @@ class MainWin(Gtk.Window):
             msg = "No data selected."
             #print(msg)
             self.status.set_status_text(msg)
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             return
         #print("dat:", dat)
         try:
@@ -508,7 +508,7 @@ class MainWin(Gtk.Window):
         #print("config_dlg")
         #print("pass pow:", self.powers)
         if self.powers != "Yes":
-            pymisc.message("Only Admin can Configure.")
+            pymisc.smessage("Only Admin can Configure.")
         else:
             config.ConfigDlg(self.vcore, self.acore, self.authcore, self.conf)
 
@@ -517,7 +517,7 @@ class MainWin(Gtk.Window):
         authcnt = 0
         while True:
             if authcnt > 3:
-                pymisc.message("Too May tries, exiting.")
+                pymisc.smessage("Too May tries, exiting.")
                 self.exit_all()
                 break
 
@@ -536,7 +536,7 @@ class MainWin(Gtk.Window):
                 authcnt += 1
                 msg = "Cannot log in, user '%s' is disbled " % ret[1][0]
                 self.status.set_status_text(msg)
-                pymisc.message(msg)
+                pymisc.smessage(msg)
                 continue
 
             # Success
@@ -597,7 +597,7 @@ class MainWin(Gtk.Window):
     def load_op_name(self, arg, arg2, arg3):
         if arg2.get_text() != "":
             msg = "Already has operator; Cannot set."
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(self.operator)
@@ -609,7 +609,7 @@ class MainWin(Gtk.Window):
     def load_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a UUID; Cannot set, clear it first."
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(str(uuid.uuid1()))
@@ -617,7 +617,7 @@ class MainWin(Gtk.Window):
     def load_op_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a OUID; Cannot set, clear it first."
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(self.ouid)
@@ -625,7 +625,7 @@ class MainWin(Gtk.Window):
     def load_vote_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a Vote UUID; Cannot set, clear it first."
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(str(uuid.uuid1()))
@@ -633,7 +633,7 @@ class MainWin(Gtk.Window):
     def load_site_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a Site UUID; Cannot set, clear it first."
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(str(self.conf.siteid))
@@ -811,7 +811,7 @@ class MainWin(Gtk.Window):
             msg = "No data selected."
             #print(msg)
             self.status.set_status_text(msg)
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             return
         #print("dat:", dat)
         try:
@@ -861,7 +861,7 @@ class MainWin(Gtk.Window):
         if not nnn:
             msg = "Empty record, cannot delete."
             self.status.set_status_text(msg)
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             return
 
         msg = "This will delete vote from: '%s'.\nAre you sure?" % nnn
@@ -914,7 +914,7 @@ class MainWin(Gtk.Window):
         if self.dat_dict['nuuid'].get_text():
             msg = "This record already has a voter. Please create a new record."
             self.status.set_status_text(msg)
-            ret = pymisc.message(msg)
+            ret = pymisc.smessage(msg)
             return True
 
         # See if previous one saved
@@ -945,7 +945,7 @@ class MainWin(Gtk.Window):
             msg = "No data selected."
             #print(msg)
             self.status.set_status_text(msg)
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             return
         #print("dat:", dat)
         try:
@@ -984,7 +984,7 @@ class MainWin(Gtk.Window):
             msg = "Must have a ballot loaded for tests."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['dob'])
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             return
 
         #print("test started")
@@ -1061,21 +1061,21 @@ class MainWin(Gtk.Window):
         if not self.is_changed():
             msg = "Nothing changed, cannot save."
             self.status.set_status_text(msg)
-            pymisc.message(msg, conf=self.conf, sound="error")
+            pymisc.smessage(msg, conf=self.conf, sound="error")
             return
 
         if not self.dat_dict['nuuid'].get_text():
             msg = "Must have a Voter UUID."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['nuuid'])
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             return
 
         if not self.dat_dict['name'].get_text():
             msg = "Must have a Voter name."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['nuuid'])
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             return
 
         ndob = self.dat_dict['ndob'].get_text()
@@ -1083,7 +1083,7 @@ class MainWin(Gtk.Window):
             msg = "Must have a valid Voter date of birth. (yyyy/mm/dd)"
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['nuuid'])
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             return
 
         buuid = self.dat_dict['buuid'].get_text()
@@ -1091,7 +1091,7 @@ class MainWin(Gtk.Window):
             msg = "Must have a ballot loaded."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['buuid'])
-            pymisc.message(msg)
+            pymisc.smessage(msg)
             return
 
         # Commemorate the event by setting a fresh date
@@ -1124,14 +1124,14 @@ class MainWin(Gtk.Window):
                 msg = "Invalid '" + aa.upper() + "' please correct."
                 self.status.set_status_text(msg)
                 self.set_focus(self.dat_dict[aa])
-                pymisc.message(msg)
+                pymisc.smessage(msg)
                 return
 
         if not self.dat_dict['vprim'].get_text():
             msg = "Must have at least a primary vote."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['vprim'])
-            pymisc.message(msg, conf=self.conf, sound="error")
+            pymisc.smessage(msg, conf=self.conf, sound="error")
             return
 
         ddd = {}
@@ -1154,11 +1154,11 @@ class MainWin(Gtk.Window):
             dddd = [uuu, enc.encode()]
             #print("dddd:", dddd)
             try:
-                recsel.append_index(c2, c2.hashname, recsel.hashid, dddd)
+                pyvindex.append_index(c2, c2.hashname, pyvindex.hash_id, dddd)
             except:
                 print("exc save callb hash", sys.exc_info())
             try:
-                recsel.append_index(c2, c2.hashname2, recsel.hashname, dddd)
+                pyvindex.append_index(c2, c2.hashname2, pyvindex.hash_name, dddd)
             except:
                 print("exc save callb name", sys.exc_info())
 

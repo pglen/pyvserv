@@ -58,14 +58,17 @@ def phelp():
     ''' Display help '''
 
     comline.phelplong()
-    sys.exit(0)
+
+    if sys.stdout.isatty():
+        sys.exit(0)
 
 def pversion():
 
     ''' Show vwersion info '''
 
     comline.pversion(VERSION)
-    sys.exit(0)
+    if sys.stdout.isatty():
+        sys.exit(0)
 
 # ------------------------------------------------------------------------
 # option, var_name, initial_val, function, helpstr

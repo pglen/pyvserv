@@ -776,11 +776,11 @@ class MainWin(Gtk.Window):
             dddd = [uuu, enc.encode()]
             #print("dddd:", dddd)
             try:
-                recsel.append_index(c2, self.vcore.hashname,  recsel.hashid, dddd)
+                pyvindex.append_index(c2, self.vcore.hashname,  pyvindex.hash_id, dddd)
             except:
                 print("exc save callb hash", sys.exc_info())
             try:
-                recsel.append_index(c2, self.vcore.hashname2, recsel.hashname, dddd)
+                pyvindex.append_index(c2, self.vcore.hashname2, pyvindex.hash_name, dddd)
             except:
                 print("exc save callb name", sys.exc_info())
 

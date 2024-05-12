@@ -45,6 +45,8 @@ def phelp():
     print( "Options:    -d level  - Debug level 0-10")
     print( "            -p port   - Port to use (default: 6666)")
     print( "            -k keyval - Put this key")
+    print( "            -n numrec - Put this many records")
+    print( "            -t        - Test. Weak hash for testing")
     print( "            -v        - Verbose")
     print( "            -q        - Quiet")
     print( "            -h        - Help")
@@ -64,11 +66,64 @@ optarr = \
     ["q",   "quiet",    0,      None],      \
     ["k:",  "putkey",   "",     None],      \
     ["n:",  "numrec",   1,     None],      \
-    ["t",   "test",     "x",    None],      \
+    ["t",   "test",     0,    None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
 conf = comline.Config(optarr)
+
+def genrec():
+
+    actstr = ["register", "unregister", "cast", "uncast", ]
+    act = actstr[random.randint(0, len(actstr)-1)]
+
+    #ttt = time.time()
+    pvh = pyvhash.BcData()
+    pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
+    pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
+    pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
+    # We mark this as 'test' so it can stay in the chain, if desired
+    pvh.addpayload({"Test": "test" ,})
+
+    if conf.putkey:
+        pvh.datax['header'] = conf.putkey
+
+    #"test=%d" % pvh.num_zeros,
+    print("Calculating hash ....",    end = " " );
+    sys.stdout.flush()
+    pvh.hasharr();
+    if not pvh.checkhash():
+        print("Error on check hash .. ")
+        sys.exit(1)
+    print("OK")
+
+    if conf.test:
+        pvh.num_zeros = 1
+
+    print("Calc POW payload ...")
+    ttt = time.time()
+    for aa in range(10):
+        if pvh.powarr():
+            break
+        print("Calc POW payload .. retrying ...")
+
+    if not conf.quiet:
+        print("OK, POW calc time %.3fms"% ((time.time() - ttt) * 1000) )
+
+    if not pvh.checkpow():
+        print("Giving up ... Error on POW payload .. ")
+        sys.exit(1)
+
+    # Falsify test (passed)
+    #pvh.datax["PayLoad"] |= {"Hello": 0}
+
+    if conf.verbose:
+        print(pvh.datax)
+
+    #print("Chain cnt", pvh.cnt)
+    #print("chain %.3fms" % ((time.time() - ttt) * 1000) )
+
+    return pvh
 
 # ------------------------------------------------------------------------
 
@@ -90,37 +145,7 @@ def mainfunct():
     hand.pgdebug = conf.pgdebug
     hand.comm  = conf.comm
 
-    actstr = ["register", "unregister", "cast", "uncast", ]
-    act = actstr[random.randint(0, len(actstr)-1)]
-
-    #ttt = time.time()
-    pvh = pyvhash.BcData()
-    pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
-    pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
-    pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
-    # We mark this as 'test' so it can stay in the chain, if desired
-    pvh.addpayload({"Test": "test" ,})
-
-
-    if conf.putkey:
-        pvh.datax['header'] = conf.putkey
-
-    print("Calculating hash ....", end = " "); sys.stdout.flush()
-    pvh.hasharr();    pvh.powarr()
-    print("OK")
-
-    if not pvh.checkhash():
-        print("Error on hashing payload .. retrying ...")
-    elif not pvh.checkpow():
-        print("Error on POW payload .. retrying ...")
-
-    if conf.verbose:
-        print(pvh.datax)
-        #!/usr/bin/env python3
-
-    #print("Chain cnt", pvh.cnt)
-    #print("chain %.3fms" % ((time.time() - ttt) * 1000) )
-
+    pvh = genrec()
     try:
         respc = hand.connect(ip, conf.port)
     except:
@@ -176,11 +201,16 @@ def mainfunct():
     if hand.verbose:
         print("Sending Data:", pvh.datax)
 
-    #ttt = time.time()
-    for aa in range(conf.numrec):
+    if conf.numrec == 1:
         cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
         print ("rput resp:", cresp)
-    #print("rput %.3fms" % ((time.time() - ttt) * 1000) )
+    else:
+        for aa in range(conf.numrec):
+            pvh = genrec()
+            ttt = time.time()
+            cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
+            print("putrec: %s  %.3fms" % (cresp[0], (time.time() - ttt) * 1000) )
+            #print ("rput resp:", cresp)
 
     sys.exit(0)
 

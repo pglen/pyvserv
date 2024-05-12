@@ -53,7 +53,8 @@ def phelp():
 
     comline.phelplong()
 
-    sys.exit(0)
+    if sys.stdout.isatty():
+        sys.exit(0)
 
 # ------------------------------------------------------------------------
 
@@ -62,9 +63,12 @@ def pversion():
     ''' Show vwersion info '''
 
     comline.pversion(VERSION)
-    sys.exit(0)
 
-    # option, var_name, initial_val, function
+    if sys.stdout.isatty():
+        sys.exit(0)
+
+# option, long_opt/var_name, initial_val, function, help
+
 optarr = [\
  ["d:",  "debug=",    "pgdebug",  0,          None,
                                         "Debug Level. 0=None 9=Noisy", ],
@@ -122,17 +126,20 @@ def mainfunct():
         conf.playsound = None
 
     if conf.prompt:
-        def soft_terminate(arg2, arg3):
-            print("Ctrl-C pressed, exiting ...")
-            sys.exit(0)
-        signal.signal(signal.SIGINT, soft_terminate)
-        import getpass
-        strx = getpass.getpass("Enter Pass: ")
-        if not strx:
-            print("Empty pass, aborting ...")
-            sys.exit(0)
-        signal.signal(signal.SIGINT, signal.SIG_DFL)
-        conf.apass  = strx
+        if sys.stdout.isatty():
+            def soft_terminate(arg2, arg3):
+                print("Ctrl-C pressed, exiting ...")
+                sys.exit(0)
+            signal.signal(signal.SIGINT, soft_terminate)
+            import getpass
+            strx = getpass.getpass("Enter Pass: ")
+            if not strx:
+                print("Empty pass, aborting ...")
+                sys.exit(0)
+            signal.signal(signal.SIGINT, signal.SIG_DFL)
+            conf.apass  = strx
+        else:
+            conf.apass = ""
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf

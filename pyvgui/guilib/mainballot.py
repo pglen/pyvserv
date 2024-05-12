@@ -645,7 +645,7 @@ class MainWin(Gtk.Window):
             return True
         ddd = self.dat_dict['uuid'].get_text()
         # Find it via index
-        ddd2 = recsel.search_index(self.bcore, self.bcore.hashname, ddd, recsel.hashid)
+        ddd2 = pyvindex.search_index(self.bcore, self.bcore.hashname, ddd, pyvindex.hash_id)
         for aa in ddd2:
             #print("deleting:", ddd2)
             try:
@@ -894,13 +894,13 @@ class MainWin(Gtk.Window):
             dddd = [uuu, enc.encode()]
             #print("dddd:", dddd)
             try:
-                recsel.append_index(self.score, self.score.hashname,
-                                                        recsel.hashid, dddd)
+                pyvindex.append_index(self.score, self.score.hashname,
+                                                        pyvindex.hash_id, dddd)
             except:
                 print("exc save callb hash", sys.exc_info())
             try:
-                recsel.append_index(self.score, self.score.hashname2,
-                                                        recsel.hashname, dddd)
+                pyvindex.append_index(self.score, self.score.hashname2,
+                                                        pyvindex.hash_name, dddd)
             except:
                 print("exc save callb name", sys.exc_info())
 

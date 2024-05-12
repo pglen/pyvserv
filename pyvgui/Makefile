@@ -7,6 +7,8 @@ all:
 
 clean:
 	rm -f voters.p*
+	-find . -name "__pycache__" -exec rm -rf {} \;
+	-find . -name "*.pyc" -exec rm -rf {} \;
 
 XPATH=PYTHONPATH=../pyvcommon:../../pyvcommon python3 -W ignore::DeprecationWarning `which pdoc` --force --html
 

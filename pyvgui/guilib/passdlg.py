@@ -34,6 +34,8 @@ from pyvguicom import pgentry
 
 from pyvcommon import pyvhash
 
+import pymisc
+
 COMMONKEY =  b"1234567890" * 4
 
 def     dbsalt(upass):
@@ -83,7 +85,7 @@ def auth_initial(authcore, packer, conf):
             if ret[0] == 1:
                 return ret
             else:
-                pggui.message("Invalid user / pass from command line prompt.")
+                pymisc.smessage("Invalid user / pass from command line prompt.")
 
     dlg = PassDlg(datasize == 0, conf)
     #print(dlg.res)
@@ -100,7 +102,7 @@ def auth_initial(authcore, packer, conf):
         else:
             ret = auth(authcore, packer, userx, decr)
         if ret[0] != 1:
-            pggui.message("Bad user or password")
+            pymisc.smessage("Bad user or password", conf=conf, sound="error")
     else:
         dret = pggui.yes_no("Must authenticate. Cancel login process?")
         if dret == Gtk.ResponseType.YES:
@@ -369,18 +371,18 @@ class PassDlg(Gtk.Dialog):
         if arg3 == Gtk.ResponseType.ACCEPT:
             if self.uname.get_text() == "":
                 self.set_focus(self.uname)
-                pggui.message("User name cannot be empty.")
+                pymisc.smessage("User name cannot be empty.")
                 self.stop_emission_by_name ("response")
                 return True
             if self.passx.get_text() == "":
                 self.set_focus(self.passx)
-                pggui.message("Password name cannot be empty.")
+                pymisc.smessage("Password name cannot be empty.")
                 self.stop_emission_by_name ("response")
                 return True
             if self.firsttime:
                 if self.passx.get_text() != self.lab5x.get_text():
                     self.set_focus(self.lab5x)
-                    pggui.message("Passwords must match.")
+                    pymisc.smessage("Passwords must match.")
                     self.stop_emission_by_name ("response")
                     return True
 

@@ -47,6 +47,11 @@ Iso      = "iso"
 datefmt = '%a, %d %b %Y %H:%M:%S'
 isostr  = "%Y-%m-%dT%H:%M:%S"
 
+# This is the chack charater on the trailing hash
+# Make sure both client and server has the same ZERO
+
+ZERO = '0'
+
 def DefPayload():
     return {PayLoad : { "Default": "None"}}
 
@@ -105,9 +110,11 @@ class BcData():
         self.pow_ignore = [Hash, PrevHash, Link, Proof, Repli]
         self.link_ignore = [Hash, Link, Proof, Repli]
 
-        self.maxtry = 30000
-        self.num_zeros = 3
+        self.maxtry = 25000
+        self.num_zeros = 4
+        self.zero = ZERO
         self.cnt = 0
+        self.weak = False
 
         #print("old_data", old_data)
         #print("type", type(old_data))
@@ -201,14 +208,15 @@ class BcData():
         ''' Provide proof of work. Only payload and powerhash '''
 
         # Make sure we are not killing the system
-        if psutil:
-            while True:
-                cpu = psutil.cpu_percent(1)
-                if cpu > 60:
-                    print("CPU", cpu)
-                    time.sleep(1)
-                else:
-                    break
+        #if psutil:
+        #    while True:
+        #        #cpu = psutil.cpu_percent(0)
+        #        #print("CPU calc", cpu)
+        #        if cpu > 60:
+        #            print("CPU", cpu)
+        #            time.sleep(1)
+        #        else:
+        #            break
         # Replicate without non participating fields:
         arrx2 = {};
         arrx2[PowRand] = self.rrr.read(12)
@@ -237,17 +245,22 @@ class BcData():
             #ssss  = bytes(ssss) #, "utf-8")
             ssss  = ssss.encode("cp437")
             hhh = shahex(ssss)
-            if hhh[-self.num_zeros:] == '0' * self.num_zeros:
+            #print("powarr", cnt, "hash", hhh, self.zero * self.num_zeros)
+            if hhh[-self.num_zeros:] == self.zero * self.num_zeros:
                 break
             cnt += 1
+
         #print("Raw gen arrx3", arrx3)
         #print(cnt, hhh)
         self.cnt = cnt
-        if hhh[-self.num_zeros:] == '0' * self.num_zeros:
+        if hhh[-self.num_zeros:] == self.zero * self.num_zeros:
             #self.datax |= arrx2
             self.datax[PowRand] = arrx2[PowRand]
             self.datax[Proof] = hhh
             return True
+        else:
+            return False
+
 
     def linkarr(self, prevhash):
 
@@ -312,6 +325,17 @@ class BcData():
         hhh = shahex(ssss)
         #print(hhh, self.datax[Hash])
         return(hhh == self.datax[Hash])
+
+    def getstrength(self):
+
+        ''' Get the number of zeros as strength '''
+
+        strength = 0
+        for aa in range(1, 8):
+            if self.datax['_Proof'][-aa] != self.zero:
+                break
+            strength += 1
+        return strength
 
     def checkpow(self):
 

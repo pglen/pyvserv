@@ -121,7 +121,7 @@ class Soundx():
         #print("playing sound: '%s' '%s'" % (sound, sname))
         self.qqq.put(sname)
 
-def  message(*args, **kwargs):
+def  smessage(*args, **kwargs):
 
     ''' Decorate message with sound '''
 
