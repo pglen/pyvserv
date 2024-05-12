@@ -29,7 +29,9 @@ from pgui import  *
 
 import recsel, pgcal, config, passdlg, pymisc
 
-from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
+from pyvcommon import pydata, pyservsup,  pyvhash
+from pyvcommon import crysupp, support, pyvindex
+
 from pydbase import twincore, twinchain
 import pyvpacker
 
@@ -154,36 +156,40 @@ class MainWin(Gtk.Window):
         #vbox.pack_start(bbox, False, 0, 0)
 
         hbox4 = Gtk.HBox()
-        lab1 = Gtk.Label("   ");
+
+        lab1 = Gtk.Label("    ");
         hbox4.pack_start(lab1, 0, 0, 0)
         self.status = pymisc.Status()
-        hbox4.pack_start(self.status, 1, 1, 0)
-
-        lab1 = Gtk.Label(" ");
-        hbox4.pack_start(lab1, 1, 1, 0)
+        hbox4.pack_start(self.status.scroll, 1, 1, 0)
+        lab1a = Gtk.Label("   ");
+        hbox4.pack_start(lab1a, 0, 0, 0)
 
         if self.conf.testx:
             butt5a = Gtk.Button.new_with_mnemonic(" Te_zt ")
             butt5a.connect("clicked", self.test_data)
             hbox4.pack_start(butt5a, False, 0, 2)
 
+        butt3 = Gtk.Button.new_with_mnemonic(" Load Li_ve")
+        butt3.connect("clicked", self.load_live_vote)
+        hbox4.pack_start(butt3, False, 0, 2)
+
+        butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad ")
+        butt3.connect("clicked", self.load_vote)
+        hbox4.pack_start(butt3, False, 0, 2)
+
         butt5 = Gtk.Button.new_with_mnemonic(" Ne_w Vote ")
         butt5.connect("clicked", self.new_data)
         hbox4.pack_start(butt5, False, 0, 2)
 
-        butt4 = Gtk.Button.new_with_mnemonic(" _Save Vote ")
+        butt4 = Gtk.Button.new_with_mnemonic(" _Save ")
         butt4.connect("clicked", self.save_data)
         hbox4.pack_start(butt4, False, 0, 2)
 
-        butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad Vote ")
-        butt3.connect("clicked", self.load_vote)
-        hbox4.pack_start(butt3, False, 0, 2)
-
-        butt3 = Gtk.Button.new_with_mnemonic(" _Delete Vote ")
+        butt3 = Gtk.Button.new_with_mnemonic(" _Delete ")
         butt3.connect("clicked", self.del_vote)
         hbox4.pack_start(butt3, False, 0, 2)
 
-        butt2 = Gtk.Button.new_with_mnemonic("     E_xit    ")
+        butt2 = Gtk.Button.new_with_mnemonic("    E_xit  ")
         butt2.connect("clicked", self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
 
@@ -779,6 +785,24 @@ class MainWin(Gtk.Window):
         # Mark as non changed
         self.reset_changed()
 
+    def load_live_vote(self, arg):
+
+        ''' Load from storage '''
+
+        # See if previous one saved
+        if self.is_changed():
+            msg = "Unsaved data. Are you sure you want to abandon it?"
+            self.status.set_status_text(msg)
+            ret = pggui.yes_no(msg, default="No")
+            #print("yes_no:", ret)
+            if ret != Gtk.ResponseType.YES:
+                return True
+            else:
+                #print("Abandoning", self.dat_dict['name'].get_text())
+                pass
+        print("live vote:")
+
+
     def load_vote(self, arg):
 
         ''' Load from storage '''
@@ -987,6 +1011,10 @@ class MainWin(Gtk.Window):
             pymisc.smessage(msg)
             return
 
+        # Disable sound
+        sps = self.conf.playsound
+        self.conf.playsound = None
+
         #print("test started")
         self.stop = not self.stop
         while True:
@@ -1053,6 +1081,9 @@ class MainWin(Gtk.Window):
 
             # Do not clear, we want ballot
             #self.clear_data()
+
+        self.conf.playsound = sps
+
 
     def save_data(self, arg1):
 
@@ -1161,7 +1192,7 @@ class MainWin(Gtk.Window):
                 pyvindex.append_index(c2, c2.hashname2, pyvindex.hash_name, dddd)
             except:
                 print("exc save callb name", sys.exc_info())
-
+                support.put_exception("save callb name")
         try:
             self.votecore.postexec = callb2
             ret = self.votecore.save_data(uuu, enc)
@@ -1170,7 +1201,9 @@ class MainWin(Gtk.Window):
         finally:
             self.votecore.postexec = None
 
-        self.conf.playsound.play_sound("shutter")
+        if self.conf.playsound:
+            self.conf.playsound.play_sound("shutter")
+
         self.status.set_status_text("Vote for '%s' saved." % self.dat_dict['name'].get_text())
 
         for aa in self.dat_dict.keys():

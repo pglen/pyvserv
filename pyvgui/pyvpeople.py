@@ -38,7 +38,7 @@ except:
 
 from pyvcommon import support, comline, pyservsup
 
-from guilib import mainwinpeople
+from guilib import mainwinpeople, pymisc
 
 # -----------------------------------------------------------------------
 # Globals
@@ -77,6 +77,8 @@ optarr = [\
                                         "Prompt for password on command line.", ],
     ["z",   "testx",        "testx",    0,              None,
                                         "Test mode. Extra buttons.", ],
+    ["s",   "sound",     "soundx",   0,          None,
+                                        "Turn off sound",     ],
     ["v",   "verbose",      "verbose",  0,              None,
                                         "Verbose. Print more info.", ],
     ["q",   "quiet",        "quiet",    0,              None,
@@ -102,6 +104,11 @@ def mainfunct():
     # To know where the icon file is
     conf.me = __file__
     #print(dir(conf))
+
+    if not conf.soundx:
+        conf.playsound = pymisc.Soundx()
+    else:
+        conf.playsound = None
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf

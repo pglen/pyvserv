@@ -26,7 +26,7 @@ from pyvguicom import pgutils
 from pymenu import  *
 from pgui import  *
 
-import recsel, pgcal, config, passdlg
+import recsel, pgcal, config, passdlg, pymisc
 
 from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
 
@@ -155,16 +155,17 @@ class MainWin(Gtk.Window):
         hbox4 = Gtk.HBox()
         lab1 = Gtk.Label("   ");
         hbox4.pack_start(lab1, 0, 0, 0)
-        lab2a = Gtk.Label(" Initializing ");
-        hbox4.pack_start(lab2a, 1, 1, 0)
-        lab2a.set_xalign(0)
-        lab2a.set_size_request(150, -1)
 
-        self.status = lab2a
-        self.status_cnt = 1
+        #lab2a = Gtk.Label(" Initializing ");
+        #hbox4.pack_start(lab2a, 1, 1, 0)
+        #lab2a.set_xalign(0)
+        #lab2a.set_size_request(150, -1)
+
+        self.status = pymisc.Status()
+        hbox4.pack_start(self.status.scroll, 1, 1, 0)
 
         lab1 = Gtk.Label(" ");
-        hbox4.pack_start(lab1, 1, 1, 0)
+        hbox4.pack_start(lab1, 0, 0, 0)
 
         butt5 = Gtk.Button.new_with_mnemonic(" Ne_w Ballot ")
         butt5.connect("clicked", self.new_data)
@@ -366,6 +367,9 @@ class MainWin(Gtk.Window):
 
         #vbox.pack_start(hbox4a, False, 0, 2)
         vbox.pack_start(hbox4, False, 0, 2)
+
+        if self.conf.playsound:
+            self.conf.playsound.play_sound("")
 
         self.add(vbox)
         self.show_all()

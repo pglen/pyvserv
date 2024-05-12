@@ -183,21 +183,21 @@ def   append_index(vcore, idxname,  hashx, rrr, ccc = None):
 
 def hash_id(vcore, rrr):
 
-    ''' Produce a hash of ID from record '''
+    ''' Produce a hash of ID from record header '''
 
     if type(rrr[0]) != type(b""):
         rrr[0] = rrr[0].encode()
-
     hhh = vcore.hash32(rrr[0])
     return hhh
 
 def hash_name(vcore, rrr):
 
-    ''' Produce a hash of name from record '''
+    ''' Produce a hash of name from record name field
+        case and whitespce insensitive.
+    '''
 
     if type(rrr[0]) != type(b""):
         rrr[0] = rrr[0].encode()
-
     dec = vcore.packer.decode_data(rrr[1])[0]
     sss = dec['name'].upper().replace(" ", "")
     #print("sss:", sss)

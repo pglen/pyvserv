@@ -171,31 +171,33 @@ class MainWin(Gtk.Window):
 
         vbox = Gtk.VBox()
 
-        hbox4a = Gtk.HBox()
-        butt2a = Gtk.Button.new_with_mnemonic(" Config_ure ")
-        butt2a.connect("clicked", self.config_dlg)
-        hbox4a.pack_start(Gtk.Label("   "), 0, 0, 0)
+        hbox4 = Gtk.HBox()
+        #hbox4a = Gtk.HBox()
+
+        lab1 = Gtk.Label("   ");
+        hbox4.pack_start(lab1, 0, 0, 0)
+        self.status = pymisc.Status()
+        hbox4.pack_start(self.status.scroll, 1, 1, 0)
+        lab1 = Gtk.Label("   ");
+        hbox4.pack_start(lab1, 0, 0, 0)
 
         if globals.conf.testx:
-            #lab3 = Gtk.Label(" | ");
-            #hbox4a.pack_start(lab3, 0, 0, 0)
-            butt2 = Gtk.Button.new_with_mnemonic(" Te_zt generate data")
+            butt2 = Gtk.Button.new_with_mnemonic(" Te_zt ")
             butt2.connect("clicked", self.test_data)
-            hbox4a.pack_start(butt2, 0, 0, 2)
-            #lab2 = Gtk.Label(" | ");
-            #hbox4a.pack_start(lab2, 0, 0, 0)
+            hbox4.pack_start(butt2, 0, 0, 2)
 
-        hbox4a.pack_start(Gtk.Label("   "), 1, 1, 0)
-        hbox4a.pack_start(butt2a, False, 0, 2)
+        butt2a = Gtk.Button.new_with_mnemonic(" Config_ure ")
+        butt2a.connect("clicked", self.config_dlg)
+        hbox4.pack_start(butt2a, False, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic(" Ne_w entry ")
         butt2.connect("clicked", self.new_data)
-        hbox4a.pack_start(butt2, False, 0, 2)
+        hbox4.pack_start(butt2, False, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic(" _Delete entry ")
         butt2.connect("clicked", self.del_data)
-        hbox4a.pack_start(butt2, False, 0, 2)
-        hbox4a.pack_start(Gtk.Label("   "), 0, 0, 2)
+        hbox4.pack_start(butt2, False, 0, 2)
+        #hbox4.pack_start(Gtk.Label("   "), 0, 0, 2)
 
         merge = Gtk.UIManager()
         #self.mywin.set_data("ui-manager", merge)
@@ -220,16 +222,6 @@ class MainWin(Gtk.Window):
         #bbox.pack_start(self.tbar, 0,0, 0)
         #vbox.pack_start(bbox, False, 0, 0)
 
-        hbox4 = Gtk.HBox()
-        lab1 = Gtk.Label("   ");
-        hbox4.pack_start(lab1, 0, 0, 0)
-
-        self.status = pymisc.Status()
-        hbox4.pack_start(self.status, 1, 1, 0)
-
-        lab1 = Gtk.Label(" ");
-        hbox4.pack_start(lab1, 1, 1, 0)
-
         butt1 = Gtk.Button.new_with_mnemonic(" _Save entry ")
         butt1.connect("clicked", self.save_data)
         hbox4.pack_start(butt1, False, 0, 2)
@@ -238,7 +230,7 @@ class MainWin(Gtk.Window):
         butt3.connect("clicked", self.load_data)
         hbox4.pack_start(butt3, False, 0, 2)
 
-        butt2 = Gtk.Button.new_with_mnemonic("     E_xit    ")
+        butt2 = Gtk.Button.new_with_mnemonic("  E_xit  ")
         butt2.connect("clicked", self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
 
@@ -383,7 +375,10 @@ class MainWin(Gtk.Window):
         vbox.pack_start(sumx, 1, 1, 2)
         #sumx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaa88"))
 
-        vbox.pack_start(hbox4a, False, 0, 2)
+        if self.conf.playsound:
+            self.conf.playsound.play_sound("")
+
+        #vbox.pack_start(hbox4a, False, 0, 2)
         vbox.pack_start(hbox4, False, 0, 2)
 
         self.add(vbox)
@@ -396,7 +391,7 @@ class MainWin(Gtk.Window):
         #print("config_dlg")
         #print("pass pow:", self.powers)
         if self.powers != "Yes":
-            pggui.message("Only Admin can Configure.")
+            pymisc.smessage("Only Admin can Configure.")
         else:
             config.ConfigDlg(self.vcore, self.acore, self.authcore, self.conf)
 
@@ -405,18 +400,20 @@ class MainWin(Gtk.Window):
         authcnt = 0
         while True:
             if authcnt > 3:
-                pggui.message("Too May tries, exiting.")
+                pymisc.smessage("Too May tries, exiting.")
                 sys.exit(1)
             ret = passdlg.auth_initial(self.authcore, self.packer, self.conf)
-            #print("ret:", ret)
+
+            print("ret:", ret)
             if not ret[0]:
                 authcnt += 1
                 continue
+
             if ret[1][2] != "Enabled":
                 authcnt += 1
                 msg = "Cannot log in, user '%s' is disbled " % ret[1][0]
                 self.status.set_status_text(msg)
-                pggui.message(msg)
+                pymisc.smessage(msg)
                 continue
             # Success
             self.operator = ret[1][0]
@@ -473,7 +470,7 @@ class MainWin(Gtk.Window):
     def load_op_name(self, arg, arg2, arg3):
         if arg2.get_text() != "":
             msg = "Already has operator; Cannot set."
-            pggui.message(msg)
+            pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(self.operator)
@@ -485,7 +482,7 @@ class MainWin(Gtk.Window):
     def load_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a GUID; Cannot set."
-            pggui.message(msg)
+            pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(str(uuid.uuid1()))
@@ -493,7 +490,7 @@ class MainWin(Gtk.Window):
     def load_op_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a OUID; Cannot set."
-            pggui.message(msg)
+            pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(self.ouid)
@@ -501,7 +498,7 @@ class MainWin(Gtk.Window):
     def load_site_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a Site UUID; Cannot set."
-            pggui.message(msg)
+            pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         arg2.set_text(str(self.conf.siteid))
@@ -574,7 +571,7 @@ class MainWin(Gtk.Window):
         if not nnn:
             msg = "Empty record, cannot delete."
             self.status.set_status_text(msg)
-            pggui.message(msg)
+            pymisc.smessage(msg)
             return
         msg = "This will delete: '%s'. \nAre you sure?" % nnn
         self.status.set_status_text(msg)
@@ -667,7 +664,7 @@ class MainWin(Gtk.Window):
             msg = "No data selected."
             #print(msg)
             self.status.set_status_text(msg)
-            pggui.message(msg)
+            pymisc.smessage(msg)
             return
         #print("dat:", dat)
         try:
@@ -729,14 +726,14 @@ class MainWin(Gtk.Window):
         if not self.is_changed():
             msg = "Nothing changed, cannot save."
             self.status.set_status_text(msg)
-            pggui.message(msg)
+            pymisc.smessage(msg)
             return
 
         if not self.dat_dict['name'].get_text():
             msg = "Must have a FULL name."
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['name'])
-            pggui.message(msg)
+            pymisc.smessage(msg)
             return
 
         dob = self.dat_dict['dob'].get_text()
@@ -744,7 +741,7 @@ class MainWin(Gtk.Window):
             msg = "Must have a valid Client date of birth. (yyyy/mm/dd)"
             self.status.set_status_text(msg)
             self.set_focus(self.dat_dict['dob'])
-            pggui.message(msg)
+            pymisc.smessage(msg)
             return
 
         # Commemorate event by setting a fresh date
@@ -792,6 +789,9 @@ class MainWin(Gtk.Window):
             print("save", sys.exc_info())
         finally:
             self.vcore.postexec = None
+
+        if self.conf.playsound:
+            self.conf.playsound.play_sound("shutter")
 
         self.status.set_status_text("Entry '%s' saved." % self.dat_dict['name'].get_text())
 

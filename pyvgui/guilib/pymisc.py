@@ -42,10 +42,23 @@ class Status(Gtk.Label):
         #super().__init__(self)
         Gtk.Label.__init__(self)
         self.set_xalign(0)
-        self.set_size_request(150, -1)
+        self.set_size_request(180, -1)
         self.status_cnt = 0
         self.set_status_text("Initial ..")
+        self.scroll = Gtk.ScrolledWindow()
+        self.scroll.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.NEVER)
+        self.scroll.get_hscrollbar().hide()
+        #self.scroll.get_vscrollbar().hide()
+
+        self.scroll.add(self)
+
+        #self.connect('size-allocate', self.sizealloc)
         GLib.timeout_add(1000, self._timer)
+
+    def sizealloc(self, arg2, arg3):
+        print("Sizelloc", arg2, arg3)
+        #lambda self, size: self.set_size_request(size.width - 1, -1))
+        return True
 
     def set_status_text(self, *textx):
         sum = ""
@@ -59,6 +72,9 @@ class Status(Gtk.Label):
         self.status_cnt = len(sum) // 4
 
     def _timer(self):
+
+        #self.get_window().set_resizable(False)
+
         #print("timer",  self.status_cnt)
         if self.status_cnt:
             self.status_cnt -= 1
@@ -87,7 +103,7 @@ SNAMES =  {
 class Soundx():
 
     def __init__(self):
-        self.qqq = queue.Queue(10)
+        self.qqq = queue.Queue(5)
         ttt = threading.Thread(None, target=self._asynsound)
         ttt.daemon = True
         ttt.start()
@@ -119,14 +135,29 @@ class Soundx():
         me = os.path.dirname(__file__)
         sname = os.path.join(me, sname)
         #print("playing sound: '%s' '%s'" % (sound, sname))
-        self.qqq.put(sname)
+        try:
+            if not self.qqq.full():
+                self.qqq.put(sname)
+            else:
+                #print("Sound queue full")
+                pass
+        except:
+            print("Exc: Sound Queue:", sys.exc_info())
+
+gl_in = 0
 
 def  smessage(*args, **kwargs):
 
     ''' Decorate message with sound '''
+    global gl_in;
 
     #print("pgmisc message", args, kwargs)
 
+    # Protect from re-entry
+    if gl_in:
+        print("Ignoring smessage reentry")
+        return
+    gl_in = True
     sss = kwargs.get("sound")
     ccc = kwargs.get("conf")
 
@@ -137,7 +168,7 @@ def  smessage(*args, **kwargs):
         del kwargs["conf"]               # Remove extra keyword
     if sss:
         del kwargs['sound']
-
     pggui.message(args[0], **kwargs)
+    gl_in = False
 
 # EOF
