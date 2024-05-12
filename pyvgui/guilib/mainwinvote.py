@@ -30,7 +30,7 @@ from pgui import  *
 import recsel, pgcal, config, passdlg, pymisc
 
 from pyvcommon import pydata, pyservsup,  pyvhash
-from pyvcommon import crysupp, support, pyvindex
+from pyvcommon import crysupp, support, pyvindex, filedlg
 
 from pydbase import twincore, twinchain
 import pyvpacker
@@ -800,7 +800,21 @@ class MainWin(Gtk.Window):
             else:
                 #print("Abandoning", self.dat_dict['name'].get_text())
                 pass
-        print("live vote:")
+        #print("live vote:")
+        ret = filedlg.File_Dlg()
+        print("filedlg ret:", ret)
+        if not ret:
+            return
+
+        self.livecore = twincore.TwinCore(ret[0], 0)
+        self.livecore.packer = self.packer
+        self.livecore.hashname  = os.path.splitext(self.votecore.fname)[0] + ".hash.id"
+        self.livecore.hashname2 = os.path.splitext(self.votecore.fname)[0] + ".hash.name"
+
+        heads = ["Voter Name", "Entry Date", "Election Date", "Vote UUID", ""]
+        sss = recsel.RecSelDlg(self.livecore, self.acore, self.conf, headers=heads)
+        if sss.response != Gtk.ResponseType.ACCEPT:
+            return
 
 
     def load_vote(self, arg):
