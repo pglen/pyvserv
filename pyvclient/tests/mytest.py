@@ -37,7 +37,7 @@ except:
 
 
 from pyvcommon import support, pycrypt, pyservsup, pyclisup
-from pyvcommon import pysyslog, comline
+from pyvcommon import pysyslog
 
 fdirx = os.path.expanduser("~/pyvserver/")
 lockname = "tmp/lockfile"

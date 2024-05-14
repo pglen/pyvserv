@@ -240,7 +240,7 @@ def    mainfunct():
         # Offset is one less than count
         cresp2 = hand.client(["rabs", "vote", cresp[1] - 1], conf.sess_key)
         #print ("Server rabs response:", cresp2)
-        pyclisup.show_onerec(hand, cresp2[3][0], conf)
+        #pyclisup.show_onerec(hand, cresp2[3][0], conf)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     #print ("Server quit response:", cresp)

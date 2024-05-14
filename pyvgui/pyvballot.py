@@ -38,7 +38,7 @@ except:
 
 from pyvcommon import support, comline, pyservsup
 
-from guilib import mainballot, pymisc
+from guilib import mainwinballot, pymisc
 
 # -----------------------------------------------------------------------
 # Globals
@@ -79,6 +79,8 @@ optarr = [\
                                         "Test mode. Extra buttons.", ],
     ["s",   "sound",     "soundx",   0,          None,
                                         "Turn off sound",     ],
+    ["w",   "weak",         "weak",     0,              None,
+                                        "Weak POW generation. Test only", ],
     ["v",   "verbose",      "verbose",  0,              None,
                                         "Verbose. Print more info.", ],
     ["q",   "quiet",        "quiet",    0,              None,
@@ -136,7 +138,7 @@ def mainfunct():
 
     pyservsup.gl_passwd = pyservsup.Passwd()
 
-    mw = mainballot.MainWin(pyservsup.globals)
+    mw = mainwinballot.MainWin(pyservsup.globals)
     mw.main()
     sys.exit(0)
 

@@ -137,18 +137,24 @@ def mainfunct():
     #else:
     #    dd_end = dd_beg + datetime.timedelta(1)
 
+    cresp = hand.client(["rsize", "vote"], conf.sess_key)
+    print ("rsize response:", cresp)
+
     if conf.rtest:
         import shlex
         zzz = shlex.split(conf.rtest)
         #print("zzz", zzz)
-        cresp = hand.client(["rtest", "vote", "sum", *zzz], conf.sess_key)
+        cresp = hand.client(["rtest", "vote", "proof", *zzz], conf.sess_key)
         print ("rtest response:", cresp)
     else:
-        cresp = hand.client(["rcheck", "vote", "sum"], conf.sess_key)
-        print ("rcheck sum response:", cresp)
+        cresp = hand.client(["rcheck", "vote", "proof"], conf.sess_key)
+        print ("proof response:", cresp)
 
-        cresp = hand.client(["rcheck", "vote", "link"], conf.sess_key)
-        print ("rcheck link response:", cresp)
+        cresp = hand.client(["rcheck", "vote", "hash"], conf.sess_key)
+        print ("hash response:", cresp)
+
+        cresp = hand.client(["rcheck", "vote", "data"], conf.sess_key)
+        print ("data response:", cresp)
         if cresp[0] != "OK":
             sys.exit()
 

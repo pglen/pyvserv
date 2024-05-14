@@ -12,7 +12,6 @@ except:
     pass
 
 from Crypto import Random
-#from Crypto.Hash import SHA512
 from Crypto.Hash import SHA256
 
 #base = os.path.dirname(os.path.realpath(__file__))
@@ -331,6 +330,11 @@ class BcData():
         ''' Get the number of zeros as strength '''
 
         strength = 0
+
+        # No proof ...
+        if '_Proof' not in self.datax:
+            return strength
+
         for aa in range(1, 8):
             if self.datax['_Proof'][-aa] != self.zero:
                 break

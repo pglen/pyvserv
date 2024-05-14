@@ -25,6 +25,8 @@ except:
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
 
+import pyvpacker
+
 # ------------------------------------------------------------------------
 # Globals
 
@@ -126,6 +128,8 @@ def    mainfunct():
     dd_beg, dd_end = pyclisup.inter_date(conf.begin, conf.inter)
     print("date from:", dd_beg, "to:", dd_end);
 
+    packer = pyvpacker.packbin()
+
     if conf.rget:
         rgetarr = conf.rget.split()
         #print("rgetarr:", rgetarr)
@@ -133,16 +137,13 @@ def    mainfunct():
         if cresp[0] == "OK":
             #print("rget resp:", cresp)
             for aa in cresp[3]:
-                pyclisup.show_onerec(hand, aa, conf)
+                #pyclisup.show_onerec(hand, aa, conf)
 
-                #dec = hand.pb.decode_data(aa[1])[0]
-                #if conf.verbose:
-                #    print("dec:", dec)
-                #pay = hand.pb.decode_data(dec['payload'])[0]
-                #if conf.verbose:
-                #    print("dec:", dec)
-                #else:
-                #    print("pay:", pay['PayLoad'])
+                dec = packer.decode_data(aa[1])[0]
+                if conf.verbose:
+                    print("dec:", dec)
+                else:
+                    print("pay:", dec['PayLoad'])
     else:
         cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
                          dd_end.timestamp()], conf.sess_key)
@@ -159,7 +160,13 @@ def    mainfunct():
                 continue
             #print("cresp2:", cresp2)
             for aa in cresp2[3]:
-                pyclisup.show_onerec(hand, aa, conf)
+                #pyclisup.show_onerec(hand, aa, conf)
+                dec = packer.decode_data(aa[1])[0]
+                if conf.verbose:
+                    print("dec:", dec)
+                else:
+                    print("pay:", dec['PayLoad'])
+
         print("Listed", len(cresp[1]), "records.")
 
     cresp = hand.client(["quit", ], conf.sess_key)

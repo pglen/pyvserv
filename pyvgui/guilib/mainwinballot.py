@@ -28,7 +28,7 @@ from pgui import  *
 
 import recsel, pgcal, config, passdlg, pymisc
 
-from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
+from pyvcommon import pydata, pyservsup,  pyvhash, crysupp, pyvindex
 
 from pydbase import twincore, twinchain
 
@@ -332,7 +332,7 @@ class MainWin(Gtk.Window):
 
         rowcnt += 1
 
-        tp6x = ("Ballot Notes: ", "", "Text for ballot notes. Press Shift+Enter key to advance", None)
+        tp6x = ("Ballot No_tes: ", "", "Text for ballot notes. Press Shift+Enter key to advance", None)
         lab6x = pgentry.gridsingle(self.gridx, 0, rowcnt, tp6x)
         self.dat_dict['vnotes'] = lab6x
         rowcnt += 1
@@ -644,7 +644,7 @@ class MainWin(Gtk.Window):
         msg = "This will delete: '%s'. \nAre you sure?" % nnn
         self.status.set_text(msg)
         self.status_cnt = 4
-        ret = pggui.yes_no(msg)
+        ret = pggui.yes_no(msg, default="No")
         if ret != Gtk.ResponseType.YES:
             return True
         ddd = self.dat_dict['uuid'].get_text()
@@ -677,7 +677,7 @@ class MainWin(Gtk.Window):
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            ret = pggui.yes_no(msg)
+            ret = pggui.yes_no(msg, default="No")
             if ret != Gtk.ResponseType.YES:
                 return True
 
@@ -707,7 +707,7 @@ class MainWin(Gtk.Window):
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            ret = pggui.yes_no(msg)
+            ret = pggui.yes_no(msg, default="No")
             if ret != Gtk.ResponseType.YES:
                 return True
 
@@ -717,7 +717,8 @@ class MainWin(Gtk.Window):
             return
         #print("sss.res:", sss.res)
         try:
-            dat = self.bcore.retrieve(sss.res[0][3])
+            #dat = self.bcore.retrieve(sss.res[0][3])
+            dat = self.bcore.get_rec(int(sss.res[0][4]))
         except:
             dat = []
             print(sys.exc_info())
@@ -729,9 +730,9 @@ class MainWin(Gtk.Window):
             self.status_cnt = 5
             pggui.message(msg)
             return
-        #print("dat:", dat)
+        print("dat:", dat)
         try:
-            dec = self.packer.decode_data(dat[0][1])[0]
+            dec = self.packer.decode_data(dat[1])[0]['PayLoad']
         except:
             dec = {}
             pass
@@ -804,7 +805,7 @@ class MainWin(Gtk.Window):
             msg = "Must have a valid Ballot date. (yyyy/mm/dd)"
             self.status.set_text(msg)
             self.status_cnt = 4
-            self.set_focus(self.dat_dict['bdate'])
+            self.set_focus(self.dat_dict['dob'])
             pggui.message(msg)
             return
 
@@ -887,8 +888,38 @@ class MainWin(Gtk.Window):
         for aa in self.dat_dict.keys():
             ddd[aa] = self.dat_dict[aa].get_text()
 
-        print("Save_data", ddd)
-        enc = self.packer.encode_data("", ddd)
+        #print("Save_data", ddd)
+
+        pvh = pyvhash.BcData()
+        # We mark this as 'test' so it can stay in the chain, if desired
+        pvh.addpayload({"Test": "test" ,})
+        pvh.addpayload(ddd)
+
+        pvh.hasharr()
+
+        def callb(dlg):
+            #print("callback from dlg")
+            self.status.set_status_text("PROW calc, please wait ...")
+            for aa in range(10):
+                dlg.prog.set_fraction((aa+1) * 0.1)
+                if pvh.powarr():
+                    break
+                self.status.set_status_text("PROW calc retry %d .." % (aa+1))
+            dlg.response(Gtk.ResponseType.REJECT)
+            dlg.destroy()
+            self.status.set_status_text("PROW done.")
+        if self.conf.weak:
+            pvh.num_zeros = 1
+        dlg = pymisc.progDlg(self.conf, callb, parent = self)
+
+        if not pvh.checkpow():
+            msg = "Cold not generate PROW, please retry saving record."
+            pymisc.smessage(msg, conf=self.conf, sound="error")
+            return
+
+        #print("pvh", pvh.datax)
+
+        enc = self.packer.encode_data("", pvh.datax)
         #print("enc:", enc)
         uuu = self.dat_dict['uuid'].get_text()
 
@@ -898,24 +929,24 @@ class MainWin(Gtk.Window):
             dddd = [uuu, enc.encode()]
             #print("dddd:", dddd)
             try:
-                pyvindex.append_index(self.score, self.score.hashname,
-                                                        pyvindex.hash_id, dddd)
+                pyvindex.append_index(c2, c2.hashname, pyvindex.hash_id, dddd)
             except:
                 print("exc save callb hash", sys.exc_info())
             try:
-                pyvindex.append_index(self.score, self.score.hashname2,
-                                                        pyvindex.hash_name, dddd)
+                pyvindex.append_index(c2, c2.hashname2, pyvindex.hash_name, dddd)
             except:
                 print("exc save callb name", sys.exc_info())
-
         try:
-            #self.ccore.postexec = callb
+            self.bcore.postexec = callb
             ret = self.bcore.save_data(uuu, enc)
         except:
             pass
             print("save", sys.exc_info())
         finally:
             self.bcore.postexec = None
+
+        if self.conf.playsound:
+            self.conf.playsound.play_sound("shutter")
 
         self.status.set_text("Ballot '%s' saved." % self.dat_dict['name'].get_text())
         self.status_cnt = 4
@@ -954,7 +985,7 @@ class MainWin(Gtk.Window):
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_text(msg)
             self.status_cnt = 4
-            ret = pggui.yes_no(msg)
+            ret = pggui.yes_no(msg, default="No")
             #print("yes_no:", ret)
             if ret != Gtk.ResponseType.YES:
                 return True

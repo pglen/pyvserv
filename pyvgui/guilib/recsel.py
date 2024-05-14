@@ -202,6 +202,7 @@ class RecSelDlg(Gtk.Dialog):
         #self.set_focus(self.tview)
         self.response = self.run()
 
+        # compile results
         self.res = []
         if self.response == (Gtk.ResponseType.ACCEPT):
             xmodel = self.ts
@@ -287,6 +288,7 @@ class RecSelDlg(Gtk.Dialog):
                     # This way the user knows
                     print("Damaged:", cnt, sys.exc_info(), rrr)
                     continue
+
                 fff = (dec['name'], dec['now'], dec['dob'],  uuu, str(aa))
                 #print("found:", fff)
                 ddd2.append(fff)
@@ -464,9 +466,9 @@ class RecSelDlg(Gtk.Dialog):
                 continue
             #print("rrr:", rrr)
             try:
-                dec = self.packer.decode_data(rrr[1])[0]
-            #print("dec:", dec)
-            #print("dec:", dec['name'], dec['dob'], dec['uuid'])
+                dec = self.packer.decode_data(rrr[1])[0]['PayLoad']
+                #print("dec:", dec)
+                #print("dec:", dec['name'], dec['dob'], dec['uuid'])
             except:
                 dec = {}
                 dec['name'] = "Invalid / Damaged data."

@@ -5,6 +5,9 @@
 all:
 	@echo "Targets: clean docs"
 
+cleanall:
+	@rm -rf ~/pyvclient/
+
 clean:
 	rm -f voters.p*
 	-find . -name "__pycache__" -exec rm -rf {} \;

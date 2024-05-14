@@ -9,6 +9,8 @@ iname = createidxname(__file__)
 
 import pyvhash
 
+from pyvguicom import pgutils, pgtests
+
 actstr = ["register", "unregister", "cast", "uncast", ]
 act = actstr[random.randint(0, len(actstr)-1)]
 
@@ -54,8 +56,12 @@ def test_func(capsys):
     pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
     pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
     pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
+    pvh.addpayload({"uuid":  str(uuid.uuid1()), })
+    pvh.addpayload({"name":  pgtests.simname(12)})
     pvh.addpayload({"TEST": "Do NOT use", })
-    pvh.hasharr();  pvh.powarr()
+    pvh.hasharr();
+    while not pvh.powarr():
+        pass
 
     #print(pvh.datax)
     #assert 0

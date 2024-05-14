@@ -137,8 +137,8 @@ def    mainfunct():
             cresp = hand.client(["quit", ], conf.sess_key)
             sys.exit()
         for aa in cresp2[3]:
-            #print("aa", aa)
-            pyclisup.show_onerec(hand, aa, conf)
+            print("aa", aa)
+            #pyclisup.show_onerec(hand, aa, conf)
     else:
         # Get last record
         cresp = hand.client(["rsize", "vote"], conf.sess_key)
@@ -148,7 +148,14 @@ def    mainfunct():
         cresp2 = hand.client(["rabs", "vote", cresp[1] - 1], conf.sess_key)
         #print ("Server rabs response:", cresp2)
         for aa in cresp2[3]:
-            pyclisup.show_onerec(hand, aa, conf)
+            #pyclisup.show_onerec(hand, aa, conf)
+            #print(aa)
+            dec = hand.pb.decode_data(aa[1])[0]
+            print("Last Record:")
+            if conf.verbose:
+                print("dec:", dec)
+            else:
+                print("pay:", dec['PayLoad'])
 
     cresp = hand.client(["quit", ], conf.sess_key)
     #print ("Server quit response:", cresp)

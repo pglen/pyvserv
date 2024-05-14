@@ -313,8 +313,9 @@ class MainWin(Gtk.Window):
             "None", ]
         for aa in range(8):
             self.candstr.append("Candidate %d" % (aa + 1))
+
         #print("candstr:", self.candstr)
-        #print("cand_dict:", cand_dict)
+        #print("cand_dict:", self.candstr)
 
         self.labrow = rowcnt
         rowcnt = self.preview()
@@ -332,7 +333,6 @@ class MainWin(Gtk.Window):
         lab6x = pgentry.gridsingle(self.gridx, 0, rowcnt, tp6x)
         self.dat_dict['vnotes'] = lab6x
         rowcnt += 1
-
 
         frame = Gtk.Frame()
         self.gridx.attach(frame, 1, rowcnt, 3, 1)
@@ -384,10 +384,11 @@ class MainWin(Gtk.Window):
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
         try:
-            dat = self.bcore.retrieve(sss.res[0][3])
+            #dat = self.bcore.retrieve(sss.res[0][3])
+            dat = self.bcore.get_rec(int(sss.res[0][4]))
         except:
             dat = []
-            print(sys.exc_info())
+            print("Get rec", sys.exc_info())
             pass
         if not dat:
             msg = "No data selected."
@@ -397,11 +398,13 @@ class MainWin(Gtk.Window):
             return
         #print("dat:", dat)
         try:
-            dec = self.packer.decode_data(dat[0][1])[0]
+            #dec = self.packer.decode_data(dat[0][1])[0]
+            dec = self.packer.decode_data(dat[1])[0]['PayLoad']
+
         except:
             dec = {}
             pass
-        #print("dec:", dec)
+        #print("ballot dec:", dec)
 
         # Assign to form
         self.dat_dict['buuid'].set_text(dec['uuid'])
@@ -440,9 +443,23 @@ class MainWin(Gtk.Window):
 
         col = 0
 
+        #print("cand:", self.candstr)
+
+        self.randarr = [-1 for _ in range(len(self.cand_dict)-1)]
+
+        # Limit it to actual data count:
+        acnt = 0
+        for aa in self.cand_dict:
+            if self.cand_dict[aa].get_text():
+                acnt += 1
+        #print("acnt:", acnt)
+
         # Generate matching random index for
-        lenx = len(self.cand_dict) - 1
-        self.randarr = [-1 for _ in range(lenx)]
+        if acnt == 0:
+            lenx = len(self.cand_dict) - 1
+        else:
+            lenx = acnt
+
         cnt = 0
         # Shuffle
         while True:
@@ -473,8 +490,13 @@ class MainWin(Gtk.Window):
         # All others
         cnt = 0
         for cc in list(self.cand_dict.keys())[1:]:
-            candidx = "can%d" % (self.randarr[cnt])
-            txtx = self.cand_dict[candidx].get_text()
+            ccc = self.randarr[cnt]
+            if ccc < 0:
+                txtx =  ""
+            else:
+                candidx = "can%d" % (ccc)
+                txtx = self.cand_dict[candidx].get_text()
+
             tooltip = "Click to activate selection."
             if len(txtx) > 24:
                 bb = txtx[:24] + ".."
@@ -512,7 +534,7 @@ class MainWin(Gtk.Window):
 
     def config_dlg(self, arg2):
         #print("config_dlg")
-        #print("pass pow:", self.powers)
+        #print("pass prow:", self.powers)
         if self.powers != "Yes":
             pymisc.smessage("Only Admin can Configure.")
         else:
@@ -761,7 +783,7 @@ class MainWin(Gtk.Window):
             return
         #print("preload dat:", dat)
         try:
-            dec = self.packer.decode_data(dat[1])[0]
+            dec = self.packer.decode_data(dat[1])[0]['PayLoad']
         except:
             dec = {}
             pass
@@ -987,7 +1009,7 @@ class MainWin(Gtk.Window):
             return
         #print("dat:", dat)
         try:
-            dec = self.packer.decode_data(dat[1])[0]
+            dec = self.packer.decode_data(dat[1])[0]['PayLoad']
         except:
             dec = {}
             pass
@@ -1032,6 +1054,7 @@ class MainWin(Gtk.Window):
         #print("test started")
         self.stop = not self.stop
         while True:
+            print("test cycle started")
             if self.exit_flag:
                 self.reset_changed()
                 break
@@ -1061,10 +1084,24 @@ class MainWin(Gtk.Window):
                     self.dat_dict[aa].set_text(pgtests.randascii(random.randint(33, 66)))
                 elif aa == 'vprim':
                     # Select from candidates
-                    xlen = len(self.cand_dict)-1
-                    rx = random.randint(0, xlen-1)
-                    for bb in range(0, xlen):
-                        candidx = "can%d" % (self.randarr[bb])
+                    lenx = len(self.cand_dict)-1
+                    # Shuffle
+                    xrandarr = [-1 for _ in range(len(self.cand_dict)-1)]
+                    cnt = 0
+                    while True:
+                        xx = random.randint(0, lenx-1)
+                        # Make sure it is unique
+                        if xrandarr[xx] != -1:
+                            continue
+                        xrandarr[xx] = cnt + 1
+                        cnt += 1
+                        # Are we done?
+                        if cnt >= lenx:
+                            break
+                    rx = random.randint(0, lenx-1)
+
+                    for bb in range(0, lenx-1):
+                        candidx = "can%d" % (xrandarr[bb])
                         cc = self.cand_dict[candidx].get_text()
                         if rx == bb:
                             #print("sel:", cc)
@@ -1074,13 +1111,14 @@ class MainWin(Gtk.Window):
                     cntc = 0
                     cc = self.dat_dict['vprim'].get_text()
                     for aa in range(len(self.cand_dict)-1):  #.keys():
-                        candidx = "can%d" % (self.randarr[cntc])
+                        candidx = "can%d" % (xrandarr[cntc])
                         bb = self.cand_dict[candidx].get_text()
                         if bb == cc:
-                            #print("found bb:", bb, "ref:", aa)
+                            print("found bb:", bb, "candidx =",  candidx, "ref:", aa)
                             posidx = "can%d" % (aa)
                             self.oneshot = True
                             self.radioarr[posidx].set_active(True)
+                            self.dat_dict['vprim'].set_text(bb)
                             #break
                         cntc += 1
                 else:
@@ -1089,9 +1127,13 @@ class MainWin(Gtk.Window):
             #break
 
             pgutils.usleep(10)
-            self.save_data(0)
-            sleepx = 20
+            if not self.save_data(0):
+                break
+
+            sleepx = 2000
             pgutils.usleep(sleepx)
+
+            print("test cycle ended")
 
             # Do not clear, we want ballot
             #self.clear_data()
@@ -1160,7 +1202,7 @@ class MainWin(Gtk.Window):
         if self.dat_dict['voper'].get_text() == "":
             self.dat_dict['voper'].set_text(str(self.operator))
 
-        # Check id IDs are in order:
+        # Check if IDs are in order:
         checklist = ("nuuid", "uuid", "vguid", "vouid", "buuid")
         for aa in checklist:
             try:
@@ -1187,7 +1229,37 @@ class MainWin(Gtk.Window):
         for aa in list(self.cand_dict.keys())[1:]:
             ddd[aa] = self.cand_dict[aa].get_text()
 
-        enc = self.packer.encode_data("", ddd)
+        pvh = pyvhash.BcData()
+        # We mark this as 'test' so it can stay in the chain, if desired
+        #pvh.addpayload({"Test": "test" ,})
+        pvh.addpayload(ddd)
+
+        pvh.hasharr()
+        if self.conf.weak:
+            pvh.num_zeros = 1
+
+        def callb(dlg):
+            #print("callback from dlg")
+            self.status.set_status_text("PROW calc, please wait ...")
+            for aa in range(10):
+                dlg.prog.set_fraction((aa+1) * 0.1)
+                if pvh.powarr():
+                    break
+                self.status.set_status_text("PROW calc retry %d .." % (aa+1))
+            dlg.response(Gtk.ResponseType.REJECT)
+            dlg.destroy()
+            self.status.set_status_text("PROW done.")
+        if self.conf.weak:
+            pvh.num_zeros = 1
+        dlg = pymisc.progDlg(self.conf, callb, parent = self)
+
+        if not pvh.checkpow():
+            msg = "Cold not generate PROW, please retry saving record."
+            pymisc.smessage(msg, conf=self.conf, sound="error")
+            return
+
+        enc = self.packer.encode_data("", pvh.datax)
+
         #print("enc:", enc)
         uuu = self.dat_dict['uuid'].get_text()
 
@@ -1211,17 +1283,18 @@ class MainWin(Gtk.Window):
             self.votecore.postexec = callb2
             ret = self.votecore.save_data(uuu, enc)
         except:
-            print("save", sys.exc_info())
+            print("exc save", sys.exc_info())
         finally:
             self.votecore.postexec = None
 
         if self.conf.playsound:
             self.conf.playsound.play_sound("shutter")
 
-        self.status.set_status_text("Vote for '%s' saved." % self.dat_dict['name'].get_text())
+        self.status.set_status_text("Saved '%s'" % self.dat_dict['name'].get_text())
 
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
+        return True
 
     def main(self):
         Gtk.main()

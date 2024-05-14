@@ -134,7 +134,7 @@ def mainfunct():
     if cresp[1] < 100:
         cresp = hand.client(["rlist", "vote", dd_beg.timestamp(),
                                     dd_end.timestamp()], conf.sess_key)
-        #print ("Server  rlist response:", cresp)
+        print ("Server  rlist response:", cresp)
         if cresp[0] == "OK":
             for aa in cresp[1]:
                 #print("aa", aa)

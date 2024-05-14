@@ -4,7 +4,7 @@
 # Test client for the pyserv project. Encrypt test.
 
 import  os, sys, getopt, signal, select, socket, time, struct
-import  random, stat, uuid, atexit
+import  random, stat, uuid, atexit, datetime
 
 from Crypto import Random
 
@@ -30,7 +30,7 @@ except:
 from pyvcommon import support, pycrypt, pyservsup, pyclisup, pyvhash
 from pyvcommon import pysyslog, comline
 
-import pyvpacker
+from pyvguicom import pgutils, pgtests
 
 # ------------------------------------------------------------------------
 # Functions from command line
@@ -72,46 +72,97 @@ optarr = \
 
 conf = comline.Config(optarr)
 
+
+# Vote structure: Sun 12.May.2024
+
+#Save_data 730f3e8a-10c2-11ef-8e2a-d970e1627f70
+#{'nuuid': 'c83c6562-0867-11ef-871c-6d4329725b1a',
+#'name': 'Peter Glen', 'ndob': '1959/11/20', 'nnow': '2024-05-02T05:38:53',
+#'noper': 'admin', 'uuid': '730f3e8a-10c2-11ef-8e2a-d970e1627f70',
+#'vguid': '57d626a8-719c-4fc0-8bfa-62c214da695c',
+#'vouid': '24573422-079a-11ef-8787-539d6f89ec87',
+#'now': '2024-05-12T20:48:01', 'voper': 'admin',
+#'buuid': '09269680-079e-11ef-8787-539d6f89ec87',
+#'bname': 'New Test Ballot', 'dob': '2024/1/2',
+#'vprim': 'John Doe', 'vsec': 'test',
+#'vnotes': '', 'can1': 'John Doe', 'can2': 'Jane Dow',
+#'can3': 'Johan Citizen', 'can4': 'Jorge Naturez',
+#'can5': 'Jill Carpenter', 'can6': 'Jack Savage',
+#'can7': 'James Folie', 'can8': 'Joe Cry'}
+
 def genrec():
 
-    actstr = ["register", "unregister", "cast", "uncast", ]
-    act = actstr[random.randint(0, len(actstr)-1)]
-
-    #ttt = time.time()
     pvh = pyvhash.BcData()
-    pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
-    pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
-    pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
     # We mark this as 'test' so it can stay in the chain, if desired
     pvh.addpayload({"Test": "test" ,})
+    dd = datetime.datetime.now()
+    dd = dd.replace(microsecond=0)
+
+    pvh.addpayload({'nuuid': str(uuid.uuid1()) })
+    pvh.addpayload({'name': pgtests.simname(12) })
+    pvh.addpayload({'ndob': pgtests.randate() })
+    pvh.addpayload({'nnow': pgtests.randisodate() })
+    pvh.addpayload({'noper': pgtests.randstr(random.randint(6, 22)) })
+    pvh.addpayload({'uuid':  str(uuid.uuid1()) })
+    pvh.addpayload({'vguid': str(uuid.uuid1()) })
+    pvh.addpayload({'vouid': str(uuid.uuid1()) })
+
+    pvh.addpayload({'now': dd.isoformat()} )
+
+    pvh.addpayload({'buuid': str(uuid.uuid1()) })
+    pvh.addpayload({'voper': pgtests.randstr(random.randint(6, 22)) })
+    pvh.addpayload({'bname': pgtests.randstr(random.randint(6, 22)) })
+    pvh.addpayload({'dob':   pgtests.randate()})
+
+    lenx = 8
+    randx =  random.randint(0, lenx-1)
+    randy =  random.randint(0, lenx-1)
+    for aa in range(lenx):
+        rrr = pgtests.randstrrand(6, 22)
+        pvh.addpayload({"can%d" % (aa+1)  : rrr,})
+
+        if aa == randx:
+            pvh.addpayload({'vprim': rrr, })
+        if aa == randy:
+            pvh.addpayload({'vsec': rrr, })
+
+    rrr = pgtests.randstrrand(12, 32)
+    pvh.addpayload({'vnotes': rrr})
 
     if conf.putkey:
         pvh.datax['header'] = conf.putkey
 
     #"test=%d" % pvh.num_zeros,
-    print("Calculating hash ....",    end = " " );
-    sys.stdout.flush()
+
+    #if not conf.quiet:
+    #    print("Calculating hash ....",    end = " " );
+    #    sys.stdout.flush()
+
     pvh.hasharr();
     if not pvh.checkhash():
         print("Error on check hash .. ")
         sys.exit(1)
-    print("OK")
+
+    #if not conf.quiet:
+    #    print("OK")
 
     if conf.test:
         pvh.num_zeros = 1
 
-    print("Calc POW payload ...")
+    if not conf.quiet:
+        print("Calc PROW payload ...", end = " ")
+
     ttt = time.time()
     for aa in range(10):
         if pvh.powarr():
             break
-        print("Calc POW payload .. retrying ...")
+        print("Calc PROW retrying ... %d" % aa)
 
     if not conf.quiet:
-        print("OK, POW calc time %.3fms"% ((time.time() - ttt) * 1000) )
+        print("OK, calc time %.3fms"% ((time.time() - ttt) * 1000) )
 
     if not pvh.checkpow():
-        print("Giving up ... Error on POW payload .. ")
+        print("Giving up ... Error on PROW payload .. ")
         sys.exit(1)
 
     # Falsify test (passed)
@@ -203,13 +254,15 @@ def mainfunct():
 
     if conf.numrec == 1:
         cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
-        print ("rput resp:", cresp)
+        if not conf.quiet:
+            print ("resp:", cresp)
     else:
         for aa in range(conf.numrec):
             pvh = genrec()
             ttt = time.time()
             cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
-            print("putrec: %s  %.3fms" % (cresp[0], (time.time() - ttt) * 1000) )
+            if not conf.quiet:
+                print("putrec: %s  %.3fms" % (cresp[0], (time.time() - ttt) * 1000) )
             #print ("rput resp:", cresp)
 
     sys.exit(0)

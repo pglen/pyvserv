@@ -162,7 +162,7 @@ def init_state_table():
         ("rget",     all_in,  none_in,   auth_pass, get_rget_func,    rget_help),
         ("rabs",     all_in,  none_in,   auth_pass, get_rabs_func,    rabs_help),
         ("rhave",    all_in,  none_in,   auth_pass, get_rhave_func,   rhave_help),
-        ("rtest",    all_in,  none_in,   auth_pass, get_rtest_func, rtest_help),
+        #("rtest",    all_in,  none_in,   auth_pass, get_rtest_func, rtest_help),
 
         # The two factor auth commands. 2FA not required during development
         ("rput",     all_in,  none_in,   minauth,   get_rput_func,   rput_help),

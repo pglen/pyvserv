@@ -84,6 +84,8 @@ optarr = [\
                                         "Turn off sound",     ],
  ["v",   "verbose",   "verbose",  0,          None,
                                         "Print more information",     ],
+ ["w",   "weak",         "weak",     0,              None,
+                                        "Weak POW generation. Test only", ],
  ["q",   "quiet",     "quiet",    0,          None,
                                         "Print less information",     ],
  ["z",   "test",      "testx",    0,          None,

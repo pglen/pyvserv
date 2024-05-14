@@ -18,6 +18,10 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
 
     #print("Search_index()", os.path.realpath(hashname), textx)
 
+    # Nothing to see here
+    if not vcore.getdbsize():
+        return []
+
     if ccc:
         ccc.rec_cnt = 0
     try:
@@ -185,6 +189,7 @@ def hash_id(vcore, rrr):
 
     ''' Produce a hash of ID from record header '''
 
+    #print("hash_id:", rrr)
     if type(rrr[0]) != type(b""):
         rrr[0] = rrr[0].encode()
     hhh = vcore.hash32(rrr[0])
@@ -196,9 +201,10 @@ def hash_name(vcore, rrr):
         case and whitespce insensitive.
     '''
 
+    #print("hash_name:", rrr)
     if type(rrr[0]) != type(b""):
         rrr[0] = rrr[0].encode()
-    dec = vcore.packer.decode_data(rrr[1])[0]
+    dec = vcore.packer.decode_data(rrr[1])[0]['PayLoad']
     sss = dec['name'].upper().replace(" ", "")
     #print("sss:", sss)
     hhh = vcore.hash32(sss.encode())

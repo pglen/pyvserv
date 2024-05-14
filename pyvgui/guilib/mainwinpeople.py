@@ -21,14 +21,14 @@ from pyvguicom import pgbox
 from pyvguicom import pgsimp
 from pyvguicom import pggui
 from pyvguicom import pgentry
-from pyvguicom import pgutils
+from pyvguicom import pgtests
 
 from pymenu import  *
 from pgui import  *
 
 import recsel, pgcal, config, passdlg, pymisc
 
-from pyvcommon import pydata, pyservsup,  pyvhash, crysupp
+from pyvcommon import pydata, pyservsup,  pyvhash, crysupp, pyvindex
 
 from pydbase import twincore, twinchain
 
@@ -404,7 +404,8 @@ class MainWin(Gtk.Window):
                 sys.exit(1)
             ret = passdlg.auth_initial(self.authcore, self.packer, self.conf)
 
-            print("ret:", ret)
+            #print("ret:", ret)
+
             if not ret[0]:
                 authcnt += 1
                 continue
@@ -415,6 +416,7 @@ class MainWin(Gtk.Window):
                 self.status.set_status_text(msg)
                 pymisc.smessage(msg)
                 continue
+
             # Success
             self.operator = ret[1][0]
             self.powers   = ret[1][4]
@@ -683,6 +685,7 @@ class MainWin(Gtk.Window):
 
     def test_data(self, arg1):
 
+        self.conf.playsound = None
         #print("test started")
         self.stop = not self.stop
         while True:
@@ -698,17 +701,17 @@ class MainWin(Gtk.Window):
                 if aa == 'uuid':
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == 'name':
-                   self.dat_dict[aa].set_text(simname(random.randint(12, 22)))
+                   self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
                 elif aa == 'guid':
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == 'dob':
-                    self.dat_dict[aa].set_text(randate())
+                    self.dat_dict[aa].set_text(pgtests.randate())
                 elif aa == 'now':
-                    self.dat_dict[aa].set_text(randisodate())
+                    self.dat_dict[aa].set_text(pgtests.randisodate())
                 elif aa == 'notes':
-                    self.dat_dict[aa].set_text(randascii(random.randint(33, 66)))
+                    self.dat_dict[aa].set_text(pgtests.randascii(random.randint(33, 66)))
                 else:
-                    self.dat_dict[aa].set_text(pgutils.randstr(random.randint(6, 22)))
+                    self.dat_dict[aa].set_text(pgtests.randstr(random.randint(6, 22)))
             sleepx = 20
             pgutils.usleep(sleepx)
             self.save_data(0)
@@ -762,8 +765,29 @@ class MainWin(Gtk.Window):
         for aa in self.dat_dict.keys():
             ddd[aa] = self.dat_dict[aa].get_text()
 
-        #print("Save_data", ddd)
-        enc = self.packer.encode_data("", ddd)
+        pvh = pyvhash.BcData()
+        # We mark this as 'test' so it can stay in the chain, if desired
+        pvh.addpayload({"Test": "test" ,})
+        pvh.addpayload(ddd)
+        pvh.hasharr()
+        if self.conf.weak:
+            pvh.num_zeros = 1
+        self.status.set_status_text("POW calc, please wait ...")
+        for aa in range(10):
+            if pvh.powarr():
+                break
+            self.status.set_status_text("POW calc retry %d .." % (aa+1))
+
+        self.status.set_status_text("POW done.")
+
+        if not pvh.checkpow():
+            msg = "Cold not generate hash, please retry saving record."
+            pymisc.smessage(msg, conf=self.conf, sound="error")
+            return
+
+        #print("Save_data", pvh.datax)
+
+        enc = self.packer.encode_data("", pvh.datax)
         #print("enc:", enc)
         uuu = self.dat_dict['uuid'].get_text()
 

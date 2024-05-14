@@ -19,7 +19,7 @@ def File_Dlg(fname = "", self2 = None):
 
     warnings.simplefilter("ignore")
 
-    dialog = Gtk.Dialog("pyedpro: Open File",
+    dialog = Gtk.Dialog("Open File",
                    None,
                    Gtk.DialogFlags.MODAL | \
                    Gtk.DialogFlags.DESTROY_WITH_PARENT,
@@ -46,17 +46,17 @@ def File_Dlg(fname = "", self2 = None):
     dialog.connect("key-release-event", area_key, dialog)
 
     # Spacers
-    label1  = Gtk.Label("   ");  label2 = Gtk.Label("   ")
-    label3  = Gtk.Label("   ");  label4 = Gtk.Label("   ")
-    label5  = Gtk.Label("   ");  label6 = Gtk.Label("   ")
-    label7  = Gtk.Label("   ");  label8 = Gtk.Label("   ")
-    label9  = Gtk.Label("   ");
+    label1  = Gtk.Label(label="   ");  label2 = Gtk.Label(label="   ")
+    label3  = Gtk.Label(label="   ");  label4 = Gtk.Label(label="   ")
+    label5  = Gtk.Label(label="   ");  label6 = Gtk.Label(label="   ")
+    label7  = Gtk.Label(label="   ");  label8 = Gtk.Label(label="   ")
+    label9  = Gtk.Label(label="   ");
     label10 = Gtk.Label.new_with_mnemonic(" Open File by Name (click on 'Open _This' to open it) ");
-    label11  = Gtk.Label("  ");  label12 = Gtk.Label(" ");
+    label11  = Gtk.Label(label="  ");  label12 = Gtk.Label(label=" ");
     #label13  = Gtk.Label("  ");  label14 = Gtk.Label(" ");
 
-    dialog.label11 = Gtk.Label("   ")
-    dialog.label12 = Gtk.Label("   ")
+    dialog.label11 = Gtk.Label(label="   ")
+    dialog.label12 = Gtk.Label(label="   ")
 
     dialog.pbox = Gtk.HBox()
     fill_path(dialog)
@@ -70,7 +70,7 @@ def File_Dlg(fname = "", self2 = None):
 
     warnings.simplefilter("ignore")
     dialog.entry = Gtk.Entry();
-    warnings.simplefilter("default")
+    #warnings.simplefilter("default")
 
     dialog.entry.set_activates_default(True)
     dialog.entry.set_text(fname)
@@ -117,7 +117,7 @@ def File_Dlg(fname = "", self2 = None):
     populate(dialog)
     dialog.set_focus(tview)
     #dialog.set_focus(dialog.entry)
-    warnings.simplefilter("default")
+    #warnings.simplefilter("default")
 
     response = dialog.run()
 

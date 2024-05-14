@@ -100,7 +100,7 @@ optarr = [\
 
 class Config:
 
-    warnings.warn("Config Class obsolete, use ConfigLong", DeprecationWarning)
+    #warnings.warn("Config Class obsolete, use ConfigLong", DeprecationWarning)
 
     def __init__(self, optarr):
 
