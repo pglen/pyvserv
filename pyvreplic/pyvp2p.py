@@ -39,7 +39,7 @@ replic = 0
 # ------------------------------------------------------------------------
 # Globals
 
-version = "1.0.0"
+VERSION = "1.0.0"
 
 # ------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ def phelp():
 
 def pversion():
     ''' Print version '''
-    print( os.path.basename(sys.argv[0]), "Version", version)
+    print( os.path.basename(sys.argv[0]), "Version", VERSION)
     sys.exit(0)
 
     # option, var_name, initial_val, function

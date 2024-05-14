@@ -78,9 +78,12 @@ from pyvcommon import pysyslog, comline, pyvhash
 from pydbase import twincore, twinchain
 
 REPLIC_FNAME  = "replic.pydb"
+REPLIC_CNAME  = "votes.pydb"
+
 DATA_FNAME    = "initial.pydb"
 IHOST_FNAME   = "ihosts.pydb"
 STATE_FNAME   = "rstate.pydb"
+COMP_FNAME    = "rcomp.pydb"
 
 MAX_DBSIZE = 20                 # Size of DB when vacuum
 
@@ -104,18 +107,19 @@ def between(val, mmm, xxx):
     else:
         return False
 
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+    #return
+    # no fnctl on windows
+except:
+    print(sys.exc_info())
+    pass
+
 def print_handles(strx = ""):
 
     ''' Debug helper. Only on Linux. '''
-
-    try:
-        import fcntl
-    except ImportError:
-        fcntl = None
-        return              # no fnctl on windows
-    except:
-        print(sys.exc_info())
-        pass
 
     open_file_handles = os.listdir('/proc/self/fd')
     print(strx, 'open file handles: ' + ', '.join(map(str, open_file_handles)))
@@ -138,18 +142,33 @@ class Replicator():
 
         ''' Main entry point for replication. '''
 
+        if conf.croot:
+            self.fname = REPLIC_CNAME
+            self.hhh = pyservsup.globals.myhome
+
+        else:
+            self.fname = REPLIC_FNAME
+            self.hhh = pyservsup.globals.chaindir
+
         while True:
             # Replicate for all kinds
-            ddd = os.listdir(pyservsup.globals.chaindir )
-            for aa in ddd:
-                aaa = os.path.join(pyservsup.globals.chaindir, aa)
-                if not os.path.isdir(aaa):
-                    continue
-                #print(aaa)
-                fname = os.path.join(aaa, REPLIC_FNAME)
-                if not os.path.isfile(fname):
-                    continue
-                self.scandir(aa)
+            if conf.croot:
+                ddd = os.listdir(self.hhh)
+                #print(ddd)
+                self.scandir(".")
+            else:
+                ddd = os.listdir(self.hhh)
+
+                for aa in ddd:
+                    aaa = os.path.join(self.hhh, aa)
+                    if not os.path.isdir(aaa):
+                        continue
+                    #print(aaa)
+                    fname = os.path.join(aaa, REPLIC_FNAME)
+                    if not os.path.isfile(fname):
+                        continue
+                    self.scandir(aa)
+
             self.runcount += 1
             time.sleep(conf.timedel)
 
@@ -162,9 +181,9 @@ class Replicator():
             print("Replicator cycle", "%.3f "% time.time(), dirname)
 
         wastrans = False
-        fname = os.path.join(pyservsup.globals.chaindir, dirname)
-        rfile = os.path.join(fname, REPLIC_FNAME)
-        #print("rfile: ", rfile)
+        fname = os.path.join(self.hhh, dirname)
+        rfile = os.path.join(fname, self.fname)
+        print("rfile: ", rfile)
         repcore = twinchain.TwinCore(rfile)
         dbsize = repcore.getdbsize()
         #repcore.pgdebug = conf.pgdebug
@@ -192,14 +211,14 @@ class Replicator():
             if conf.pgdebug > 7:
                 print("head:", rec[0], "arr:", arr)
 
-            if not int(arr['processed']):
-                #print("Processed:", arr['processed'])
-                self.create_perhost(dirname, arr)
-
-                # Save it back as replicate stage 1
-                arr['processed'] = "%05d" % (1)
-                arr2 = self.packer.encode_data("", arr)
-                repcore.save_data(rec[0], arr2, replace=True)
+            #if not int(arr['processed']):
+            #    #print("Processed:", arr['processed'])
+            #    self.create_perhost(dirname, arr)
+            #
+            #    # Save it back as replicate stage 1
+            #    arr['processed'] = "%05d" % (1)
+            #    arr2 = self.packer.encode_data("", arr)
+            #    #repcore.save_data(rec[0], arr2, replace=True)
 
         self.process_statedata(dirname)
         del repcore
@@ -218,12 +237,12 @@ class Replicator():
         #if conf.pgdebug > 4:
         #    print("Dependency cleanup")
 
-        fname = os.path.join(pyservsup.globals.chaindir, dirname)
+        fname = os.path.join(self.hhh, dirname)
         rfile = os.path.join(fname, REPLIC_FNAME)
         repcore = twinchain.TwinCore(rfile)
         dbsize = repcore.getdbsize()
 
-        stname = os.path.join(pyservsup.globals.chaindir, dirname,  STATE_FNAME)
+        stname = os.path.join(self.hhh, dirname,  STATE_FNAME)
         statecore = twincore.TwinCore(stname)
         staterec = statecore.getdbsize()
         canclean = []
@@ -296,7 +315,7 @@ class Replicator():
         hostcore = twincore.TwinCore(self.hfname)
         hostrec = hostcore.getdbsize()
 
-        stname = os.path.join(pyservsup.globals.chaindir, dirname,  STATE_FNAME)
+        stname = os.path.join(self.hhh,  STATE_FNAME)
         print("state fname:", stname)
 
         statecore = twincore.TwinCore(stname)
@@ -352,7 +371,7 @@ class Replicator():
         ''' Process states for this data. When done, mark entries
         appropriately. '''
 
-        stname = os.path.join(pyservsup.globals.chaindir, dirname,  STATE_FNAME)
+        stname = os.path.join(self.hhh, dirname,  STATE_FNAME)
         statecore = twincore.TwinCore(stname)
         staterec = statecore.getdbsize()
         remsced = []
@@ -447,7 +466,7 @@ class Replicator():
         #    print("replicate host:", dec['host'])
 
         ret = 0; rec = []
-        fname = os.path.join(pyservsup.globals.chaindir, dirname)
+        fname = os.path.join(self.hhh, dirname)
         dfname = os.path.join(fname, DATA_FNAME)
         datacore = twinchain.TwinChain(dfname)
         #print("dbsize", datacore.getdbsize())
@@ -559,7 +578,7 @@ def dumprep():
         print("Dump replicator databases:")
 
     packer = pyvpacker.packbin()
-    fname = os.path.join(pyservsup.globals.chaindir, conf.kind)
+    fname = os.path.join(self.hhh, conf.kind)
     rfile = os.path.join(fname, REPLIC_FNAME)
     if conf.pgdebug > 3:
         print("rfile: ", rfile)
@@ -627,6 +646,8 @@ def dumprep():
             print(sarr['header'], dd, sarr['host'], "Count:", sarr['count'])
 
 optarr = []
+optarr.append ( ["c:",  "client=", "croot",  "~/pyvclient",
+                        None, "Client mode. Get data from client directory"] )
 optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
                         None, "Root for server data default='~/pyvserver'"] )
 optarr.append ( ["m:",  "dumpdata=", "kind",  "",
@@ -636,7 +657,7 @@ optarr.append ( ["e",  "showdel=", "sdel",  0,
 optarr.append ( ["t:",  "time=", "timedel",  2,
                         None, "Time between replications default='2s'"] )
 optarr.append ( ["l:",  "loglevel=", "loglev",  1,
-                        None, "Log level 0=none 1=pass 2=fail default='1'"] )
+                        None, "Log level 0=none 1=auth 2=failures default='1'"] )
 optarr.append ( ["s",  "ttime", "ttime",  0,
                         None, "Test timing (vs production)"] )
 
@@ -648,9 +669,10 @@ for aa in range(len(optarr)):
         #None, "Host port to replicate to"]
         del optarr[aa]
         break
+
 #print(optarr)
-comline.sethead("Replicate to hosts by pulling directly from pyvserv database.")
-comline.setfoot("Use quote for multiple option strings.")
+comline.sethead("Replicate to hosts directly from pyvserver / pyvclient databases.")
+comline.setfoot("Use quotes for multiple option strings. Client mode overrides others.")
 comline.setargs("[options] ")
 comline.setprog(os.path.basename(__file__))
 conf = comline.ConfigLong(optarr)
@@ -671,8 +693,23 @@ def mainfunct():
     #if conf.pgdebug > 9:
     #    conf.printvars()
 
-    pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+    if conf.croot:
+        pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.croot)
+    else:
+        pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
+
     pyservsup.globals.conf = conf
+
+    #print("pysersup", )
+    ddd = dir(pyservsup.globals)
+    for aa in ddd:
+        if aa[:1] != "_":
+            attr = getattr(pyservsup.globals, aa)
+            if type(attr) == type(""):
+                try:
+                    print(aa, "\t=", attr)
+                except:
+                    print(sys.exc_info())
 
     slogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvserver.log")
     rlogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvreplic.log")
@@ -696,7 +733,7 @@ def mainfunct():
         TIMING.stage_2_freq = 14
         TIMING.stage_3_freq = 28
     else:
-        tstr = "Prod. timing"
+        tstr = "Production timing"
         TIMING.stage_1_lim = 6
         TIMING.stage_2_lim = 60*60*24
         TIMING.stage_3_lim = 60*60*24*4
@@ -710,6 +747,13 @@ def mainfunct():
 
     if conf.loglev > 0:
         pysyslog.repliclog("Started with", tstr, "at:", conf.droot)
+
+    if conf.verbose:
+        if conf.croot:
+            print("Client content replicator mode. Data from:", conf.croot)
+        else:
+            print("Server content replicator mode. Data from:", conf.droot)
+        print("debug level =", conf.pgdebug)
 
     repl = Replicator(conf.verbose, conf.pgdebug)
     repl.rep_run()

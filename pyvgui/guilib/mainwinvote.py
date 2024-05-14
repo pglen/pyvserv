@@ -824,7 +824,7 @@ class MainWin(Gtk.Window):
                 pass
         #print("live vote:")
         ret = filedlg.File_Dlg()
-        print("filedlg ret:", ret)
+        #print("filedlg ret:", ret)
         if not ret:
             return
 
@@ -1050,11 +1050,9 @@ class MainWin(Gtk.Window):
         # Disable sound
         sps = self.conf.playsound
         self.conf.playsound = None
-
-        #print("test started")
         self.stop = not self.stop
         while True:
-            print("test cycle started")
+            #print("test cycle started")
             if self.exit_flag:
                 self.reset_changed()
                 break
@@ -1114,7 +1112,7 @@ class MainWin(Gtk.Window):
                         candidx = "can%d" % (xrandarr[cntc])
                         bb = self.cand_dict[candidx].get_text()
                         if bb == cc:
-                            print("found bb:", bb, "candidx =",  candidx, "ref:", aa)
+                            #print("found bb:", bb, "candidx =",  candidx, "ref:", aa)
                             posidx = "can%d" % (aa)
                             self.oneshot = True
                             self.radioarr[posidx].set_active(True)
@@ -1130,10 +1128,10 @@ class MainWin(Gtk.Window):
             if not self.save_data(0):
                 break
 
-            sleepx = 2000
+            sleepx = 20
             pgutils.usleep(sleepx)
 
-            print("test cycle ended")
+            #print("test cycle ended")
 
             # Do not clear, we want ballot
             #self.clear_data()

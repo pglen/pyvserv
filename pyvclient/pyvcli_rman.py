@@ -23,10 +23,14 @@ except:
     from pyvcommon import support
 
 from pyvcommon import support, pycrypt, pyclisup
-from pyvcommon import pysyslog, comline, pyvhash
+from pyvcommon import pysyslog, comline, pyvhash, pyvgenr
+
+import pyvpacker
 
 # ------------------------------------------------------------------------
 # Globals
+
+packer = pyvpacker.packbin()
 
 version = "1.0.0"
 #progn = os.path.basename(sys.argv[0])
@@ -155,17 +159,13 @@ def    mainfunct():
         sys.exit(0)
 
     if conf.upload:
-
-        actstr = ["register", "unregister", "cast", "uncast", ]
-        act = actstr[random.randint(0, len(actstr)-1)]
-
-        print("Calculating hash ....", end = " "); sys.stdout.flush()
-        #ttt = time.time()
-        pvh = pyvhash.BcData()
-        pvh.addpayload({"Vote": random.randint(0, 10), "UID":  str(uuid.uuid1()), })
-        pvh.addpayload({"SubVote": random.randint(0, 10), "TUID":  str(uuid.uuid1()), })
-        pvh.addpayload({"Action": act , "RUID":  str(uuid.uuid1()), })
-        pvh.hasharr();    pvh.powarr()
+        #actstr = ["register", "unregister", "cast", "uncast", ]
+        #act = actstr[random.randint(0, len(actstr)-1)]
+        pvh = pyvgenr.genvrec()
+        pvh.hasharr()
+        print("Calculating PROW ....", end = " "); sys.stdout.flush()
+        while not pvh.powarr():
+            pass
         print("OK")
         cresp = hand.client(["rput", "vote", pvh.datax], conf.sess_key)
         print ("rput resp:", cresp)
@@ -188,7 +188,11 @@ def    mainfunct():
                 #print("cresp2:", cresp2)
                 for aa in cresp2[3]:
                     pyclisup.show_onerec(hand, aa, conf)
-
+                    dec = packer.decode_data(aa[1])[0]
+                    if conf.verbose:
+                        print("dec:", dec)
+                    else:
+                        print("pay:", dec['PayLoad'])
             print("Listed", len(cresp[1]), "records.")
 
     elif conf.rabs:
@@ -202,7 +206,13 @@ def    mainfunct():
             sys.exit()
         for aa in cresp2[3]:
             #print("aa", aa)
-            pyclisup.show_onerec(hand, aa, conf)
+            #pyclisup.show_onerec(hand, aa, conf)
+            dec = packer.decode_data(aa[1])[0]
+            if conf.verbose:
+                print("dec:", dec)
+            else:
+                print("pay:", dec['PayLoad'])
+
 
         print("Listed", len(cresp2[3]), "records.")
 
@@ -228,19 +238,29 @@ def    mainfunct():
 
         for aa in cresp2[3]:
             #print("aa", aa)
-            pyclisup.show_onerec(hand, aa, conf)
-
+            #pyclisup.show_onerec(hand, aa, conf)
+            dec = packer.decode_data(aa[1])[0]
+            if conf.verbose:
+                print("dec:", dec)
+            else:
+                print("pay:", dec['PayLoad'])
         print("Listed", len(cresp2[3]), "records.")
-
     else:
         # Get last record
         cresp = hand.client(["rsize", "vote"], conf.sess_key)
-        if not conf.quiet:
-            print ("Server rsize response:", cresp)
+        #if not conf.quiet:
+        #    print ("Server rsize response:", cresp)
+
         # Offset is one less than count
         cresp2 = hand.client(["rabs", "vote", cresp[1] - 1], conf.sess_key)
         #print ("Server rabs response:", cresp2)
-        #pyclisup.show_onerec(hand, cresp2[3][0], conf)
+        #pyclisup.show_onerec(hand, cresp2[3], conf)
+        #print("cresp2[3]", cresp2[3])
+        dec = packer.decode_data(cresp2[3][0][1])[0]
+        if conf.verbose:
+            print("dec:", dec)
+        else:
+            print("pay:", dec['PayLoad'])
 
     cresp = hand.client(["quit", ], conf.sess_key)
     #print ("Server quit response:", cresp)
