@@ -70,7 +70,10 @@ class MainWin(Gtk.Window):
         self.set_title("PyVServer Vote Entry")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
-        self.votecore = twincore.TwinCore("votes.pydb", 0)
+
+        votename = os.path.join(pyservsup.globals.chaindir, "vote", "votes.pydb")
+
+        self.votecore = twincore.TwinCore(votename, 0)
         self.votecore.packer = self.packer
         self.votecore.hashname  = os.path.splitext(self.votecore.fname)[0] + ".hash.id"
         self.votecore.hashname2 = os.path.splitext(self.votecore.fname)[0] + ".hash.name"
@@ -85,6 +88,7 @@ class MainWin(Gtk.Window):
 
         # We let the core carry vars; make sure they do not collide
         self.vcore = twincore.TwinCore("voters.pydb", 0)
+        self.hcore = twincore.TwinCore("ihosts.pydb", 0)
         self.vcore.packer = self.packer
         self.vcore.hashname  = os.path.splitext(self.vcore.fname)[0] + ".hash.id"
         self.vcore.hashname2 = os.path.splitext(self.vcore.fname)[0] + ".hash.name"
@@ -169,27 +173,38 @@ class MainWin(Gtk.Window):
             butt5a.connect("clicked", self.test_data)
             hbox4.pack_start(butt5a, False, 0, 2)
 
+        butt3 = Gtk.Button.new_with_mnemonic(" Config_ure")
+        butt3.set_tooltip_text("Configure replication targets")
+        butt3.connect("clicked", self.config_dlg)
+        hbox4.pack_start(butt3, False, 0, 2)
+
         butt3 = Gtk.Button.new_with_mnemonic(" Load Li_ve")
+        butt3.set_tooltip_text("Load votes from Live server directory")
         butt3.connect("clicked", self.load_live_vote)
         hbox4.pack_start(butt3, False, 0, 2)
 
         butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad ")
+        butt3.set_tooltip_text("Load votes")
         butt3.connect("clicked", self.load_vote)
         hbox4.pack_start(butt3, False, 0, 2)
 
-        butt5 = Gtk.Button.new_with_mnemonic(" Ne_w Vote ")
+        butt5 = Gtk.Button.new_with_mnemonic(" Ne_w ")
+        butt5.set_tooltip_text("New Vote")
         butt5.connect("clicked", self.new_data)
         hbox4.pack_start(butt5, False, 0, 2)
 
         butt4 = Gtk.Button.new_with_mnemonic(" _Save ")
+        butt4.set_tooltip_text("Save current vote to database")
         butt4.connect("clicked", self.save_data)
         hbox4.pack_start(butt4, False, 0, 2)
 
         butt3 = Gtk.Button.new_with_mnemonic(" _Delete ")
+        butt3.set_tooltip_text("Delete current vote from database")
         butt3.connect("clicked", self.del_vote)
         hbox4.pack_start(butt3, False, 0, 2)
 
-        butt2 = Gtk.Button.new_with_mnemonic("    E_xit  ")
+        butt2 = Gtk.Button.new_with_mnemonic(" E_xit ")
+        butt2.set_tooltip_text("Exit program")
         butt2.connect("clicked", self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
 
@@ -291,7 +306,7 @@ class MainWin(Gtk.Window):
         self.dat_dict['buuid'] = lab3b
         rowcnt += 1
 
-        tp1x = ("Ballot Nam_e: ", "bname", "Autofilled, Ballot Name", None)
+        tp1x = ("Ballot Name: ", "bname", "Autofilled, Ballot Name", None)
         tp2x = ("Election Date: ", "dob", "Autofilled, Election Date, YYYY/MM/DD", None)
         lab1b, lab2b = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1x, tp2x, None)
         lab1b.set_gray(True);  lab2b.set_gray(True)
@@ -365,6 +380,10 @@ class MainWin(Gtk.Window):
         GLib.timeout_add(100, self.start_pass_dlg, 0)
         #GLib.timeout_add(1000, self.timer)
 
+    def config_dlg(self, arg2):
+        print("Config")
+
+
     def load_ballot(self, arg2):
 
         # See if previous one saved
@@ -429,6 +448,10 @@ class MainWin(Gtk.Window):
         rowcnt = self.labrow
         #print("rowcnt", rowcnt)
 
+        labv = Gtk.Label.new_with_mnemonic("Vo_te:   ")
+        labv.set_alignment(1, 0)
+        self.gridx.attach(labv, 0, rowcnt, 1, 1)
+
         def _checked(arg2):
             #print("Checked", arg2.get_active(), arg2.get_label())
             if arg2.get_active():
@@ -487,6 +510,8 @@ class MainWin(Gtk.Window):
             self.noneradio.set_label(nnn)
         col += 1
 
+        labv.set_mnemonic_widget(self.noneradio)
+
         # All others
         cnt = 0
         for cc in list(self.cand_dict.keys())[1:]:
@@ -538,7 +563,7 @@ class MainWin(Gtk.Window):
         if self.powers != "Yes":
             pymisc.smessage("Only Admin can Configure.")
         else:
-            config.ConfigDlg(self.vcore, self.acore, self.authcore, self.conf)
+            config.ConfigDlg(self.vcore, self.hcore, self.acore, self.authcore, self.conf)
 
     def start_pass_dlg(self, arg2):
 
@@ -838,6 +863,37 @@ class MainWin(Gtk.Window):
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
 
+        try:
+            #dat = self.votecore.retrieve(sss.res[0][3])
+            dat = self.votecore.get_rec(int(sss.res[0][4]))
+        except:
+            dat = []
+            print(sys.exc_info())
+            pass
+        if not dat:
+            msg = "No data selected."
+            #print(msg)
+            self.status.set_status_text(msg)
+            pymisc.smessage(msg)
+            return
+        #print("dat:", dat)
+        try:
+            dec = self.packer.decode_data(dat[1])[0]['PayLoad']
+        except:
+            dec = {}
+            pass
+        #print("dec:", dec)
+        for aa in dec.keys():
+            #print("Key:", aa[:3])
+            try:
+                if aa[:3] == "can":
+                    #print("Cand", aa)
+                    self.cand_dict[aa].set_text(dec[aa])
+                self.dat_dict[aa].set_text(dec[aa])
+            except:
+                pass
+        self.preview()
+
 
     def load_vote(self, arg):
 
@@ -875,7 +931,7 @@ class MainWin(Gtk.Window):
             return
         #print("dat:", dat)
         try:
-            dec = self.packer.decode_data(dat[1])[0]
+            dec = self.packer.decode_data(dat[1])[0]['PayLoad']
         except:
             dec = {}
             pass
@@ -1284,6 +1340,41 @@ class MainWin(Gtk.Window):
             print("exc save", sys.exc_info())
         finally:
             self.votecore.postexec = None
+
+        # Save replicator
+        ttt = time.time()
+        dd = datetime.datetime.fromtimestamp(ttt)
+        idt = dd.isoformat()
+
+        # Prepare data. Do strings so it can be re-written in place
+        rrr = {
+                'header' : uuu,
+                'now' : self.dat_dict['now'].get_text(),
+                # Human readable
+                'iso' : idt,
+                'stamp' : ttt,
+                "processed" : "00000",
+                }
+
+        #print("replic req", rrr)
+
+        undec2 = self.packer.encode_data("", rrr)
+
+        votedir = os.path.join(pyservsup.globals.chaindir, "vote")
+        frname = os.path.join(votedir, pyservsup.REPFNAME + ".pydb")
+        #print("Saving replicator at", frname)
+        repcore = twincore.TwinCore(frname, 0)
+
+        try:
+            ret = repcore.save_data(uuu, undec2)
+        except:
+            del repcore
+            print("exc on save_data", sys.exc_info()[1])
+            response = [ERR,  "Cannot save replicator.",  str(sys.exc_info()[1]) ]
+            support.put_exception("save_data")
+            self.resp.datahandler.putencode(response, self.resp.ekey)
+            return
+        del repcore
 
         if self.conf.playsound:
             self.conf.playsound.play_sound("shutter")

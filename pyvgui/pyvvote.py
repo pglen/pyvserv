@@ -47,6 +47,19 @@ VERSION = "1.00"
 
 # ------------------------------------------------------------------------
 
+def print_stats():
+
+    ''' breakout '''
+    if conf.verbose:
+        print("Serve exe path:  ", pyservsup.globals.script_home)
+        print("Data root:       ", pyservsup.globals.myhome)
+        print("Pass Dir:        ", pyservsup.globals.passdir)
+        print("Key Dir:         ", pyservsup.globals.keydir)
+        print("Payload Dir:     ", pyservsup.globals.paydir)
+        print("Lock file:       ", pyservsup.globals.lockfname)
+        print("ID file:         ", pyservsup.globals.idfile)
+        #print("Passfile:        ", pyservsup.globals.passfile)
+
 def phelp():
 
     ''' Display help '''
@@ -162,6 +175,11 @@ def mainfunct():
 
     # Create support objects
     pyservsup.globals.config(pyservsup.globals.myhome, conf)
+
+    Vd = os.path.join(pyservsup.globals.chaindir, "vote")
+    pyservsup.globals.softmkdir(Vd)
+
+    print_stats()
 
     pyservsup.gl_passwd = pyservsup.Passwd()
 

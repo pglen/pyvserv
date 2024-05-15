@@ -119,6 +119,7 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         self.vcore = twincore.TwinCore("voters.pydb", 0)
+        self.hcore = twincore.TwinCore("ihosts.pydb", 0)
         self.acore = twincore.TwinCore("audit.pydb", 0)
         self.authcore = twincore.TwinCore("auth.pydb", 0)
 
@@ -393,7 +394,7 @@ class MainWin(Gtk.Window):
         if self.powers != "Yes":
             pymisc.smessage("Only Admin can Configure.")
         else:
-            config.ConfigDlg(self.vcore, self.acore, self.authcore, self.conf)
+            config.ConfigDlg(self.vcore, self.hcore, self.acore, self.authcore, self.conf)
 
     def start_pass_dlg(self, arg2):
 
@@ -673,13 +674,17 @@ class MainWin(Gtk.Window):
             # dec array[0] if retrieve
             #dec = self.packer.decode_data(dat[1])[0]
             # dec array if get_rec
-            dec = self.packer.decode_data(dat[1])[0]
+            dec = self.packer.decode_data(dat[1])[0]['PayLoad']
         except:
             dec = {}
             pass
         #print("dec:", dec)
         for aa in dec.keys():
-            self.dat_dict[aa].set_text(dec[aa])
+            try:
+                self.dat_dict[aa].set_text(dec[aa])
+            except:
+                pass
+
         # Mark as non changed
         self.reset_changed()
 

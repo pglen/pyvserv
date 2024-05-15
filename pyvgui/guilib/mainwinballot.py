@@ -730,7 +730,7 @@ class MainWin(Gtk.Window):
             self.status_cnt = 5
             pggui.message(msg)
             return
-        print("dat:", dat)
+        #print("dat:", dat)
         try:
             dec = self.packer.decode_data(dat[1])[0]['PayLoad']
         except:

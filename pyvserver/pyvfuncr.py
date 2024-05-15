@@ -21,8 +21,6 @@ __doc__ = ''' Chain record related functions '''
 
 # Globals
 
-REPFNAME = "replic"
-
 def get_rcheck_func(self, strx):
 
     if pyservsup.globals.conf.pgdebug > 1:
@@ -623,7 +621,7 @@ def get_rput_func(self, strx):
             print("replic req", rrr)
 
         undec2 = self.pb.encode_data("", rrr)
-        frname = os.path.join(dname, REPFNAME + ".pydb")
+        frname = os.path.join(dname, pyservsup.REPFNAME + ".pydb")
         #print("Saving at", frname)
         repcore = twincore.TwinCore(frname, 0)
         #if self.pgdebug > 5:

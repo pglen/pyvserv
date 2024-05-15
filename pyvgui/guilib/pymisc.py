@@ -225,4 +225,58 @@ class progDlg(Gtk.Dialog):
     def _timer(self):
         self.callb(self)
 
+class ihostDlg(Gtk.Dialog):
+
+    '''
+        Pop up a progress dialog.
+    '''
+
+    def __init__(self, conf, callb, parent = None):
+
+        super().__init__(self)
+
+        self.callb = callb
+        self.set_title("PPROW")
+
+        self.add_buttons(   Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
+                            Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
+
+        self.w_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
+        try:
+            ic = Gtk.Image(); ic.set_from_file(conf.iconf2)
+            self.set_icon(ic.get_pixbuf())
+        except:
+            pass
+
+        if parent:
+            self.set_transient_for(parent)
+
+        self.set_size_request(300, 80)
+
+        self.prog = Gtk.ProgressBar()
+        #self.prog.set_fraction(1.1)
+        hbox = Gtk.HBox()
+        hbox.pack_start(Gtk.Label(label="  "), 0, 0, 0)
+        hbox.pack_start(self.prog, 1, 1, 4)
+        hbox.pack_start(Gtk.Label(label="  "), 0, 0, 0)
+
+        self.vbox.pack_start(hbox, 1, 1, 4)
+        self.vbox.pack_start(Gtk.Label("Calculating Proof of Work"), 1, 1, 4)
+
+        #self.connect("destroy", self.destroy_sig)
+
+        self.show_all()
+        self.get_window().set_cursor(self.w_cursor)
+        pgutils.usleep(5)
+        GLib.timeout_add(100, self._timer)
+
+        self.response = self.run()
+
+    #def destroy_sig(self, arg2):
+    #    print("destroy", self, arg2)
+    #    #self.get_window().set_cursor()
+
+    def _timer(self):
+        self.callb(self)
+
 # EOF

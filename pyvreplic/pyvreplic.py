@@ -78,7 +78,6 @@ from pyvcommon import pysyslog, comline, pyvhash
 from pydbase import twincore, twinchain
 
 REPLIC_FNAME  = "replic.pydb"
-REPLIC_CNAME  = "votes.pydb"
 
 DATA_FNAME    = "initial.pydb"
 IHOST_FNAME   = "ihosts.pydb"
@@ -137,37 +136,27 @@ class Replicator():
         self.hostdarr = []
         self.hfname = os.path.join(pyservsup.globals.myhome, IHOST_FNAME)
         self.runcount = 0
+        self.fname = REPLIC_FNAME
 
     def rep_run(self):
 
         ''' Main entry point for replication. '''
 
-        if conf.croot:
-            self.fname = REPLIC_CNAME
-            self.hhh = pyservsup.globals.myhome
-
-        else:
-            self.fname = REPLIC_FNAME
-            self.hhh = pyservsup.globals.chaindir
+        self.chain = pyservsup.globals.chaindir
 
         while True:
             # Replicate for all kinds
-            if conf.croot:
-                ddd = os.listdir(self.hhh)
-                #print(ddd)
-                self.scandir(".")
-            else:
-                ddd = os.listdir(self.hhh)
+            ddd = os.listdir(self.chain)
 
-                for aa in ddd:
-                    aaa = os.path.join(self.hhh, aa)
-                    if not os.path.isdir(aaa):
-                        continue
-                    #print(aaa)
-                    fname = os.path.join(aaa, REPLIC_FNAME)
-                    if not os.path.isfile(fname):
-                        continue
-                    self.scandir(aa)
+            for aa in ddd:
+                aaa = os.path.join(self.chain, aa)
+                if not os.path.isdir(aaa):
+                    continue
+                fname = os.path.join(aaa, REPLIC_FNAME)
+                print("fname", fname)
+                if not os.path.isfile(fname):
+                    continue
+                self.scandir(aaa)
 
             self.runcount += 1
             time.sleep(conf.timedel)
@@ -181,8 +170,7 @@ class Replicator():
             print("Replicator cycle", "%.3f "% time.time(), dirname)
 
         wastrans = False
-        fname = os.path.join(self.hhh, dirname)
-        rfile = os.path.join(fname, self.fname)
+        rfile = os.path.join(self.chain, dirname, self.fname)
         print("rfile: ", rfile)
         repcore = twinchain.TwinCore(rfile)
         dbsize = repcore.getdbsize()
@@ -211,14 +199,14 @@ class Replicator():
             if conf.pgdebug > 7:
                 print("head:", rec[0], "arr:", arr)
 
-            #if not int(arr['processed']):
-            #    #print("Processed:", arr['processed'])
-            #    self.create_perhost(dirname, arr)
-            #
-            #    # Save it back as replicate stage 1
-            #    arr['processed'] = "%05d" % (1)
-            #    arr2 = self.packer.encode_data("", arr)
-            #    #repcore.save_data(rec[0], arr2, replace=True)
+            if not int(arr['processed']):
+                #print("Processed:", arr['processed'])
+                self.create_perhost(dirname, arr)
+
+                # Save it back as replicate stage 1
+                arr['processed'] = "%05d" % (1)
+                arr2 = self.packer.encode_data("", arr)
+                #repcore.save_data(rec[0], arr2, replace=True)
 
         self.process_statedata(dirname)
         del repcore
@@ -237,12 +225,12 @@ class Replicator():
         #if conf.pgdebug > 4:
         #    print("Dependency cleanup")
 
-        fname = os.path.join(self.hhh, dirname)
+        fname = os.path.join(self.chain, dirname)
         rfile = os.path.join(fname, REPLIC_FNAME)
         repcore = twinchain.TwinCore(rfile)
         dbsize = repcore.getdbsize()
 
-        stname = os.path.join(self.hhh, dirname,  STATE_FNAME)
+        stname = os.path.join(self.chain, dirname,  STATE_FNAME)
         statecore = twincore.TwinCore(stname)
         staterec = statecore.getdbsize()
         canclean = []
@@ -315,7 +303,7 @@ class Replicator():
         hostcore = twincore.TwinCore(self.hfname)
         hostrec = hostcore.getdbsize()
 
-        stname = os.path.join(self.hhh,  STATE_FNAME)
+        stname = os.path.join(self.chain,  STATE_FNAME)
         print("state fname:", stname)
 
         statecore = twincore.TwinCore(stname)
@@ -329,13 +317,14 @@ class Replicator():
                 pass
             if not hrec:
                 continue        # Deleted record
-            harr = self.packer.decode_data(hrec[1])[0]
-            #if self.pgdebug > 4:
-            #    #print("host header:", arr['header'])
-            #    print("host entry:", harr)
-
+            #print("hrec", hrec)
+            harr = self.packer.decode_data(hrec[1])[0]['PayLoad']
+            if self.pgdebug > 4:
+                print("host header:", arr['header'])
+                print("host entry:", harr)
+            host = harr['host']
             # Create state record if none
-            comboname = arr['header'] + "_" + harr
+            comboname = arr['header'] + "_" + host
             exists = statecore.retrieve(comboname)
             if not exists:
                 if self.pgdebug > 4:
@@ -371,7 +360,7 @@ class Replicator():
         ''' Process states for this data. When done, mark entries
         appropriately. '''
 
-        stname = os.path.join(self.hhh, dirname,  STATE_FNAME)
+        stname = os.path.join(self.chain, dirname,  STATE_FNAME)
         statecore = twincore.TwinCore(stname)
         staterec = statecore.getdbsize()
         remsced = []
@@ -466,7 +455,7 @@ class Replicator():
         #    print("replicate host:", dec['host'])
 
         ret = 0; rec = []
-        fname = os.path.join(self.hhh, dirname)
+        fname = os.path.join(self.chain, dirname)
         dfname = os.path.join(fname, DATA_FNAME)
         datacore = twinchain.TwinChain(dfname)
         #print("dbsize", datacore.getdbsize())
@@ -578,7 +567,7 @@ def dumprep():
         print("Dump replicator databases:")
 
     packer = pyvpacker.packbin()
-    fname = os.path.join(self.hhh, conf.kind)
+    fname = os.path.join(self.chain, conf.kind)
     rfile = os.path.join(fname, REPLIC_FNAME)
     if conf.pgdebug > 3:
         print("rfile: ", rfile)
@@ -646,7 +635,7 @@ def dumprep():
             print(sarr['header'], dd, sarr['host'], "Count:", sarr['count'])
 
 optarr = []
-optarr.append ( ["c:",  "client=", "croot",  "~/pyvclient",
+optarr.append ( ["c:",  "client=", "croot",  "",
                         None, "Client mode. Get data from client directory"] )
 optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
                         None, "Root for server data default='~/pyvserver'"] )
@@ -701,15 +690,16 @@ def mainfunct():
     pyservsup.globals.conf = conf
 
     #print("pysersup", )
-    ddd = dir(pyservsup.globals)
-    for aa in ddd:
-        if aa[:1] != "_":
-            attr = getattr(pyservsup.globals, aa)
-            if type(attr) == type(""):
-                try:
-                    print(aa, "\t=", attr)
-                except:
-                    print(sys.exc_info())
+    if conf.verbose:
+        ddd = dir(pyservsup.globals)
+        for aa in ddd:
+            if aa[:1] != "_":
+                attr = getattr(pyservsup.globals, aa)
+                if type(attr) == type(""):
+                    try:
+                        print(aa, "\t=", attr)
+                    except:
+                        print(sys.exc_info())
 
     slogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvserver.log")
     rlogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvreplic.log")

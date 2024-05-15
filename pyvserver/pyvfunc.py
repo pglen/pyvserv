@@ -187,48 +187,95 @@ def get_ihost_func(self, strx):
     if self.pgdebug > 2:
         print("ihost:", ihname)
     repcore = twincore.TwinCore(ihname)
-    #repcore.pgdebug = 10
+    repsize = repcore.getdbsize()
 
     if strx[1] == 'add':
-        ddd = self.pb.encode_data("", strx[2])
-        rec = repcore.retrieve(strx[2])
-        if self.pgdebug > 9:
-            print("rec:", rec)
-        if rec:
-            if rec[0][0].decode() == strx[2]:
-                #print("Identical", rec[0][0])
+
+        # Check duplicate
+        for aa in range(repsize-1, -1, -1):
+            rec = repcore.get_rec(aa)
+            if not rec:
+                continue
+            #print("rec:", rec)
+            try:
+                dec = self.pb.decode_data(rec[1])[0]['PayLoad']
+            except:
+                dec['host'] = ""
+            #print("dec", dec)
+            if dec['host'] == strx[2]:
                 response = [ERR, "Duplicate entry.", strx[2]]
                 self.resp.datahandler.putencode(response, self.resp.ekey)
                 return
-        ret = repcore.save_data(strx[2], ddd)
+
+        uuu = str(uuid.uuid1())
+        now = datetime.datetime.now().replace(microsecond=0).isoformat()
+        undec = {"host" : strx[2], "header" : uuu,
+                  "now": now, "oper": self.resp.user }
+        #print("undec", undec)
+        pvh = pyvhash.BcData()
+        pvh.addpayload(undec)
+        #pvh.hasharr()
+        #while not pvh.powarr():
+        #    pass
+
+        ddd = self.pb.encode_data("", pvh.datax)
+        ret = repcore.save_data(uuu, ddd)
         if self.pgdebug > 8:
             print("repcore save:", ret, ddd)
+
         response = [OK, "Added replication host:port.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
     elif strx[1] == 'del':
-        rec = repcore.retrieve(strx[2])
-        if not rec:
-            response = [ERR, "This entry is not in the list.", strx[2]]
+
+        found = -1
+        for aa in range(repsize-1, -1, -1):
+            rec = repcore.get_rec(aa)
+            if not rec:
+                continue
+            #print("rec:", rec)
+            try:
+                dec = self.pb.decode_data(rec[1])[0]['PayLoad']
+            except:
+                dec['host'] = ""
+            #print("dec", dec)
+            if dec['host'] == strx[2]:
+                found = aa
+
+        if found < 0:
+            response = [ERR, "Cannot delete, entry not found.", strx[2]]
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
+
+        #print("del found:", found)
+
         if self.pgdebug > 4:
             print("delete ihost rec:", strx[2])
-        ret = repcore.del_rec_bykey(strx[2])
+
+        ret = repcore.del_rec(found)
         response = [OK, "Deleted replication host:port.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
     elif strx[1] == 'list':
         arr = []
         for aa in range(repcore.getdbsize()-1, -1, -1):
-            ddd = repcore.get_rec(aa)
-            if ddd:
-                arr.append(str(ddd[0]))
+            rec = repcore.get_rec(aa)
+            if not rec:
+                continue
+            try:
+                dec = self.pb.decode_data(rec[1])[0]['PayLoad']
+            except:
+                dec['host'] = ""
+            #print("dec", dec)
+
+            if dec['host']:
+                arr.append(dec['host'])
+
         #print("got recs", arr)
-        response = [OK,  arr, strx[2]]
+        response = [OK,  arr]
         self.resp.datahandler.putencode(response, self.resp.ekey)
     else:
-        response = [ERR, "Operation must be 'add' or 'del or list'.", strx[2]]
+        response = [ERR, "Operation must be 'add', 'del or list'.", strx[2]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
 
 # ------------------------------------------------------------------------

@@ -44,20 +44,33 @@ __doc__ = \
 
 # Vote structure: Sun 12.May.2024
 
-#Save_data 730f3e8a-10c2-11ef-8e2a-d970e1627f70
-#{'nuuid': 'c83c6562-0867-11ef-871c-6d4329725b1a',
-#'name': 'Peter Glen', 'ndob': '1959/11/20', 'nnow': '2024-05-02T05:38:53',
-#'noper': 'admin', 'uuid': '730f3e8a-10c2-11ef-8e2a-d970e1627f70',
-#'vguid': '57d626a8-719c-4fc0-8bfa-62c214da695c',
-#'vouid': '24573422-079a-11ef-8787-539d6f89ec87',
-#'now': '2024-05-12T20:48:01', 'voper': 'admin',
-#'buuid': '09269680-079e-11ef-8787-539d6f89ec87',
-#'bname': 'New Test Ballot', 'dob': '2024/1/2',
-#'vprim': 'John Doe', 'vsec': 'test',
-#'vnotes': '', 'can1': 'John Doe', 'can2': 'Jane Dow',
-#'can3': 'Johan Citizen', 'can4': 'Jorge Naturez',
-#'can5': 'Jill Carpenter', 'can6': 'Jack Savage',
-#'can7': 'James Folie', 'can8': 'Joe Cry'}
+#{'header': 'ea7ac618-12b3-11ef-8947-339547f9084f',
+#'PayLoad': {
+#   'Default': 'None',
+#   -'nuuid': 'f1a46168-1283-11ef-8947-339547f9084f',
+#   -'name': 'qqq',
+#   -'ndob': '1/1/1',
+#   -'nnow': '2024-05-15T02:25:37',
+#   -'now': '2024-05-15T08:09:01',
+#   -'noper': 'admin',
+#   -'uuid': 'e4919b8c-12b3-11ef-8947-339547f9084f',
+#   -'vguid': '67e1d37f-7eec-46f3-ba99-fde5ebc296cf',
+#   -'vouid': '40ad55ec-1281-11ef-8947-339547f9084f',
+#   -'buuid': '101e4a0a-1284-11ef-8947-339547f9084f',
+#   -'voper': 'admin',
+#   -'bname':  'wwww',
+#   -'dob': '2/2/',
+#   -'vprim': '555',
+#   -'vsec': '',
+#   -'vnotes': '',
+#   'can1': '111', 'can2': '222', 'can3': '333', 'can4': '44',
+#   'can5': '555', 'can6': '666', 'can7': '77', 'can8': '88'
+#},
+#'now': 'Wed, 15 May 2024 08:09:01',
+#'stamp': '1715774941.0', 'iso': '2024-05-15T08:09:01',
+#'Replicated': 0,
+#'_Hash': '013771ed35a03a423ba0f696c5c5692807b14d955854c1e144de52c8176f49e2',
+#'_PowRand': b'\xf5\xfc\xcd\xd2\xc5\xb7z0V\xfa\x9f\x92', '_Proof': 'b354af
 
 def genvrec(putkey = None):
 
@@ -71,6 +84,7 @@ def genvrec(putkey = None):
     pvh.addpayload({'name': pgtests.simname(12) })
     pvh.addpayload({'ndob': pgtests.randate() })
     pvh.addpayload({'nnow': pgtests.randisodate() })
+    pvh.addpayload({'now':  pgtests.randisodate() })
     pvh.addpayload({'noper': pgtests.randstr(random.randint(6, 22)) })
     pvh.addpayload({'uuid':  str(uuid.uuid1()) })
     pvh.addpayload({'vguid': str(uuid.uuid1()) })
