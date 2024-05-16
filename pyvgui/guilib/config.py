@@ -284,7 +284,7 @@ class ConfigDlg(Gtk.Dialog):
             break
 
     def del_host(self, arg2):
-        print("Del host")
+        #print("Del host")
         sel = self.tview2.get_selection()
         xmodel, xpath = sel.get_selected_rows()
         if not xpath:
@@ -307,14 +307,14 @@ class ConfigDlg(Gtk.Dialog):
                 # Delete all occurances
                 for aa in lll:
                     rrr = self.repcore.get_rec_byoffs(aa)
-                    print("rrr:", rrr)
+                    #print("rrr:", rrr)
                     try:
                         dec = self.packer.decode_data(rrr[1])[0]['PayLoad']
                     except:
                         dec = {}
-                    print("dec", dec)
+                    #print("dec", dec)
                     ret = self.repcore.del_rec_offs(aa)
-                    print("del host",  ret, dec['host'])
+                    #print("del host",  ret, dec['host'])
                     recsel.audit(self.acore, self.packer, "Deleted Host", dec['host'])
             except:
                 print("exc on delhost,", sys.exc_info())
@@ -525,7 +525,7 @@ class ConfigDlg(Gtk.Dialog):
         #sel.select_path(self.treestore.get_path(iterx))
 
     def add_host(self, arg2):
-        print("Add host")
+        #print("Add host")
         dd = datetime.datetime.now().replace(microsecond=0).isoformat()
         self.model2.append(None, ("Host", "Port", dd, str(uuid.uuid1()) ) )
         # Sel last (new) row
@@ -602,19 +602,19 @@ class ConfigDlg(Gtk.Dialog):
         # Commit to field, save it.
         try:
             self.model[path][idx] = text
-            print("Commit", text)
+            #print("Commit", text)
             self.save_row(self.model[path])
         except:
-            print("Cannot commit field to tree.")
+            print("Cannot commit field to tree.", sys.exc_info())
 
     def save_row(self, row):
-
-        print("save_row", *row)
+        #print("save_row", *row)
+        pass
 
     def save_host_row(self, row):
 
         hhh = row[0] + ":" + row[1]
-        print("save_host_row", hhh, self.conf.user)
+        #print("save_host_row", hhh, self.conf.user)
 
         repsize = self.repcore.getdbsize()
         # Check duplicate
@@ -627,7 +627,7 @@ class ConfigDlg(Gtk.Dialog):
                 dec = self.packer.decode_data(rec[1])[0]['PayLoad']
             except:
                 dec['host'] = ""
-            print("dec", dec)
+            #print("dec", dec)
             if dec['host'] == hhh:
                 msg = "This host/port already exists. Not saved."
                 pymisc.smessage(msg, conf=self.conf, sound="error")
@@ -637,7 +637,7 @@ class ConfigDlg(Gtk.Dialog):
         now = datetime.datetime.now().replace(microsecond=0).isoformat()
         undec = {"host" : hhh , "header" : uuu,
                   "now": now, "oper": self.conf.user }
-        print("undec", undec)
+        #print("undec", undec)
         pvh = pyvhash.BcData()
         pvh.addpayload(undec)
         pvh.hasharr()

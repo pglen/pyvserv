@@ -144,8 +144,9 @@ def mainfunct():
                 sys.exit(0)
 
     if conf.numrec == 1:
+        #print("putkey:", conf.putkey)
+        pvh = pyvgenr.genvrec(conf.putkey)
 
-        pvh = pyvgenr.genvrec()
         pvh.hasharr()
         print("Calculating PROW ....", end = " "); sys.stdout.flush()
         while not pvh.powarr():

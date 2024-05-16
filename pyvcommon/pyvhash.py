@@ -100,7 +100,7 @@ class BcData():
         Use it to create / add / remove / modify payload.
     '''
 
-    def __init__(self, old_data = None, pgdebug = 0):
+    def __init__(self, old_data = None, pgdebug = 0, header = None):
 
         self.pb  = pyvpacker.packbin()
         self.rrr = Random.new()
@@ -131,6 +131,10 @@ class BcData():
             self.newdata()
         else:
             raise TypeError("Cannot create class from %s" % type(old_data))
+
+        # Propagate requested header
+        if header:
+            self.datax |= { Header : header }
 
         # Add Expected fields:
         dt = datetime.datetime.now()

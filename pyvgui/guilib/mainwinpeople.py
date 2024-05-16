@@ -264,31 +264,8 @@ class MainWin(Gtk.Window):
         self.dat_dict['nick'] = lab4
         rowcnt += 1
 
-        gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
-        rowcnt += 1
-
-        tp3x = ("User / Client UUID: ", "uuid", "Generate Client UID by pressing button", None)
-        butt1 = Gtk.Button.new_with_mnemonic("Gene_rate")
-        lab3x = pgentry.griddouble(gridx, 0, rowcnt, tp3x, butt1)
-        butt1.connect("clicked", self.load_uuid, lab3x)
-        self.dat_dict['uuid'] = lab3x
-        rowcnt += 1
-
-        tp4x = ("Site UUID: ", "guid", "Group / Site UID", None)
-        butt2 = Gtk.Button.new_with_mnemonic("Load")
-        lab4x = pgentry.griddouble(gridx, 0, rowcnt, tp4x, butt2)
-        butt2.connect("clicked", self.load_site_uuid, lab4x)
-        self.dat_dict['guid'] = lab4x
-        rowcnt += 1
-
-        tp6x = ("Operator UUID: ", "guid", "Operator UUID", None)
-        butt2 = Gtk.Button.new_with_mnemonic("Load")
-        lab6x = pgentry.griddouble(gridx, 0, rowcnt, tp6x, butt2)
-        butt2.connect("clicked", self.load_op_uuid, lab6x)
-        self.dat_dict['ouid'] = lab6x
-        rowcnt += 1
-        gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
-        rowcnt += 1
+        #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
+        #rowcnt += 1
 
         tp3a = ("Address Line 1: ", "addr1", "Address line one. (Number, Street)", None)
         tp4a = ("Address Line 2: ", "addr2", "Address line two. (if applicable)", None)
@@ -325,6 +302,35 @@ class MainWin(Gtk.Window):
         self.dat_dict['email2'] = lab14
         rowcnt += 1
 
+        tp6x = ("Notes: ", "", "Text for Notes. Press Shift Enter to advance", None)
+        lab6x = pgentry.gridsingle(gridx, 0, rowcnt, tp6x)
+        self.dat_dict['notes'] = lab6x
+        rowcnt += 1
+
+        gridx.attach(pggui.ySpacer(4), 0, rowcnt, 1, 1)
+        rowcnt += 1
+
+        tp3x = ("User / Client UUID: ", "uuid", "Generate Client UID by pressing button", None)
+        butt1 = Gtk.Button.new_with_mnemonic("Gene_rate")
+        lab3x = pgentry.griddouble(gridx, 0, rowcnt, tp3x, butt1)
+        butt1.connect("clicked", self.load_uuid, lab3x)
+        self.dat_dict['uuid'] = lab3x
+        rowcnt += 1
+
+        tp4x = ("Site UUID: ", "guid", "Group / Site UID", None)
+        butt2 = Gtk.Button.new_with_mnemonic("Load")
+        lab4x = pgentry.griddouble(gridx, 0, rowcnt, tp4x, butt2)
+        butt2.connect("clicked", self.load_site_uuid, lab4x)
+        self.dat_dict['guid'] = lab4x
+        rowcnt += 1
+
+        tp6x = ("Operator UUID: ", "guid", "Operator UUID", None)
+        butt2 = Gtk.Button.new_with_mnemonic("Load")
+        lab6x = pgentry.griddouble(gridx, 0, rowcnt, tp6x, butt2)
+        butt2.connect("clicked", self.load_op_uuid, lab6x)
+        self.dat_dict['ouid'] = lab6x
+        rowcnt += 1
+
         butt2o = Gtk.Button.new_with_mnemonic("Load")
         tp9b = ("Now: (date of entry)"," ",  "Autofilled, date of entry", None)
         tp10b = ("Operator:", " ", "Operator, who entered this record.", None)
@@ -335,13 +341,8 @@ class MainWin(Gtk.Window):
         self.dat_dict['oper'] = lab16
         rowcnt += 1
 
-        tp6x = ("Notes: ", "", "Text for Notes. Press Shift Enter to advance", None)
-        lab6x = pgentry.gridsingle(gridx, 0, rowcnt, tp6x)
-        self.dat_dict['notes'] = lab6x
+        gridx.attach(pggui.ySpacer(4), 0, rowcnt, 1, 1)
         rowcnt += 1
-
-        #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
-        #rowcnt += 1
 
         #tp7b = ("Vote:" , "", "Voting entity. ", None)
         #tp8b = ("Secondary Vote", "", "Secondary Entity", None)

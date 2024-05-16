@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys, getopt, signal, random, time, base64
+import os, sys, getopt, signal, random, time, base64, subprocess
 import string, warnings, uuid, datetime, struct, io, threading
 
 import gi
@@ -46,7 +46,7 @@ class MainWin(Gtk.Window):
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
         #print("globals", globals.myhome)
-
+        self.was_saved = False
         self.powers     = 0
         self.conf       = globals.conf
         self.conf.iconf  = os.path.dirname(globals.conf.me) + os.sep + "pyvvote.png"
@@ -71,8 +71,7 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
 
-        votename = os.path.join(pyservsup.globals.chaindir, "vote", "votes.pydb")
-
+        votename = os.path.join(pyservsup.globals.chaindir, "vote", "initial.pydb")
         self.votecore = twincore.TwinCore(votename, 0)
         self.votecore.packer = self.packer
         self.votecore.hashname  = os.path.splitext(self.votecore.fname)[0] + ".hash.id"
@@ -225,8 +224,15 @@ class MainWin(Gtk.Window):
 
         tp3x = ("User / Client UUID: ", "uuid", "Load / Select Client UUID", None)
         butt1 = Gtk.Button.new_with_mnemonic("Load vote_r")
-        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, butt1)
+        butt2 = Gtk.Button.new_with_mnemonic("Add")
+        butt2.set_tooltip_text("Open in new window")
+        hbox3x = Gtk.HBox()
+        hbox3x.pack_start(butt1, 1,1,2)
+        hbox3x.pack_start(butt2, 0,0,2)
+
+        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, hbox3x)
         butt1.connect("clicked", self.load_voter)
+        butt2.connect("clicked", self.new_voter)
         self.dat_dict['nuuid'] = lab3x
         rowcnt += 1
 
@@ -300,9 +306,16 @@ class MainWin(Gtk.Window):
         rowcnt += 1
 
         butt1 = Gtk.Button.new_with_mnemonic("Load _Ballot")
+        butt2 = Gtk.Button.new_with_mnemonic("Add")
+        butt2.set_tooltip_text("Open in new window")
+        hbox4x = Gtk.HBox()
+        hbox4x.pack_start(butt1, 1,1,2)
+        hbox4x.pack_start(butt2, 0,0,2)
+
         tpb = ("Ballot UUID: ", "bbuid", "Load new Ballot. (if not pre loaded)", "")
-        lab3b = pgentry.griddouble(self.gridx, 0, rowcnt, tpb, butt1)
+        lab3b = pgentry.griddouble(self.gridx, 0, rowcnt, tpb, hbox4x)
         butt1.connect("clicked", self.load_ballot)
+        butt2.connect("clicked", self.new_ballot)
         self.dat_dict['buuid'] = lab3b
         rowcnt += 1
 
@@ -338,7 +351,7 @@ class MainWin(Gtk.Window):
         tp7 = ("Primary Vote: ", "pri", "Select primary vote", None)
         tp8 = ("Secondary vote: ", "sec", "Write in secondary vote. (if applicable)", None)
         lab9, lab10 = pgentry.gridquad(self.gridx, 0, rowcnt, tp7, tp8)
-        lab9.set_editable(False)
+        lab9.set_gray(True)
         self.dat_dict['vprim'] = lab9
         self.dat_dict['vsec']  = lab10
         rowcnt += 1
@@ -775,6 +788,9 @@ class MainWin(Gtk.Window):
             else:
                 self.dat_dict[aa].set_text("")
 
+        self.was_saved = False
+        self.noneradio.set_active(True)
+        self.set_focus(self.noneradio)
         self.preview()
 
         # Fill in defaults
@@ -786,7 +802,7 @@ class MainWin(Gtk.Window):
         #self.dat_dict['voper'].set_text(str(self.operator))
 
         self.reset_changed()
-        self.set_focus(self.dat_dict['name'])
+        #self.set_focus(self.dat_dict['name'])
 
     def preload_vote(self):
 
@@ -965,6 +981,9 @@ class MainWin(Gtk.Window):
         # Mark as non changed (disabled)
         self.reset_changed()
 
+        # Cannot change, would be duplicate upload
+        self.was_saved = True
+
         msg = "Loaded vote: '%s'" % dec['name']
         self.status.set_status_text(msg)
         #self.status.set_status_text("Loaded:", dec['name'])
@@ -1022,6 +1041,18 @@ class MainWin(Gtk.Window):
         self.clear_data()
         self.reset_changed()
 
+    def new_ballot(self, arg):
+        exe = os.path.join(os.path.dirname(__file__), "..", "pyvballot.py")
+        #print(exe)
+        ret = subprocess.run([exe, ], capture_output=True)
+        #print("Back to ", ret)
+
+    def new_voter(self, arg):
+        exe = os.path.join(os.path.dirname(__file__), "..", "pyvpeople.py")
+        #print(exe)
+        ret = subprocess.run([exe, ], capture_output=True)
+        #print("Back to ", ret)
+
     def load_voter(self, arg):
 
         ''' Load new voter '''
@@ -1072,6 +1103,8 @@ class MainWin(Gtk.Window):
         #print("dec:", dec)
         #for aa in dec.keys():
         #    print("Key:", aa)
+
+        self.was_saved = False
 
         # Partial fill, redirect fields
         self.dat_dict['nuuid'].set_text(dec['uuid'])
@@ -1194,13 +1227,19 @@ class MainWin(Gtk.Window):
 
         self.conf.playsound = sps
 
-
     def save_data(self, arg1):
 
         ''' See if data changed, save_vote '''
 
         if not self.is_changed():
             msg = "Nothing changed, cannot save."
+            self.status.set_status_text(msg)
+            pymisc.smessage(msg, conf=self.conf, sound="error")
+            return
+
+        if self.was_saved:
+            msg = "This record has been saved already, cannot duplicate.\n" \
+                        "Please create a new record instead."
             self.status.set_status_text(msg)
             pymisc.smessage(msg, conf=self.conf, sound="error")
             return
@@ -1283,7 +1322,8 @@ class MainWin(Gtk.Window):
         for aa in list(self.cand_dict.keys())[1:]:
             ddd[aa] = self.cand_dict[aa].get_text()
 
-        pvh = pyvhash.BcData()
+        pvh = pyvhash.BcData(header = self.dat_dict['uuid'].get_text())
+
         # We mark this as 'test' so it can stay in the chain, if desired
         #pvh.addpayload({"Test": "test" ,})
         pvh.addpayload(ddd)
@@ -1345,11 +1385,14 @@ class MainWin(Gtk.Window):
         ttt = time.time()
         dd = datetime.datetime.fromtimestamp(ttt)
         idt = dd.isoformat()
+        now = dd.strftime(pyvhash.datefmt)
+
+        #self.dat_dict['now'].get_text(),
 
         # Prepare data. Do strings so it can be re-written in place
         rrr = {
                 'header' : uuu,
-                'now' : self.dat_dict['now'].get_text(),
+                'now' : now,
                 # Human readable
                 'iso' : idt,
                 'stamp' : ttt,
@@ -1380,6 +1423,8 @@ class MainWin(Gtk.Window):
             self.conf.playsound.play_sound("shutter")
 
         self.status.set_status_text("Saved '%s'" % self.dat_dict['name'].get_text())
+
+        self.was_saved = True
 
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()

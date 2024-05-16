@@ -540,7 +540,7 @@ def get_rput_func(self, strx):
         return
 
     if not pvh.checkpow():
-        response = [ERR, "Error on block POW.", strx[0]]
+        response = [ERR, "Error on block PROW.", strx[0]]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
@@ -606,7 +606,10 @@ def get_rput_func(self, strx):
         pass
 
     # if it is not replicated already, add replicate request
-    if not strx[2]["Replicated"]:
+    #if not strx[2]["Replicated"]:
+
+    # Thu 16.May.2024  add replicate request, always
+    if True:
         # Prepare data. Do strings so it can be re-written in place
         rrr = {
                 # Sun 14.Apr.2024 removed counts, shifted to state data
@@ -631,10 +634,11 @@ def get_rput_func(self, strx):
         except:
             del repcore
             print("exc on save_data", sys.exc_info()[1])
-            response = [ERR,  "Cannot save replicator.",  str(sys.exc_info()[1]) ]
             support.put_exception("save_data")
-            self.resp.datahandler.putencode(response, self.resp.ekey)
-            return
+            # Thu 16.May.2024 ignore replicator error
+            #response = [ERR,  "Cannot save replicator.",  str(sys.exc_info()[1]) ]
+            #self.resp.datahandler.putencode(response, self.resp.ekey)
+            #return
 
         del repcore
     else:
