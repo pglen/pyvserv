@@ -51,6 +51,7 @@ if sys.version_info[0] < 3:
 import getopt
 import time
 import datetime
+
 import pyvpacker
 
 # This repairs the path from local run to pip run.
@@ -77,8 +78,9 @@ from pyvcommon import pysyslog, comline, pyvhash
 
 from pydbase import twincore
 
-REPLIC_FNAME  = "replic.pydb"
+import pyvrepsup
 
+REPLIC_FNAME  = "replic.pydb"
 DATA_FNAME    = "initial.pydb"
 IHOST_FNAME   = "ihosts.pydb"
 STATE_FNAME   = "rstate.pydb"
@@ -86,25 +88,7 @@ COMP_FNAME    = "rcomp.pydb"
 
 MAX_DBSIZE = 20                 # Size of DB when vacuum
 
-class Blank():
-    ''' Empty class for config data '''
-    pass
-
-TIMING = Blank()
-
-def cutid(strx, beg = 13, end = 8):
-    ''' Return a shortened string with '...' separator '''
-    return strx[:beg] + "..." +strx[-end:]
-
-def between(val, mmm, xxx):
-
-    ''' Return True in number (val) is between mmm and xxx, inclusive.
-
-    '''
-    if val >= mmm and val <= xxx:
-        return True
-    else:
-        return False
+TIMING = pyvrepsup.BlankClass()
 
 try:
     import fcntl
@@ -116,30 +100,78 @@ except:
     print(sys.exc_info())
     pass
 
-def print_handles(strx = ""):
-
-    ''' Debug helper. Only on Linux. '''
-
-    open_file_handles = os.listdir('/proc/self/fd')
-    print(strx, 'open file handles: ' + ', '.join(map(str, open_file_handles)))
-
 class Replicator():
 
     ''' This embodies the state machine of the replicator '''
 
-    def __init__(self, verbose = 0, pgdebug = 0):
-        self.verbose = verbose
-        self.pgdebug = pgdebug
-        self.packer = pyvpacker.packbin()
+    def __init__(self):
         self.dbfarr = []
         self.dbdarr = []
         self.hostdarr = []
         self.hfname = os.path.join(pyservsup.globals.myhome, IHOST_FNAME)
-        self.runcount = 0
+        self.runcount = 1
+
+    def repall(self, kind):
+        print("Retransmitting:")
+
+        rfile = os.path.join(pyservsup.globals.chaindir, conf.rkind, REPLIC_FNAME)
+        print("rfile", rfile)
+        repcore = twincore.TwinCore(rfile)
+        repdbsize = repcore.getdbsize()
+
+        fname = os.path.join(pyservsup.globals.chaindir, conf.rkind, DATA_FNAME)
+        #print("data file", fname)
+        datacore = twincore.TwinCore(fname)
+        datasize = datacore.getdbsize()
+        #print("dbsize", datasize)
+
+        # Scan database, create sub replicator entries for all hosts
+        for bb in range(datasize-1, -1, -1):
+            try:
+                rec = datacore.get_rec(bb)
+            except:
+                print("Exc on get_rec", sys.exc_info())
+                continue
+            if not rec:
+                continue   # Deleted record
+
+            arr = conf.packer.decode_data(rec[1])[0]
+            #print(arr['header'])
+            # Create sub entry
+            # Save replicator
+            ttt = time.time()
+            dd = datetime.datetime.fromtimestamp(ttt)
+            idt = dd.isoformat()
+            now = dd.strftime(pyvhash.datefmt)
+            # Prepare data. Do strings so it can be re-written in place
+            rrr = {
+                    'header' : arr['header'],
+                    'now' : now,
+                    # Human readable
+                    'iso' : idt,
+                    'stamp' : ttt,
+                    "processed" : "00000",
+                    "retrans" : "00001",
+                    }
+            if conf.pgdebug > 3:
+                print("replic req", rrr)
+
+            undec2 = conf.packer.encode_data("", rrr)
+            try:
+                ret = repcore.save_data(arr['header'], undec2)
+            except:
+                print("exc on save_data", sys.exc_info()[1])
+        del repcore
+        del datacore
+
+        #sys.exit(0)
 
     def rep_run(self):
 
         ''' Main entry point for replication. '''
+
+        if conf.rkind:
+            self.repall(conf.rkind)
 
         while True:
             # Replicate for all kinds
@@ -150,33 +182,30 @@ class Replicator():
                 if not os.path.isdir(aaa):
                     continue
                 fname = os.path.join(aaa, REPLIC_FNAME)
-                #print("fname", fname)
+                #print("fname", fname, "aa", aa)
                 if not os.path.isfile(fname):
                     continue
-                self.scandir(aaa)
-
+                self.scandir(aa)
             self.runcount += 1
+            # Testing for leaks
+            #pyvrepsup.print_handles()
             time.sleep(conf.timedel)
 
     def scandir(self, dirname):
 
         ''' Scan chain dir for replication data. '''
 
-        if self.pgdebug > 9:
+        if conf.pgdebug > 9:
             print()
             print("Replicator cycle", "%.3f "% time.time(), dirname)
 
         wastrans = False
         rfile = os.path.join(pyservsup.globals.chaindir, dirname, REPLIC_FNAME)
-        #print("rfile: ", rfile)
+        if conf.pgdebug > 9:
+            print("scandir rfile: ", rfile)
+
         repcore = twincore.TwinCore(rfile)
         repdbsize = repcore.getdbsize()
-        #repcore.pgdebug = conf.pgdebug
-        #repcore.core_verbose = 5
-        #if conf.pgdebug > 6:
-        #    repcore.showdel = True
-        #if conf.pgdebug > 3:
-        #    print("dbname:", rfile, "dbsize:", repdbsize)
 
         # Scan database, create sub replicator entries for all hosts
         for bb in range(repdbsize-1, -1, -1):
@@ -191,123 +220,58 @@ class Replicator():
             if conf.pgdebug > 9:
                 print("rec:", rec)
 
-            arr = self.packer.decode_data(rec[1])[0]
-
-            if not int(arr['processed']):
-
+            arr = conf.packer.decode_data(rec[1])[0]
+            #print("repdb rec arr:", arr)
+            #print("repdb rec arr:", arr['header'])
+            if not int(arr['processed']) :
+                #print("Processed:", arr['processed'], "retrans:", retrans)
                 if conf.pgdebug > 7:
                     print("head:", rec[0], "arr:", arr)
-
-                #print("Processed:", arr['processed'])
                 self.create_perhost(dirname, arr)
                 # Save it back as replicate stage 1
                 arr['processed'] = "%05d" % (1)
-                arr2 = self.packer.encode_data("", arr)
+                arr2 = conf.packer.encode_data("", arr)
                 repcore.save_data(rec[0], arr2, replace=True)
 
+        # Only one scan for retrans
+        conf.retrans = False
         self.process_statedata(dirname)
         del repcore
 
-        if  self.runcount and self.runcount % 10 == 0:
+        # Run after we have done forwardingin this session
+        if  self.runcount % 10 == 0:
             self.depclean(dirname)
-
-    def depclean(self, dirname):
-
-        ''' Periodically clean the replicator databases for entries
-         that are done, entries that do not have any pending action.
-         Databases are vacuumed if size  exceed MAX_DBSIZE.
-
-         '''
-
-        #if conf.pgdebug > 4:
-        #    print("Dependency cleanup")
-
-        fname = os.path.join(pyservsup.globals.chaindir, dirname)
-        rfile = os.path.join(fname, REPLIC_FNAME)
-        repcore = twincore.TwinCore(rfile)
-        dbsize = repcore.getdbsize()
-
-        stname = os.path.join(pyservsup.globals.chaindir, dirname,  STATE_FNAME)
-        statecore = twincore.TwinCore(stname)
-        staterec = statecore.getdbsize()
-        canclean = []
-        for bb in range(dbsize-1, -1, -1):
-            try:
-                rec = repcore.get_rec(bb)
-            except:
-                continue
-            if not rec:
-                continue   # Deleted record
-            rarr = self.packer.decode_data(rec[1])[0]
-
-            found = False
-            for cc in range(staterec):
-                try:
-                    srec = statecore.get_rec(cc)
-                except:
-                    pass
-                if not srec:
-                    continue        # Deleted record
-                sarr = self.packer.decode_data(srec[1])[0]
-                #print("cleanup", rarr['header'], sarr['header'])
-                if rarr['header'] == sarr['header']:
-                    found = True
-            if not found:
-                #print("Can clean:", rarr['header'])
-                canclean.append((bb, rarr['header']))
-
-        for dd in canclean:
-            if conf.pgdebug > 4:
-                print("Cleaning repl rec:", dd[1])
-            repcore.del_rec(dd[0])
-
-        if dbsize > MAX_DBSIZE:
-            if self.pgdebug > 2:
-                print("vacuuming repl", dbsize)
-            if self.pgdebug > 5:
-                ttt = time.time()
-            repcore.vacuum()
-            if self.pgdebug > 5:
-                print("db vacuum %.3f" % ((time.time() - ttt) * 1000) )
-
-        if staterec > MAX_DBSIZE:
-            if self.pgdebug > 2:
-                print("vacuuming state", staterec)
-            if self.pgdebug > 5:
-                ttt = time.time()
-            statecore.vacuum()
-            if self.pgdebug > 5:
-                print("db vacuum %.3f" % ((time.time() - ttt) * 1000) )
-
-        del repcore
-        del statecore
 
     def create_perhost(self, dirname, arr):
 
-        ''' Create replicator state data on a per host basis.
+        '''
+        Create replicator state data on a per host basis.
         This captures the current state of ihosts, and creates
-        jobs descriptiond for replication.
-        Ihosts added later do not have an effect on relication
+        jobs descriptions for replication.
+        The ihosts added later do not have an effect on replication
         of the current data. Use pyvcli_replic.py for that.
+        The feature option -a is meant to take care of re-transmission
+        to all hosts.
         '''
 
         ret = 0
-        if self.pgdebug > 5:
-            print("create_perhost() data", arr)
+
+        #if conf.pgdebug > 5:
+        #    print("create_perhost()", "dirname:", dirname, " data", arr)
 
         hostcore = twincore.TwinCore(self.hfname)
-        hostrec = hostcore.getdbsize()
+        hostbdsize = hostcore.getdbsize()
 
         stname = os.path.join(pyservsup.globals.chaindir, dirname, STATE_FNAME)
 
-        #if conf.pgdebug > 2:
-        #    print("state fname:", stname)
+        if conf.pgdebug > 9:
+            print("state fname:", stname)
 
         statecore = twincore.TwinCore(stname)
         staterec = statecore.getdbsize()
 
         sum = []
-        for bb in range(hostrec-1, -1, -1):
+        for bb in range(hostbdsize-1, -1, -1):
             try:
                 hrec = hostcore.get_rec(bb)
             except:
@@ -320,17 +284,33 @@ class Replicator():
                 continue
             sum.append(hrec[0])
             #print("hrec",  hrec)
-            harr = self.packer.decode_data(hrec[1])[0]['PayLoad']
-            if self.pgdebug > 4:
-                print("host entry:", harr)
+            harr = conf.packer.decode_data(hrec[1])[0]['PayLoad']
+
+            #if conf.pgdebug > 4:
+            print("host entry:", harr)
+
             host = harr['host']
+
             # Create state record if none
-            comboname = harr['header'] + "_" + host
-            exists = statecore.retrieve(comboname)
+            comboname = arr['header'] + "_" + host
+
+            #if conf.pgdebug > 4:
+            #    print("Comboname:", comboname)
+
+            exists = False
+            for cc in range(staterec-1, -1, -1):
+                rec = statecore.get_rec(cc)
+                if not rec:
+                    continue
+                print("staterec:", rec)
+                if rec[0] == comboname:
+                    exists = True
+
             #print("exists", exists)
             if not exists:
-                if self.pgdebug > 4:
-                    print("Create state rec:", comboname)
+                #if conf.pgdebug > 2:
+                print("Create record:", comboname)
+
                 # Create state record
                 ttt = time.time()
                 dd = datetime.datetime.fromtimestamp(ttt)
@@ -338,24 +318,25 @@ class Replicator():
                 idt = dd.isoformat()
                 # New record for state data
                 xarr =  {
-                    "header" : arr['header'],
-                    "Record" : comboname,
-                    "host" : host,
-                    "stamp": ttt,  "iso": idt, "LastAttempt": fdt,
-                    "orgnow" : arr['now'],
-                    "orgstamp" : arr['stamp'],
-                    "count": "00000",
-                    "status": "00000",
+                    "header" :  arr['header'],
+                    "Record" :  comboname,
+                    "host" :    host,
+                    "stamp":    ttt,  "iso": idt, "LastAttempt": fdt,
+                    "orgnow" :  arr['now'],
+                    "orgstamp": arr['stamp'],
+                    "count":    "00000",
+                    "status":   "00000",
+                    "all":      "00000",
                     # Sun 14.Apr.2024 removed counts
                     #"count2" : "00000",  #"count3" : "00000",
                     }
 
                 #print("xarr:", xarr)
-                xarr2 = self.packer.encode_data("", xarr)
+                xarr2 = conf.packer.encode_data("", xarr)
                 #print("xarr2:", xarr2)
                 statecore.save_data(comboname, xarr2)
-        del statecore
-        del hostcore
+        #del statecore
+        #del hostcore
 
     def process_statedata(self, dirname):
 
@@ -363,6 +344,10 @@ class Replicator():
         appropriately. '''
 
         stname = os.path.join(pyservsup.globals.chaindir, dirname,  STATE_FNAME)
+
+        if conf.pgdebug > 9:
+            print("state data file", stname)
+
         statecore = twincore.TwinCore(stname)
         staterec = statecore.getdbsize()
         remsced = []
@@ -371,19 +356,20 @@ class Replicator():
             if not rec:
                 continue
             # Process it
-            dec =  self.packer.decode_data(rec[1])[0]
+            dec =  conf.packer.decode_data(rec[1])[0]
 
             # if it succeeded already, do not replicate, remove from database
             if int(dec['status']) != 0:
-                if self.pgdebug > 1:
+                if conf.pgdebug > 1:
                     print("Replicated already", dec['host'], dec['header'])
                 remsced.append((aa, dec['header']))
                 continue
 
-            if self.pgdebug > 6:
+            if conf.pgdebug > 8:
                 print("State data:", dec)
-                #print("Sdata:", dec['header'], dec['host'], dec['stamp'])
-            elif self.pgdebug > 5:
+            elif conf.pgdebug > 6:
+                print("State data:", dec['header'], dec['host'], dec['stamp'])
+            elif conf.pgdebug > 5:
                 print("State data:", dec['header'], dec['host'])
 
             tdiff = int(time.time() - float(dec['orgstamp']))
@@ -402,11 +388,11 @@ class Replicator():
                     doit = True
             elif tdiff <= TIMING.stage_2_lim:
                 if tdiff % TIMING.stage_2_freq == 0:
-                    if between(tdiff, tdiff, tdiff + TIMING.retrytime):
+                    if pyvrepsup.between(tdiff, tdiff, tdiff + TIMING.retrytime):
                         doit = True
             elif tdiff <= TIMING.stage_3_lim:
                  if tdiff % TIMING.stage_3_freq == 0:
-                    if between(tdiff, tdiff, tdiff + TIMING.retrytime):
+                    if pyvrepsup.between(tdiff, tdiff, tdiff + TIMING.retrytime):
                             doit = True
             else:
                 if conf.loglev > 0:
@@ -431,13 +417,14 @@ class Replicator():
             dec["count"] = "%05d" % (int(dec['count']) + 1)
 
             # Make delivery attempt
-            ret = self.replicate(dirname, dec)
+            ret = pyvrepsup.replicate(tdiff, DATA_FNAME, dirname, dec, conf)
+
             #print("Replicate ret", ret)
             if ret or ret == -1:
                 # mark success or permanent failure
                 dec["status"] =  "%05d" % (int(dec['status']) + 1)
 
-            xarr3 = self.packer.encode_data("", dec)
+            xarr3 = conf.packer.encode_data("", dec)
             statecore.save_data(rec[0], xarr3, replace=True)
 
         for bb in remsced:
@@ -446,238 +433,100 @@ class Replicator():
             statecore.del_rec(bb[0])
 
         del statecore
-        #print_handles()
 
-    def replicate(self, dirname, dec):
+    def depclean(self, dirname):
 
-        ''' Replicate this one entry in the state record '''
+        ''' Periodically clean the replicator databases for entries
+         that are done, entries that do not have any pending action.
+         Databases are vacuumed if size  exceed MAX_DBSIZE.
 
-        if self.pgdebug > 2:
-            print("replicate:", dec['host'], dec['header'])
+         '''
 
-        ret = 0; rec = []
-        fname = os.path.join(pyservsup.globals.chaindir, dirname, DATA_FNAME)
-        #print("try data", fname)
-        datacore = twincore.TwinCore(fname)
-        #print("dbsize", datacore.getdbsize())
-        try:
-            rec = datacore.retrieve(dec['header'])
-            #print("Got rec", rec)
-        except:
-            print("Replicate: cannot get record", sys.exc_info())
+        if conf.pgdebug > 8:
+            print("Dependency cleanup.", dirname)
 
-        if not rec:
-            print("Empty record on replicate.")
-            return ret
-
-        #print("vote:", rec)
-        del datacore
-
-        #if self.pgdebug > 8:
-        #    print("rec", rec)
-
-        try:
-            arr = self.packer.decode_data(rec[0][1])[0]
-            #print("vote:", arr)
-
-            # Decorate 'replicated' variable
-            if arr['Replicated'] > 2:
-                print("This entry is replicated already", dec['header'])
-                return True
-
-            arr['Replicated'] = arr.get("Replicated") + 1
-            if self.pgdebug > 9:
-                print("payload arr", arr)
-            pvh = pyvhash.BcData(arr)
-            #if self.pgdebug > 7:
-            #    print("Checks:", pvh.checkhash(), pvh.checkpow())
-            #if self.pgdebug > 5:
-            #    print("pyvhash", pvh.datax, pvh.checkhash(), pvh.checkpow())
-        except:
-            print("err on decoding", sys.exc_info())
-
-        ret = self.transmit(dirname, dec, pvh.datax)
-        return ret
-
-    def transmit(self, dirname, dec, data):
-
-        ''' Transmit one particular entry to one particular host.
-            Return True for successful transfer.
-            Logs (if enabled) will contain success / falure report
-            and the failure reason string.
-        '''
-
-        kind = os.path.basename(dirname)
-
-        #print("transmit()", data)
-
-        if conf.loglev > 1:
-            pysyslog.repliclog("Try:", dec['host'], kind, data['header'])
-
-        if not conf.quiet:
-            print("Attempt:", dec['host'], kind, data['header'])
-
-        hostx, portx = dec['host'].split(":")
-
-        #if self.pgdebug > 2:
-        #    print("Transmitting:", hostx, portx, dirname, data['header'])
-
-        ret = False
-        hand = pyclisup.CliSup()
-        try:
-            respc = hand.connect(hostx, int(portx))
-        except:
-            errx = str(sys.exc_info()[1]).split(']')[1]
-
-            if self.pgdebug > 1:
-                print( "Cannot connect to:", dec['host'], errx)
-
-            # Failure, log it
-            if conf.loglev > 1:
-                pysyslog.repliclog("Cannot Connect:", dec['host'], errx)
-
-            if not conf.quiet:
-                print("Cannot Connect.")
-            return ret
-
-        confx = Blank()
-        hand.start_session(confx)
-        #print(confx.sess_key[:24])
-        cresp = hand.login("admin", "1234", confx)
-        if self.pgdebug > 5:
-            print ("Server logon resp:", cresp)
-        if cresp[0]  != "OK":
-            if not conf.quiet:
-                print("Error logging in", cresp)
-            if conf.loglev > 1:
-                pysyslog.repliclog("Fail:", dec['host'], "Error on logging in")
-            cresp = hand.client(["quit"], confx.sess_key, False)
-            hand.close()
-            return ret
-        #print("dirname:", dirname, "kind:", kind)
-        cresp = hand.client(["rput", kind, data] , confx.sess_key, False)
-        if cresp[0]  != "OK":
-            if not conf.quiet:
-                print("rput error resp:", cresp)
-            if conf.loglev > 1:
-                pysyslog.repliclog("Fail:", dec['host'], "Duplicate record.",)
-            hand.client(["quit"], confx.sess_key, False)
-            hand.close()
-
-            if "Duplicate" in cresp[1]:
-                #print("Permanent stop")
-                return -1
-            return ret
-        cresp = hand.client(["quit"], confx.sess_key, False)
-        hand.close()
-        if self.pgdebug > 2:
-            print("Success on transmit", dec['host'])
-
-        # Success, log it
-        if conf.loglev > 0:
-            pysyslog.repliclog("OK:", dec['host'], cutid(data['header']))
-
-        if not conf.quiet:
-            print("Success.")
-        # Success, mark record
-        ret = True
-        return ret
-
-def dumprep():
-
-    ''' Dump replicator data currently active. Use del flag
-        to see recent actions. The recent action visibilty is limited
-        to the period of last vacuum operation.
-     '''
-
-    if conf.verbose:
-        print("Dump replicator databases:")
-
-    packer = pyvpacker.packbin()
-    fname = os.path.join(pyservsup.globals.chaindir, conf.kind)
-    rfile = os.path.join(fname, REPLIC_FNAME)
-    if conf.pgdebug > 3:
-        print("rfile: ", rfile)
-    try:
+        rfile = os.path.join(pyservsup.globals.chaindir, dirname, REPLIC_FNAME)
         repcore = twincore.TwinCore(rfile)
-        if conf.sdel:
-            repcore.showdel = True
-    except:
-        print("No database here", rfile, sys.exc_info())
-        sys.exit()
+        dbsize = repcore.getdbsize()
 
-    print("Replicator data:")
-    dbsize = repcore.getdbsize()
-    #print("dbsize", dbsize)
-    for bb in range(dbsize):
-        try:
-            rec = repcore.get_rec(bb)
-        except:
-            print("Exc on get_rec", sys.exc_info())
-            continue
-        if not rec:
-            continue    # Deleted record
+        stname = os.path.join(pyservsup.globals.chaindir, dirname,  STATE_FNAME)
+        statecore = twincore.TwinCore(stname)
+        staterec = statecore.getdbsize()
+        canclean = []
+        for bb in range(dbsize-1, -1, -1):
+            try:
+                rec = repcore.get_rec(bb)
+            except:
+                continue
+            if not rec:
+                continue   # Deleted record
+            rarr = conf.packer.decode_data(rec[1])[0]
 
-        if rec[0] == b"del":
-            #print("deleted:",)
-            # Shift one off for deleted values
-            arr = packer.decode_data(rec[2])[0]
-            #print("del arr:", arr)
-        else:
-            arr = packer.decode_data(rec[1])[0]
-            print("arr:", arr)
+            found = False
+            for cc in range(staterec):
+                try:
+                    srec = statecore.get_rec(cc)
+                except:
+                    pass
+                if not srec:
+                    continue        # Deleted record
+                sarr = conf.packer.decode_data(srec[1])[0]
+                #print("cleanup", rarr['header'], sarr['header'])
+                if rarr['header'] == sarr['header']:
+                    found = True
+            if not found:
+                #print("Can clean:", rarr['header'])
+                canclean.append((bb, rarr['header']))
 
-        if conf.verbose:
-            print("arr:", arr)
-        else:
-            dd = datetime.datetime.strptime(arr['now'], pyvhash.datefmt)
-            print(arr['header'], dd, "Processed:", arr['processed'])
+        for dd in canclean:
+            if conf.pgdebug > 4:
+                print("Cleaning repl rec:", dd[1])
+            repcore.del_rec(dd[0])
 
-    stname = os.path.join(pyservsup.globals.chaindir, conf.kind,  STATE_FNAME)
-    statecore = twincore.TwinCore(stname)
-    staterec = statecore.getdbsize()
-    if conf.sdel:
-            statecore.showdel = True
-    if conf.pgdebug > 3:
-        print("stname: ", stname)
+        if dbsize > MAX_DBSIZE:
+            if conf.pgdebug > 2:
+                print("vacuuming repl", dbsize)
+            if conf.pgdebug > 5:
+                ttt = time.time()
+            repcore.vacuum()
+            if conf.pgdebug > 5:
+                print("db vacuum %.3f" % ((time.time() - ttt) * 1000) )
 
-    if conf.pgdebug > 6:
-        print("State data:")
+        if staterec > MAX_DBSIZE:
+            if conf.pgdebug > 2:
+                print("vacuuming state", staterec)
+            if conf.pgdebug > 5:
+                ttt = time.time()
+            statecore.vacuum()
+            if conf.pgdebug > 5:
+                print("db vacuum %.3f" % ((time.time() - ttt) * 1000) )
 
-    for cc in range(staterec):
-        try:
-            srec = statecore.get_rec(cc)
-        except:
-            pass
-        if not srec:
-            continue        # Deleted record
+        #del repcore
+        #del statecore
 
-        if srec[0] == b"del":
-            sarr = packer.decode_data(srec[2])[0]
-        else:
-            sarr = packer.decode_data(srec[1])[0]
-
-        if conf.verbose:
-            print("sarr:", sarr)
-        else:
-            dd = datetime.datetime.strptime(sarr['orgnow'], pyvhash.datefmt)
-            print(sarr['header'], dd, sarr['host'], "Count:", sarr['count'])
+# ------------------------------------------------------------------------
 
 optarr = []
+optarr.append ( ["c",  "client=", "client",  0,
+                        None, "Assume client mode with droot=='~/pyvclient'"] )
 optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
                         None, "Root for server data default='~/pyvserver'"] )
-optarr.append ( ["m:",  "dumpdata=", "kind",  "",
-                        None, "Dump replicator data for data 'kind'"] )
-optarr.append ( ["e",  "showdel=", "sdel",  0,
-                        None, "Show deleted records on dump"] )
 optarr.append ( ["t:",  "time=", "timedel",  2,
                         None, "Time between replications default='2s'"] )
 optarr.append ( ["l:",  "loglevel=", "loglev",  1,
                         None, "Log level 0=none 1=auth 2=failures default='1'"] )
 optarr.append ( ["s",  "ttime", "ttime",  0,
-                        None, "Test timing (vs production)"] )
+                        None, "Tester timing (vs production)"] )
+optarr.append ( ["m:",  "dumpdata=", "kind",  "",
+                        None, "Dump replicator data for data 'kind'"] )
+optarr.append ( ["M:",  "state=", "skind",  "",
+                        None, "Dump replicator state data for data 'kind'"] )
+optarr.append ( ["e",  "showdel=", "sdel",  0,
+                        None, "Show deleted records on dump"] )
 optarr.append ( ["p",  "dumphost", "dhosts",  0,
                         None, "Dump ihost list"] )
+optarr.append ( ["a:",  "retrans=", "rkind",  "",
+                        None, "Retransmit all data for 'rkind'. Advanced."], )
 
 optarr += comline.optarrlong
 
@@ -691,7 +540,7 @@ for aa in range(len(optarr)):
 
 #print(optarr)
 comline.sethead("Replicate to ihosts directly from pyvserv server / client databases.")
-comline.setfoot("Use quotes for multiple option strings.")
+comline.setfoot("Client mode has precedence, overrides dataroot.")
 comline.setargs("[options] ")
 comline.setprog(os.path.basename(__file__))
 conf = comline.ConfigLong(optarr)
@@ -709,38 +558,42 @@ def mainfunct():
         print(sys.exc_info())
         sys.exit(1)
 
-    #if conf.pgdebug > 9:
-    #    conf.printvars()
+    if conf.pgdebug > 9:
+        conf.printvars()
+
+    # Carry it aroung in global
+    conf.packer = pyvpacker.packbin()
+
+    if conf.client:
+        conf.droot = "pyvclient"
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
 
     #print("pysersup", )
-    if conf.verbose:
+
+    if conf.pgdebug > 9:
         ddd = dir(pyservsup.globals)
         for aa in ddd:
-            if aa[:1] != "_":
-                attr = getattr(pyservsup.globals, aa)
-                if type(attr) == type(""):
-                    try:
-                        print(aa, "\t=", attr)
-                    except:
-                        print(sys.exc_info())
+            if aa[:1] == "_":
+                continue
+            attr = getattr(pyservsup.globals, aa)
+            if type(attr) == type(""):
+                print(aa, "=", attr)
+
+    #if conf.verbose:
+    #    print("Myhome:", pyservsup.globals.myhome)
 
     slogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvserver.log")
     rlogfile = os.path.join(pyservsup.globals.myhome, "log", "pyvreplic.log")
     pysyslog.init_loggers(
             ("system", slogfile), ("replic", rlogfile))
 
-    if conf.kind:
-        dumprep()
-        sys.exit()
-
     TIMING.retrytime = 6
 
     # Keep them even numbered
     if conf.ttime:
-        tstr = "Test timing"
+        tstr = "tester timing"
         TIMING.stage_1_lim = 6
         TIMING.stage_2_lim = 60
         TIMING.stage_3_lim = 120
@@ -749,7 +602,7 @@ def mainfunct():
         TIMING.stage_2_freq = 14
         TIMING.stage_3_freq = 28
     else:
-        tstr = "Production timing"
+        tstr = "production timing"
         TIMING.stage_1_lim = 6
         TIMING.stage_2_lim = 60*60*24
         TIMING.stage_3_lim = 60*60*24*4
@@ -758,51 +611,67 @@ def mainfunct():
         TIMING.stage_2_freq = 60*60*4
         TIMING.stage_3_freq = 60*60*8
 
-    if conf.verbose:
-        print("Replicator started with", tstr, "at:", conf.droot)
-
-    if conf.loglev > 0:
-        pysyslog.repliclog("Started with", tstr, "at:", conf.droot)
-
-    if conf.dhosts:
-        print("Dumping ihosts")
-        hfname = os.path.join(pyservsup.globals.myhome, IHOST_FNAME)
-        print("hfname", hfname)
-        hostcore = twincore.TwinCore(hfname)
-        hostrec = hostcore.getdbsize()
-        sum = []
-        for bb in range(hostrec-1, -1, -1):
-            try:
-                hrec = hostcore.get_rec(bb)
-            except:
-                print("get host name", sys.exc_info())
-                pass
-            if not hrec:
-                continue        # Deleted record
-            #print("hrec", hrec)
-            if hrec[0] in sum:
-                continue
-            sum.append(hrec[0])
-
-            harr = pyvpacker.packbin().decode_data(hrec[1])[0]['PayLoad']
-            print("host header:", harr['header'])
-            print("host entry:", harr)
-            host = harr['host']
-            # Create state record if none
-            comboname = harr['header'] + "_" + host
-            print("Combo:", comboname)
+    if conf.kind or conf.skind:
+        if conf.kind:
+            pyvrepsup.dumpreplic(conf, REPLIC_FNAME)
+        if conf.skind:
+            pyvrepsup.dumpstate(conf, STATE_FNAME)
 
         sys.exit()
 
     if conf.verbose:
-        print("Data from:", conf.droot)
+        print("Replicator started with", tstr, "interval:",
+                                        conf.timedel, "sec, at:", conf.droot)
+    if conf.loglev > 0:
+        pysyslog.repliclog("Started with", tstr, "interval:",
+                                        conf.timedel, "at:", conf.droot)
+    if conf.dhosts:
+        if conf.verbose:
+            print("Dumping ihosts:")
+        hfname = os.path.join(pyservsup.globals.myhome, IHOST_FNAME)
+        if conf.pgdebug > 3:
+            print("hfname", hfname)
+
+        hostcore = twincore.TwinCore(hfname)
+        hostbdsize = hostcore.getdbsize()
+        sumh = []
+        for bb in range(hostbdsize-1, -1, -1):
+            try:
+                hrec = hostcore.get_rec(bb)
+            except:
+                print("exc get host name", sys.exc_info())
+                pass
+            if not hrec:
+                continue        # Deleted record
+            #print("hrec", hrec)
+            if hrec[0] in sumh:
+                continue
+            sumh.append(hrec[0])
+
+            harr = conf.packer.decode_data(hrec[1])[0]['PayLoad']
+            if conf.verbose:
+                print("host entry:", harr)
+            else:
+                print("host =", "'" + harr['host'] + "'", "header =", harr['header'], )
+
+            host = harr['host']
+            # Create state record if none
+            comboname = harr['header'] + "_" + host
+            if conf.pgdebug > 5:
+                print("Entry combo name:", comboname)
+
+        sys.exit()
+
+    if conf.verbose:
+        print("Data from:", pyservsup.globals.chaindir)
         print("debug level =", conf.pgdebug)
 
-    repl = Replicator(conf.verbose, conf.pgdebug)
+    repl = Replicator()
     repl.rep_run()
 
 if __name__ == '__main__':
 
+    #pyvrepsup.print_handles()
     mainfunct()
 
 # EOF

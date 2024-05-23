@@ -265,7 +265,7 @@ class MainWin(Gtk.Window):
         self.gridx.attach(frame, 1, rowcnt, 3, 1)
         rowcnt += 1
 
-        tp4z = ("Vote UUID: ", "uuid", "Vote UID", None)
+        tp4z = ("Vote UUID: ", "uuid", "Vote UUID", None)
         butt2z = Gtk.Button.new_with_mnemonic("Load")
         lab4z = pgentry.griddouble(self.gridx, 0, rowcnt, tp4z, butt2z)
         butt2z.connect("clicked", self.load_vote_uuid, lab4z)
@@ -1398,16 +1398,12 @@ class MainWin(Gtk.Window):
                 'stamp' : ttt,
                 "processed" : "00000",
                 }
-
-        #print("replic req", rrr)
-
+        #print("replic req", uuu, rrr)
         undec2 = self.packer.encode_data("", rrr)
-
         votedir = os.path.join(pyservsup.globals.chaindir, "vote")
         frname = os.path.join(votedir, pyservsup.REPFNAME + ".pydb")
         #print("Saving replicator at", frname)
         repcore = twincore.TwinCore(frname, 0)
-
         try:
             ret = repcore.save_data(uuu, undec2)
         except:
@@ -1417,6 +1413,7 @@ class MainWin(Gtk.Window):
             support.put_exception("save_data")
             self.resp.datahandler.putencode(response, self.resp.ekey)
             return
+
         del repcore
 
         if self.conf.playsound:

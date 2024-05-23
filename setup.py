@@ -36,7 +36,6 @@ test_root = [\
     "pyvcli_rman",
     "pyvcli_qr",
     "pyvcli_ihost",
-    "pyvcli_replic",
     ]
 
 # Generate script and loadable details
@@ -121,7 +120,8 @@ setuptools.setup(
     include_package_data = True,
     scripts = [
                 "pyvserver/pyvserv.py",
-                "pyvserver/pyvreplic.py",
+                "pyvreplic/pyvreplic.py",
+                "pyvreplic/pyvp2p.py",
                 "pyvtools/pyvgenkey.py", "pyvtools/pyvgenkeys.py",
                 "pyvgui/pyvservui.py", "pyvgui/pyvcpanel.py",
                 "pyvgui/pyvtally.py",  "pyvgui/pyvvote.py",
@@ -134,6 +134,7 @@ setuptools.setup(
                     'pyvcommon':        'pyvcommon',
                     'pyvserver':        'pyvserver',
                     'pyvclient':        'pyvclient',
+                    'pyvreplic':        'pyvreplic',
                     'pyvtools':         'pyvtools',
                    },
 
@@ -160,6 +161,7 @@ setuptools.setup(
     entry_points={
         'console_scripts': [ "pyvserv=pyvserv:mainfunct",
                              "pyvreplic=pyvreplic:mainfunct",
+                             "pyvp2p=pyvp2p:mainfunct",
                              "pyvgenkey=pyvgenkey:mainfunct",
                              "pyvgenkeys=pyvgenkeys:mainfunct",
                              "pyvservui=pyvservui:mainfunct",
