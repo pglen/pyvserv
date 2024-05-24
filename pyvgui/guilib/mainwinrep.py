@@ -50,10 +50,19 @@ import pymisc
 
 from pydbase import twincore
 
+# ------------------------------------------------------------------------
+
+STATE_FNAME   = "rstate.pydb"
+
 def cutid(uuu):
     if len(uuu) < 32:
         return uuu
     return uuu[:12] + " .. " + uuu[-8:]
+
+def print_handles(strx = ""):
+    ''' Debug helper. Only on Linux. '''
+    open_file_handles = os.listdir('/proc/self/fd')
+    print(strx, 'open file handles: ' + ', '.join(map(str, open_file_handles)))
 
 class   OneBox(Gtk.Frame):
 
@@ -62,7 +71,8 @@ class   OneBox(Gtk.Frame):
         super().__init__()
 
         vbox = Gtk.VBox()
-        self.defarr = "Org. Date", "Host", "Record", "Last Attempt", "Count"
+        self.defarr = ("Org. Date", "Host", "Record", "Last Attempt",
+                        "Try Count", "Message" )
         self.cnt = len(self.defarr)
         self.labarr = []
 
@@ -70,10 +80,11 @@ class   OneBox(Gtk.Frame):
             self.labarr.append(Gtk.Label(label=self.defarr[aa]))
 
         for aa in range(self.cnt):
-            vbox.pack_start(self.labarr[aa], 1, 1, 2)
+            vbox.pack_start(self.labarr[aa], 1, 1, 0)
 
         scroll = Gtk.ScrolledWindow() ; scroll.add(vbox)
         self.add(scroll)
+        self.set_size_request(-1, 160)
 
     def filldef(self):
         for aa in range(self.cnt):
@@ -89,10 +100,16 @@ class MainWin(Gtk.Window):
 
         self.globals = globals
         self.in_timer = False
-
-        #self = Gtk.Window(Gtk.WindowType.TOPLEVEL)
-
-        #register_stock_icons()
+        self.old_curr = 0
+        self.old_size = 0
+        self.globals.conf.iconf  = os.path.dirname(globals.conf.me) + \
+                                                os.sep + "pyvvotemon.png"
+        try:
+            #print("iconf", self.conf.iconf)
+            ic = Gtk.Image(); ic.set_from_file(self.globals.conf.iconf)
+            self.set_icon(ic.get_pixbuf())
+        except:
+            pass
 
         self.set_title("PyVServer Replication Monitor GUI")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
@@ -161,14 +178,19 @@ class MainWin(Gtk.Window):
         #bbox.pack_start(self.tbar, 0,0, 0)
         #vbox.pack_start(bbox, False, 0, 0)
 
-        lab1 = Gtk.Label("    ");
+        lab1 = Gtk.Label("   ");
         hbox4.pack_start(lab1, 0, 0, 0)
         self.status = pymisc.Status()
+        self.status.maxlen = 128
+        self.status.idlestr = "Waiting ..."
+
         hbox4.pack_start(self.status.scroll, 1, 1, 0)
         lab1a = Gtk.Label("   ");
         hbox4.pack_start(lab1a, 0, 0, 0)
 
-        lab1 = Gtk.Label("");  hbox4.pack_start(lab1, 1, 1, 0)
+        self.dblab = Gtk.Label("  ");
+
+        hbox4.pack_start(self.dblab, 0, 0, 4)
 
         #butt1 = Gtk.Button.new_with_mnemonic(" _New ")
         ##butt1.connect("clicked", self.show_new, window)
@@ -180,12 +202,12 @@ class MainWin(Gtk.Window):
 
         lab2 = Gtk.Label("  ");  hbox4.pack_start(lab2, 0, 0, 0)
 
-        hbox2 = Gtk.HBox()
-        lab3 = Gtk.Label("");  hbox2.pack_start(lab3, 0, 0, 0)
-        lab4 = Gtk.Label("");  hbox2.pack_start(lab4, 0, 0, 0)
-        vbox.pack_start(hbox2, False, 0, 0)
+        #hbox2 = Gtk.HBox()
+        #lab3 = Gtk.Label("q");  hbox2.pack_start(lab3, 0, 0, 0)
+        #lab4 = Gtk.Label("r");  hbox2.pack_start(lab4, 0, 0, 0)
+        #vbox.pack_start(hbox2, False, 0, 0)
 
-        self.numofcols = 4 ;  self.numofrows = 3
+        self.numofcols = 4 ;  self.numofrows = 8
         vbox3 = Gtk.VBox()
         for bb in range(self.numofrows):
             hbox5 = Gtk.HBox()
@@ -197,11 +219,15 @@ class MainWin(Gtk.Window):
                 hbox5.pack_start(onebox, 1, 1, 2)
             vbox3.pack_start(hbox5, 1, 1, 2)
 
-        vbox.pack_start(vbox3, 1, 1, 2)
-        vbox.pack_start(hbox4, False, 0, 6)
+        scroll = Gtk.ScrolledWindow()
+        scroll.add(vbox3)
+        vbox.pack_start(scroll, 1, 1, 4)
+        vbox.pack_start(hbox4, False, 0, 2)
+
         self.add(vbox)
         self.show_all()
 
+        self.timer()    # Respond before timer
         GLib.timeout_add(2000, self.timer)
 
     def main(self):
@@ -234,40 +260,38 @@ class MainWin(Gtk.Window):
         strx = action.get_name()
         warnings.simplefilter("default")
 
-        print ("activate_action", strx)
+        #print ("activate_action", strx)
 
     def activate_quit(self, action):
-        print( "activate_quit called")
+        #print( "activate_quit called")
         self.OnExit(False)
 
     def activate_exit(self, action):
-        print( "activate_exit called" )
+        #print( "activate_exit called" )
         self.OnExit(False)
 
     def activate_about(self, action):
-        print( "activate_about called")
+        #print( "activate_about called")
         pass
 
     def timer(self):
 
         #print("Called timer")
+
         if self.in_timer:
             return True
         in_timer = True
 
-        STATE_FNAME   = "rstate.pydb"
-
         conf = self.globals.conf
 
         # Read status
-        stname = os.path.join(pyservsup.globals.chaindir,
-                        conf.kind, STATE_FNAME)
+        stname = os.path.join(pyservsup.globals.chaindir, conf.kind, STATE_FNAME)
 
-        statecore = twincore.TwinCore(stname)
-        staterec = statecore.getdbsize()
+        statecore  = twincore.TwinCore(stname)
+        statebdsize = statecore.getdbsize()
 
         curr = 0
-        for cc in range(staterec-1, -1, -1):
+        for cc in range(statebdsize -1, -1, -1):
             try:
                 srec = statecore.get_rec(cc)
             except:
@@ -285,28 +309,44 @@ class MainWin(Gtk.Window):
                     print("del:", sarr['header'], sarr['host'], sarr['count'])
             else:
                 sarr = conf.packer.decode_data(srec[1])[0]
-                print("sarr:", sarr)
+                #print("sarr:", sarr)
                 #dd = datetime.datetime.strptime(sarr['orgnow'], pyvhash.datefmt)
                 #print(pyvrepsup.cutid(sarr['header']), dd, sarr['host'], sarr['count'])
                 #print(sarr['header'], sarr['host'], sarr['count'])
 
                 self.allbox[curr].labarr[0].set_text(cutid(sarr['orgnow']))
+
                 self.allbox[curr].labarr[1].set_text(cutid(sarr['host']))
+                self.allbox[curr].labarr[1].set_tooltip_text(sarr['host'])
+
                 self.allbox[curr].labarr[2].set_text(cutid(sarr['header']))
+                self.allbox[curr].labarr[2].set_tooltip_text(sarr['header'])
+
                 self.allbox[curr].labarr[3].set_text(cutid(sarr['LastAttempt']))
                 self.allbox[curr].labarr[4].set_text(cutid(sarr['count']))
+                self.allbox[curr].labarr[5].set_text(sarr['message'].strip())
                 curr += 1
 
             if curr >= self.numofrows * self.numofcols:
                 break
 
-            print("curr", curr)
+        #print("curr", curr)
+        if self.old_curr != curr or self.old_size != statebdsize:
+            self.status.set_status_text("%d entries shown, total of %d records." % (curr, statebdsize))
+            self.old_curr = curr
+            self.old_size = statebdsize
+
+        self.dblab.set_text("Replicator data size: %-12d" % statebdsize)
 
         while True:
             if curr >= self.numofrows * self.numofcols:
                 break
             self.allbox[curr].filldef()
             curr += 1
+
+        del statecore
+
+        #print_handles()
 
         in_timer = False
         return True
@@ -315,7 +355,6 @@ class MainWin(Gtk.Window):
 
 if __name__ == '__main__':
 
-    mainwin = MainWin()
-    Gtk.main()
+    pass
 
 # EOF

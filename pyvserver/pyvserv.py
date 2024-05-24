@@ -488,11 +488,11 @@ def simple_server(Host, Port):
 
 optarr =  []
 optarr.append ( ["n:",  "hostname=",     "host",   "127.0.0.1",
-            None, "Set server interface name."] )
+            None, "Set interface name. Default: 127.0.0.1"] )
 optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
-            None, "Set data root. default:~/pyvserver "] )
+            None, "Set data root. Default: ~/pyvserver "] )
 optarr.append ( ["l:",  "loglevel=", "pglog",       1,
-            None, "Log level. 0=none 10=noisy default=1"] )
+            None, "Log level. 0=none 10=noisy Default: 1"] )
 
 optarr += comline.optarrlong
 
@@ -502,16 +502,13 @@ optarr.append ( ["P",   "pmode",     "pmode",       0,
                             None, "Production mode ON. (allow 2FA)"] )
 
 optarr.append ( ["t",   "test",     "test",       0,
-                            None, "Test mode. Allow weak hash."] )
+                            None, "Test mode. Allow weak hash. Test only."] )
 
-#optarr.append ( ["N",   "norepl",    "norepl",      0,
-#                            None, "No replication. (for testing)"] )
-
-comline.sethead("The main pyvserv excutable.")
+comline.sethead("The main pyvserv server excutable.")
 #comline.setprog(os.path.basename(sys.argv[0]))
 comline.setprog(os.path.basename(__file__) + " [options] ")
 comline.setargs("[options]")
-#comline.setfoot("Use quotes for multiple option strings.")
+comline.setfoot("Use quotes for multiple option strings where appropriate.")
 
 conf = comline.ConfigLong(optarr)
 #conf.printvars()

@@ -767,10 +767,10 @@ class MainWin(Gtk.Window):
     def config(self, arg):
         print("Config")
 
-    def new_data(self, arg):
+    def new_data(self, arg, arg2 = False):
 
         # See if previous one saved
-        if self.is_changed():
+        if not arg2 and  self.is_changed():
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_status_text(msg)
             ret = pggui.yes_no(msg, default="No")
@@ -1142,6 +1142,8 @@ class MainWin(Gtk.Window):
         self.stop = not self.stop
         while True:
             #print("test cycle started")
+            self.new_data(0, True)
+
             if self.exit_flag:
                 self.reset_changed()
                 break
@@ -1173,7 +1175,7 @@ class MainWin(Gtk.Window):
                     # Select from candidates
                     lenx = len(self.cand_dict)-1
                     # Shuffle
-                    xrandarr = [-1 for _ in range(len(self.cand_dict)-1)]
+                    xrandarr = [-1 for _ in range(len(self.cand_dict))]
                     cnt = 0
                     while True:
                         xx = random.randint(0, lenx-1)
@@ -1185,9 +1187,8 @@ class MainWin(Gtk.Window):
                         # Are we done?
                         if cnt >= lenx:
                             break
-                    rx = random.randint(0, lenx-1)
-
-                    for bb in range(0, lenx-1):
+                    rx = random.randint(1, lenx-1)
+                    for bb in range(1, lenx):
                         candidx = "can%d" % (xrandarr[bb])
                         cc = self.cand_dict[candidx].get_text()
                         if rx == bb:
@@ -1197,7 +1198,7 @@ class MainWin(Gtk.Window):
                     # Select matching entry:
                     cntc = 0
                     cc = self.dat_dict['vprim'].get_text()
-                    for aa in range(len(self.cand_dict)-1):  #.keys():
+                    for aa in range(1, len(self.cand_dict)-1):  #.keys():
                         candidx = "can%d" % (xrandarr[cntc])
                         bb = self.cand_dict[candidx].get_text()
                         if bb == cc:
@@ -1217,7 +1218,7 @@ class MainWin(Gtk.Window):
             if not self.save_data(0):
                 break
 
-            sleepx = 20
+            sleepx = 200
             pgutils.usleep(sleepx)
 
             #print("test cycle ended")

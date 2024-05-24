@@ -33,6 +33,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 
 MAXSTATLEN = 36
+IDLESTR = "Idle ..."
 
 class Status(Gtk.Label):
 
@@ -44,11 +45,13 @@ class Status(Gtk.Label):
         self.set_xalign(0)
         self.set_size_request(180, -1)
         self.status_cnt = 0
-        self.set_status_text("Initial ..")
         self.scroll = Gtk.ScrolledWindow()
         self.scroll.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.NEVER)
         self.scroll.get_hscrollbar().hide()
         #self.scroll.get_vscrollbar().hide()
+        self.maxlen  = MAXSTATLEN
+        self.idlestr = IDLESTR
+        self.set_status_text("Initial ..")
 
         self.scroll.add(self)
 
@@ -56,7 +59,7 @@ class Status(Gtk.Label):
         GLib.timeout_add(1000, self._timer)
 
     def sizealloc(self, arg2, arg3):
-        print("Sizelloc", arg2, arg3)
+        #print("Sizelloc", arg2, arg3)
         #lambda self, size: self.set_size_request(size.width - 1, -1))
         return True
 
@@ -66,8 +69,8 @@ class Status(Gtk.Label):
             sum += aa + " "
         #print("set_text", textx)
         self.set_tooltip_text(sum)
-        if len(sum) > MAXSTATLEN:
-            sum = sum[:MAXSTATLEN] + ".."
+        if len(sum) > self.maxlen:
+            sum = sum[:self.maxlen] + " .."
         self.set_text(sum)
         self.status_cnt = len(sum) // 4
         pgutils.usleep(10)
@@ -80,10 +83,9 @@ class Status(Gtk.Label):
         if self.status_cnt:
             self.status_cnt -= 1
             if self.status_cnt == 0:
-                self.set_text("Idle.")
+                self.set_text(self.idlestr)
                 self.set_tooltip_text("")
         return True
-
 
 # These are the names that can be passed from caller:
 

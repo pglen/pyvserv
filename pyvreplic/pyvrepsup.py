@@ -37,7 +37,14 @@ class BlankClass():
 
 def replicate(tdiff, dfname, dirname, dec, conf):
 
-    ''' Replicate this one entry in the state record '''
+    ''' Replicate this one entry in the state record.
+        Return tuple of error code and message.
+
+        Error codes:
+            True    -- Success
+            False   -- Fail             message has reason hint
+            -1      -- Permanent failure
+    '''
 
     if conf.pgdebug > 2:
         print("replicate:", dec['host'], dec['header'])
@@ -55,8 +62,9 @@ def replicate(tdiff, dfname, dirname, dec, conf):
 
     if not rec:
         print("Empty record on replicate:", dec['header'])
+
         ret = -1        # Indicate permanent failure
-        return ret
+        return ret, "Empty record"
 
     #print("vote:", rec)
     #del datacore
@@ -72,7 +80,7 @@ def replicate(tdiff, dfname, dirname, dec, conf):
         if arr['Replicated'] > 2:
             print("This entry is replicated already (%d)" % arr['Replicated'],
                                             dec['header'], )
-            return True
+            return True, "OK"
 
         arr['Replicated'] = arr.get("Replicated") + 1
         if conf.pgdebug > 9:
@@ -85,8 +93,8 @@ def replicate(tdiff, dfname, dirname, dec, conf):
     except:
         print("err on decoding", sys.exc_info())
 
-    ret = transmit(tdiff, dirname, dec, pvh.datax, conf)
-    return ret
+    ret, msg = transmit(tdiff, dirname, dec, pvh.datax, conf)
+    return ret, msg
 
 def transmit(tdiff, dirname, dec, data, conf):
 
@@ -127,12 +135,12 @@ def transmit(tdiff, dirname, dec, data, conf):
 
         if not conf.quiet:
             print("Cannot Connect.")
-        return ret
+        return ret, "Cannot Connect"
 
     # Assume success, mark record
-    ret = True
+    ret = True; msg = "OK"
 
-    confx = Blank()
+    confx = BlankClass()
     hand.start_session(confx)
     #print(confx.sess_key[:24])
     cresp = hand.login("admin", "1234", confx)
@@ -143,32 +151,33 @@ def transmit(tdiff, dirname, dec, data, conf):
             print("Error creating session", cresp)
         if conf.loglev > 1:
             pysyslog.repliclog("Fail:", dec['host'], "Error creating session")
-        cresp = hand.client(["quit"], confx.sess_key, False)
+        cresp = hand.client(["quit"], confx.sess_key)
         hand.close()
         ret = False
-        return ret
+        return ret, "Cannot Create Session"
 
     #print("dirname:", dirname, "kind:", kind)
-    cresp = hand.client(["rput", kind, data] , confx.sess_key, False)
+    cresp = hand.client(["rput", kind, data] , confx.sess_key)
     if cresp[0]  != "OK":
         ret = False
         if not conf.quiet:
             print("rput error resp:", cresp)
+
+        hand.client(["quit"], confx.sess_key)
+        hand.close()
 
         if "Duplicate" in cresp[1]:
             if conf.loglev > 1:
                 pysyslog.repliclog("Fail:", dec['host'], "Duplicate record.",)
             #print("Permanent stop")
             ret = -1
+            return ret, "Duplicate record"
         else:
             if conf.loglev > 1:
                 pysyslog.repliclog("Fail:", dec['host'], cresp[1],)
+            return ret, "Error Transmitting"
 
-        hand.client(["quit"], confx.sess_key, False)
-        hand.close()
-        return ret
-
-    hand.client(["quit"], confx.sess_key, False)
+    hand.client(["quit"], confx.sess_key)
     hand.close()
 
     if conf.pgdebug > 2:
@@ -180,7 +189,8 @@ def transmit(tdiff, dirname, dec, data, conf):
 
     if not conf.quiet:
         print("Success.")
-    return ret
+
+    return ret, msg
 
 def dumpreplic(conf, rfname):
 

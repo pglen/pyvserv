@@ -91,7 +91,6 @@ optarr = [\
                                         "Show help. (this screen)",  ],
 ]
 
-
 conf = comline.ConfigLong(optarr)
 
 def mainfunct():
@@ -121,6 +120,8 @@ def mainfunct():
     Vd = os.path.join(pyservsup.globals.chaindir, "vote")
     pyservsup.globals.softmkdir(Vd)
 
+    # To know where the icon files are
+    conf.me = __file__
     conf.packer = pyvpacker.packbin()
 
     mw = mainwinrep.MainWin(pyservsup.globals)

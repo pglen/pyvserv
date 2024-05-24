@@ -286,30 +286,28 @@ class Replicator():
             #print("hrec",  hrec)
             harr = conf.packer.decode_data(hrec[1])[0]['PayLoad']
 
-            #if conf.pgdebug > 4:
-            print("host entry:", harr)
-
-            host = harr['host']
+            if conf.pgdebug > 4:
+                print("host entry:", harr)
 
             # Create state record if none
-            comboname = arr['header'] + "_" + host
+            comboname =  arr['header'] + "_" + harr['host']
 
-            #if conf.pgdebug > 4:
-            #    print("Comboname:", comboname)
+            if conf.pgdebug > 4:
+                print("Comboname:", comboname)
 
             exists = False
             for cc in range(staterec-1, -1, -1):
                 rec = statecore.get_rec(cc)
                 if not rec:
                     continue
-                print("staterec:", rec)
+                #print("staterec:", rec)
                 if rec[0] == comboname:
                     exists = True
 
             #print("exists", exists)
             if not exists:
-                #if conf.pgdebug > 2:
-                print("Create record:", comboname)
+                if conf.pgdebug > 2:
+                    print("Create record:", comboname)
 
                 # Create state record
                 ttt = time.time()
@@ -320,10 +318,11 @@ class Replicator():
                 xarr =  {
                     "header" :  arr['header'],
                     "Record" :  comboname,
-                    "host" :    host,
+                    "host" :    harr['host'],
                     "stamp":    ttt,  "iso": idt, "LastAttempt": fdt,
                     "orgnow" :  arr['now'],
                     "orgstamp": arr['stamp'],
+                    "message" : " " * 32,
                     "count":    "00000",
                     "status":   "00000",
                     "all":      "00000",
@@ -335,8 +334,8 @@ class Replicator():
                 xarr2 = conf.packer.encode_data("", xarr)
                 #print("xarr2:", xarr2)
                 statecore.save_data(comboname, xarr2)
-        #del statecore
-        #del hostcore
+        del statecore
+        del hostcore
 
     def process_statedata(self, dirname):
 
@@ -417,13 +416,17 @@ class Replicator():
             dec["count"] = "%05d" % (int(dec['count']) + 1)
 
             # Make delivery attempt
-            ret = pyvrepsup.replicate(tdiff, DATA_FNAME, dirname, dec, conf)
+            ret, msg = pyvrepsup.replicate(tdiff, DATA_FNAME, dirname, dec, conf)
+
+            # This is throttling transmission time by 50 msec ... remove if appropriate
+            time.sleep(0.05)
 
             #print("Replicate ret", ret)
-            if ret or ret == -1:
-                # mark success or permanent failure
+            if ret == True or ret == -1:
+                # Mark success or permanent failure
                 dec["status"] =  "%05d" % (int(dec['status']) + 1)
 
+            dec['message'] = "%32s" % msg
             xarr3 = conf.packer.encode_data("", dec)
             statecore.save_data(rec[0], xarr3, replace=True)
 
@@ -508,10 +511,10 @@ class Replicator():
 
 optarr = []
 optarr.append ( ["c",  "client=", "client",  0,
-                        None, "Assume client mode with droot=='~/pyvclient'"] )
+                        None, "Assume client mode with droot='~/pyvclient'"] )
 optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
                         None, "Root for server data default='~/pyvserver'"] )
-optarr.append ( ["t:",  "time=", "timedel",  2,
+optarr.append ( ["t:",  "timedel=", "timedel",  2,
                         None, "Time between replications default='2s'"] )
 optarr.append ( ["l:",  "loglevel=", "loglev",  1,
                         None, "Log level 0=none 1=auth 2=failures default='1'"] )
