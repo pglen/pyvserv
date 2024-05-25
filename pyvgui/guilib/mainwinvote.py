@@ -64,7 +64,6 @@ class MainWin(Gtk.Window):
             pass
 
         self.start_anal = False
-        self.in_timer = False
         self.cnt = 0
         self.old_sss = 1
         self.set_title("PyVServer Vote Entry")
@@ -225,21 +224,21 @@ class MainWin(Gtk.Window):
         tp3x = ("User / Client UUID: ", "uuid", "Load / Select Client UUID", None)
         butt1 = Gtk.Button.new_with_mnemonic("Load vote_r")
         butt2 = Gtk.Button.new_with_mnemonic("Add")
-        butt2.set_tooltip_text("Open in new window")
+        butt2.set_tooltip_text("Add voter, open in new window")
         hbox3x = Gtk.HBox()
         hbox3x.pack_start(butt1, 1,1,2)
         hbox3x.pack_start(butt2, 0,0,2)
 
-        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, hbox3x)
+        self.lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, hbox3x)
         butt1.connect("clicked", self.load_voter)
         butt2.connect("clicked", self.new_voter)
-        self.dat_dict['nuuid'] = lab3x
+        self.dat_dict['nuuid'] = self.lab3x
         rowcnt += 1
 
         #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
 
-        tp1 = ("Full Nam_e: ", "name", "Autofilled, full name (TAB to advance)", None)
+        tp1 = ("Full Nam_e: ", "name", "Autofilled, Voter's real name.", None)
         tp2 = ("Date o_f birth: ", "ndob", "Autofilled, Date of birth, YYYY/MM/DD", None)
         lab1, lab2 = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1, tp2, None)
         lab1.set_gray(True);  lab2.set_gray(True)
@@ -247,7 +246,7 @@ class MainWin(Gtk.Window):
         self.dat_dict['ndob'] = lab2
         rowcnt += 1
 
-        tp9b = ("Date of entry:","nnow",  "Autofilled, date of entry", None)
+        tp9b = ("Date of entry:","nnow",  "Autofilled, date of entry for voter", None)
         tp10b = ("Entered by:", "noper", "Autofilled, Operator, who entered this voter.", None)
         lab15, lab16 = pgentry.gridquad(self.gridx, 0, rowcnt, tp9b, tp10b, None)
         lab15.set_gray(True);  lab16.set_gray(True)
@@ -266,9 +265,14 @@ class MainWin(Gtk.Window):
         rowcnt += 1
 
         tp4z = ("Vote UUID: ", "uuid", "Vote UUID", None)
+        hbox = Gtk.HBox()
         butt2z = Gtk.Button.new_with_mnemonic("Load")
-        lab4z = pgentry.griddouble(self.gridx, 0, rowcnt, tp4z, butt2z)
+        butt3z = Gtk.Button.new_with_mnemonic("_QR")
+        hbox.pack_start(butt2z, 1, 1, 2)
+        hbox.pack_start(butt3z, 0, 0, 2)
+        lab4z = pgentry.griddouble(self.gridx, 0, rowcnt, tp4z, hbox)
         butt2z.connect("clicked", self.load_vote_uuid, lab4z)
+        butt3z.connect("clicked", self.qr_uuid, lab4z)
         self.dat_dict['uuid'] = lab4z
         rowcnt += 1
 
@@ -289,7 +293,7 @@ class MainWin(Gtk.Window):
         rowcnt += 1
 
         butt2o = Gtk.Button.new_with_mnemonic("Load")
-        tp9b = ("Now: (date of entry)","now",  "Autofilled, date of entry", None)
+        tp9b = ("Now: (date of entry)","now",  "Autofilled, date of entry for this vote", None)
         tp10b = ("Operator:", "voper", "Autofilled, Operator, who entered this record.", None)
         lab15, lab16 = pgentry.gridquad(self.gridx, 0, rowcnt, tp9b, tp10b, butt2o)
         lab15.set_gray(False);   lab16.set_gray(False);
@@ -307,7 +311,7 @@ class MainWin(Gtk.Window):
 
         butt1 = Gtk.Button.new_with_mnemonic("Load _Ballot")
         butt2 = Gtk.Button.new_with_mnemonic("Add")
-        butt2.set_tooltip_text("Open in new window")
+        butt2.set_tooltip_text("Add Ballot, open in new window")
         hbox4x = Gtk.HBox()
         hbox4x.pack_start(butt1, 1,1,2)
         hbox4x.pack_start(butt2, 0,0,2)
@@ -391,11 +395,9 @@ class MainWin(Gtk.Window):
         self.show_all()
         self.en_dis_all(False)
         GLib.timeout_add(100, self.start_pass_dlg, 0)
-        #GLib.timeout_add(1000, self.timer)
 
     def config_dlg(self, arg2):
         print("Config")
-
 
     def load_ballot(self, arg2):
 
@@ -614,6 +616,7 @@ class MainWin(Gtk.Window):
             self.en_dis_all(True)
             recsel.audit(self.acore, self.packer, "Successful Login", ret[1][0])
             break
+        self.set_focus(self.dat_dict['nuuid'])
 
     def en_dis_all(self, flag):
         for aa in self.dat_dict.keys():
@@ -802,7 +805,7 @@ class MainWin(Gtk.Window):
         #self.dat_dict['voper'].set_text(str(self.operator))
 
         self.reset_changed()
-        #self.set_focus(self.dat_dict['name'])
+        self.set_focus(self.dat_dict['name'])
 
     def preload_vote(self):
 
@@ -847,6 +850,9 @@ class MainWin(Gtk.Window):
         self.preview()
         # Mark as non changed
         self.reset_changed()
+        self.set_focus(self.dat_dict['name'])
+
+
 
     def load_live_vote(self, arg):
 
@@ -991,10 +997,15 @@ class MainWin(Gtk.Window):
     def del_vote(self, arg):
 
         ''' Delete currently active data '''
-
         nnn = self.dat_dict['name'].get_text()
         if not nnn:
             msg = "Empty record, cannot delete."
+            self.status.set_status_text(msg)
+            pymisc.smessage(msg)
+            return
+
+        if self.dat_dict['uuid'].get_text() == "":
+            msg = "This entry does not have a UUID, cannot delete."
             self.status.set_status_text(msg)
             pymisc.smessage(msg)
             return
@@ -1024,8 +1035,8 @@ class MainWin(Gtk.Window):
         #        ddd2.append(aa)
 
         # Find it via index
-        ddd2 = recsel.search_index(self.votecore, self.votecore.hashname, ddd, recsel.hashid)
-
+        ddd2 = pyvindex.search_index(self.votecore, self.votecore.hashname,
+                                        ddd, pyvindex.hash_id)
         for aa in ddd2:
             #print("deleting:", aa)
             try:
@@ -1124,7 +1135,12 @@ class MainWin(Gtk.Window):
 
         msg = "Loaded voter: '%s'" % dec['name']
         self.status.set_status_text(msg)
-        #self.status.set_status_text("Loaded:", dec['name'])
+
+        # Land on vote selection 'None':
+        #rrr = self.gridx.get_child_at(1, self.labrow)
+        #if rrr:
+        #    self.set_focus(rrr)
+        self.set_focus(self.noneradio)
 
     def test_data(self, arg1):
 
@@ -1228,6 +1244,18 @@ class MainWin(Gtk.Window):
 
         self.conf.playsound = sps
 
+    def qr_uuid(self, arg, arg2):
+        uuu = arg2.get_text()
+        if not uuu:
+            msg = "Please generate UUID first."
+            pymisc.smessage(msg)
+            self.status.set_status_text(msg)
+            return
+        nnn = self.dat_dict['name'].get_text() + " -- " + \
+                self.dat_dict['dob'].get_text()
+
+        ret = pymisc.QrDlg(uuu, nnn, self.conf, parent = self)
+
     def save_data(self, arg1):
 
         ''' See if data changed, save_vote '''
@@ -1311,22 +1339,29 @@ class MainWin(Gtk.Window):
         if not self.dat_dict['vprim'].get_text():
             msg = "Must have at least a primary vote."
             self.status.set_status_text(msg)
-            self.set_focus(self.dat_dict['vprim'])
+            self.set_focus(self.noneradio)
             pymisc.smessage(msg, conf=self.conf, sound="error")
             return
 
         ddd = {}
         for aa in self.dat_dict.keys():
+            # Hide name
+            #if aa == 'name':
+            #    ddd[aa] = pgtests.randstr(random.randint(6, 12))
+            #else:
             ddd[aa] = self.dat_dict[aa].get_text()
 
         # Save Ballot as well:
         for aa in list(self.cand_dict.keys())[1:]:
             ddd[aa] = self.cand_dict[aa].get_text()
 
+        #print("Saving:", ddd)
+
         pvh = pyvhash.BcData(header = self.dat_dict['uuid'].get_text())
 
         # We mark this as 'test' so it can stay in the chain, if desired
         #pvh.addpayload({"Test": "test" ,})
+
         pvh.addpayload(ddd)
 
         pvh.hasharr()
@@ -1341,9 +1376,10 @@ class MainWin(Gtk.Window):
                 if pvh.powarr():
                     break
                 self.status.set_status_text("PROW calc retry %d .." % (aa+1))
-            dlg.response(Gtk.ResponseType.REJECT)
+            dlg.response(Gtk.ResponseType.ACCEPT)
             dlg.destroy()
             self.status.set_status_text("PROW done.")
+
         if self.conf.weak:
             pvh.num_zeros = 1
         dlg = pymisc.progDlg(self.conf, callb, parent = self)
@@ -1433,7 +1469,7 @@ class MainWin(Gtk.Window):
 
     def  OnExit(self, arg, srg2 = None):
 
-        if self.is_changed():
+        if self.is_changed() and not self.was_saved:
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_status_text(msg)
             ret = pggui.yes_no(msg, default="No")

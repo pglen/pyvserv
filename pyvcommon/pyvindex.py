@@ -39,7 +39,8 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
     ifp.seek(twincore.HEADSIZE, io.SEEK_SET)
     datasize = vcore.getdbsize()
     fakedict = {}
-    fakedict['name'] = textx
+    fakedict['PayLoad'] = {}
+    fakedict['PayLoad']['name'] = textx
     enc = vcore.packer.encode_data("", fakedict)
 
     # We populate all indexed entries, as they are the only significant field

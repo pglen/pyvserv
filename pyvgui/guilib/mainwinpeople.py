@@ -98,10 +98,10 @@ class MainWin(Gtk.Window):
         Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
 
         #print("globals", globals.myhome)
-
+        self.reentry    = False
         self.powers     = 0
         self.conf       = globals.conf
-        self.conf.iconf  = os.path.dirname(globals.conf.me) + os.sep + "pyvpeople.png"
+        self.conf.iconf = os.path.dirname(globals.conf.me) + os.sep + "pyvpeople.png"
         self.conf.iconf2 = os.path.dirname(globals.conf.me) + os.sep + "pyvvote_sub.png"
         self.conf.siteid = globals.siteid
         try:
@@ -311,9 +311,15 @@ class MainWin(Gtk.Window):
         rowcnt += 1
 
         tp3x = ("User / Client UUID: ", "uuid", "Generate Client UID by pressing button", None)
+
+        butbox = Gtk.HBox()
         butt1 = Gtk.Button.new_with_mnemonic("Gene_rate")
-        lab3x = pgentry.griddouble(gridx, 0, rowcnt, tp3x, butt1)
+        butt2 = Gtk.Button.new_with_mnemonic("_QR")
+        butbox.pack_start(butt1, 1, 1, 2); butbox.pack_start(butt2, 0, 0, 2)
+
+        lab3x = pgentry.griddouble(gridx, 0, rowcnt, tp3x, butbox)
         butt1.connect("clicked", self.load_uuid, lab3x)
+        butt2.connect("clicked", self.qr_uuid, lab3x)
         self.dat_dict['uuid'] = lab3x
         rowcnt += 1
 
@@ -483,12 +489,33 @@ class MainWin(Gtk.Window):
         dd = dd.replace(microsecond=0)
         arg3.set_text(dd.isoformat())
 
-    def load_uuid(self, arg, arg2):
-        if arg2.get_text() != "":
-            msg = "Already has a GUID; Cannot set."
+    def qr_uuid(self, arg, arg2):
+        uuu = arg2.get_text()
+        if not uuu:
+            msg = "Please generate UUID first."
             pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
+        nnn = self.dat_dict['name'].get_text() + " -- " + \
+                self.dat_dict['dob'].get_text()
+
+        ret = pymisc.QrDlg(uuu, nnn, self.conf, parent = self)
+
+    def load_uuid(self, arg, arg2):
+
+        if arg2.get_text() != "":
+            msg = "Already has a UUID; Cannot set."
+            pymisc.smessage(msg)
+            self.status.set_status_text(msg)
+            return
+
+        if not self.dat_dict['name'].get_text():
+            msg = "Must have a FULL name."
+            self.status.set_status_text(msg)
+            self.set_focus(self.dat_dict['name'])
+            pymisc.smessage(msg)
+            return
+
         arg2.set_text(str(uuid.uuid1()))
 
     def load_op_uuid(self, arg, arg2):
@@ -622,8 +649,8 @@ class MainWin(Gtk.Window):
         # Fill in defaults
         dd = datetime.datetime.now()
         dd = dd.replace(microsecond=0)
+        #self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
         self.dat_dict['now'].set_text(dd.isoformat())
-        self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
         self.dat_dict['guid'].set_text(str(self.conf.siteid))
         self.dat_dict['ouid'].set_text(str(self.ouid))
         self.dat_dict['oper'].set_text(str(self.operator))
@@ -642,8 +669,9 @@ class MainWin(Gtk.Window):
             msg = "Please save data before loading a new record.\n" \
                   "Current changes would be discarded. Are you sure?"
             self.status.set_status_text(msg)
-            pggui.yes_no(msg, default="No")
-            return
+            ret = pggui.yes_no(msg, default="No")
+            if ret != Gtk.ResponseType.YES:
+                return
 
         # Clear, reset
         for aa in self.dat_dict.keys():
@@ -694,6 +722,12 @@ class MainWin(Gtk.Window):
         self.conf.playsound = None
         #print("test started")
         self.stop = not self.stop
+
+        if self.reentry:
+            self.usleep(100)
+            return
+
+        self.reentry = True
         while True:
             if self.exit_flag:
                 self.reset_changed()
@@ -722,6 +756,9 @@ class MainWin(Gtk.Window):
             pgutils.usleep(sleepx)
             self.save_data(0)
             self.clear_data()
+            pgutils.usleep(sleepx)
+        self.reentry = False
+
 
     def autofill(self, idxname, newid):
         try:
@@ -775,19 +812,25 @@ class MainWin(Gtk.Window):
         # We mark this as 'test' so it can stay in the chain, if desired
         pvh.addpayload({"Test": "test" ,})
         pvh.addpayload(ddd)
-        pvh.hasharr()
+
+        def callb(dlg):
+            #print("callback from dlg")
+            self.status.set_status_text("PROW calc, please wait ...")
+            for aa in range(10):
+                dlg.prog.set_fraction((aa+1) * 0.1)
+                if pvh.powarr():
+                    break
+                self.status.set_status_text("PROW calc retry %d .." % (aa+1))
+            #dlg.response(Gtk.ResponseType.REJECT)
+            Gtk.main_quit()
+            self.status.set_status_text("PROW done.")
+
         if self.conf.weak:
             pvh.num_zeros = 1
-        self.status.set_status_text("POW calc, please wait ...")
-        for aa in range(10):
-            if pvh.powarr():
-                break
-            self.status.set_status_text("POW calc retry %d .." % (aa+1))
-
-        self.status.set_status_text("POW done.")
+        dlg = pymisc.progDlg(self.conf, callb, parent = self)
 
         if not pvh.checkpow():
-            msg = "Cold not generate hash, please retry saving record."
+            msg = "Cold not generate PROW, please retry saving record."
             pymisc.smessage(msg, conf=self.conf, sound="error")
             return
 
@@ -832,6 +875,9 @@ class MainWin(Gtk.Window):
         Gtk.main()
 
     def  OnExit(self, arg, srg2 = None):
+
+        self.stop = True
+        self.exit_flag = True
 
         ccc = False
         for aa in self.dat_dict.keys():

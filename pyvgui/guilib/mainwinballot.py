@@ -211,8 +211,14 @@ class MainWin(Gtk.Window):
 
         tp3x = ("Ballot UUID: ", "uuid", "Load / Select Client ID", None)
         butt1 = Gtk.Button.new_with_mnemonic("Load")
-        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, butt1)
+        butt2 = Gtk.Button.new_with_mnemonic("_QR")
+        hbox3 = Gtk.HBox()
+        hbox3.pack_start(butt1, 1, 1, 2)
+        hbox3.pack_start(butt2, 0, 0, 2)
+
+        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, hbox3)
         butt1.connect("clicked", self.load_uuid, lab3x)
+        butt2.connect("clicked", self.qr_uuid, lab3x)
         self.dat_dict['uuid'] = lab3x
         rowcnt += 1
 
@@ -378,13 +384,27 @@ class MainWin(Gtk.Window):
         GLib.timeout_add(100, self.start_pass_dlg, 0)
         GLib.timeout_add(1000, self.timer)
 
+    def qr_uuid(self, arg, arg2):
+        uuu = arg2.get_text()
+        if not uuu:
+            msg = "Please generate UUID first."
+            pymisc.smessage(msg)
+            self.status.set_status_text(msg)
+            return
+        nnn = self.dat_dict['name'].get_text() + " -- " + \
+                self.dat_dict['dob'].get_text()
+
+        ret = pymisc.QrDlg(uuu, nnn, self.conf, parent = self)
+
     def lost_focus(self, arg2, arg3):
         #print("last focus")
         # Update if label focus changes
         self.preview(self.labrow)
 
-    def preview(self, rowcnt):
+    def preview(self, rowcnt = -1):
 
+        if rowcnt == -1:
+            rowcnt = self.labrow
         #print("rowcnt", rowcnt)
 
         def _checked(arg2):
@@ -687,12 +707,13 @@ class MainWin(Gtk.Window):
 
         # Fill in defaults
         dd = datetime.datetime.now().replace(microsecond=0)
-        self.dat_dict['now'].set_text(dd.isoformat())
-        self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
+        #self.dat_dict['now'].set_text(dd.isoformat())
+        #self.dat_dict['uuid'].set_text(str(uuid.uuid1()))
         self.dat_dict['bguid'].set_text(str(self.conf.siteid))
         self.dat_dict['bouid'].set_text(str(self.ouid))
         self.dat_dict['boper'].set_text(str(self.operator))
 
+        self.preview(self.labrow)
         self.reset_changed()
         self.set_focus(self.dat_dict['name'])
 

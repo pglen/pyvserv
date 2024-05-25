@@ -10,6 +10,7 @@ import datetime
 import time
 import threading
 import queue
+import qrcode
 
 from pyvguicom import pgutils
 from pyvguicom import pggui
@@ -31,6 +32,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
+from gi.repository import GdkPixbuf
 
 MAXSTATLEN = 36
 IDLESTR = "Idle ..."
@@ -182,10 +184,15 @@ class progDlg(Gtk.Dialog):
 
     def __init__(self, conf, callb, parent = None):
 
-        super().__init__(self)
+        Gtk.Window.__init__(self)
 
         self.callb = callb
         self.set_title("PPROW")
+        self.set_modal(False)
+        self.set_skip_pager_hint(True)
+        self.set_skip_taskbar_hint(True)
+        #self.set_focus_on_map(False)
+        #self.set_focus_visible(False)
 
         #self.add_buttons(   Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT)
 
@@ -208,17 +215,28 @@ class progDlg(Gtk.Dialog):
         hbox.pack_start(self.prog, 1, 1, 4)
         hbox.pack_start(Gtk.Label(label="  "), 0, 0, 0)
 
+        #self.vbox = Gtk.VBox()
         self.vbox.pack_start(hbox, 1, 1, 4)
         self.vbox.pack_start(Gtk.Label("Calculating Proof of Work"), 1, 1, 4)
 
         #self.connect("destroy", self.destroy_sig)
 
+        #self.add(self.vbox)
         self.show_all()
         self.get_window().set_cursor(self.w_cursor)
         pgutils.usleep(5)
         GLib.timeout_add(100, self._timer)
 
+        #while True:
+        #    Gtk.main_iteration_do(False)
+        #Gtk.main()
+
         self.response = self.run()
+        #print("main ended")
+        #self.destroy()
+
+    def response(self, res):
+        pass
 
     #def destroy_sig(self, arg2):
     #    print("destroy", self, arg2)
@@ -280,5 +298,74 @@ class ihostDlg(Gtk.Dialog):
 
     def _timer(self):
         self.callb(self)
+
+class QrDlg(Gtk.Dialog):
+
+    '''
+        Pop up a QR dialog.
+    '''
+
+    def __init__(self, uuu, nnn, conf, parent = None):
+
+        super().__init__(self)
+
+        self.set_title("QR code")
+
+        self.add_buttons(Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
+
+        self.w_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
+        try:
+            ic = Gtk.Image(); ic.set_from_file(conf.iconf2)
+            self.set_icon(ic.get_pixbuf())
+        except:
+            pass
+
+        if parent:
+            self.set_transient_for(parent)
+
+        self.set_size_request(400, 400)
+
+        self.edit = Gtk.Image()
+        hbox = Gtk.HBox()
+        hbox.pack_start(Gtk.Label(label="  "), 0, 0, 0)
+        hbox.pack_start(self.edit, 1, 1, 4)
+        hbox.pack_start(Gtk.Label(label="  "), 0, 0, 0)
+
+        qq =  qrcode.make(uuu, version=1)
+        dd =  self.image2pixbuf(qq)
+        self.edit.set_from_pixbuf(dd)
+
+        self.vbox.pack_start(hbox, 1, 1, 4)
+
+        lab = Gtk.Label(label="%s" % uuu)
+        hbox2 = Gtk.HBox()
+        hbox2.pack_start(Gtk.Label(label="  "), 0, 0, 0)
+        hbox2.pack_start(lab, 1, 1, 4)
+        hbox2.pack_start(Gtk.Label(label="  "), 0, 0, 0)
+        self.vbox.pack_start(hbox2, 0, 0, 4)
+
+        lab2 = Gtk.Label(label="%s" % nnn)
+        hbox3 = Gtk.HBox()
+        hbox3.pack_start(Gtk.Label(label="  "), 0, 0, 0)
+        hbox3.pack_start(lab2, 1, 1, 4)
+        hbox3.pack_start(Gtk.Label(label="  "), 0, 0, 0)
+        self.vbox.pack_start(hbox3, 0, 0, 4)
+
+        #self.connect("destroy", self.destroy_sig)
+
+        self.show_all()
+        self.response = self.run()
+        self.destroy()
+
+    def image2pixbuf(self, im):
+        """Convert Pillow image to GdkPixbuf"""
+        qqq = im.convert("RGB")
+        data = qqq.tobytes()
+        ww, hh = qqq.size
+        data2 = GLib.Bytes.new(data)
+        pix = GdkPixbuf.Pixbuf.new_from_bytes(
+                                    data2, GdkPixbuf.Colorspace.RGB,
+                                                      False, 8, ww, hh, ww*3 )
+        return pix
 
 # EOF

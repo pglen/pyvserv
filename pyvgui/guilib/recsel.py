@@ -34,6 +34,7 @@ from pyvcommon import pyvhash, pyvindex
 
 # Maximum records to show in dialog
 MAXREC = 1000
+LATEST = "If multiple matches found, use the latest one."
 
 # Make even and odd flags for obfuscation. This way boolean desision
 # is made on an integer instead of 0 and 1
@@ -177,9 +178,11 @@ class RecSelDlg(Gtk.Dialog):
 
         #label5  = Gtk.Label("  ")
         #self.vbox.pack_start(label5, 0, 0, 0)
-        label13 = Gtk.Label.new("Select Filter or Search criteria. On the list, double click to select an entry.")
+        self.labhelp = Gtk.Label.new( \
+            "Select Filter or Search criteria. "
+            "On the list, double click to select an entry.")
 
-        self.vbox.pack_start(label13, 0, 0, 0)
+        self.vbox.pack_start(self.labhelp, 0, 0, 2)
         #self.vbox.pack_start(pggui.xSpacer(), 0, 0, 0)
 
         #self.set_focus(self.namex)
@@ -237,6 +240,9 @@ class RecSelDlg(Gtk.Dialog):
         self.set_focus(self.tview)
         self.reentry = False
 
+        self.labhelp.set_text(LATEST)
+
+
     def search_idx(self, arg2, entry, hashname, hashfunc, duplicates=True):
 
         ''' Search Name Index. Fast '''
@@ -283,15 +289,19 @@ class RecSelDlg(Gtk.Dialog):
                     uuu = 0
                     pass
                 try:
-                    dec = self.packer.decode_data(rrr[1])[0]
+                    dec = self.packer.decode_data(rrr[1])[0]['PayLoad']
                 except:
                     # This way the user knows
                     print("Damaged:", cnt, sys.exc_info(), rrr)
                     continue
-
-                fff = (dec['name'], dec['now'], dec['dob'],  uuu, str(aa))
-                #print("found:", fff)
-                ddd2.append(fff)
+                fff = []
+                try:
+                    fff = (dec['name'], dec['now'], dec['dob'],  uuu, str(aa))
+                except:
+                    print("search:"     , sys.exc_info())
+                if fff:
+                    #print("found:", fff)
+                    ddd2.append(fff)
 
         ddd_dup = []
         for aa in ddd2:
@@ -315,6 +325,8 @@ class RecSelDlg(Gtk.Dialog):
         self.labsss.set_text("%s records. (%.2fs)" % (self.rec_cnt, delta))
         self.get_window().set_cursor()
         self.set_focus(self.tview)
+        self.labhelp.set_text("If multiple matches found, use the latest")
+        self.labhelp.set_text(LATEST)
 
     def search_id(self, arg2, entry, hashname, hashfunc):
 
@@ -334,6 +346,7 @@ class RecSelDlg(Gtk.Dialog):
         self.search_idx(arg2, entry, hashname, hashfunc)
         self.set_focus(self.tview)
         self.reentry = False
+        self.labhelp.set_text(LATEST)
 
     def stopload(self, butt):
 
@@ -364,7 +377,7 @@ class RecSelDlg(Gtk.Dialog):
 
         ''' populate tree with ID'''
 
-        print("pop", idval)
+        #print("pop", idval)
 
         self.stop = False
         ttt = time.time()
@@ -388,7 +401,7 @@ class RecSelDlg(Gtk.Dialog):
 
         ddd2 = []
         lll = self.vcore.find_key(idval)
-        print("lll", lll)
+        #print("lll", lll)
         for aa in lll:
             rrr = self.vcore.get_rec_byoffs(aa)
             dec = self.packer.decode_data(rrr[1])[0]
@@ -413,6 +426,8 @@ class RecSelDlg(Gtk.Dialog):
         delta = (time.time() - ttt)
         self.labsss.set_text("%s records. (%.1fs)" % (self.rec_cnt, delta))
         self.get_window().set_cursor()
+        self.labhelp.set_text(LATEST)
+
 
     def dec_rec(self, rrr):
 
@@ -433,11 +448,6 @@ class RecSelDlg(Gtk.Dialog):
 
         if len(filterx):
             filterx = filterx.upper()
-
-        #if len(searchx):
-        #    searchx = searchx.upper()
-
-        #print("pop", filterx, searchx)
 
         self.stop = False
         ttt = time.time()
@@ -552,8 +562,9 @@ class RecSelDlg(Gtk.Dialog):
         self.labsss.set_text("%s records. (%.1fs)" % (self.rec_cnt, delta))
         self.get_window().set_cursor()
         self.set_focus(self.tview)
+        self.labhelp.set_text(LATEST)
 
-        # --------------------------------------------------------------------
+    # --------------------------------------------------------------------
 
     def compare(self, model, row1, row2, user_data):
 
