@@ -4,13 +4,34 @@
 # pylint: disable=E1101
 # pylint: disable=C0410
 
-import os, sys, getopt, signal
+import os, sys, getopt, signal, subprocess
 
 if  sys.version_info[0] < 3:
     print("Needs python 3 or better.")
     sys.exit(1)
 
-''' Voter admin user interface '''
+__doc__ = '''\
+Vote administration user interface. The interface can call up ballot
+creation windows and voter creation windows.
+Usage: <pre>
+Create / Administer / Delete Votes.
+Usage: pyvvote.py
+  options:
+    -d   --debug     pgdebug   -  Debug Level. 0=None 9=Noisy
+    -r   --dataroot  droot     -  Directory for data. Default: ~/pyvclient
+    -u   --user      user      -  User name. Default: admin
+    -a   --pass      apass     -  Password. Default: 1234 For tests only.
+    -t   --prompt              -  Prompt for password on command line.
+    -s   --sound               -  Turn off sound
+    -v   --verbose             -  Print more information
+    -w   --weak                -  Weak PROW generation. Test only
+    -q   --quiet               -  Print less information
+    -z   --test                -  Display test buttons
+    -V   --version             -  Show program version
+    -h   --help                -  Show help. (this screen)
+User / Password is needed.
+</pre>
+'''
 
 # This repairs the path from local run to pip run.
 # Remove pip version for local tests
@@ -49,7 +70,8 @@ VERSION = "1.00"
 
 def print_stats():
 
-    ''' breakout '''
+    ''' Print statistics. Extracted from main. '''
+
     if conf.verbose:
         print("Serve exe path:  ", pyservsup.globals.script_home)
         print("Data root:       ", pyservsup.globals.myhome)
@@ -62,7 +84,7 @@ def print_stats():
 
 def phelp():
 
-    ''' Display help '''
+    ''' Display help. '''
 
     comline.phelplong()
 
@@ -73,7 +95,7 @@ def phelp():
 
 def pversion():
 
-    ''' Show vwersion info '''
+    ''' Show version info. '''
 
     comline.pversion(VERSION)
 
@@ -98,7 +120,7 @@ optarr = [\
  ["v",   "verbose",   "verbose",  0,          None,
                                         "Print more information",     ],
  ["w",   "weak",         "weak",     0,              None,
-                                        "Weak POW generation. Test only", ],
+                                        "Weak PROW generation. Test only", ],
  ["q",   "quiet",     "quiet",    0,          None,
                                         "Print less information",     ],
  ["z",   "test",      "testx",    0,          None,
@@ -116,7 +138,7 @@ conf = comline.ConfigLong(optarr)
 
 def mainfunct():
 
-    ''' Main entry point '''
+    ''' Main entry point. '''
 
     try:
         args = conf.comline(sys.argv[1:])
@@ -182,6 +204,18 @@ def mainfunct():
     print_stats()
 
     pyservsup.gl_passwd = pyservsup.Passwd()
+
+    '''
+    try:
+        # Local
+        exe = os.path.join(os.path.dirname(__file__),
+                                 "..", "pyvreplic/pyvreplic.py")
+        print("exe:", exe, os.getcwd())
+        ret = subprocess.Popen([exe, "-c"], shell=False)
+        print("ret:", ret)
+    except:
+        print("cannot start replicator", sys.exc_info())
+    '''
 
     #phelploc()
 

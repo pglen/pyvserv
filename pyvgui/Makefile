@@ -3,15 +3,15 @@
 .PHONY: docs
 
 all:
-	@echo "Targets: clean docs"
+	@echo "Targets: clean cleanall docs"
 
 cleanall:
-	@rm -rf ~/pyvclient/
+	@rm -rf ~/pyvclient/*
 
 clean:
-	rm -f voters.p*
-	-find . -name "__pycache__" -exec rm -rf {} \;
-	-find . -name "*.pyc" -exec rm -rf {} \;
+	@rm -f voters.p*
+	@-find . -name "__pycache__" -exec rm -rf {} \;
+	@-find . -name "*.pyc" -exec rm -rf {} \;
 
 XPATH=PYTHONPATH=../pyvcommon:../../pyvcommon python3 -W ignore::DeprecationWarning `which pdoc` --force --html
 

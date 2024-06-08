@@ -40,6 +40,27 @@ from pyvcommon import support, comline, pyservsup
 
 from guilib import mainwinballot, pymisc
 
+__doc__  = '''\
+<pre>
+Ballot adminstration utility. Create / Review / Delete ballots
+Usage: pyvballot.py [options]
+  options:
+    -d   --debug     pgdebug   -  Debug level 0-10
+    -r   --dataroot  droot     -  Directory for data. Default: ~/pyvclient
+    -u   --user      user      -  User Name. Default: 'admin'
+    -a   --pass      apass     -  Password. For test only. Default: '1234'
+    -t   --prompt              -  Prompt for password on command line.
+    -z   --testx               -  Test mode. Extra buttons.
+    -s   --sound               -  Turn off sound
+    -w   --weak                -  Weak PROW generation. Test only
+    -v   --verbose             -  Verbose. Print more info.
+    -q   --quiet               -  Quiet. Less printing.
+    -V   --version             -  Print version number.
+    -h   --help                -  Help (This screen)
+User / Password is needed.
+</pre>
+'''
+
 # -----------------------------------------------------------------------
 # Globals
 
@@ -56,7 +77,7 @@ def phelp():
 
 def pversion():
 
-    ''' Show vwersion info '''
+    ''' Show version info. '''
 
     comline.pversion(VERSION)
     sys.exit(0)
@@ -80,7 +101,7 @@ optarr = [\
     ["s",   "sound",     "soundx",   0,          None,
                                         "Turn off sound",     ],
     ["w",   "weak",         "weak",     0,              None,
-                                        "Weak POW generation. Test only", ],
+                                        "Weak PROW generation. Test only", ],
     ["v",   "verbose",      "verbose",  0,              None,
                                         "Verbose. Print more info.", ],
     ["q",   "quiet",        "quiet",    0,              None,
@@ -100,7 +121,7 @@ conf = comline.ConfigLong(optarr)
 
 def mainfunct():
 
-    ''' Main entry point '''
+    ''' Main entry point. '''
 
     #print("pyvcpanel started ...")
     args = conf.comline(sys.argv[1:])

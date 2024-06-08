@@ -10,10 +10,31 @@ if  sys.version_info[0] < 3:
     print("Needs python 3 or better.")
     sys.exit(1)
 
-''' Voter admin user interface '''
+__doc__ = '''\
+Voter admin user interface.
+<pre>
+Voter adminstration utility. Add / Review / Delete voters.
+Usage: pyvpeople.py [options]
+  options:
+    -d   --debug     pgdebug   -  Debug level 0-10
+    -r   --dataroot  droot     -  Directory for data. Default: ~/pyvclient
+    -u   --user      user      -  User Name. Default: 'admin'
+    -a   --pass      apass     -  Password. For test only. Default: '1234'
+    -t   --prompt              -  Prompt for password on command line.
+    -z   --testx               -  Test mode. Extra buttons.
+    -s   --sound               -  Turn off sound
+    -w   --weak                -  Weak PROW generation. Test only
+    -v   --verbose             -  Verbose. Print more info.
+    -q   --quiet               -  Quiet. Less printing.
+    -V   --version             -  Print version number.
+    -h   --help                -  Help (This screen)
+User / Password is needed.
+</pre>
+'''
 
 # This repairs the path from local run to pip run.
 # Remove pip version for local tests
+
 try:
     from pyvcommon import support
 
@@ -43,20 +64,20 @@ from guilib import mainwinpeople, pymisc
 # -----------------------------------------------------------------------
 # Globals
 
-version = "1.00"
+VERSION = "1.00"
 
 # ------------------------------------------------------------------------
 
 def pversion():
 
-    ''' Show vwersion info '''
+    ''' Show version info. '''
 
-    print( os.path.basename(sys.argv[0]), "Version", version)
+    print( os.path.basename(sys.argv[0]), "Version", VERSION)
     sys.exit(0)
 
 def phelp():
 
-    ''' Display help '''
+    ''' Display help. '''
 
     comline.phelplong()
     sys.exit(0)
@@ -80,7 +101,7 @@ optarr = [\
     ["s",   "sound",       "soundx",    0,              None,
                                         "Turn off sound",     ],
     ["w",   "weak",         "weak",     0,              None,
-                                        "Weak POW generation. Test only", ],
+                                        "Weak PROW generation. Test only", ],
     ["v",   "verbose",      "verbose",  0,              None,
                                         "Verbose. Print more info.", ],
     ["q",   "quiet",        "quiet",    0,              None,
@@ -97,9 +118,8 @@ conf = comline.ConfigLong(optarr)
 
 def mainfunct():
 
-    ''' Main entry point '''
+    ''' Main entry point. '''
 
-    #print("pyvcpanel started ...")
     args = conf.comline(sys.argv[1:])
     #print("args", args)
 

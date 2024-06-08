@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-
 import os, sys, time, random, struct, io
-
 from io import BytesIO
+
+''' Index releted routines '''
 
 VERSION = 1.0
 
 from pydbase import twincore, twinchain
+from pyvguicom import pgutils
 
-def search_index(vcore, hashname, textx, hashfunc, ccc = None):
+import crysupp
+
+def search_index(textx, vcore, hashname, hashfunc, fieldname, ccc = None):
 
     '''
         Use hash for searching index. Regenerate if not available.
@@ -40,13 +42,13 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
     datasize = vcore.getdbsize()
     fakedict = {}
     fakedict['PayLoad'] = {}
-    fakedict['PayLoad']['name'] = textx
+    fakedict['PayLoad'][fieldname] = textx
     enc = vcore.packer.encode_data("", fakedict)
 
-    # We populate all indexed entries, as they are the only significant field
+    # We populate indexed entries, as they are the only significant field
     hhh = hashfunc(vcore, [textx, enc])
     #hhh = struct.unpack("I", hhh)[0]
-    # reverse
+    # Reverse byte order if needed
     hhh2  = hhh.to_bytes(4, 'little')
     #print("hhh2",  hhh2)
 
@@ -92,22 +94,24 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
         #print("data", data)
         # Bulk search it first
         if not hhh2 in data:
+            #print("not found", hhh2)
             cnt += slice // 4
             continue
         cnt2 = 0
         fp = BytesIO(data)
         while True:
             val = fp.read(4)
+            #print("val", val)
             if not val:
                 break
-            #if cnt2 < 3:
+            #if cnt2 < 3:   # DEBUG
             #    print(val)
+            #print("cmp:", val, hhh2)
             if val == hhh2:
                 ddd3.append(cnt + cnt2)
-                #print("Found", cnt2 + cnt)
+                #print("Found:", cnt2 + cnt)
             cnt2 += 1
         cnt += slice // 4
-
     ifp.close()
 
     # Reverse findings, as sequencial read was in forward direction
@@ -118,9 +122,9 @@ def search_index(vcore, hashname, textx, hashfunc, ccc = None):
 
 # ---------------------------------------------------------------
 
-def   append_index(vcore, idxname,  hashx, rrr, ccc = None):
+def append_index(vcore, idxname, hashfunc, rrr, ccc = None):
 
-    ''' append hashx to index file.
+    ''' Append hash to index file.
         generate / re - index if not there. If no hash passed,
         just regenerate
     '''
@@ -151,7 +155,7 @@ def   append_index(vcore, idxname,  hashx, rrr, ccc = None):
                 # Deleted record has empty hash, keeps offset correct
                 rrrr.append("")
             try:
-                hhh = hashx(vcore, rrrr)
+                hhh = hashfunc(vcore, rrrr)
             except:
                 hhh = 0
 
@@ -169,6 +173,7 @@ def   append_index(vcore, idxname,  hashx, rrr, ccc = None):
                     pgutils.usleep(5)
 
             pp = struct.pack("I", hhh)
+            #print("appending", crysupp.hexdump(pp))
             ifp.write(pp)
             cnt += 1
 
@@ -180,13 +185,13 @@ def   append_index(vcore, idxname,  hashx, rrr, ccc = None):
 
     else:
         if rrr:
-            hhh = hashx(vcore, rrr)
-            print("append hashx", hex(hhh))
+            hhh = hashfunc(vcore, rrr)
             pp = struct.pack("I", hhh)
+            #print("append:", crysupp.hexdump(pp))
             ifp.write(pp)
     ifp.close()
 
-def hash_id(vcore, rrr):
+def hash_id(vcore, rrr, field = ""):
 
     ''' Produce a hash of ID from record header '''
 
@@ -199,15 +204,58 @@ def hash_id(vcore, rrr):
 def hash_name(vcore, rrr):
 
     ''' Produce a hash of name from record name field
-        case and whitespce insensitive.
+        case insensitive and whitespce insensitive.
+    '''
+    return hash_field(vcore, rrr, "name")
+
+def hash_bname(vcore, rrr):
+
+    ''' Produce a hash of name from record name field
+        case insensitive and whitespce insensitive.
+    '''
+    return hash_field(vcore, rrr, "bname")
+
+def hash_buuid(vcore, rrr):
+
+    ''' Produce a hash of name from record name field
+        case insensitive and whitespce insensitive.
+    '''
+    return hash_field(vcore, rrr, "buuid")
+
+def hash_nuuid(vcore, rrr):
+
+    ''' Produce a hash of name from record name field
+        case insensitive and whitespce insensitive.
+    '''
+    return hash_field(vcore, rrr, "nuuid")
+
+def hash_email(vcore, rrr):
+
+    ''' Produce a hash of name from record name field
+        case insensitive and whitespce insensitive.
+    '''
+    return hash_field(vcore, rrr, "email")
+
+def hash_phone(vcore, rrr):
+
+    ''' Produce a hash of name from record name field
+        case insensitive and whitespce insensitive.
+    '''
+    return hash_field(vcore, rrr, "phone")
+
+def hash_field(vcore, rrr, field):
+
+    ''' Produce a hash of name from record field
+        case insensitive and whitespce insensitive.
     '''
 
-    #print("hash_name:", rrr)
+    #print("hash_field:", field, rrr)
     if type(rrr[0]) != type(b""):
         rrr[0] = rrr[0].encode()
     dec = vcore.packer.decode_data(rrr[1])[0]['PayLoad']
-    sss = dec['name'].upper().replace(" ", "")
-    #print("sss:", sss)
+    sss = dec[field].upper().replace(" ", "")
     hhh = vcore.hash32(sss.encode())
+    #print("hash_name() sss:", sss, "hhh:", hex(hhh))
     return hhh
 
+# EOF

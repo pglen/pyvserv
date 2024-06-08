@@ -26,7 +26,7 @@ from pyvguicom import pgtests
 from pymenu import  *
 from pgui import  *
 
-import recsel, pgcal, config, passdlg, pymisc
+import pyvrecsel, pgcal, config, passdlg, pymisc, pyvcores
 
 from pyvcommon import pydata, pyservsup,  pyvhash, crysupp, pyvindex
 
@@ -35,59 +35,6 @@ from pydbase import twincore, twinchain
 import pyvpacker
 
 from Crypto.Cipher import AES
-
-alllett =   string.ascii_lowercase + string.ascii_uppercase
-
-def randascii(lenx):
-
-    ''' Spew a lot of chars, simulate txt by add ' ' an '\n' '''
-
-    strx = ""
-    for aa in range(lenx):
-        ridx = random.randint(0x20, 0x7d)
-        rr = chr(ridx)
-        strx += str(rr)
-        if random.randint(0x00, 40) == 30:
-            strx += "\n"
-        if random.randint(0x00, 12) == 10:
-            strx += " "
-    return strx
-
-def simname(lenx):
-    strx = ""
-    lenz = len(alllett)-1
-    spidx = random.randint(0, lenx - 4)
-    ridx = random.randint(0, len(string.ascii_uppercase)-1)
-    strx += string.ascii_uppercase[ridx]
-    for aa in range(spidx):
-        ridx = random.randint(0, len(string.ascii_lowercase)-1)
-        rr = string.ascii_lowercase[ridx]
-        strx += str(rr)
-    strx += " "
-    ridx = random.randint(0, len(string.ascii_uppercase)-1)
-    strx += string.ascii_uppercase[ridx]
-    for aa in range(lenx - spidx):
-        ridx = random.randint(0, len(string.ascii_lowercase)-1)
-        rr = string.ascii_lowercase[ridx]
-        strx += str(rr)
-    return strx
-
-def randisodate():
-    dd = datetime.datetime.now()
-    dd = dd.replace(microsecond=0)
-    return dd.isoformat()
-
-def randate():
-
-    ''' Give us a random date in str '''
-
-    dd = datetime.datetime.now()
-    dd = dd.replace(year=random.randint(1980, 2024),
-                        month=random.randint(1, 12),
-                           day=random.randint(1, 28),
-                             hour=0, minute=0, second=0, microsecond=0)
-
-    return dd.strftime("%Y/%m/%d")
 
 # ------------------------------------------------------------------------
 
@@ -118,15 +65,12 @@ class MainWin(Gtk.Window):
         self.set_title("PyVServer Client Entry")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
-        self.vcore = twincore.TwinCore("voters.pydb", 0)
         self.hcore = twincore.TwinCore("ihosts.pydb", 0)
         self.acore = twincore.TwinCore("audit.pydb", 0)
         self.authcore = twincore.TwinCore("auth.pydb", 0)
 
-        # We let the core carry vars; make sure they do not collide
+        self.vcore = pyvcores.votercore("voters.pydb")
         self.vcore.packer = self.packer
-        self.vcore.hashname  = os.path.splitext(self.vcore.fname)[0] + ".hash.id"
-        self.vcore.hashname2 = os.path.splitext(self.vcore.fname)[0] + ".hash.name"
 
         self.exit_flag = 0
         self.stop = True
@@ -191,11 +135,11 @@ class MainWin(Gtk.Window):
         butt2a.connect("clicked", self.config_dlg)
         hbox4.pack_start(butt2a, False, 0, 2)
 
-        butt2 = Gtk.Button.new_with_mnemonic(" Ne_w entry ")
+        butt2 = Gtk.Button.new_with_mnemonic(" Ne_w ")
         butt2.connect("clicked", self.new_data)
         hbox4.pack_start(butt2, False, 0, 2)
 
-        butt2 = Gtk.Button.new_with_mnemonic(" _Delete entry ")
+        butt2 = Gtk.Button.new_with_mnemonic(" _Delete  ")
         butt2.connect("clicked", self.del_data)
         hbox4.pack_start(butt2, False, 0, 2)
         #hbox4.pack_start(Gtk.Label("   "), 0, 0, 2)
@@ -223,11 +167,11 @@ class MainWin(Gtk.Window):
         #bbox.pack_start(self.tbar, 0,0, 0)
         #vbox.pack_start(bbox, False, 0, 0)
 
-        butt1 = Gtk.Button.new_with_mnemonic(" _Save entry ")
+        butt1 = Gtk.Button.new_with_mnemonic(" _Save  ")
         butt1.connect("clicked", self.save_data)
         hbox4.pack_start(butt1, False, 0, 2)
 
-        butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad entry ")
+        butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad  ")
         butt3.connect("clicked", self.load_data)
         hbox4.pack_start(butt3, False, 0, 2)
 
@@ -267,8 +211,8 @@ class MainWin(Gtk.Window):
         #gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
 
-        tp3a = ("Address Line 1: ", "addr1", "Address line one. (Number, Street)", None)
-        tp4a = ("Address Line 2: ", "addr2", "Address line two. (if applicable)", None)
+        tp3a = ("Address Line _1: ", "addr1", "Address line one. (Number, Street)", None)
+        tp4a = ("Address Line _2: ", "addr2", "Address line two. (if applicable)", None)
         lab5, lab6 = pgentry.gridquad(gridx, 0, rowcnt, tp3a, tp4a)
         self.dat_dict['addr1'] = lab5
         self.dat_dict['addr2'] = lab6
@@ -302,7 +246,7 @@ class MainWin(Gtk.Window):
         self.dat_dict['email2'] = lab14
         rowcnt += 1
 
-        tp6x = ("Notes: ", "", "Text for Notes. Press Shift Enter to advance", None)
+        tp6x = ("_Notes: ", "", "Text for Notes. Press Shift Enter to advance", None)
         lab6x = pgentry.gridsingle(gridx, 0, rowcnt, tp6x)
         self.dat_dict['notes'] = lab6x
         rowcnt += 1
@@ -310,7 +254,7 @@ class MainWin(Gtk.Window):
         gridx.attach(pggui.ySpacer(4), 0, rowcnt, 1, 1)
         rowcnt += 1
 
-        tp3x = ("User / Client UUID: ", "uuid", "Generate Client UID by pressing button", None)
+        tp3x = ("_Voter / Client UUID: ", "uuid", "Generate Client UID by pressing button", None)
 
         butbox = Gtk.HBox()
         butt1 = Gtk.Button.new_with_mnemonic("Gene_rate")
@@ -432,7 +376,7 @@ class MainWin(Gtk.Window):
             #print("pow", self.powers, self.operator, self.ouid)
             self.status.set_status_text("Authenticated '%s'" % ret[1][0])
             self.en_dis_all(True)
-            recsel.audit(self.acore, self.packer, "Successful Login", ret[1][0])
+            pyvrecsel.audit(self.acore, self.packer, "Successful Login", ret[1][0])
             break
         self.set_focus(self.dat_dict['name'])
 
@@ -604,14 +548,15 @@ class MainWin(Gtk.Window):
             self.status.set_status_text(msg)
             pymisc.smessage(msg)
             return
-        msg = "This will delete: '%s'. \nAre you sure?" % nnn
+        msg = "This will delete: '%s'" % nnn
         self.status.set_status_text(msg)
+        msg += "\nAre you sure?"
         ret = pggui.yes_no(msg, default="No")
         if ret != Gtk.ResponseType.YES:
             return True
         ddd = self.dat_dict['uuid'].get_text()
         # Find it via index
-        ddd2 = recsel.search_index(self.vcore, self.vcore.hashname, ddd, recsel.hashid)
+        ddd2 = pyvindex.search_index(ddd, self.vcore, self.vcore.hashname, pyvindex.hash_id, "")
         for aa in ddd2:
             #print("deleting:", ddd2)
             try:
@@ -619,7 +564,7 @@ class MainWin(Gtk.Window):
                 ret = self.vcore.del_rec(aa)
                 #print(aa, "del ret:", ret)
                 dec = self.packer.decode_data(rrr[1])[0]
-                recsel.audit(self.acore, self.packer, "Deleted Record", dec)
+                pyvrecsel.audit(self.acore, self.packer, "Deleted Record", dec)
                 self.status.set_status_text("Record '%s' deleted." % nnn)
             except:
                 print(sys.exc_info())
@@ -636,7 +581,7 @@ class MainWin(Gtk.Window):
             if self.dat_dict_org[aa] != self.dat_dict[aa].get_text():
                 ccc = True
         if ccc:
-            msg = "Unsaved data. Are you sure you want to abandon it?"
+            msg = "Unsaved data. Are you sure you want to abandon it for new record?"
             self.status.set_status_text(msg)
             ret = pggui.yes_no(msg, default="No")
             if ret != Gtk.ResponseType.YES:
@@ -678,7 +623,8 @@ class MainWin(Gtk.Window):
             self.dat_dict[aa].set_text("")
         self.reset_changed()
 
-        sss = recsel.RecSelDlg(self.vcore, self.acore, self.conf)
+        self.conf.acore = self.acore
+        sss = pyvrecsel.RecSelDlg(self.vcore, self.conf, mode=pyvrecsel.MODE_VOTER)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
         #print("sss.res:", sss.res)
@@ -746,6 +692,20 @@ class MainWin(Gtk.Window):
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == 'dob':
                     self.dat_dict[aa].set_text(pgtests.randate())
+                elif aa == 'addr1':
+                    self.dat_dict[aa].set_text(pgtests.simaddr(18))
+                elif aa == 'addr2':
+                    self.dat_dict[aa].set_text(pgtests.simaddr(12))
+                elif aa == 'phone':
+                    self.dat_dict[aa].set_text(pgtests.randphone())
+                elif aa == 'phone2':
+                    self.dat_dict[aa].set_text(pgtests.randphone())
+                elif aa == 'email':
+                    self.dat_dict[aa].set_text(pgtests.randemail())
+                elif aa == 'email2':
+                    self.dat_dict[aa].set_text(pgtests.randemail())
+                elif aa == 'zip':
+                    self.dat_dict[aa].set_text(pgtests.randnumstr(5))
                 elif aa == 'now':
                     self.dat_dict[aa].set_text(pgtests.randisodate())
                 elif aa == 'notes':
@@ -810,24 +770,25 @@ class MainWin(Gtk.Window):
 
         pvh = pyvhash.BcData()
         # We mark this as 'test' so it can stay in the chain, if desired
-        pvh.addpayload({"Test": "test" ,})
+        #pvh.addpayload({"Test": "test" ,})
         pvh.addpayload(ddd)
 
-        def callb(dlg):
+        def callbdlg(dlg):
             #print("callback from dlg")
             self.status.set_status_text("PROW calc, please wait ...")
-            for aa in range(10):
-                dlg.prog.set_fraction((aa+1) * 0.1)
+            ddd = 20
+            for aa in range(ddd):
+                dlg.prog.set_fraction((aa+1) * 1/ddd)
                 if pvh.powarr():
                     break
                 self.status.set_status_text("PROW calc retry %d .." % (aa+1))
-            #dlg.response(Gtk.ResponseType.REJECT)
-            Gtk.main_quit()
+            dlg.response(Gtk.ResponseType.ACCEPT)
+            dlg.destroy()
             self.status.set_status_text("PROW done.")
 
         if self.conf.weak:
             pvh.num_zeros = 1
-        dlg = pymisc.progDlg(self.conf, callb, parent = self)
+        dlg = pymisc.progDlg(self.conf, callbdlg, parent = self)
 
         if not pvh.checkpow():
             msg = "Cold not generate PROW, please retry saving record."
@@ -840,28 +801,7 @@ class MainWin(Gtk.Window):
         #print("enc:", enc)
         uuu = self.dat_dict['uuid'].get_text()
 
-        # Add index
-        def callb(c2, id2):
-            # Replicate fields from local data
-            dddd = [uuu, enc.encode()]
-            #print("dddd:", dddd)
-            try:
-                pyvindex.append_index(c2, self.vcore.hashname,  pyvindex.hash_id, dddd)
-            except:
-                print("exc save callb hash", sys.exc_info())
-            try:
-                pyvindex.append_index(c2, self.vcore.hashname2, pyvindex.hash_name, dddd)
-            except:
-                print("exc save callb name", sys.exc_info())
-
-        try:
-            self.vcore.postexec = callb
-            ret = self.vcore.save_data(uuu, enc)
-        except:
-            pass
-            print("save", sys.exc_info())
-        finally:
-            self.vcore.postexec = None
+        ret = pyvcores.votersave(self.vcore, uuu, enc)
 
         if self.conf.playsound:
             self.conf.playsound.play_sound("shutter")

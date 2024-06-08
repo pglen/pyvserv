@@ -34,7 +34,7 @@ from pyvguicom import pgentry
 
 from pyvcommon import pyvhash
 
-import passdlg, recsel, pymisc
+import passdlg, pyvrecsel, pymisc
 
 class Blank(): pass
 
@@ -108,9 +108,10 @@ class ConfigDlg(Gtk.Dialog):
         gridx.set_column_spacing(6)
         gridx.set_row_spacing(6)
         rowcnt = 0
-        hbox4 = Gtk.HBox()
 
-        self.vbox3.pack_start(hbox4, 0, 0, 4)
+        #hbox4a = Gtk.HBox()
+        #self.vbox3.pack_start(hbox4a, 0, 0, 4)
+
         self.vbox3.pack_start(frame2, 1, 1, 4)
 
         hbox3 = Gtk.HBox()
@@ -130,8 +131,6 @@ class ConfigDlg(Gtk.Dialog):
         hbox3.pack_start(butt6, 0, 0, 2)
         hbox3.pack_start(pggui.xSpacer(), 1, 1, 4)
         self.vbox3.pack_start(hbox3, 0, 0, 4)
-        self.vbox.pack_start(self.vbox3, 1, 1, 4)
-        self.abox = self.get_action_area()
 
         hbox4 = Gtk.HBox()
         hbox4.pack_start(pggui.xSpacer(), 1, 1, 2)
@@ -169,10 +168,13 @@ class ConfigDlg(Gtk.Dialog):
 
         self.vbox3.pack_start(frame22, 1, 1, 4)
         self.vbox3.pack_start(hbox32, 0, 0, 4)
-
         self.vbox.pack_start(self.vbox3, 1, 1, 4)
-        self.abox = self.get_action_area()
 
+        self.abox = self.get_action_area()
+        self.check = Gtk.CheckButton.new_with_mnemonic("Auto Start Local Replicator")
+        self.check.set_active(True)
+        self.abox.pack_start(self.check, 0, 0, 0)
+        self.abox.reorder_child(self.check, 0)
 
         # Load date after presenting
         GLib.timeout_add(100, self.loaddata)
@@ -220,7 +222,7 @@ class ConfigDlg(Gtk.Dialog):
                     enc = ""
                     pass
                 self.authcore.save_data(rrr[0], enc)
-                recsel.audit(self.acore, self.packer, "Toggled Enable flag to:", rrr[1])
+                pyvrecsel.audit(self.acore, self.packer, "Toggled Enable flag to:", rrr[1])
                 break
             # Relaad screen
             iters = []
@@ -261,7 +263,7 @@ class ConfigDlg(Gtk.Dialog):
                     uuu = rrr[0].decode()
                     self.authcore.del_rec_offs(aa)
                     #print("del rrr", rrr)
-                    recsel.audit(self.acore, self.packer, "Deleted User", rrr[1])
+                    pyvrecsel.audit(self.acore, self.packer, "Deleted User", rrr[1])
 
             except:
                 print("exc on delrec,", sys.exc_info())
@@ -315,7 +317,7 @@ class ConfigDlg(Gtk.Dialog):
                     #print("dec", dec)
                     ret = self.repcore.del_rec_offs(aa)
                     #print("del host",  ret, dec['host'])
-                    recsel.audit(self.acore, self.packer, "Deleted Host", dec['host'])
+                    pyvrecsel.audit(self.acore, self.packer, "Deleted Host", dec['host'])
             except:
                 print("exc on delhost,", sys.exc_info())
                 pgutils.put_exception("del_host")

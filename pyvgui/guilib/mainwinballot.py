@@ -22,11 +22,12 @@ from pyvguicom import pgsimp
 from pyvguicom import pggui
 from pyvguicom import pgentry
 from pyvguicom import pgutils
+from pyvguicom import pgtests
 
 from pymenu import  *
 from pgui import  *
 
-import recsel, pgcal, config, passdlg, pymisc
+import pyvrecsel, pgcal, config, passdlg, pymisc, pyvcores
 
 from pyvcommon import pydata, pyservsup,  pyvhash, crysupp, pyvindex
 
@@ -68,11 +69,8 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         # We let the core carry vars; make sure they do not collide
-        self.bcore = twincore.TwinCore("ballots.pydb", 0)
+        self.bcore = pyvcores.ballotcore("ballots.pydb")
         self.bcore.packer = self.packer
-        self.bcore.hashname  = os.path.splitext(self.bcore.fname)[0] + ".hash.id"
-        self.bcore.hashname2 = os.path.splitext(self.bcore.fname)[0] + ".hash.name"
-
         self.acore = twincore.TwinCore("audit.pydb", 0)
         self.authcore = twincore.TwinCore("auth.pydb", 0)
 
@@ -124,11 +122,6 @@ class MainWin(Gtk.Window):
         #butt2.connect("clicked", self.new_data)
         #hbox4a.pack_start(butt2, False, 0, 2)
 
-        #butt2 = Gtk.Button.new_with_mnemonic(" Dele_te entry ")
-        #butt2.connect("clicked", self.del_data)
-        #hbox4a.pack_start(butt2, False, 0, 2)
-        #hbox4a.pack_start(Gtk.Label("   "), 0, 0, 2)
-
         merge = Gtk.UIManager()
         #self.mywin.set_data("ui-manager", merge)
 
@@ -167,17 +160,26 @@ class MainWin(Gtk.Window):
         lab1 = Gtk.Label(" ");
         hbox4.pack_start(lab1, 0, 0, 0)
 
-        butt5 = Gtk.Button.new_with_mnemonic(" Ne_w Ballot ")
+        butt5 = Gtk.Button.new_with_mnemonic(" Te_zt  ")
+        butt5.connect("clicked", self.test_data)
+        hbox4.pack_start(butt5, False, 0, 2)
+
+        butt5 = Gtk.Button.new_with_mnemonic(" Ne_w  ")
         butt5.connect("clicked", self.new_data)
         hbox4.pack_start(butt5, False, 0, 2)
 
-        butt4 = Gtk.Button.new_with_mnemonic(" _Save Ballot ")
+        butt4 = Gtk.Button.new_with_mnemonic(" _Save  ")
         butt4.connect("clicked", self.save_data)
         hbox4.pack_start(butt4, False, 0, 2)
 
-        butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad Ballot ")
+        butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad ")
         butt3.connect("clicked", self.load_data)
         hbox4.pack_start(butt3, False, 0, 2)
+
+        butt2 = Gtk.Button.new_with_mnemonic(" _Delete ")
+        butt2.connect("clicked", self.del_data)
+        hbox4.pack_start(butt2, False, 0, 2)
+        #hbox4.pack_start(Gtk.Label("   "), 0, 0, 2)
 
         butt2 = Gtk.Button.new_with_mnemonic("     E_xit    ")
         butt2.connect("clicked", self.OnExit, self)
@@ -345,9 +347,9 @@ class MainWin(Gtk.Window):
 
         #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
-        frame = Gtk.Frame()
-        self.gridx.attach(frame, 1, rowcnt, 3, 1)
-        rowcnt += 1
+        #frame = Gtk.Frame()
+        #self.gridx.attach(frame, 1, rowcnt, 3, 1)
+        #rowcnt += 1
         self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         rowcnt += 1
 
@@ -496,7 +498,7 @@ class MainWin(Gtk.Window):
             self.status.set_text("Authenticated '%s'" % ret[1][0])
             self.status_cnt = 5
             self.en_dis_all(True)
-            recsel.audit(self.acore, self.packer, "Successful Login", ret[1][0])
+            pyvrecsel.audit(self.acore, self.packer, "Successful Login", ret[1][0])
             break
 
         self.set_focus(self.dat_dict['name'])
@@ -661,22 +663,23 @@ class MainWin(Gtk.Window):
             self.status_cnt = 4
             pggui.message(msg)
             return
-        msg = "This will delete: '%s'. \nAre you sure?" % nnn
+        msg = "This will delete: '%s'" % nnn
         self.status.set_text(msg)
         self.status_cnt = 4
+        msg +=  "\nAre you sure?"
         ret = pggui.yes_no(msg, default="No")
         if ret != Gtk.ResponseType.YES:
             return True
         ddd = self.dat_dict['uuid'].get_text()
         # Find it via index
-        ddd2 = pyvindex.search_index(self.bcore, self.bcore.hashname, ddd, pyvindex.hash_id)
+        ddd2 = pyvindex.search_index(ddd, self.bcore, self.bcore.hashname, pyvindex.hash_id, "id")
         for aa in ddd2:
             #print("deleting:", ddd2)
             try:
                 rrr = self.bcore.get_rec(aa)
                 ret = self.bcore.del_rec(aa)
                 #print(aa, "del ret:", ret)
-                recsel.audit(self.acore, self.packer, "Deleted Record", rrr[1])
+                pyvrecsel.audit(self.acore, self.packer, "Deleted Record", rrr[1])
                 self.status.set_text("Record '%s' deleted." % nnn)
                 self.status_cnt = 4
             except:
@@ -733,7 +736,8 @@ class MainWin(Gtk.Window):
                 return True
 
         heads = ["", "", "Election Date", "", ""]
-        sss = recsel.RecSelDlg(self.bcore, self.acore, self.conf, headers=heads)
+        self.conf.acore = self.acore
+        sss = pyvrecsel.RecSelDlg(self.bcore, self.conf, mode=pyvrecsel.MODE_BALLOT)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
         #print("sss.res:", sss.res)
@@ -772,6 +776,9 @@ class MainWin(Gtk.Window):
     def test_data(self, arg1):
 
         #print("test started")
+        # Disable sound
+        sps = self.conf.playsound
+        self.conf.playsound = None
         self.stop = not self.stop
         while True:
             if self.exit_flag:
@@ -787,21 +794,24 @@ class MainWin(Gtk.Window):
                 if aa == 'uuid':
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == 'name':
-                   self.dat_dict[aa].set_text(simname(random.randint(12, 22)))
+                   self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
                 elif aa == 'vguid':
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == 'dob':
-                    self.dat_dict[aa].set_text(randate())
+                    self.dat_dict[aa].set_text(pgtests.randate())
                 elif aa == 'now':
-                    self.dat_dict[aa].set_text(randisodate())
+                    self.dat_dict[aa].set_text(pgtests.randisodate())
                 elif aa == 'notes':
-                    self.dat_dict[aa].set_text(randascii(random.randint(33, 66)))
+                    self.dat_dict[aa].set_text(pgtests.randascii(random.randint(33, 66)))
                 else:
-                    self.dat_dict[aa].set_text(pgutils.randstr(random.randint(6, 22)))
+                    self.dat_dict[aa].set_text(pgtests.randstr(random.randint(6, 22)))
             sleepx = 20
             pgutils.usleep(sleepx)
             self.save_data(0)
             self.clear_data()
+
+        self.conf.playsound = sps
+        pgutils.usleep(10)
 
     def save_data(self, arg1):
 
@@ -918,20 +928,20 @@ class MainWin(Gtk.Window):
 
         pvh.hasharr()
 
-        def callb(dlg):
-            #print("callback from dlg")
-            self.status.set_status_text("PROW calc, please wait ...")
-            for aa in range(10):
-                dlg.prog.set_fraction((aa+1) * 0.1)
+        def callbdlg(dlg):
+            ddd = 20
+            for aa in range(ddd):
+                dlg.prog.set_fraction((aa+1) * 1/ddd)
                 if pvh.powarr():
                     break
                 self.status.set_status_text("PROW calc retry %d .." % (aa+1))
-            dlg.response(Gtk.ResponseType.REJECT)
+            dlg.response(Gtk.ResponseType.ACCEPT)
             dlg.destroy()
             self.status.set_status_text("PROW done.")
+
         if self.conf.weak:
             pvh.num_zeros = 1
-        dlg = pymisc.progDlg(self.conf, callb, parent = self)
+        dlg = pymisc.progDlg(self.conf, callbdlg, parent = self)
 
         if not pvh.checkpow():
             msg = "Cold not generate PROW, please retry saving record."
@@ -944,27 +954,7 @@ class MainWin(Gtk.Window):
         #print("enc:", enc)
         uuu = self.dat_dict['uuid'].get_text()
 
-        # Add index indices
-        def callb(c2, id2):
-            # Replicate saved locally
-            dddd = [uuu, enc.encode()]
-            #print("dddd:", dddd)
-            try:
-                pyvindex.append_index(c2, c2.hashname, pyvindex.hash_id, dddd)
-            except:
-                print("exc save callb hash", sys.exc_info())
-            try:
-                pyvindex.append_index(c2, c2.hashname2, pyvindex.hash_name, dddd)
-            except:
-                print("exc save callb name", sys.exc_info())
-        try:
-            self.bcore.postexec = callb
-            ret = self.bcore.save_data(uuu, enc)
-        except:
-            pass
-            print("save", sys.exc_info())
-        finally:
-            self.bcore.postexec = None
+        pyvcores.saveballot(self.bcore, uuu, enc)
 
         if self.conf.playsound:
             self.conf.playsound.play_sound("shutter")

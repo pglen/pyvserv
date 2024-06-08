@@ -37,6 +37,29 @@ from gi.repository import GdkPixbuf
 MAXSTATLEN = 36
 IDLESTR = "Idle ..."
 
+def anon_name(namex, slicex = 2):
+
+    ret = ""
+    sss = namex.split()
+    sss2 = []
+
+    try:
+        #print("sss", sss)
+        for cc, aa in enumerate(sss):
+            sss2.append(sss[cc][0].upper() + sss[cc][1:slicex].lower())
+
+        if len(sss) > 1:
+            ret = sss2[0][:slicex] + '*  ' + sss2[1][:slicex] + '* '
+        else:
+            ret = sss2[0][:3] + '*  ' + pgtests.randupper(1) + pgtests.randlower(slicex-1) + '* '
+    except:
+        print(sys.exc_info())
+        ret =  pgtests.randupper(1) + pgtests.randlower(slicex-1) + '* '
+
+    return ret
+
+
+
 class Status(Gtk.Label):
 
     ''' Status that disappears after a while '''

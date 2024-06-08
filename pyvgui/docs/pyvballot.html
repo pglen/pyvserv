@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>pyvballot API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="&lt;pre&gt;
+Ballot adminstration utility. Create / Review / Delete ballots
+Usage: pyvballot.py [options]
+options:
+-d
+--debug
+pgdebug
+-
+Debug …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,6 +30,24 @@
 <h1 class="title">Module <code>pyvballot</code></h1>
 </header>
 <section id="section-intro">
+<pre>
+Ballot adminstration utility. Create / Review / Delete ballots
+Usage: pyvballot.py [options]
+  options:
+    -d   --debug     pgdebug   -  Debug level 0-10
+    -r   --dataroot  droot     -  Directory for data. Default: ~/pyvclient
+    -u   --user      user      -  User Name. Default: 'admin'
+    -a   --pass      apass     -  Password. For test only. Default: '1234'
+    -t   --prompt              -  Prompt for password on command line.
+    -z   --testx               -  Test mode. Extra buttons.
+    -s   --sound               -  Turn off sound
+    -w   --weak                -  Weak PROW generation. Test only
+    -v   --verbose             -  Verbose. Print more info.
+    -q   --quiet               -  Quiet. Less printing.
+    -V   --version             -  Print version number.
+    -h   --help                -  Help (This screen)
+User / Password is needed.
+</pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -66,12 +92,33 @@ except:
 
 from pyvcommon import support, comline, pyservsup
 
-from guilib import mainballot
+from guilib import mainwinballot, pymisc
+
+__doc__  = &#39;&#39;&#39;\
+&lt;pre&gt;
+Ballot adminstration utility. Create / Review / Delete ballots
+Usage: pyvballot.py [options]
+  options:
+    -d   --debug     pgdebug   -  Debug level 0-10
+    -r   --dataroot  droot     -  Directory for data. Default: ~/pyvclient
+    -u   --user      user      -  User Name. Default: &#39;admin&#39;
+    -a   --pass      apass     -  Password. For test only. Default: &#39;1234&#39;
+    -t   --prompt              -  Prompt for password on command line.
+    -z   --testx               -  Test mode. Extra buttons.
+    -s   --sound               -  Turn off sound
+    -w   --weak                -  Weak PROW generation. Test only
+    -v   --verbose             -  Verbose. Print more info.
+    -q   --quiet               -  Quiet. Less printing.
+    -V   --version             -  Print version number.
+    -h   --help                -  Help (This screen)
+User / Password is needed.
+&lt;/pre&gt;
+&#39;&#39;&#39;
 
 # -----------------------------------------------------------------------
 # Globals
 
-version = &#34;1.00&#34;
+VERSION = &#34;1.00&#34;
 
 # ------------------------------------------------------------------------
 
@@ -79,46 +126,56 @@ def phelp():
 
     &#39;&#39;&#39; Display help &#39;&#39;&#39;
 
-    print( &#34;Voter adminstration utility. Add / Review / Delete voters.&#34;)
-    print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
-    print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -v        - Verbose. Print more info.&#34;)
-    print( &#34;            -u        - User Name. Defult: &#39;admin&#39;&#34;)
-    print( &#34;            -a        - Clear text password. For test only. Default: &#39;1234&#39;&#34;)
-    print( &#34;            -V        - Print version number.&#34;)
-    print( &#34;            -t        - Test mode. Extra buttons.&#34;)
-    print( &#34;            -q        - Quiet. Less printing.&#34;)
-    print( &#34;            -h        - Help (This screen)&#34;)
+    comline.phelplong()
     sys.exit(0)
 
-    #print( &#34;            -p        - Port to use (default: 6666)&#34;)
-
-# ------------------------------------------------------------------------
 def pversion():
 
-    &#39;&#39;&#39; Show vwersion info &#39;&#39;&#39;
+    &#39;&#39;&#39; Show version info. &#39;&#39;&#39;
 
-    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
+    comline.pversion(VERSION)
     sys.exit(0)
 
-    # option, var_name, initial_val, function
-optarr = \
-    [&#34;d:&#34;,  &#34;debug=&#34;,       &#34;pgdebug&#34;,  0,              None],      \
-    [&#34;p:&#34;,  &#34;port=&#34;,        &#34;port&#34;,     6666,           None],      \
-    [&#34;v&#34;,   &#34;verbose&#34;,      &#34;verbose&#34;,  0,              None],      \
-    [&#34;q&#34;,   &#34;quiet&#34;,        &#34;quiet&#34;,    0,              None],      \
-    [&#34;u:&#34;,  &#34;user=&#34;,        &#34;user&#34;,     &#34;admin&#34;,        None],      \
-    [&#34;a:&#34;,  &#34;pass=&#34;,        &#34;apass&#34;,    &#34;1234&#34;,         None],      \
-    [&#34;t&#34;,   &#34;testx&#34;,        &#34;testx&#34;,    0,              None],      \
-    [&#34;r:&#34;,  &#34;dataroot=&#34;,    &#34;droot&#34;,    &#34;pyvclient&#34;,    None],      \
-    [&#34;V&#34;,   &#34;version&#34;,      None,       None,           pversion],  \
-    [&#34;h&#34;,   &#34;help&#34;,         None,       None,           phelp]      \
+# ------------------------------------------------------------------------
+# option, var_name, initial_val, function, helpstr
 
+optarr = [\
+    [&#34;d:&#34;,  &#34;debug=&#34;,       &#34;pgdebug&#34;,  0,              None,
+                                        &#34;Debug level 0-10&#34;, ],
+    [&#34;r:&#34;,  &#34;dataroot=&#34;,    &#34;droot&#34;,    &#34;pyvclient&#34;,    None,
+                                        &#34;Directory for data. Default: ~/pyvclient&#34;, ],
+    [&#34;u:&#34;,  &#34;user=&#34;,        &#34;user&#34;,     &#34;admin&#34;,        None,
+                                        &#34;User Name. Default: &#39;admin&#39;&#34;, ],
+    [&#34;a:&#34;,  &#34;pass=&#34;,        &#34;apass&#34;,    &#34;1234&#34;,         None,
+                                        &#34;Password. For test only. Default: &#39;1234&#39;&#34;, ],
+    [&#34;t&#34;,   &#34;prompt&#34;,    &#34;prompt&#34;,   0,          None,
+                                        &#34;Prompt for password on command line.&#34;, ],
+    [&#34;z&#34;,   &#34;testx&#34;,        &#34;testx&#34;,    0,              None,
+                                        &#34;Test mode. Extra buttons.&#34;, ],
+    [&#34;s&#34;,   &#34;sound&#34;,     &#34;soundx&#34;,   0,          None,
+                                        &#34;Turn off sound&#34;,     ],
+    [&#34;w&#34;,   &#34;weak&#34;,         &#34;weak&#34;,     0,              None,
+                                        &#34;Weak PROW generation. Test only&#34;, ],
+    [&#34;v&#34;,   &#34;verbose&#34;,      &#34;verbose&#34;,  0,              None,
+                                        &#34;Verbose. Print more info.&#34;, ],
+    [&#34;q&#34;,   &#34;quiet&#34;,        &#34;quiet&#34;,    0,              None,
+                                        &#34;Quiet. Less printing.&#34;, ],
+    [&#34;V&#34;,   &#34;version&#34;,      None,       None,           pversion,
+                                        &#34;Print version number.&#34;, ],
+    [&#34;h&#34;,   &#34;help&#34;,         None,       None,           phelp,
+                                        &#34;Help (This screen)&#34;, ],
+    ]
+
+comline.setprog(os.path.basename(__file__) + &#34; [options]&#34; )
+comline.sethead(&#34;Ballot adminstration utility. Create / Review / Delete ballots&#34;)
+comline.setfoot(&#34;User / Password is needed.&#34;)
 conf = comline.ConfigLong(optarr)
+
+# ------------------------------------------------------------------------
 
 def mainfunct():
 
-    &#39;&#39;&#39; Main entry point &#39;&#39;&#39;
+    &#39;&#39;&#39; Main entry point. &#39;&#39;&#39;
 
     #print(&#34;pyvcpanel started ...&#34;)
     args = conf.comline(sys.argv[1:])
@@ -127,6 +184,11 @@ def mainfunct():
     # To know where the icon file is
     conf.me = __file__
     #print(dir(conf))
+
+    if not conf.soundx:
+        conf.playsound = pymisc.Soundx()
+    else:
+        conf.playsound = None
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
@@ -151,7 +213,7 @@ def mainfunct():
 
     pyservsup.gl_passwd = pyservsup.Passwd()
 
-    mw = mainballot.MainWin(pyservsup.globals)
+    mw = mainwinballot.MainWin(pyservsup.globals)
     mw.main()
     sys.exit(0)
 
@@ -173,14 +235,14 @@ if __name__ == &#39;__main__&#39;:
 <span>def <span class="ident">mainfunct</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Main entry point</p></div>
+<div class="desc"><p>Main entry point.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def mainfunct():
 
-    &#39;&#39;&#39; Main entry point &#39;&#39;&#39;
+    &#39;&#39;&#39; Main entry point. &#39;&#39;&#39;
 
     #print(&#34;pyvcpanel started ...&#34;)
     args = conf.comline(sys.argv[1:])
@@ -189,6 +251,11 @@ if __name__ == &#39;__main__&#39;:
     # To know where the icon file is
     conf.me = __file__
     #print(dir(conf))
+
+    if not conf.soundx:
+        conf.playsound = pymisc.Soundx()
+    else:
+        conf.playsound = None
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
@@ -213,7 +280,7 @@ if __name__ == &#39;__main__&#39;:
 
     pyservsup.gl_passwd = pyservsup.Passwd()
 
-    mw = mainballot.MainWin(pyservsup.globals)
+    mw = mainwinballot.MainWin(pyservsup.globals)
     mw.main()
     sys.exit(0)</code></pre>
 </details>
@@ -231,38 +298,25 @@ if __name__ == &#39;__main__&#39;:
 
     &#39;&#39;&#39; Display help &#39;&#39;&#39;
 
-    print( &#34;Voter adminstration utility. Add / Review / Delete voters.&#34;)
-    print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
-    print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -v        - Verbose. Print more info.&#34;)
-    print( &#34;            -u        - User Name. Defult: &#39;admin&#39;&#34;)
-    print( &#34;            -a        - Clear text password. For test only. Default: &#39;1234&#39;&#34;)
-    print( &#34;            -V        - Print version number.&#34;)
-    print( &#34;            -t        - Test mode. Extra buttons.&#34;)
-    print( &#34;            -q        - Quiet. Less printing.&#34;)
-    print( &#34;            -h        - Help (This screen)&#34;)
-    sys.exit(0)
-
-    #print( &#34;            -p        - Port to use (default: 6666)&#34;)</code></pre>
+    comline.phelplong()
+    sys.exit(0)</code></pre>
 </details>
 </dd>
 <dt id="pyvballot.pversion"><code class="name flex">
 <span>def <span class="ident">pversion</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Show vwersion info</p></div>
+<div class="desc"><p>Show version info.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def pversion():
 
-    &#39;&#39;&#39; Show vwersion info &#39;&#39;&#39;
+    &#39;&#39;&#39; Show version info. &#39;&#39;&#39;
 
-    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function</code></pre>
+    comline.pversion(VERSION)
+    sys.exit(0)</code></pre>
 </details>
 </dd>
 </dl>

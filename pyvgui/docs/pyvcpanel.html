@@ -79,38 +79,54 @@ from guilib import mainwin
 # -----------------------------------------------------------------------
 # Globals
 
-version = &#34;1.00&#34;
-
-# ------------------------------------------------------------------------
+VERSION = &#34;1.00&#34;
 
 def phelp():
 
-    print()
-    print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
-    print()
-    print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
-    print( &#34;            -v        - Verbose&#34;)
-    print( &#34;            -V        - Version&#34;)
-    print( &#34;            -q        - Quiet&#34;)
-    print( &#34;            -h        - Help&#34;)
-    print()
-    sys.exit(0)
+    &#39;&#39;&#39; Display help &#39;&#39;&#39;
+
+    comline.phelplong()
+
+    if sys.stdout.isatty():
+        sys.exit(0)
+
+def pversion():
+
+    &#39;&#39;&#39; Show vwersion info &#39;&#39;&#39;
+
+    comline.pversion(VERSION)
+    if sys.stdout.isatty():
+        sys.exit(0)
 
 # ------------------------------------------------------------------------
-def pversion():
-    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
-    sys.exit(0)
+# option, var_name, initial_val, function, helpstr
 
-    # option, var_name, initial_val, function
-optarr = \
-    [&#34;d:&#34;,  &#34;debug=&#34;,   &#34;pgdebug&#34;,  0,      None],      \
-    [&#34;p:&#34;,  &#34;port=&#34;,    &#34;port&#34;,     9999,   None],      \
-    [&#34;v&#34;,   &#34;verbose&#34;,  &#34;verbose&#34;,  0,      None],      \
-    [&#34;q&#34;,   &#34;quiet&#34;,    &#34;quiet&#34;,    0,      None],      \
-    [&#34;r:&#34;,  &#34;dataroot=&#34;, &#34;droot&#34;,   &#34;pyvserver&#34;,     None],      \
-    [&#34;V&#34;,   &#34;version&#34;,  None,       None,   pversion],  \
-    [&#34;h&#34;,   &#34;help&#34;,     None,       None,   phelp]      \
+optarr = [\
+    [&#34;d:&#34;,  &#34;debug=&#34;,       &#34;pgdebug&#34;,  0,              None,
+                                        &#34;Debug level 0-10&#34;, ],
+    [&#34;r:&#34;,  &#34;dataroot=&#34;,    &#34;droot&#34;,    &#34;pyvclient&#34;,    None,
+                                        &#34;Directory for data. Default: ~/pyvclient&#34;, ],
+    [&#34;u:&#34;,  &#34;user=&#34;,        &#34;user&#34;,     &#34;admin&#34;,        None,
+                                        &#34;User Name. Default: &#39;admin&#39;&#34;, ],
+    [&#34;a:&#34;,  &#34;pass=&#34;,        &#34;apass&#34;,    &#34;1234&#34;,         None,
+                                        &#34;Password. For test only. Default: &#39;1234&#39;&#34;, ],
+    [&#34;t&#34;,   &#34;prompt&#34;,    &#34;prompt&#34;,   0,          None,
+                                        &#34;Prompt for password on command line.&#34;, ],
+    [&#34;z&#34;,   &#34;testx&#34;,        &#34;testx&#34;,    0,              None,
+                                        &#34;Test mode. Extra buttons.&#34;, ],
+    [&#34;v&#34;,   &#34;verbose&#34;,      &#34;verbose&#34;,  0,              None,
+                                        &#34;Verbose. Print more info.&#34;, ],
+    [&#34;q&#34;,   &#34;quiet&#34;,        &#34;quiet&#34;,    0,              None,
+                                        &#34;Quiet. Less printing.&#34;, ],
+    [&#34;V&#34;,   &#34;version&#34;,      None,       None,           pversion,
+                                        &#34;Print version number.&#34;, ],
+    [&#34;h&#34;,   &#34;help&#34;,         None,       None,           phelp,
+                                        &#34;Help (This screen)&#34;, ],
+    ]
+
+comline.setprog(os.path.basename(__file__) + &#34; [options]&#34; )
+comline.sethead(&#34;PyvServer adminstration panel.&#34;)
+comline.setfoot(&#34;Wlii use default settings to monitor.&#34;)
 
 conf = comline.ConfigLong(optarr)
 
@@ -166,40 +182,37 @@ if __name__ == &#39;__main__&#39;:
 <span>def <span class="ident">phelp</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Display help</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def phelp():
 
-    print()
-    print( &#34;Usage: &#34; + os.path.basename(sys.argv[0]) + &#34; [options]&#34;)
-    print()
-    print( &#34;Options:    -d level  - Debug level 0-10&#34;)
-    print( &#34;            -p        - Port to use (default: 9999)&#34;)
-    print( &#34;            -v        - Verbose&#34;)
-    print( &#34;            -V        - Version&#34;)
-    print( &#34;            -q        - Quiet&#34;)
-    print( &#34;            -h        - Help&#34;)
-    print()
-    sys.exit(0)</code></pre>
+    &#39;&#39;&#39; Display help &#39;&#39;&#39;
+
+    comline.phelplong()
+
+    if sys.stdout.isatty():
+        sys.exit(0)</code></pre>
 </details>
 </dd>
 <dt id="pyvcpanel.pversion"><code class="name flex">
 <span>def <span class="ident">pversion</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Show vwersion info</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def pversion():
-    print( os.path.basename(sys.argv[0]), &#34;Version&#34;, version)
-    sys.exit(0)
 
-    # option, var_name, initial_val, function</code></pre>
+    &#39;&#39;&#39; Show vwersion info &#39;&#39;&#39;
+
+    comline.pversion(VERSION)
+    if sys.stdout.isatty():
+        sys.exit(0)</code></pre>
 </details>
 </dd>
 </dl>

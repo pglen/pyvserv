@@ -51,6 +51,7 @@ if sys.version_info[0] < 3:
 import getopt
 import time
 import datetime
+import signal
 
 import pyvpacker
 
@@ -175,7 +176,10 @@ class Replicator():
 
         while True:
             # Replicate for all kinds
-            ddd = os.listdir(pyservsup.globals.chaindir)
+            try:
+                ddd = os.listdir(pyservsup.globals.chaindir)
+            except:
+                ddd = []
 
             for aa in ddd:
                 aaa = os.path.join(pyservsup.globals.chaindir, aa)
@@ -572,8 +576,10 @@ def mainfunct():
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
+    pyservsup.globals.lockfname += ".replic"
 
-    #print("pysersup", )
+    #print("locking", pyservsup.globals.lockfname)
+    support.lock_process(pyservsup.globals.lockfname, "Replicator")
 
     if conf.pgdebug > 9:
         ddd = dir(pyservsup.globals)
@@ -669,12 +675,34 @@ def mainfunct():
         print("Data from:", pyservsup.globals.chaindir)
         print("debug level =", conf.pgdebug)
 
+    signal.signal(signal.SIGTERM, terminate)
+    signal.signal(signal.SIGINT, soft_terminate)
+    #signal.signal(signal.SIGKILL, kill_terminate)
+
     repl = Replicator()
     repl.rep_run()
+    print("Exiting")
+
+def terminate(arg1 = 0, arg2 = 0):
+    #print("Term")
+    support.unlock_process(pyservsup.globals.lockfname)
+    sys.exit(2)
+    pass
+
+def soft_terminate(arg1 = 0, arg2 = 0):
+    print("Ctrl-C")
+    terminate()
+    pass
+
+def kill_terminate(arg1 = 0, arg2 = 0):
+    #print("Kill")
+    pass
 
 if __name__ == '__main__':
 
+    #print(dir(signal))
     #pyvrepsup.print_handles()
+
     mainfunct()
 
 # EOF

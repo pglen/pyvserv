@@ -70,17 +70,21 @@ XPATH=PYTHONPATH=${ARG1}:${ARG2} python3 -W ignore::DeprecationWarning `which pd
 
 docs:
 	@#echo ${FILES}
-	@${XPATH}  -o pyvtools/docs pyvtools/pyvgenkeys.py
-	@${XPATH}  -o pyvtools/docs pyvtools/pyvgenkey.py
+	@${XPATH}  -o pyvgui/guilib/docs pyvgui/guilib/mainwin.py
+	@${XPATH}  -o pyvgui/guilib/docs pyvgui/guilib/mainwinpeople.py
+	@${XPATH}  -o pyvgui/guilib/docs pyvgui/guilib/mainwinballot.py
+	@${XPATH}  -o pyvgui/guilib/docs pyvgui/guilib/mainwinvote.py
+	@#${XPATH} -o pyvgui/guilib/docs pyvgui/guilib/mainwintally.py
+
 	@${XPATH}  -o pyvgui/docs pyvgui/pyvpeople.py
 	@${XPATH}  -o pyvgui/docs pyvgui/pyvservui.py
 	@${XPATH}  -o pyvgui/docs pyvgui/pyvballot.py
 	@${XPATH}  -o pyvgui/docs pyvgui/pyvvote.py
 	@${XPATH}  -o pyvgui/docs pyvgui/pyvtally.py
 	@${XPATH}  -o pyvgui/docs pyvgui/pyvcpanel.py
-	@${XPATH}  -o pyvgui/guilib/docs pyvgui/guilib/mainwin.py
-	@#${XPATH} -o pyvgui/guilib/docs pyvgui/guilib/mainwinserv.py
-	@#${XPATH} -o pyvgui/guilib/docs pyvgui/guilib/mainwintally.py
+
+	@${XPATH}  -o pyvtools/docs pyvtools/pyvgenkeys.py
+	@${XPATH}  -o pyvtools/docs pyvtools/pyvgenkey.py
 
 checksum:
 	@echo "Checking SHA256 sums; No output if OK."

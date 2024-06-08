@@ -281,7 +281,7 @@ def unlock_process(lockfile):
         pass
         #print("Cannot unlink lockfile.", lockfile, sys.exc_info())
 
-def lock_process(lockfile):
+def lock_process(lockfile, server="Server"):
 
     closeit = 0; pidstr = ""
     pid = os.getpid()
@@ -314,8 +314,8 @@ def lock_process(lockfile):
             print("Lockfile active, no process ... breaking in")
             os.unlink(lockfile)
         else:
-            print("Server running already.")
-            #if verbose:
+            print("%s running already." % server)
+
             #    print("Lockfile '%s' pid '%s'" % (lockfile, pidstr))
             sys.exit(2)
 

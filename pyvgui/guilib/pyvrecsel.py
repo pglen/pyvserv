@@ -30,11 +30,21 @@ from pyvguicom import pgsel
 from pyvguicom import pgutils
 from pyvguicom import pgentry
 
-from pyvcommon import pyvhash, pyvindex
+from pyvcommon import pyvhash, pyvindex, filedlg
 
 # Maximum records to show in dialog
 MAXREC = 1000
 LATEST = "If multiple matches found, use the latest one."
+
+MODE_NONE,  MODE_VOTE, MODE_VOTER, MODE_BALLOT = range(4)
+
+HEAD_VOTE   = ["Voter Name", "Entry Date", "Voter BirthDate", "Vote UUID", ""]
+HEAD_VOTER  = ["Voter Name", "Date", "Voter BirthDate", "Voter UUID", ""]
+HEAD_BALLOT = ["Ballot Name", "Entry Date", "Election Date", "Ballot UUID", ""]
+
+# Overridden by passed headers and fields
+STOCK_HEADERS = ["Name", "Date of entry", "Date of birth", "UUID", "Position"]
+STOCK_FIELDS  = ["name", "now", "dob", "uuid", "pos"]
 
 # Make even and odd flags for obfuscation. This way boolean desision
 # is made on an integer instead of 0 and 1
@@ -72,30 +82,24 @@ class RecSelDlg(Gtk.Dialog):
         The record selection dialog. We attach state vars to the class,
         it was attached to the dialog in the original version.
         Using pydbase hash for fast retrieval.
+        Pass details like audit handle in conf class.
     '''
 
-    def __init__(self, vcore, acore, conf, duplicates=False, headers=[]):
+    def __init__(self, vcore, conf, dups=False, mode=MODE_NONE):
 
-        #print("dup:", duplicates, "heads:", headers)
-
-        # Overridden by passed headers
-        self.stock_headers = ["Name", "Date of entry", "Date of birth",
-                         "UUID", "Position"]
-
-        self.stock_fields = ["name", "now", "dob", "uuid", "pos"]
-
+        #print("dups:", dups, "mode:", mode)
         super().__init__(self)
-
-        self.headers = headers
-        self.set_title("Open Record(s)")
-        self.add_buttons(   Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT,
-                            Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
+        self.set_title("Select / Open Record")
+        can = self.add_button(Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT)
+        ok  = self.add_button(Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
+        can.set_tooltip_text("Cancel, close dialog. (Esc)")
+        ok.set_tooltip_text("OK, close dialog. (Enter)")
 
         self.set_size_request(800, 600)
         self.alt = False
         self.xmulti = []
         self.vcore = vcore
-        self.acore = acore
+        self.acore = conf.acore
         self.packer = pyvpacker.packbin()
         self.rec_cnt = 0
         self.scan_cnt = 0
@@ -121,6 +125,7 @@ class RecSelDlg(Gtk.Dialog):
                 " to selection, press space / enter to select")
 
         self.vbox.pack_start(simp, 0, 0, 0)
+        self.vbox.pack_start(pggui.xSpacer(), 0, 0, 0)
 
         gridx = Gtk.Grid()
         gridx.set_column_spacing(6)
@@ -128,25 +133,81 @@ class RecSelDlg(Gtk.Dialog):
         rowcnt = 0
         hbox4 = Gtk.HBox()
 
-        butt4 = Gtk.Button.new_with_mnemonic("  Fin_d Name   ")
-        tp6x = ("Find Full N_ame:", "get", "Search for record by full name. Case insesitive.", None)
-        self.namex = pgentry.griddouble(gridx, 0, rowcnt, tp6x, butt4)
-        butt4.connect("clicked", self.search_idx, self.namex,
-                                    self.vcore.hashname2, pyvindex.hash_name)
-        rowcnt += 1
+        if mode == MODE_VOTER:
+            self.headers = HEAD_VOTER
+            butt3 = Gtk.Button.new_with_mnemonic("  by Full Name  ")
+            butt4 = Gtk.Button.new_with_mnemonic("  by UUID   ")
+            tp5x = ("_Find Name:", "get", "Search for Name. Case insesitive.", None)
+            tp5y = ("Find I_D:", "get", "Search for record ID. Must be a valid UUID", None)
+            lab5x, lab6x = pgentry.gridhexa(gridx, 0, rowcnt, tp5x, tp5y, butt3, butt4)
+            butt3.connect("clicked", self.search_idx, lab5x,
+                                        self.vcore.hashname2, pyvindex.hash_name, "name")
+            butt4.connect("clicked", self.search_id, lab6x,
+                                        self.vcore.hashname, pyvindex.hash_id, "id")
+            rowcnt += 1
+            butt4 = Gtk.Button.new_with_mnemonic("  by Phone   ")
+            butt5 = Gtk.Button.new_with_mnemonic("  by Email   ")
+            tp6x = ("Phon_e:", "get", "Search for record by full phone number. ", None)
+            tp6y = ("E_mail:", "get", "Search for record by full email. Case insesitive.", None)
+            phonex, emailx = pgentry.gridhexa(gridx, 0, rowcnt, tp6x, tp6y, butt4, butt5)
+            butt4.connect("clicked", self.search_idx, phonex,
+                                        self.vcore.hashname3, pyvindex.hash_phone, "phone")
+            butt5.connect("clicked", self.search_idx, emailx,
+                                        self.vcore.hashname4, pyvindex.hash_email, "email")
+            rowcnt += 1
+            butt2 = Gtk.Button.new_with_mnemonic("  by Name  ")
+            butt3 = Gtk.Button.new_with_mnemonic("  by All fields  ")
+            tp4x = ("_Name (Slow):",  "find", "Search for partial name match. Case sensitive. Slow", None)
+            tp4y = ("Field_s:", "find2", "Search for partial record match in all fields. Very Slow", None)
+            lab4x, lab5x  = pgentry.gridhexa(gridx, 0, rowcnt, tp4x, tp4y, butt2, butt3)
+            butt2.connect("clicked", self.search_entry, lab4x)
+            butt3.connect("clicked", self.search_all, lab5x)
+            rowcnt += 1
+        elif mode == MODE_VOTE:
+            self.headers = HEAD_VOTE
+            butt3 = Gtk.Button.new_with_mnemonic("  by Vote ID  ")
+            butt4 = Gtk.Button.new_with_mnemonic("  by Voter ID  ")
+            tp5x = ("Vote I_D:", "get", "Search for Vote ID. Must be a valid UUID", None)
+            tp5y = ("_Find by Voter ID:", "get", "Search for Voter ID (person).  Must be a valid UUID.", None)
+            lab5x, lab6x = pgentry.gridhexa(gridx, 0, rowcnt, tp5x, tp5y, butt3, butt4)
+            butt3.connect("clicked", self.search_idx, lab5x,
+                                        self.vcore.hashname, pyvindex.hash_id, "uuid")
+            butt4.connect("clicked", self.search_idx, lab6x,
+                                        self.vcore.hashname2, pyvindex.hash_nuuid, "nuuid")
+            rowcnt += 1
+            butt3a = Gtk.Button.new_with_mnemonic("  by Ballot ID   ")
+            butt4a = Gtk.Button.new_with_mnemonic("  by All Fields  ")
+            tp5x = ("_Ballot ID:", "buuid", "Search for Ballot ID. Must be a valid UUID", None)
+            tp5y = ("_All Fields (slow):", "get", "Search in all Fields.", None)
+            lab5x, lab6x = pgentry.gridhexa(gridx, 0, rowcnt, tp5x, tp5y, butt3a, butt4a)
+            butt3a.connect("clicked", self.search_idx, lab5x,
+                                        self.vcore.hashname3, pyvindex.hash_buuid, "buuid")
+            butt4a.connect("clicked", self.search_all, lab6x)
+            rowcnt += 1
 
-        butt3 = Gtk.Button.new_with_mnemonic("  Find UUID   ")
-        tp5x = ("_Find ID:", "get", "Search for record ID. Must be valid UUID", None)
-        lab5x = pgentry.griddouble(gridx, 0, rowcnt, tp5x, butt3)
-        butt3.connect("clicked", self.search_id, lab5x,
-                                    self.vcore.hashname, pyvindex.hash_id)
-        rowcnt += 1
-
-        butt2 = Gtk.Button.new_with_mnemonic("  Sea_rch   ")
-        tp4x = ("_Search for name (slow):", "find", "Search for partial record match. Slow", None)
-        lab4x = pgentry.griddouble(gridx, 0, rowcnt, tp4x, butt2)
-        butt2.connect("clicked", self.search_entry, lab4x)
-        rowcnt += 1
+        elif mode == MODE_BALLOT:
+            self.headers = HEAD_BALLOT
+            butt3 = Gtk.Button.new_with_mnemonic("  by Name  ")
+            butt4 = Gtk.Button.new_with_mnemonic("  by UUID   ")
+            tp5x = ("_Find Ballot:", "get", "Search for Ballot name. Case insesitive.", None)
+            tp5y = ("Find I_D:", "get", "Search for ballot ID. Must be a valid UUID", None)
+            lab5x, lab6x = pgentry.gridhexa(gridx, 0, rowcnt, tp5x, tp5y, butt3, butt4)
+            butt3.connect("clicked", self.search_idx, lab5x,
+                                        self.vcore.hashname2, pyvindex.hash_name, "name")
+            butt4.connect("clicked", self.search_id, lab6x,
+                                        self.vcore.hashname, pyvindex.hash_id, "id")
+            rowcnt += 1
+            butt2 = Gtk.Button.new_with_mnemonic("  by Name  ")
+            butt3 = Gtk.Button.new_with_mnemonic("  by All fields  ")
+            tp4x = ("_Name (Slow):",  "find", "Search for partial name match. Case sensitive. Slow", None)
+            tp4y = ("Field_s:", "find2", "Search for partial record match in all fields. Very Slow", None)
+            lab4x, lab5x  = pgentry.gridhexa(gridx, 0, rowcnt, tp4x, tp4y, butt2, butt3)
+            butt2.connect("clicked", self.search_entry, lab4x)
+            butt3.connect("clicked", self.search_all, lab5x)
+            rowcnt += 1
+        else:
+            print("Invalid mode")
+            self.headers = HEAD_VOTER
 
         hbox4.pack_start(pggui.xSpacer(), 0, 0, 4)
         hbox4.pack_start(gridx, 0, 0, 4)
@@ -174,6 +235,7 @@ class RecSelDlg(Gtk.Dialog):
         label2 = Gtk.Label("   ")
         hbox3.pack_start(label2, 0, 0, 0)
 
+        self.vbox.pack_start(pggui.xSpacer(), 0, 0, 0)
         self.vbox.pack_start(hbox3, True, True, 0)
 
         #label5  = Gtk.Label("  ")
@@ -189,9 +251,17 @@ class RecSelDlg(Gtk.Dialog):
 
         self.abox = self.get_action_area()
 
+        self.livebutt = Gtk.Button.new_with_mnemonic("Load from oth_er")
+        self.livebutt.connect("clicked", self.liveload)
+        self.livebutt.set_tooltip_text("Load data from alternate source")
+
+        self.abox.pack_start(self.livebutt, 1, 1, 0)
+        self.abox.reorder_child(self.livebutt, 0)
+
         self.stopbutt = Gtk.Button.new_with_mnemonic("Stop Lo_ading")
         self.stopbutt.set_sensitive( False )
         self.stopbutt.connect("clicked", self.stopload)
+        self.stopbutt.set_tooltip_text("Abort currently running search")
 
         self.abox.pack_start(self.stopbutt, 1, 1, 0)
         self.abox.reorder_child(self.stopbutt, 0)
@@ -230,6 +300,32 @@ class RecSelDlg(Gtk.Dialog):
         #print ("response", self.response, "result", self.res)
         self.destroy()
 
+    def cleartree(self):
+
+        ''' Clear old tree contents '''
+
+        while True:
+            root = self.ts.get_iter_first()
+            if not root:
+                break
+            try:
+                self.ts.remove(root)
+            except:
+                print("Exception on rm ts", sys.exc_info())
+
+    def search_all(self, butt, entry):
+
+        if  self.reentry:
+            return
+        self.reentry = True
+
+        #print("Search ALL:", entry.get_text())
+        self.populate("", "", entry.get_text())
+
+        self.set_focus(self.tview)
+        self.reentry = False
+        self.labhelp.set_text(LATEST)
+
     def search_entry(self, butt, entry):
         if  self.reentry:
             return
@@ -239,11 +335,10 @@ class RecSelDlg(Gtk.Dialog):
         self.populate("", entry.get_text())
         self.set_focus(self.tview)
         self.reentry = False
-
         self.labhelp.set_text(LATEST)
 
 
-    def search_idx(self, arg2, entry, hashname, hashfunc, duplicates=True):
+    def search_idx(self, arg2, entry, hashname, hashfunc, fieldname, dups=True):
 
         ''' Search Name Index. Fast '''
 
@@ -256,23 +351,15 @@ class RecSelDlg(Gtk.Dialog):
         #print("Search for:", textx)
 
         self.stop = False
-        self.labsss.set_text("Loading ...")
+        self.labsss.set_text("Searching ...")
         self.stopbutt.set_sensitive(True)
         self.get_window().set_cursor(self.w_cursor)
         pgutils.usleep(5)
 
-        # Clear old contents:
-        while True:
-            root = self.ts.get_iter_first()
-            if not root:
-                break
-            try:
-                self.ts.remove(root)
-            except:
-                print("Exception on rm ts", sys.exc_info())
+        self.cleartree()
 
         ttt = time.time()
-        ddd3 =  pyvindex.search_index(self.vcore, hashname, textx, hashfunc, self)
+        ddd3 =  pyvindex.search_index(textx, self.vcore, hashname, hashfunc, fieldname, self)
 
         # Fill in results
         self.stopbutt.set_sensitive( False )
@@ -302,10 +389,9 @@ class RecSelDlg(Gtk.Dialog):
                 if fff:
                     #print("found:", fff)
                     ddd2.append(fff)
-
         ddd_dup = []
         for aa in ddd2:
-            if duplicates:
+            if dups:
                 pass
             else:
                 if aa[3] in ddd_dup:
@@ -313,6 +399,7 @@ class RecSelDlg(Gtk.Dialog):
                 ddd_dup.append(aaa[3])
 
             ddd_dup.append(aa[3])
+            self.rec_cnt += 1
             try:
                 piter = self.ts.append(row=None)
                 #print("row", aa)
@@ -325,10 +412,9 @@ class RecSelDlg(Gtk.Dialog):
         self.labsss.set_text("%s records. (%.2fs)" % (self.rec_cnt, delta))
         self.get_window().set_cursor()
         self.set_focus(self.tview)
-        self.labhelp.set_text("If multiple matches found, use the latest")
         self.labhelp.set_text(LATEST)
 
-    def search_id(self, arg2, entry, hashname, hashfunc):
+    def search_id(self, arg2, entry, hashname, hashfunc, fieldname):
 
         if  self.reentry:
             return
@@ -343,10 +429,17 @@ class RecSelDlg(Gtk.Dialog):
             pggui.message(msg, parent=self)
             self.reentry = False
             return
-        self.search_idx(arg2, entry, hashname, hashfunc)
+        self.search_idx(arg2, entry, hashname, hashfunc, fieldname)
         self.set_focus(self.tview)
         self.reentry = False
         self.labhelp.set_text(LATEST)
+
+    def liveload(self, butt):
+        ret = filedlg.File_Dlg()
+        if not ret:
+            return
+        # make sure we are looking at data
+
 
     def stopload(self, butt):
 
@@ -367,9 +460,10 @@ class RecSelDlg(Gtk.Dialog):
         ''' Fill in use instructions '''
 
         piter = self.ts.append(row=None)
-        self.ts.set(piter, 0, "Select Appropriate filter")
-        self.ts.set(piter, 1, "From top row")
-        self.ts.set(piter, 2, "Selecting 'All' may take a long time to load")
+        self.ts.set(piter, 0, "Select Appropriate filter.")
+        self.ts.set(piter, 1, "Or fill in search criteria.")
+        self.ts.set(piter, 2, "Selecting 'All' may")
+        self.ts.set(piter, 3, "take a long time to load.")
 
     # ------------------------------------------------------------------------
 
@@ -386,16 +480,7 @@ class RecSelDlg(Gtk.Dialog):
         self.get_window().set_cursor(self.w_cursor)
         pgutils.usleep(5)
 
-        # Clear old contents:
-        while True:
-            root = self.ts.get_iter_first()
-            if not root:
-                break
-            try:
-                self.ts.remove(root)
-            except:
-                print("Exception on rm ts", sys.exc_info())
-
+        self.cleartree()
         self.rec_cnt = 0
         datasize = self.vcore.getdbsize()
 
@@ -442,12 +527,21 @@ class RecSelDlg(Gtk.Dialog):
             uuu = ""
         return uuu, dec
 
-    def populate(self, filterx = "", searchx = ""):
+    def populate(self, filterx = "", searchx = "", searchall = ""):
 
-        ''' populate tree '''
+        ''' Populate tree. Three modes, dependent on which
+             args passed.
+        '''
 
         if len(filterx):
             filterx = filterx.upper()
+
+        #print("populate:", "1:", filterx, "2:", searchx, "3:", searchall)
+
+        if not filterx and not searchx and not searchall:
+            msg = "Search text cannot be empty."
+            pggui.message(msg, parent=self)
+            return
 
         self.stop = False
         ttt = time.time()
@@ -455,17 +549,7 @@ class RecSelDlg(Gtk.Dialog):
         self.stopbutt.set_sensitive(True)
         self.get_window().set_cursor(self.w_cursor)
         pgutils.usleep(5)
-
-        # Clear old contents:
-        while True:
-            root = self.ts.get_iter_first()
-            if not root:
-                break
-            try:
-                self.ts.remove(root)
-            except:
-                print("Exception on rm ts", sys.exc_info())
-
+        self.cleartree()
         self.rec_cnt = 0
         datasize = self.vcore.getdbsize()
 
@@ -496,19 +580,32 @@ class RecSelDlg(Gtk.Dialog):
                 pgutils.usleep(5)
 
             # See if search requested:
+            cont = False
             if searchx:
                 if len(dec['name']):
                     #if dec['name'].upper().find(searchx) < 0:
                     if dec['name'].find(searchx) < 0:
-                        continue
+                        cont = True
+            elif searchall:
+                cont = True
+                for ss in dec:
+                    if dec[ss]:
+                        if dec[ss].find(searchall) >= 0:
+                            #print("dec found", aa, dec[aa])
+                            cont = False
+                            break
+            elif filterx:       # See if it is filtered:
+                if  filterx != "ALL":
+                    if dec['name']:
+                        if filterx[0] != dec['name'][0].upper():
+                            #print("Filtered", dec['name'])
+                            cont = True
             else:
-                # See if it is filtered:
-                if filterx != "ALL":
-                    if filterx != "":
-                        if len(dec['name']):
-                            if filterx[0] != dec['name'][0].upper():
-                                #print("Filtered", dec['name'])
-                                continue
+                #print("Populate: Empty strings.")
+                pass
+
+            if cont:
+                continue
 
             uuu = rrr[0].decode()
 
@@ -552,11 +649,15 @@ class RecSelDlg(Gtk.Dialog):
 
         # Fill in results
         self.stopbutt.set_sensitive( False )
-        for aa in ddd2:
+        if not ddd2:
             piter = self.ts.append(row=None)
-            #print("row", aa)
-            for cc in range(5):
-                self.ts.set(piter, cc, aa[cc])
+            self.ts.set(piter, 0, "No data found.")
+        else:
+            for aa in ddd2:
+                piter = self.ts.append(row=None)
+                #print("row", aa)
+                for cc in range(5):
+                    self.ts.set(piter, cc, aa[cc])
 
         delta = (time.time() - ttt)
         self.labsss.set_text("%s records. (%.1fs)" % (self.rec_cnt, delta))
@@ -653,15 +754,14 @@ class RecSelDlg(Gtk.Dialog):
 
         realheaders = []
         # Padd it from the two header arrays; missing or empty -> sub stock
-        for aa in range(len(self.stock_headers)):
+        for pos, aa in enumerate(self.headers):
             try:
-                sss = self.headers[aa]
-                if not sss:
-                    sss = self.stock_headers[aa]
+                if not aa:
+                    aa = STOCK_HEADERS[pos]
             except:
-                sss = self.stock_headers[aa]
-
-            realheaders.append(sss)
+                #print("hhh fill exc", sys.exc_info())
+                aa = STOCK_HEADERS[pos]
+            realheaders.append(aa)
 
         tv.set_search_column(0)
         tv.set_headers_clickable(True)
@@ -723,7 +823,7 @@ class RecSelDlg(Gtk.Dialog):
 
         #print("Del rec", arg2, arg3, textx)
 
-        ddd2 = pyvindex.search_index(self.vcore, self.vcore.hashname, textx, hashid)
+        ddd2 = pyvindex.search_index(textx, self.vcore, self.vcore.hashname, hashid, "", None)
         for aa in ddd2:
             print("deleting:", ddd2)
             try:

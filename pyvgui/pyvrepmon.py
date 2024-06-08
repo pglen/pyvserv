@@ -78,7 +78,7 @@ optarr = [\
  ["v",   "verbose",   "verbose",  0,          None,
                                         "Print more information",     ],
  ["w",   "weak",         "weak",     0,              None,
-                                        "Weak POW generation. Test only", ],
+                                        "Weak PROW generation. Test only", ],
  ["K",   "kind",         "kind",     "vote",              None,
                                         "Kind of repliation to monitor", ],
  ["q",   "quiet",     "quiet",    0,          None,
