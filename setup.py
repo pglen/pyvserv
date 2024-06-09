@@ -70,11 +70,11 @@ try:
 
     # Thu 04.Apr.2024 abandoned readline; may install by hand
     deplist = ["pyvpacker", "pydbase", "pycryptodome",
-                        "pyvecc", "pyvguicom", "playsound", ],
+                        "pyvecc", "pyvguicom", "playsound", "qrcode"],
 except:
     # No fnctl, windows
     deplist = ["pyvpacker", "pydbase", "pycryptodome",
-                        "pyvecc", "pyvguicom", "playsound"],
+                        "pyvecc", "pyvguicom", "playsound", "qrcode"],
 
 doclist = []; droot = "pyvserver/docs/"
 doclistx = os.listdir(droot)

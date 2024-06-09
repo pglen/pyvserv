@@ -14,6 +14,7 @@ import qrcode
 
 from pyvguicom import pgutils
 from pyvguicom import pggui
+from pyvguicom import pgtests
 
 try:
     from playsound import playsound

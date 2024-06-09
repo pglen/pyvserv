@@ -227,7 +227,14 @@ class Replicator():
             arr = conf.packer.decode_data(rec[1])[0]
             #print("repdb rec arr:", arr)
             #print("repdb rec arr:", arr['header'])
-            if not int(arr['processed']) :
+
+            try:
+                val = int(arr.get('processed', 0))
+            except:
+                val = 0
+                #print ("exc processed", sys.exc_info())
+
+            if not val:
                 #print("Processed:", arr['processed'], "retrans:", retrans)
                 if conf.pgdebug > 7:
                     print("head:", rec[0], "arr:", arr)

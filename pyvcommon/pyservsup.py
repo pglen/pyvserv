@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+'''
+
+    Doc here
+
+'''
 
 import os, sys, string, time, traceback, random, uuid
 import datetime, base64
@@ -15,6 +19,7 @@ except:
 #base = os.path.dirname(os.path.realpath(__file__))
 #sys.path.append(os.path.join(base, '../pyvcommon'))
 
+import threading
 import support, pyclisup, crysupp, pysyslog
 
 #from Crypto.Hash import SHA512
@@ -946,10 +951,14 @@ class Throttle():
 
         self.sem.acquire()
         # Throttle disabled, return zero delay
-        if not self.enabled.value:
-        #if not self.enabled[0]:
-            self.sem.release()
-            return 0
+
+        try:
+            if not self.enabled.value:
+            #if not self.enabled[0]:
+                self.sem.release()
+                return 0
+        except:
+            pass
 
         # Calculate recents
         for aa in self.connlist:
@@ -1033,6 +1042,5 @@ def str2bool(strx, default = False):
 
 if __name__ == '__main__':
     print( "This module was not meant to be used directly.")
-
 
 # EOF
