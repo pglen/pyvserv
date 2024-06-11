@@ -15,7 +15,9 @@ from pyvguicom import pgutils
 
 # Add this path to find local modules
 base = os.path.dirname(pgutils.__file__)
+
 sys.path.append(base)
+#sys.path.append(os.path.join(base, "guilib"))
 
 from pyvguicom import pgbox
 from pyvguicom import pgsimp
@@ -26,6 +28,8 @@ from pyvguicom import pgtests
 
 from pymenu import  *
 from pgui import  *
+
+#print("sys.path", sys.path)
 
 import pyvrecsel, pgcal, config, passdlg, pymisc, pyvcores
 
@@ -415,8 +419,10 @@ class MainWin(Gtk.Window):
         if confx['start_replic']:
             exe = os.path.join(os.path.dirname(__file__),
                                 "..", "..", "pyvreplic", "pyvreplic.py")
-            #print("exe:", exe)
-            ret = subprocess.Popen([exe, "-c",])
+            exe = os.path.normpath(exe)
+            print("exe:", exe)
+            ret = subprocess.Popen(["python", exe, "-c", ],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             #print("subp ret", ret)
 
     def load_ballot(self, arg2):

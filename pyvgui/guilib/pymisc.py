@@ -17,15 +17,21 @@ from pyvguicom import pggui
 from pyvguicom import pgtests
 
 try:
-    from playsound import playsound
-except:
-    print("Playsound not available, beeping only.")
+    import winsound
 
+    print("Playsound for windows")
     def playsound(arg):
-        print("Fake playsound")
-        Gdk.beep()
-        pass
-    #print("No sound subsystem")
+        winsound.PlaySound(arg, 0)
+except:
+    try:
+        from playsound import playsound
+    except:
+        print("Playsound not available, beeping only.")
+        def playsound(arg):
+            print("Fake playsound")
+            Gdk.beep()
+            pass
+        #print("No sound subsystem")
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -89,6 +95,10 @@ class Status(Gtk.Label):
         #lambda self, size: self.set_size_request(size.width - 1, -1))
         return True
 
+    def set_text(self, *textx):
+        ''' Override, channel it to timed version '''
+        self.set_status_text(*textx)
+
     def set_status_text(self, *textx):
         sum = ""
         for aa in textx:
@@ -97,15 +107,14 @@ class Status(Gtk.Label):
         self.set_tooltip_text(sum)
         if len(sum) > self.maxlen:
             sum = sum[:self.maxlen] + " .."
-        self.set_text(sum)
+        super().set_text(sum)
         self.status_cnt = len(sum) // 4
         pgutils.usleep(10)
 
     def _timer(self):
 
         #self.get_window().set_resizable(False)
-
-        #print("timer",  self.status_cnt)
+        #print("status timer",  self.status_cnt)
         if self.status_cnt:
             self.status_cnt -= 1
             if self.status_cnt == 0:
@@ -162,7 +171,7 @@ class Soundx():
             sname = SNAMES["wood"]
 
         me = os.path.dirname(__file__)
-        sname = os.path.join(me, sname)
+        sname = os.path.normpath(os.path.join(me, sname))
         #print("playing sound: '%s' '%s'" % (sound, sname))
         try:
             if not self.qqq.full():

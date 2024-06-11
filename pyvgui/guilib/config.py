@@ -581,13 +581,13 @@ class ConfigDlg(Gtk.Dialog):
 
         # Changed?
         if  self.model2[path][idx] == text:
-            print("No change", text)
+            #print("No change", text)
             return
 
         # Commit to field, save it.
         try:
             self.model2[path][idx] = text
-            print("Commit", text, idx)
+            #print("Commit", text, idx)
             self.save_host_row(self.model2[path])
 
         except:

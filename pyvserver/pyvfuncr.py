@@ -561,8 +561,8 @@ def get_rput_func(self, strx):
     #retoffs = savecore.get_payoffs_bykey(strx[2]['header'])
     # Use index:
     # Find it via index (0.2 ms / 13000 records)
-    retoffs = pyvindex.search_index(savecore, savecore.hashname,
-                                strx[2]['header'], pyvindex.hash_id)
+    retoffs = pyvindex.search_index(strx[2]['header'], savecore,
+                            savecore.hashname, pyvindex.hash_id, "id")
 
     #print("index", retoffs)
     #print("db get offs  %.3f ms" % ((time.time() - ttt) * 1000) )
