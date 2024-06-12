@@ -377,6 +377,14 @@ order influences the voting process.
 The UUID fields serve identification of the vote, the organization hosting
 the ballot entry, and the operator that entered this record.
 
+![Screen Shot](qrscreen.png)
+
+  Every relevant UUID is viewable as a QR code. The QR code than can be
+used to search / retrieve an entry. The pyvserv clients are equipped with
+scanning functionality, navigating to the correct record when presenting the
+QR code to the camera. For instance, a picture of the QR code on the cell phone
+allows one to locate the record immediately.
+
 ## Windows compatibility
 
   Pyvserv now functions in the Windows MSYS2 subsystem. All the major

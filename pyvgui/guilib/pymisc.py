@@ -41,7 +41,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
 
-MAXSTATLEN = 36
+MAXSTATLEN = 48
 IDLESTR = "Idle ..."
 
 def anon_name(namex, slicex = 2):
@@ -65,17 +65,15 @@ def anon_name(namex, slicex = 2):
 
     return ret
 
-
-
 class Status(Gtk.Label):
 
     ''' Status that disappears after a while '''
 
-    def __init__(self):
+    def __init__(self, xsize = 300):
         #super().__init__(self)
         Gtk.Label.__init__(self)
         self.set_xalign(0)
-        self.set_size_request(180, -1)
+        self.set_size_request(xsize, -1)
         self.status_cnt = 0
         self.scroll = Gtk.ScrolledWindow()
         self.scroll.set_policy(Gtk.PolicyType.ALWAYS, Gtk.PolicyType.NEVER)
@@ -109,7 +107,7 @@ class Status(Gtk.Label):
             sum = sum[:self.maxlen] + " .."
         super().set_text(sum)
         self.status_cnt = len(sum) // 4
-        pgutils.usleep(10)
+        pgutils.usleep(20)
 
     def _timer(self):
 

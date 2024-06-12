@@ -163,40 +163,48 @@ class MainWin(Gtk.Window):
         lab1a = Gtk.Label("   ");
         hbox4.pack_start(lab1a, 0, 0, 0)
 
+        self.butts = []
         if self.conf.testx:
             butt5a = Gtk.Button.new_with_mnemonic(" Te_zt ")
             butt5a.connect("clicked", self.test_data)
             hbox4.pack_start(butt5a, False, 0, 2)
+            self.butts.append(butt5a)
 
         butt4 = Gtk.Button.new_with_mnemonic(" _Save ")
         butt4.set_tooltip_text("Save current vote to database")
         butt4.connect("clicked", self.save_data)
         hbox4.pack_start(butt4, False, 0, 2)
+        self.butts.append(butt4)
 
-        butt3 = Gtk.Button.new_with_mnemonic(" Config_ure")
-        butt3.set_tooltip_text("Configure replication targets and admins / users.")
-        butt3.connect("clicked", self.config_dlg)
-        hbox4.pack_start(butt3, False, 0, 2)
+        butt3x = Gtk.Button.new_with_mnemonic(" Config_ure")
+        butt3x.set_tooltip_text("Configure replication targets and admins / users.")
+        butt3x.connect("clicked", self.config_dlg)
+        hbox4.pack_start(butt3x, False, 0, 2)
+        self.butts.append(butt3x)
 
         butt3 = Gtk.Button.new_with_mnemonic(" Lo_ad ")
         butt3.set_tooltip_text("Load votes")
         butt3.connect("clicked", self.load_vote)
         hbox4.pack_start(butt3, False, 0, 2)
+        self.butts.append(butt3)
 
         butt5 = Gtk.Button.new_with_mnemonic(" Ne_w ")
         butt5.set_tooltip_text("New Vote")
         butt5.connect("clicked", self.new_data)
         hbox4.pack_start(butt5, False, 0, 2)
+        self.butts.append(butt5)
 
-        butt3 = Gtk.Button.new_with_mnemonic(" _Delete ")
-        butt3.set_tooltip_text("Delete current vote from database")
-        butt3.connect("clicked", self.del_vote)
-        hbox4.pack_start(butt3, False, 0, 2)
+        butt3d = Gtk.Button.new_with_mnemonic(" _Delete ")
+        butt3d.set_tooltip_text("Delete current vote from database")
+        butt3d.connect("clicked", self.del_vote)
+        hbox4.pack_start(butt3d, False, 0, 2)
+        self.butts.append(butt3d)
 
         butt2 = Gtk.Button.new_with_mnemonic(" E_xit ")
         butt2.set_tooltip_text("Exit program")
         butt2.connect("clicked", self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
+        # Do not add to control, will always want to exit
 
         lab2 = Gtk.Label("   ");  hbox4.pack_start(lab2, 0, 0, 0)
 
@@ -608,6 +616,14 @@ class MainWin(Gtk.Window):
 
     def start_pass_dlg(self, arg2):
 
+        if self.conf.recnum != -1:
+            #print("Showing record", self.conf.recnum)
+            self.set_title("PyVServer Vote ReadOnly View")
+            self.load_data(int(self.conf.recnum))
+            self.en_dis_all(False)
+            self.en_dis_ctrl(False)
+            return
+
         authcnt = 0
         while True:
             if authcnt > 3:
@@ -643,6 +659,10 @@ class MainWin(Gtk.Window):
             pyvrecsel.audit(self.acore, self.packer, "Successful Login", ret[1][0])
             break
         self.set_focus(self.dat_dict['nuuid'])
+
+    def en_dis_ctrl(self, flag):
+        for aa in self.butts:
+            aa.set_sensitive(flag)
 
     def en_dis_all(self, flag):
         for aa in self.dat_dict.keys():
@@ -899,10 +919,15 @@ class MainWin(Gtk.Window):
         sss = pyvrecsel.RecSelDlg(self.votecore, self.conf, mode=pyvrecsel.MODE_VOTE)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
+
         #print("sss.res:", sss.res)
+        self.load_data(int(sss.res[0][4]) )
+
+    def load_data(self, recnum):
+        #print("recnum:", recnum)
         try:
             #dat = self.votecore.retrieve(sss.res[0][3])
-            dat = self.votecore.get_rec(int(sss.res[0][4]))
+            dat = self.votecore.get_rec(recnum)
         except:
             dat = []
             print(sys.exc_info())

@@ -117,6 +117,8 @@ optarr = [\
                                         "Prompt for password on command line.", ],
  ["s",   "sound",     "soundx",   0,          None,
                                         "Turn off sound",     ],
+ ["c:",   "recnum=",     "recnum",   -1,          None,
+                                        "Show record by number",     ],
  ["v",   "verbose",   "verbose",  0,          None,
                                         "Print more information",     ],
  ["w",   "weak",         "weak",     0,              None,
@@ -227,5 +229,6 @@ if __name__ == '__main__':
 
     mainfunct()
     sys.exit(1)
+
 
 # EOF
