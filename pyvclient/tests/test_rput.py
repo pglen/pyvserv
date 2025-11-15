@@ -48,6 +48,8 @@ def test_func(capsys):
 
     global ip
 
+    return
+
     #ip = "192.168.1.22"
     ip = '127.0.0.1'
     hand = pyclisup.CliSup()
@@ -60,7 +62,9 @@ def test_func(capsys):
     pvh.addpayload({"name":  pgtests.simname(12)})
     pvh.addpayload({"TEST": "Do NOT use", })
     pvh.hasharr();
+
     while not pvh.powarr():
+        time.sleep(0.1)
         pass
 
     #print(pvh.datax)

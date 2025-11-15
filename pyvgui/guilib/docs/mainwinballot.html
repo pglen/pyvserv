@@ -50,11 +50,12 @@ from pyvguicom import pgsimp
 from pyvguicom import pggui
 from pyvguicom import pgentry
 from pyvguicom import pgutils
+from pyvguicom import pgtests
 
 from pymenu import  *
 from pgui import  *
 
-import pyvrecsel, pgcal, config, passdlg, pymisc
+import pyvrecsel, pgcal, config, passdlg, pymisc, pyvcores
 
 from pyvcommon import pydata, pyservsup,  pyvhash, crysupp, pyvindex
 
@@ -96,11 +97,8 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         # We let the core carry vars; make sure they do not collide
-        self.bcore = twincore.TwinCore(&#34;ballots.pydb&#34;, 0)
+        self.bcore = pyvcores.ballotcore(&#34;ballots.pydb&#34;)
         self.bcore.packer = self.packer
-        self.bcore.hashname  = os.path.splitext(self.bcore.fname)[0] + &#34;.hash.id&#34;
-        self.bcore.hashname2 = os.path.splitext(self.bcore.fname)[0] + &#34;.hash.name&#34;
-
         self.acore = twincore.TwinCore(&#34;audit.pydb&#34;, 0)
         self.authcore = twincore.TwinCore(&#34;auth.pydb&#34;, 0)
 
@@ -189,6 +187,10 @@ class MainWin(Gtk.Window):
 
         lab1 = Gtk.Label(&#34; &#34;);
         hbox4.pack_start(lab1, 0, 0, 0)
+
+        butt5 = Gtk.Button.new_with_mnemonic(&#34; Te_zt  &#34;)
+        butt5.connect(&#34;clicked&#34;, self.test_data)
+        hbox4.pack_start(butt5, False, 0, 2)
 
         butt5 = Gtk.Button.new_with_mnemonic(&#34; Ne_w  &#34;)
         butt5.connect(&#34;clicked&#34;, self.new_data)
@@ -802,6 +804,9 @@ class MainWin(Gtk.Window):
     def test_data(self, arg1):
 
         #print(&#34;test started&#34;)
+        # Disable sound
+        sps = self.conf.playsound
+        self.conf.playsound = None
         self.stop = not self.stop
         while True:
             if self.exit_flag:
@@ -817,21 +822,24 @@ class MainWin(Gtk.Window):
                 if aa == &#39;uuid&#39;:
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == &#39;name&#39;:
-                   self.dat_dict[aa].set_text(simname(random.randint(12, 22)))
+                   self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
                 elif aa == &#39;vguid&#39;:
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == &#39;dob&#39;:
-                    self.dat_dict[aa].set_text(randate())
+                    self.dat_dict[aa].set_text(pgtests.randate())
                 elif aa == &#39;now&#39;:
-                    self.dat_dict[aa].set_text(randisodate())
+                    self.dat_dict[aa].set_text(pgtests.randisodate())
                 elif aa == &#39;notes&#39;:
-                    self.dat_dict[aa].set_text(randascii(random.randint(33, 66)))
+                    self.dat_dict[aa].set_text(pgtests.randascii(random.randint(33, 66)))
                 else:
-                    self.dat_dict[aa].set_text(pgutils.randstr(random.randint(6, 22)))
+                    self.dat_dict[aa].set_text(pgtests.randstr(random.randint(6, 22)))
             sleepx = 20
             pgutils.usleep(sleepx)
             self.save_data(0)
             self.clear_data()
+
+        self.conf.playsound = sps
+        pgutils.usleep(10)
 
     def save_data(self, arg1):
 
@@ -948,20 +956,20 @@ class MainWin(Gtk.Window):
 
         pvh.hasharr()
 
-        def callb(dlg):
-            #print(&#34;callback from dlg&#34;)
-            self.status.set_status_text(&#34;PROW calc, please wait ...&#34;)
-            for aa in range(10):
-                dlg.prog.set_fraction((aa+1) * 0.1)
+        def callbdlg(dlg):
+            ddd = 20
+            for aa in range(ddd):
+                dlg.prog.set_fraction((aa+1) * 1/ddd)
                 if pvh.powarr():
                     break
                 self.status.set_status_text(&#34;PROW calc retry %d ..&#34; % (aa+1))
             dlg.response(Gtk.ResponseType.ACCEPT)
             dlg.destroy()
             self.status.set_status_text(&#34;PROW done.&#34;)
+
         if self.conf.weak:
             pvh.num_zeros = 1
-        dlg = pymisc.progDlg(self.conf, callb, parent = self)
+        dlg = pymisc.progDlg(self.conf, callbdlg, parent = self)
 
         if not pvh.checkpow():
             msg = &#34;Cold not generate PROW, please retry saving record.&#34;
@@ -974,27 +982,7 @@ class MainWin(Gtk.Window):
         #print(&#34;enc:&#34;, enc)
         uuu = self.dat_dict[&#39;uuid&#39;].get_text()
 
-        # Add index indices
-        def callb(c2, id2):
-            # Replicate saved locally
-            dddd = [uuu, enc.encode()]
-            #print(&#34;dddd:&#34;, dddd)
-            try:
-                pyvindex.append_index(c2, c2.hashname, pyvindex.hash_id, dddd)
-            except:
-                print(&#34;exc save callb hash&#34;, sys.exc_info())
-            try:
-                pyvindex.append_index(c2, c2.hashname2, pyvindex.hash_name, dddd)
-            except:
-                print(&#34;exc save callb name&#34;, sys.exc_info())
-        try:
-            self.bcore.postexec = callb
-            ret = self.bcore.save_data(uuu, enc)
-        except:
-            pass
-            print(&#34;save&#34;, sys.exc_info())
-        finally:
-            self.bcore.postexec = None
+        pyvcores.saveballot(self.bcore, uuu, enc)
 
         if self.conf.playsound:
             self.conf.playsound.play_sound(&#34;shutter&#34;)
@@ -1141,11 +1129,8 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
         # We let the core carry vars; make sure they do not collide
-        self.bcore = twincore.TwinCore(&#34;ballots.pydb&#34;, 0)
+        self.bcore = pyvcores.ballotcore(&#34;ballots.pydb&#34;)
         self.bcore.packer = self.packer
-        self.bcore.hashname  = os.path.splitext(self.bcore.fname)[0] + &#34;.hash.id&#34;
-        self.bcore.hashname2 = os.path.splitext(self.bcore.fname)[0] + &#34;.hash.name&#34;
-
         self.acore = twincore.TwinCore(&#34;audit.pydb&#34;, 0)
         self.authcore = twincore.TwinCore(&#34;auth.pydb&#34;, 0)
 
@@ -1234,6 +1219,10 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
         lab1 = Gtk.Label(&#34; &#34;);
         hbox4.pack_start(lab1, 0, 0, 0)
+
+        butt5 = Gtk.Button.new_with_mnemonic(&#34; Te_zt  &#34;)
+        butt5.connect(&#34;clicked&#34;, self.test_data)
+        hbox4.pack_start(butt5, False, 0, 2)
 
         butt5 = Gtk.Button.new_with_mnemonic(&#34; Ne_w  &#34;)
         butt5.connect(&#34;clicked&#34;, self.new_data)
@@ -1847,6 +1836,9 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     def test_data(self, arg1):
 
         #print(&#34;test started&#34;)
+        # Disable sound
+        sps = self.conf.playsound
+        self.conf.playsound = None
         self.stop = not self.stop
         while True:
             if self.exit_flag:
@@ -1862,21 +1854,24 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
                 if aa == &#39;uuid&#39;:
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == &#39;name&#39;:
-                   self.dat_dict[aa].set_text(simname(random.randint(12, 22)))
+                   self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
                 elif aa == &#39;vguid&#39;:
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
                 elif aa == &#39;dob&#39;:
-                    self.dat_dict[aa].set_text(randate())
+                    self.dat_dict[aa].set_text(pgtests.randate())
                 elif aa == &#39;now&#39;:
-                    self.dat_dict[aa].set_text(randisodate())
+                    self.dat_dict[aa].set_text(pgtests.randisodate())
                 elif aa == &#39;notes&#39;:
-                    self.dat_dict[aa].set_text(randascii(random.randint(33, 66)))
+                    self.dat_dict[aa].set_text(pgtests.randascii(random.randint(33, 66)))
                 else:
-                    self.dat_dict[aa].set_text(pgutils.randstr(random.randint(6, 22)))
+                    self.dat_dict[aa].set_text(pgtests.randstr(random.randint(6, 22)))
             sleepx = 20
             pgutils.usleep(sleepx)
             self.save_data(0)
             self.clear_data()
+
+        self.conf.playsound = sps
+        pgutils.usleep(10)
 
     def save_data(self, arg1):
 
@@ -1993,20 +1988,20 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
         pvh.hasharr()
 
-        def callb(dlg):
-            #print(&#34;callback from dlg&#34;)
-            self.status.set_status_text(&#34;PROW calc, please wait ...&#34;)
-            for aa in range(10):
-                dlg.prog.set_fraction((aa+1) * 0.1)
+        def callbdlg(dlg):
+            ddd = 20
+            for aa in range(ddd):
+                dlg.prog.set_fraction((aa+1) * 1/ddd)
                 if pvh.powarr():
                     break
                 self.status.set_status_text(&#34;PROW calc retry %d ..&#34; % (aa+1))
             dlg.response(Gtk.ResponseType.ACCEPT)
             dlg.destroy()
             self.status.set_status_text(&#34;PROW done.&#34;)
+
         if self.conf.weak:
             pvh.num_zeros = 1
-        dlg = pymisc.progDlg(self.conf, callb, parent = self)
+        dlg = pymisc.progDlg(self.conf, callbdlg, parent = self)
 
         if not pvh.checkpow():
             msg = &#34;Cold not generate PROW, please retry saving record.&#34;
@@ -2019,27 +2014,7 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         #print(&#34;enc:&#34;, enc)
         uuu = self.dat_dict[&#39;uuid&#39;].get_text()
 
-        # Add index indices
-        def callb(c2, id2):
-            # Replicate saved locally
-            dddd = [uuu, enc.encode()]
-            #print(&#34;dddd:&#34;, dddd)
-            try:
-                pyvindex.append_index(c2, c2.hashname, pyvindex.hash_id, dddd)
-            except:
-                print(&#34;exc save callb hash&#34;, sys.exc_info())
-            try:
-                pyvindex.append_index(c2, c2.hashname2, pyvindex.hash_name, dddd)
-            except:
-                print(&#34;exc save callb name&#34;, sys.exc_info())
-        try:
-            self.bcore.postexec = callb
-            ret = self.bcore.save_data(uuu, enc)
-        except:
-            pass
-            print(&#34;save&#34;, sys.exc_info())
-        finally:
-            self.bcore.postexec = None
+        pyvcores.saveballot(self.bcore, uuu, enc)
 
         if self.conf.playsound:
             self.conf.playsound.play_sound(&#34;shutter&#34;)
@@ -2919,20 +2894,20 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
     pvh.hasharr()
 
-    def callb(dlg):
-        #print(&#34;callback from dlg&#34;)
-        self.status.set_status_text(&#34;PROW calc, please wait ...&#34;)
-        for aa in range(10):
-            dlg.prog.set_fraction((aa+1) * 0.1)
+    def callbdlg(dlg):
+        ddd = 20
+        for aa in range(ddd):
+            dlg.prog.set_fraction((aa+1) * 1/ddd)
             if pvh.powarr():
                 break
             self.status.set_status_text(&#34;PROW calc retry %d ..&#34; % (aa+1))
         dlg.response(Gtk.ResponseType.ACCEPT)
         dlg.destroy()
         self.status.set_status_text(&#34;PROW done.&#34;)
+
     if self.conf.weak:
         pvh.num_zeros = 1
-    dlg = pymisc.progDlg(self.conf, callb, parent = self)
+    dlg = pymisc.progDlg(self.conf, callbdlg, parent = self)
 
     if not pvh.checkpow():
         msg = &#34;Cold not generate PROW, please retry saving record.&#34;
@@ -2945,27 +2920,7 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     #print(&#34;enc:&#34;, enc)
     uuu = self.dat_dict[&#39;uuid&#39;].get_text()
 
-    # Add index indices
-    def callb(c2, id2):
-        # Replicate saved locally
-        dddd = [uuu, enc.encode()]
-        #print(&#34;dddd:&#34;, dddd)
-        try:
-            pyvindex.append_index(c2, c2.hashname, pyvindex.hash_id, dddd)
-        except:
-            print(&#34;exc save callb hash&#34;, sys.exc_info())
-        try:
-            pyvindex.append_index(c2, c2.hashname2, pyvindex.hash_name, dddd)
-        except:
-            print(&#34;exc save callb name&#34;, sys.exc_info())
-    try:
-        self.bcore.postexec = callb
-        ret = self.bcore.save_data(uuu, enc)
-    except:
-        pass
-        print(&#34;save&#34;, sys.exc_info())
-    finally:
-        self.bcore.postexec = None
+    pyvcores.saveballot(self.bcore, uuu, enc)
 
     if self.conf.playsound:
         self.conf.playsound.play_sound(&#34;shutter&#34;)
@@ -3073,6 +3028,9 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 <pre><code class="python">def test_data(self, arg1):
 
     #print(&#34;test started&#34;)
+    # Disable sound
+    sps = self.conf.playsound
+    self.conf.playsound = None
     self.stop = not self.stop
     while True:
         if self.exit_flag:
@@ -3088,21 +3046,24 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
             if aa == &#39;uuid&#39;:
                self.dat_dict[aa].set_text(str(uuid.uuid1()) )
             elif aa == &#39;name&#39;:
-               self.dat_dict[aa].set_text(simname(random.randint(12, 22)))
+               self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
             elif aa == &#39;vguid&#39;:
                self.dat_dict[aa].set_text(str(uuid.uuid1()) )
             elif aa == &#39;dob&#39;:
-                self.dat_dict[aa].set_text(randate())
+                self.dat_dict[aa].set_text(pgtests.randate())
             elif aa == &#39;now&#39;:
-                self.dat_dict[aa].set_text(randisodate())
+                self.dat_dict[aa].set_text(pgtests.randisodate())
             elif aa == &#39;notes&#39;:
-                self.dat_dict[aa].set_text(randascii(random.randint(33, 66)))
+                self.dat_dict[aa].set_text(pgtests.randascii(random.randint(33, 66)))
             else:
-                self.dat_dict[aa].set_text(pgutils.randstr(random.randint(6, 22)))
+                self.dat_dict[aa].set_text(pgtests.randstr(random.randint(6, 22)))
         sleepx = 20
         pgutils.usleep(sleepx)
         self.save_data(0)
-        self.clear_data()</code></pre>
+        self.clear_data()
+
+    self.conf.playsound = sps
+    pgutils.usleep(10)</code></pre>
 </details>
 </dd>
 <dt id="mainwinballot.MainWin.timer"><code class="name flex">

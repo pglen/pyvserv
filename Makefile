@@ -58,6 +58,7 @@ cleankeys:
 	@rm -rf ~/pyvserver/private/*
 
 tests:
+	@  ./isalive.py
 	@echo "Executing tests in the pyvclient directory"
 	cd pyvclient/tests; pytest; cd ..
 	@echo "Warning: On empty database this test created demo credentials."
@@ -71,7 +72,7 @@ XPATH=PYTHONPATH=${ARG1}:${ARG2} python3 -W ignore::DeprecationWarning `which pd
 
 docs:
 	@#echo ${FILES}
-	@${XPATH}  -o pyvgui/guilib/docs pyvgui/guilib/mainwin.py
+	@#${XPATH}  -o pyvgui/guilib/docs pyvgui/guilib/mainwin.py
 	@${XPATH}  -o pyvgui/guilib/docs pyvgui/guilib/mainwinpeople.py
 	@${XPATH}  -o pyvgui/guilib/docs pyvgui/guilib/mainwinballot.py
 	@${XPATH}  -o pyvgui/guilib/docs pyvgui/guilib/mainwinvote.py

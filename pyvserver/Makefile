@@ -44,7 +44,8 @@ clean:
 test:
 	@echo No tests
 
-XPATH=PYTHONPATH=../pyvcommon:../  python -W ignore::DeprecationWarning `which pdoc3` --force --html
+XPATH=PYTHONPATH=./pyvcommon:../  python \
+         -W ignore::DeprecationWarning `which pdoc3` --force --html
 docs:
 	@${XPATH} -o docs pyvserv.py
 	@${XPATH} -o docs pyvfunc.py

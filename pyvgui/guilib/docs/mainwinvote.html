@@ -43,7 +43,9 @@ from pyvguicom import pgutils
 
 # Add this path to find local modules
 base = os.path.dirname(pgutils.__file__)
+
 sys.path.append(base)
+#sys.path.append(os.path.join(base, &#34;guilib&#34;))
 
 from pyvguicom import pgbox
 from pyvguicom import pgsimp
@@ -55,7 +57,9 @@ from pyvguicom import pgtests
 from pymenu import  *
 from pgui import  *
 
-import pyvrecsel, pgcal, config, passdlg, pymisc
+#print(&#34;sys.path&#34;, sys.path)
+
+import pyvrecsel, pgcal, config, passdlg, pymisc, pyvcores
 
 from pyvcommon import pydata, pyservsup,  pyvhash
 from pyvcommon import crysupp, support, pyvindex, filedlg
@@ -99,28 +103,18 @@ class MainWin(Gtk.Window):
         self.packer = pyvpacker.packbin()
 
         votename = os.path.join(pyservsup.globals.chaindir, &#34;vote&#34;, &#34;initial.pydb&#34;)
-        self.votecore = twincore.TwinCore(votename, 0)
+        self.votecore = pyvcores.votecore(votename)
         self.votecore.packer = self.packer
-        self.votecore.hashname  = os.path.splitext(self.votecore.fname)[0] + &#34;.hash.id&#34;
-        self.votecore.hashname2 = os.path.splitext(self.votecore.fname)[0] + &#34;.hash.name&#34;
 
-        self.acore = twincore.TwinCore(&#34;audit.pydb&#34;, 0)
-        self.authcore = twincore.TwinCore(&#34;auth.pydb&#34;, 0)
-
-        self.bcore = twincore.TwinCore(&#34;ballots.pydb&#34;, 0)
+        self.bcore = pyvcores.ballotcore(&#34;ballots.pydb&#34;)
         self.bcore.packer = self.packer
-        self.bcore.hashname  = os.path.splitext(self.bcore.fname)[0] + &#34;.hash.id&#34;
-        self.bcore.hashname2 = os.path.splitext(self.bcore.fname)[0] + &#34;.hash.name&#34;
 
-        # We let the core carry vars; make sure they do not collide
-        self.vcore = twincore.TwinCore(&#34;voters.pydb&#34;, 0)
+        self.vcore = pyvcores.votercore(&#34;voters.pydb&#34;)
         self.vcore.packer = self.packer
-        self.vcore.hashname  = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.id&#34;
-        self.vcore.hashname2 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.name&#34;
-        self.vcore.hashname3 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.phone&#34;
-        self.vcore.hashname4 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.email&#34;
 
         self.hcore = twincore.TwinCore(&#34;ihosts.pydb&#34;, 0)
+        self.acore = twincore.TwinCore(&#34;audit.pydb&#34;, 0)
+        self.authcore = twincore.TwinCore(&#34;auth.pydb&#34;, 0)
 
         self.exit_flag = 0
         self.stop = True
@@ -197,45 +191,48 @@ class MainWin(Gtk.Window):
         lab1a = Gtk.Label(&#34;   &#34;);
         hbox4.pack_start(lab1a, 0, 0, 0)
 
+        self.butts = []
         if self.conf.testx:
             butt5a = Gtk.Button.new_with_mnemonic(&#34; Te_zt &#34;)
             butt5a.connect(&#34;clicked&#34;, self.test_data)
             hbox4.pack_start(butt5a, False, 0, 2)
-
-        butt3 = Gtk.Button.new_with_mnemonic(&#34; Config_ure&#34;)
-        butt3.set_tooltip_text(&#34;Configure replication targets&#34;)
-        butt3.connect(&#34;clicked&#34;, self.config_dlg)
-        hbox4.pack_start(butt3, False, 0, 2)
-
-        #butt3 = Gtk.Button.new_with_mnemonic(&#34; Load Li_ve&#34;)
-        #butt3.set_tooltip_text(&#34;Load votes from Live server directory&#34;)
-        #butt3.connect(&#34;clicked&#34;, self.load_live_vote)
-        #hbox4.pack_start(butt3, False, 0, 2)
-
-        butt3 = Gtk.Button.new_with_mnemonic(&#34; Lo_ad &#34;)
-        butt3.set_tooltip_text(&#34;Load votes&#34;)
-        butt3.connect(&#34;clicked&#34;, self.load_vote)
-        hbox4.pack_start(butt3, False, 0, 2)
-
-        butt5 = Gtk.Button.new_with_mnemonic(&#34; Ne_w &#34;)
-        butt5.set_tooltip_text(&#34;New Vote&#34;)
-        butt5.connect(&#34;clicked&#34;, self.new_data)
-        hbox4.pack_start(butt5, False, 0, 2)
+            self.butts.append(butt5a)
 
         butt4 = Gtk.Button.new_with_mnemonic(&#34; _Save &#34;)
         butt4.set_tooltip_text(&#34;Save current vote to database&#34;)
         butt4.connect(&#34;clicked&#34;, self.save_data)
         hbox4.pack_start(butt4, False, 0, 2)
+        self.butts.append(butt4)
 
-        butt3 = Gtk.Button.new_with_mnemonic(&#34; _Delete &#34;)
-        butt3.set_tooltip_text(&#34;Delete current vote from database&#34;)
-        butt3.connect(&#34;clicked&#34;, self.del_vote)
+        butt3x = Gtk.Button.new_with_mnemonic(&#34; Config_ure&#34;)
+        butt3x.set_tooltip_text(&#34;Configure replication targets and admins / users.&#34;)
+        butt3x.connect(&#34;clicked&#34;, self.config_dlg)
+        hbox4.pack_start(butt3x, False, 0, 2)
+        self.butts.append(butt3x)
+
+        butt3 = Gtk.Button.new_with_mnemonic(&#34; Lo_ad &#34;)
+        butt3.set_tooltip_text(&#34;Load votes&#34;)
+        butt3.connect(&#34;clicked&#34;, self.load_vote)
         hbox4.pack_start(butt3, False, 0, 2)
+        self.butts.append(butt3)
+
+        butt5 = Gtk.Button.new_with_mnemonic(&#34; Ne_w &#34;)
+        butt5.set_tooltip_text(&#34;New Vote&#34;)
+        butt5.connect(&#34;clicked&#34;, self.new_data)
+        hbox4.pack_start(butt5, False, 0, 2)
+        self.butts.append(butt5)
+
+        butt3d = Gtk.Button.new_with_mnemonic(&#34; _Delete &#34;)
+        butt3d.set_tooltip_text(&#34;Delete current vote from database&#34;)
+        butt3d.connect(&#34;clicked&#34;, self.del_vote)
+        hbox4.pack_start(butt3d, False, 0, 2)
+        self.butts.append(butt3d)
 
         butt2 = Gtk.Button.new_with_mnemonic(&#34; E_xit &#34;)
         butt2.set_tooltip_text(&#34;Exit program&#34;)
         butt2.connect(&#34;clicked&#34;, self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
+        # Do not add to control, will always want to exit
 
         lab2 = Gtk.Label(&#34;   &#34;);  hbox4.pack_start(lab2, 0, 0, 0)
 
@@ -252,27 +249,29 @@ class MainWin(Gtk.Window):
         #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
 
-        tp3x = (&#34;Voter UUID: &#34;, &#34;uuid&#34;, &#34;Load / Select Client / Voter UUID&#34;, None)
+        tp3x = (&#34;Vot_er UUID: &#34;, &#34;uuid&#34;, &#34;Load / Select Client / Voter UUID&#34;, None)
         butt1 = Gtk.Button.new_with_mnemonic(&#34;Load vote_r&#34;)
+        butt1z = Gtk.Button.new_with_mnemonic(&#34;QR&#34;)
         butt2 = Gtk.Button.new_with_mnemonic(&#34;Add&#34;)
         butt2.set_tooltip_text(&#34;Add voter, open in new window&#34;)
         hbox3x = Gtk.HBox()
-        hbox3x.pack_start(butt1, 1,1,2)
-        hbox3x.pack_start(butt2, 0,0,2)
-
-        self.lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, hbox3x)
+        hbox3x.pack_start(butt1, 1, 1, 2)
+        hbox3x.pack_start(butt1z, 0, 0, 2)
+        hbox3x.pack_start(butt2, 0, 0, 2)
+        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, hbox3x)
         butt1.connect(&#34;clicked&#34;, self.load_voter)
         butt2.connect(&#34;clicked&#34;, self.new_voter)
-        self.dat_dict[&#39;nuuid&#39;] = self.lab3x
+        self.dat_dict[&#39;nuuid&#39;] = lab3x
         rowcnt += 1
 
         #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
 
-        tp1 = (&#34;Full Nam_e: &#34;, &#34;name&#34;, &#34;Autofilled, Voter&#39;s real name.&#34;, None)
+        tp1 = (&#34;Voter Name: &#34;, &#34;name&#34;, &#34;Autofilled, Voter name, anonymized.&#34;, None)
         tp2 = (&#34;Date o_f birth: &#34;, &#34;ndob&#34;, &#34;Autofilled, Date of birth, YYYY/MM/DD&#34;, None)
         lab1, lab2 = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1, tp2, None)
         lab1.set_gray(True);  lab2.set_gray(True)
+        butt1z.connect(&#34;clicked&#34;, self.qr_uuid, lab3x, lab2)
         self.dat_dict[&#39;name&#39;] = lab1
         self.dat_dict[&#39;ndob&#39;] = lab2
         rowcnt += 1
@@ -302,8 +301,8 @@ class MainWin(Gtk.Window):
         hbox.pack_start(butt2z, 1, 1, 2)
         hbox.pack_start(butt3z, 0, 0, 2)
         lab4z = pgentry.griddouble(self.gridx, 0, rowcnt, tp4z, hbox)
-        butt2z.connect(&#34;clicked&#34;, self.load_vote_uuid, lab4z)
-        butt3z.connect(&#34;clicked&#34;, self.qr_uuid, lab4z)
+        butt3z.connect(&#34;clicked&#34;, self.qr_uuid, lab4z, lab15)
+        butt2z.connect(&#34;clicked&#34;, self.load_uuid, lab4z)
         self.dat_dict[&#39;uuid&#39;] = lab4z
         rowcnt += 1
 
@@ -329,6 +328,7 @@ class MainWin(Gtk.Window):
         lab15, lab16 = pgentry.gridquad(self.gridx, 0, rowcnt, tp9b, tp10b, butt2o)
         lab15.set_gray(False);   lab16.set_gray(False);
         butt2o.connect(&#34;clicked&#34;, self.load_op_name, lab16, lab15)
+        #butt2.connect(&#34;clicked&#34;, self.load_site_uuid, lab15)
         rowcnt += 1
 
         self.dat_dict[&#39;now&#39;] = lab15
@@ -341,13 +341,15 @@ class MainWin(Gtk.Window):
         rowcnt += 1
 
         butt1 = Gtk.Button.new_with_mnemonic(&#34;Load _Ballot&#34;)
+        butt1q = Gtk.Button.new_with_mnemonic(&#34;QR&#34;)
         butt2 = Gtk.Button.new_with_mnemonic(&#34;Add&#34;)
         butt2.set_tooltip_text(&#34;Add Ballot, open in new window&#34;)
         hbox4x = Gtk.HBox()
         hbox4x.pack_start(butt1, 1,1,2)
+        hbox4x.pack_start(butt1q, 0,0,2)
         hbox4x.pack_start(butt2, 0,0,2)
 
-        tpb = (&#34;Ballot UUID: &#34;, &#34;bbuid&#34;, &#34;Load new Ballot. (if not pre loaded)&#34;, &#34;&#34;)
+        tpb = (&#34;Ballot UUID: &#34;, &#34;buuid&#34;, &#34;Ballot UUID. (may be pre loaded)&#34;, &#34;&#34;)
         lab3b = pgentry.griddouble(self.gridx, 0, rowcnt, tpb, hbox4x)
         butt1.connect(&#34;clicked&#34;, self.load_ballot)
         butt2.connect(&#34;clicked&#34;, self.new_ballot)
@@ -358,6 +360,7 @@ class MainWin(Gtk.Window):
         tp2x = (&#34;Election Date: &#34;, &#34;dob&#34;, &#34;Autofilled, Election Date, YYYY/MM/DD&#34;, None)
         lab1b, lab2b = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1x, tp2x, None)
         lab1b.set_gray(True);  lab2b.set_gray(True)
+        butt1q.connect(&#34;clicked&#34;, self.qr_uuid, lab3b, lab2b)
         self.dat_dict[&#39;bname&#39;] = lab1b
         self.dat_dict[&#39;dob&#39;] = lab2b   # Date of birth -- for the vote (reuse field)
         rowcnt += 1
@@ -425,13 +428,40 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
         self.en_dis_all(False)
-        GLib.timeout_add(100, self.start_pass_dlg, 0)
+        GLib.timeout_add(100, self.loadconf, 0)
+        GLib.timeout_add(200, self.start_pass_dlg, 0)
 
-    def config_dlg(self, arg2):
-        print(&#34;Config&#34;)
+
+    def loadconf(self, arg2):
+
+        &#39;&#39;&#39; Read config &#39;&#39;&#39;
+
+        confname = os.path.join(pyservsup.globals.myhome,  &#34;config.pydb&#34;)
+        #print(&#34;confname&#34;, confname)
+        confcore = twincore.TwinCore(confname, 0)
+        try:
+            ddd = confcore.get_rec(0)
+            confx = self.packer.decode_data(ddd[1])[0]
+        except:
+            # No conf, generate default
+            uuu = str(uuid.uuid1())
+            defconf = {&#34;start_replic&#34; : 1, }
+            defconf2 = self.packer.encode_data(&#34;&#34;, defconf)
+            confcore.save_data(uuu, defconf2)
+            ddd = confcore.get_rec(0)
+            confx = self.packer.decode_data(ddd[1])[0]
+
+        #print(&#34;confx:&#34;, confx)
+        if confx[&#39;start_replic&#39;]:
+            exe = os.path.join(os.path.dirname(__file__),
+                                &#34;..&#34;, &#34;..&#34;, &#34;pyvreplic&#34;, &#34;pyvreplic.py&#34;)
+            exe = os.path.normpath(exe)
+            #print(&#34;exe:&#34;, exe)
+            ret = subprocess.Popen([&#34;python&#34;, exe, &#34;-c&#34;, ],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            #print(&#34;subp ret&#34;, ret)
 
     def load_ballot(self, arg2):
-
         # See if previous one saved
         #if self.is_changed():
         #    msg = &#34;Unsaved data. Are you sure you want to abandon it?&#34;
@@ -495,6 +525,7 @@ class MainWin(Gtk.Window):
         #print(&#34;rowcnt&#34;, rowcnt)
 
         labv = Gtk.Label.new_with_mnemonic(&#34;Vo_te:   &#34;)
+        labv.set_tooltip_text(&#34;Please cast vote here.&#34;)
         labv.set_alignment(1, 0)
         self.gridx.attach(labv, 0, rowcnt, 1, 1)
 
@@ -613,6 +644,14 @@ class MainWin(Gtk.Window):
 
     def start_pass_dlg(self, arg2):
 
+        if self.conf.recnum != -1:
+            #print(&#34;Showing record&#34;, self.conf.recnum)
+            self.set_title(&#34;PyVServer Vote ReadOnly View&#34;)
+            self.load_data(int(self.conf.recnum))
+            self.en_dis_all(False)
+            self.en_dis_ctrl(False)
+            return
+
         authcnt = 0
         while True:
             if authcnt &gt; 3:
@@ -648,6 +687,10 @@ class MainWin(Gtk.Window):
             pyvrecsel.audit(self.acore, self.packer, &#34;Successful Login&#34;, ret[1][0])
             break
         self.set_focus(self.dat_dict[&#39;nuuid&#39;])
+
+    def en_dis_ctrl(self, flag):
+        for aa in self.butts:
+            aa.set_sensitive(flag)
 
     def en_dis_all(self, flag):
         for aa in self.dat_dict.keys():
@@ -904,10 +947,15 @@ class MainWin(Gtk.Window):
         sss = pyvrecsel.RecSelDlg(self.votecore, self.conf, mode=pyvrecsel.MODE_VOTE)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
+
         #print(&#34;sss.res:&#34;, sss.res)
+        self.load_data(int(sss.res[0][4]) )
+
+    def load_data(self, recnum):
+        #print(&#34;recnum:&#34;, recnum)
         try:
             #dat = self.votecore.retrieve(sss.res[0][3])
-            dat = self.votecore.get_rec(int(sss.res[0][4]))
+            dat = self.votecore.get_rec(recnum)
         except:
             dat = []
             print(sys.exc_info())
@@ -1024,13 +1072,17 @@ class MainWin(Gtk.Window):
     def new_ballot(self, arg):
         exe = os.path.join(os.path.dirname(__file__), &#34;..&#34;, &#34;pyvballot.py&#34;)
         #print(exe)
-        ret = subprocess.run([exe, ], capture_output=True)
+        #ret = subprocess.run([exe, ], capture_output=True)
+        # Mon 03.Jun.2024 detach
+        ret = subprocess.run([exe, ])
         #print(&#34;Back to &#34;, ret)
 
     def new_voter(self, arg):
         exe = os.path.join(os.path.dirname(__file__), &#34;..&#34;, &#34;pyvpeople.py&#34;)
         #print(exe)
-        ret = subprocess.run([exe, ], capture_output=True)
+        #ret = subprocess.run([exe, ], capture_output=True)
+        # Mon 03.Jun.2024 detach completely
+        ret = subprocess.run([exe, ])
         #print(&#34;Back to &#34;, ret)
 
     def load_voter(self, arg):
@@ -1086,9 +1138,10 @@ class MainWin(Gtk.Window):
 
         self.was_saved = False
 
+        nnn = pymisc.anon_name(dec[&#39;name&#39;])
         # Partial fill, redirect fields
         self.dat_dict[&#39;nuuid&#39;].set_text(dec[&#39;uuid&#39;])
-        self.dat_dict[&#39;name&#39;].set_text(dec[&#39;name&#39;])
+        self.dat_dict[&#39;name&#39;].set_text(nnn)
         self.dat_dict[&#39;ndob&#39;].set_text(dec[&#39;dob&#39;])
         self.dat_dict[&#39;nnow&#39;].set_text(dec[&#39;now&#39;])
         self.dat_dict[&#39;noper&#39;].set_text(dec[&#39;oper&#39;])
@@ -1136,6 +1189,24 @@ class MainWin(Gtk.Window):
                 self.reset_changed()
                 self.status.set_status_text(&#34;Test Stopped&#34;)
                 break
+
+            # Get a voter record
+            vcnt = self.vcore.getdbsize()
+            while True:
+                vrand = random.randint(0, vcnt-1)
+                try:
+                    vdat = self.vcore.get_rec(vrand)
+                except:
+                    vdat = []
+                    print(sys.exc_info())
+                    pass
+                if vdat:
+                    break
+
+            vdat2 = self.packer.decode_data(vdat[1])[0][&#39;PayLoad&#39;]
+            #print(&#34;vdat2:&#34;, vdat2)
+            #break
+
             for aa in self.dat_dict.keys():
                 # Handle differences in data
                 if &#34;buuid&#34; == aa:
@@ -1144,16 +1215,29 @@ class MainWin(Gtk.Window):
                     pass                # Do not change ballot fields
                 elif &#34;dob&#34; == aa:
                     pass                # Do not change ballot fields
+
+                #self.dat_dict[&#39;nuuid&#39;].set_text(dec[&#39;uuid&#39;])
+                #self.dat_dict[&#39;name&#39;].set_text(dec[&#39;name&#39;])
+                #self.dat_dict[&#39;ndob&#39;].set_text(dec[&#39;dob&#39;])
+                #self.dat_dict[&#39;nnow&#39;].set_text(dec[&#39;now&#39;])
+                #self.dat_dict[&#39;noper&#39;].set_text(dec[&#39;oper&#39;])
+
                 elif &#34;uid&#34; in str(aa):
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
+                elif &#34;nuuid&#34; in str(aa):
+                   self.dat_dict[aa].set_text(vdat2[&#39;uuid&#39;])
                 elif aa == &#39;name&#39;:
-                   self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
+                   #self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
+                   self.dat_dict[aa].set_text(vdat2[&#39;name&#39;])
                 elif aa == &#39;dob&#39;:
                     self.dat_dict[aa].set_text(pgtests.randate())
                 elif aa == &#39;ndob&#39;:
-                    self.dat_dict[aa].set_text(pgtests.randate())
+                    #self.dat_dict[aa].set_text(pgtests.randate())
+                    self.dat_dict[aa].set_text(vdat2[&#39;dob&#39;])
                 elif aa == &#39;now&#39;:
                     self.dat_dict[aa].set_text(pgtests.randisodate())
+                elif aa == &#39;nnow&#39;:
+                    self.dat_dict[aa].set_text(vdat2[&#39;now&#39;])
                 elif aa == &#39;vnotes&#39;:
                     self.dat_dict[aa].set_text(pgtests.randascii(random.randint(33, 66)))
                 elif aa == &#39;vprim&#39;:
@@ -1207,7 +1291,6 @@ class MainWin(Gtk.Window):
                 else:
                     # Just fill in something
                     self.dat_dict[aa].set_text(pgtests.randstr(random.randint(6, 22)))
-            #break
 
             pgutils.usleep(10)
             if not self.save_data(0):
@@ -1220,24 +1303,26 @@ class MainWin(Gtk.Window):
 
             # Do not clear, we want ballot
             #self.clear_data()
+            # TEST only
+            #break
 
         self.conf.playsound = sps
+        pgutils.usleep(10)
 
-    def qr_uuid(self, arg, arg2):
+    def qr_uuid(self, arg, arg2, arg3):
         uuu = arg2.get_text()
         if not uuu:
-            msg = &#34;Please generate UUID first.&#34;
+            msg = &#34;Please generate / load UUID first.&#34;
             pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         nnn = self.dat_dict[&#39;name&#39;].get_text() + &#34; -- &#34; + \
-                self.dat_dict[&#39;dob&#39;].get_text()
-
+                                                arg3.get_text()
         ret = pymisc.QrDlg(uuu, nnn, self.conf, parent = self)
 
     def save_data(self, arg1):
 
-        &#39;&#39;&#39; See if data changed, save_vote &#39;&#39;&#39;
+        &#39;&#39;&#39; See if data changed, save vote &#39;&#39;&#39;
 
         if not self.is_changed():
             msg = &#34;Nothing changed, cannot save.&#34;
@@ -1337,20 +1422,17 @@ class MainWin(Gtk.Window):
         #print(&#34;Saving:&#34;, ddd)
 
         pvh = pyvhash.BcData(header = self.dat_dict[&#39;uuid&#39;].get_text())
-
         # We mark this as &#39;test&#39; so it can stay in the chain, if desired
         #pvh.addpayload({&#34;Test&#34;: &#34;test&#34; ,})
-
         pvh.addpayload(ddd)
-
         pvh.hasharr()
         if self.conf.weak:
             pvh.num_zeros = 1
 
-        def callb(dlg):
+        def callbdlg(dlg):
             #print(&#34;callback from dlg&#34;)
             self.status.set_status_text(&#34;PROW calc, please wait ...&#34;)
-            ddd = 15
+            ddd = 20
             for aa in range(ddd):
                 dlg.prog.set_fraction((aa+1) * 1/ddd)
                 if pvh.powarr():
@@ -1362,7 +1444,8 @@ class MainWin(Gtk.Window):
 
         if self.conf.weak:
             pvh.num_zeros = 1
-        dlg = pymisc.progDlg(self.conf, callb, parent = self)
+
+        dlg = pymisc.progDlg(self.conf, callbdlg, parent = self)
 
         if not pvh.checkpow():
             msg = &#34;Cold not generate PROW, please retry saving record.&#34;
@@ -1370,42 +1453,16 @@ class MainWin(Gtk.Window):
             return
 
         enc = self.packer.encode_data(&#34;&#34;, pvh.datax)
-
         #print(&#34;enc:&#34;, enc)
         uuu = self.dat_dict[&#39;uuid&#39;].get_text()
-
-        #print(&#34;Save_data&#34;, uuu, ddd)
-
-        # Add indices
-        def callb2(c2, id2):
-            # Replicate saved locally
-            dddd = [uuu, enc.encode()]
-            #print(&#34;dddd:&#34;, dddd)
-            try:
-                pyvindex.append_index(c2, c2.hashname, pyvindex.hash_id, dddd)
-            except:
-                print(&#34;exc save callb hash&#34;, sys.exc_info())
-            try:
-                pyvindex.append_index(c2, c2.hashname2, pyvindex.hash_name, dddd)
-            except:
-                print(&#34;exc save callb name&#34;, sys.exc_info())
-                support.put_exception(&#34;save callb name&#34;)
-        try:
-            self.votecore.postexec = callb2
-            ret = self.votecore.save_data(uuu, enc)
-        except:
-            print(&#34;exc save&#34;, sys.exc_info())
-        finally:
-            self.votecore.postexec = None
+        #print(&#34;Save_data&#34;, uuu, pvh.datax)
+        ret = pyvcores.votesave(self.votecore, uuu, enc)
 
         # Save replicator
         ttt = time.time()
         dd = datetime.datetime.fromtimestamp(ttt)
         idt = dd.isoformat()
         now = dd.strftime(pyvhash.datefmt)
-
-        #self.dat_dict[&#39;now&#39;].get_text(),
-
         # Prepare data. Do strings so it can be re-written in place
         rrr = {
                 &#39;header&#39; : uuu,
@@ -1442,6 +1499,8 @@ class MainWin(Gtk.Window):
 
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
+
+
         return True
 
     def main(self):
@@ -1559,28 +1618,18 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         self.packer = pyvpacker.packbin()
 
         votename = os.path.join(pyservsup.globals.chaindir, &#34;vote&#34;, &#34;initial.pydb&#34;)
-        self.votecore = twincore.TwinCore(votename, 0)
+        self.votecore = pyvcores.votecore(votename)
         self.votecore.packer = self.packer
-        self.votecore.hashname  = os.path.splitext(self.votecore.fname)[0] + &#34;.hash.id&#34;
-        self.votecore.hashname2 = os.path.splitext(self.votecore.fname)[0] + &#34;.hash.name&#34;
 
-        self.acore = twincore.TwinCore(&#34;audit.pydb&#34;, 0)
-        self.authcore = twincore.TwinCore(&#34;auth.pydb&#34;, 0)
-
-        self.bcore = twincore.TwinCore(&#34;ballots.pydb&#34;, 0)
+        self.bcore = pyvcores.ballotcore(&#34;ballots.pydb&#34;)
         self.bcore.packer = self.packer
-        self.bcore.hashname  = os.path.splitext(self.bcore.fname)[0] + &#34;.hash.id&#34;
-        self.bcore.hashname2 = os.path.splitext(self.bcore.fname)[0] + &#34;.hash.name&#34;
 
-        # We let the core carry vars; make sure they do not collide
-        self.vcore = twincore.TwinCore(&#34;voters.pydb&#34;, 0)
+        self.vcore = pyvcores.votercore(&#34;voters.pydb&#34;)
         self.vcore.packer = self.packer
-        self.vcore.hashname  = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.id&#34;
-        self.vcore.hashname2 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.name&#34;
-        self.vcore.hashname3 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.phone&#34;
-        self.vcore.hashname4 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.email&#34;
 
         self.hcore = twincore.TwinCore(&#34;ihosts.pydb&#34;, 0)
+        self.acore = twincore.TwinCore(&#34;audit.pydb&#34;, 0)
+        self.authcore = twincore.TwinCore(&#34;auth.pydb&#34;, 0)
 
         self.exit_flag = 0
         self.stop = True
@@ -1657,45 +1706,48 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         lab1a = Gtk.Label(&#34;   &#34;);
         hbox4.pack_start(lab1a, 0, 0, 0)
 
+        self.butts = []
         if self.conf.testx:
             butt5a = Gtk.Button.new_with_mnemonic(&#34; Te_zt &#34;)
             butt5a.connect(&#34;clicked&#34;, self.test_data)
             hbox4.pack_start(butt5a, False, 0, 2)
-
-        butt3 = Gtk.Button.new_with_mnemonic(&#34; Config_ure&#34;)
-        butt3.set_tooltip_text(&#34;Configure replication targets&#34;)
-        butt3.connect(&#34;clicked&#34;, self.config_dlg)
-        hbox4.pack_start(butt3, False, 0, 2)
-
-        #butt3 = Gtk.Button.new_with_mnemonic(&#34; Load Li_ve&#34;)
-        #butt3.set_tooltip_text(&#34;Load votes from Live server directory&#34;)
-        #butt3.connect(&#34;clicked&#34;, self.load_live_vote)
-        #hbox4.pack_start(butt3, False, 0, 2)
-
-        butt3 = Gtk.Button.new_with_mnemonic(&#34; Lo_ad &#34;)
-        butt3.set_tooltip_text(&#34;Load votes&#34;)
-        butt3.connect(&#34;clicked&#34;, self.load_vote)
-        hbox4.pack_start(butt3, False, 0, 2)
-
-        butt5 = Gtk.Button.new_with_mnemonic(&#34; Ne_w &#34;)
-        butt5.set_tooltip_text(&#34;New Vote&#34;)
-        butt5.connect(&#34;clicked&#34;, self.new_data)
-        hbox4.pack_start(butt5, False, 0, 2)
+            self.butts.append(butt5a)
 
         butt4 = Gtk.Button.new_with_mnemonic(&#34; _Save &#34;)
         butt4.set_tooltip_text(&#34;Save current vote to database&#34;)
         butt4.connect(&#34;clicked&#34;, self.save_data)
         hbox4.pack_start(butt4, False, 0, 2)
+        self.butts.append(butt4)
 
-        butt3 = Gtk.Button.new_with_mnemonic(&#34; _Delete &#34;)
-        butt3.set_tooltip_text(&#34;Delete current vote from database&#34;)
-        butt3.connect(&#34;clicked&#34;, self.del_vote)
+        butt3x = Gtk.Button.new_with_mnemonic(&#34; Config_ure&#34;)
+        butt3x.set_tooltip_text(&#34;Configure replication targets and admins / users.&#34;)
+        butt3x.connect(&#34;clicked&#34;, self.config_dlg)
+        hbox4.pack_start(butt3x, False, 0, 2)
+        self.butts.append(butt3x)
+
+        butt3 = Gtk.Button.new_with_mnemonic(&#34; Lo_ad &#34;)
+        butt3.set_tooltip_text(&#34;Load votes&#34;)
+        butt3.connect(&#34;clicked&#34;, self.load_vote)
         hbox4.pack_start(butt3, False, 0, 2)
+        self.butts.append(butt3)
+
+        butt5 = Gtk.Button.new_with_mnemonic(&#34; Ne_w &#34;)
+        butt5.set_tooltip_text(&#34;New Vote&#34;)
+        butt5.connect(&#34;clicked&#34;, self.new_data)
+        hbox4.pack_start(butt5, False, 0, 2)
+        self.butts.append(butt5)
+
+        butt3d = Gtk.Button.new_with_mnemonic(&#34; _Delete &#34;)
+        butt3d.set_tooltip_text(&#34;Delete current vote from database&#34;)
+        butt3d.connect(&#34;clicked&#34;, self.del_vote)
+        hbox4.pack_start(butt3d, False, 0, 2)
+        self.butts.append(butt3d)
 
         butt2 = Gtk.Button.new_with_mnemonic(&#34; E_xit &#34;)
         butt2.set_tooltip_text(&#34;Exit program&#34;)
         butt2.connect(&#34;clicked&#34;, self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
+        # Do not add to control, will always want to exit
 
         lab2 = Gtk.Label(&#34;   &#34;);  hbox4.pack_start(lab2, 0, 0, 0)
 
@@ -1712,27 +1764,29 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
 
-        tp3x = (&#34;Voter UUID: &#34;, &#34;uuid&#34;, &#34;Load / Select Client / Voter UUID&#34;, None)
+        tp3x = (&#34;Vot_er UUID: &#34;, &#34;uuid&#34;, &#34;Load / Select Client / Voter UUID&#34;, None)
         butt1 = Gtk.Button.new_with_mnemonic(&#34;Load vote_r&#34;)
+        butt1z = Gtk.Button.new_with_mnemonic(&#34;QR&#34;)
         butt2 = Gtk.Button.new_with_mnemonic(&#34;Add&#34;)
         butt2.set_tooltip_text(&#34;Add voter, open in new window&#34;)
         hbox3x = Gtk.HBox()
-        hbox3x.pack_start(butt1, 1,1,2)
-        hbox3x.pack_start(butt2, 0,0,2)
-
-        self.lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, hbox3x)
+        hbox3x.pack_start(butt1, 1, 1, 2)
+        hbox3x.pack_start(butt1z, 0, 0, 2)
+        hbox3x.pack_start(butt2, 0, 0, 2)
+        lab3x = pgentry.griddouble(self.gridx, 0, rowcnt, tp3x, hbox3x)
         butt1.connect(&#34;clicked&#34;, self.load_voter)
         butt2.connect(&#34;clicked&#34;, self.new_voter)
-        self.dat_dict[&#39;nuuid&#39;] = self.lab3x
+        self.dat_dict[&#39;nuuid&#39;] = lab3x
         rowcnt += 1
 
         #self.gridx.attach(pggui.ySpacer(8), 0, rowcnt, 1, 1)
         #rowcnt += 1
 
-        tp1 = (&#34;Full Nam_e: &#34;, &#34;name&#34;, &#34;Autofilled, Voter&#39;s real name.&#34;, None)
+        tp1 = (&#34;Voter Name: &#34;, &#34;name&#34;, &#34;Autofilled, Voter name, anonymized.&#34;, None)
         tp2 = (&#34;Date o_f birth: &#34;, &#34;ndob&#34;, &#34;Autofilled, Date of birth, YYYY/MM/DD&#34;, None)
         lab1, lab2 = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1, tp2, None)
         lab1.set_gray(True);  lab2.set_gray(True)
+        butt1z.connect(&#34;clicked&#34;, self.qr_uuid, lab3x, lab2)
         self.dat_dict[&#39;name&#39;] = lab1
         self.dat_dict[&#39;ndob&#39;] = lab2
         rowcnt += 1
@@ -1762,8 +1816,8 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         hbox.pack_start(butt2z, 1, 1, 2)
         hbox.pack_start(butt3z, 0, 0, 2)
         lab4z = pgentry.griddouble(self.gridx, 0, rowcnt, tp4z, hbox)
-        butt2z.connect(&#34;clicked&#34;, self.load_vote_uuid, lab4z)
-        butt3z.connect(&#34;clicked&#34;, self.qr_uuid, lab4z)
+        butt3z.connect(&#34;clicked&#34;, self.qr_uuid, lab4z, lab15)
+        butt2z.connect(&#34;clicked&#34;, self.load_uuid, lab4z)
         self.dat_dict[&#39;uuid&#39;] = lab4z
         rowcnt += 1
 
@@ -1789,6 +1843,7 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         lab15, lab16 = pgentry.gridquad(self.gridx, 0, rowcnt, tp9b, tp10b, butt2o)
         lab15.set_gray(False);   lab16.set_gray(False);
         butt2o.connect(&#34;clicked&#34;, self.load_op_name, lab16, lab15)
+        #butt2.connect(&#34;clicked&#34;, self.load_site_uuid, lab15)
         rowcnt += 1
 
         self.dat_dict[&#39;now&#39;] = lab15
@@ -1801,13 +1856,15 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         rowcnt += 1
 
         butt1 = Gtk.Button.new_with_mnemonic(&#34;Load _Ballot&#34;)
+        butt1q = Gtk.Button.new_with_mnemonic(&#34;QR&#34;)
         butt2 = Gtk.Button.new_with_mnemonic(&#34;Add&#34;)
         butt2.set_tooltip_text(&#34;Add Ballot, open in new window&#34;)
         hbox4x = Gtk.HBox()
         hbox4x.pack_start(butt1, 1,1,2)
+        hbox4x.pack_start(butt1q, 0,0,2)
         hbox4x.pack_start(butt2, 0,0,2)
 
-        tpb = (&#34;Ballot UUID: &#34;, &#34;bbuid&#34;, &#34;Load new Ballot. (if not pre loaded)&#34;, &#34;&#34;)
+        tpb = (&#34;Ballot UUID: &#34;, &#34;buuid&#34;, &#34;Ballot UUID. (may be pre loaded)&#34;, &#34;&#34;)
         lab3b = pgentry.griddouble(self.gridx, 0, rowcnt, tpb, hbox4x)
         butt1.connect(&#34;clicked&#34;, self.load_ballot)
         butt2.connect(&#34;clicked&#34;, self.new_ballot)
@@ -1818,6 +1875,7 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         tp2x = (&#34;Election Date: &#34;, &#34;dob&#34;, &#34;Autofilled, Election Date, YYYY/MM/DD&#34;, None)
         lab1b, lab2b = pgentry.gridquad(self.gridx, 0, rowcnt,  tp1x, tp2x, None)
         lab1b.set_gray(True);  lab2b.set_gray(True)
+        butt1q.connect(&#34;clicked&#34;, self.qr_uuid, lab3b, lab2b)
         self.dat_dict[&#39;bname&#39;] = lab1b
         self.dat_dict[&#39;dob&#39;] = lab2b   # Date of birth -- for the vote (reuse field)
         rowcnt += 1
@@ -1885,13 +1943,40 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         self.add(vbox)
         self.show_all()
         self.en_dis_all(False)
-        GLib.timeout_add(100, self.start_pass_dlg, 0)
+        GLib.timeout_add(100, self.loadconf, 0)
+        GLib.timeout_add(200, self.start_pass_dlg, 0)
 
-    def config_dlg(self, arg2):
-        print(&#34;Config&#34;)
+
+    def loadconf(self, arg2):
+
+        &#39;&#39;&#39; Read config &#39;&#39;&#39;
+
+        confname = os.path.join(pyservsup.globals.myhome,  &#34;config.pydb&#34;)
+        #print(&#34;confname&#34;, confname)
+        confcore = twincore.TwinCore(confname, 0)
+        try:
+            ddd = confcore.get_rec(0)
+            confx = self.packer.decode_data(ddd[1])[0]
+        except:
+            # No conf, generate default
+            uuu = str(uuid.uuid1())
+            defconf = {&#34;start_replic&#34; : 1, }
+            defconf2 = self.packer.encode_data(&#34;&#34;, defconf)
+            confcore.save_data(uuu, defconf2)
+            ddd = confcore.get_rec(0)
+            confx = self.packer.decode_data(ddd[1])[0]
+
+        #print(&#34;confx:&#34;, confx)
+        if confx[&#39;start_replic&#39;]:
+            exe = os.path.join(os.path.dirname(__file__),
+                                &#34;..&#34;, &#34;..&#34;, &#34;pyvreplic&#34;, &#34;pyvreplic.py&#34;)
+            exe = os.path.normpath(exe)
+            #print(&#34;exe:&#34;, exe)
+            ret = subprocess.Popen([&#34;python&#34;, exe, &#34;-c&#34;, ],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            #print(&#34;subp ret&#34;, ret)
 
     def load_ballot(self, arg2):
-
         # See if previous one saved
         #if self.is_changed():
         #    msg = &#34;Unsaved data. Are you sure you want to abandon it?&#34;
@@ -1955,6 +2040,7 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         #print(&#34;rowcnt&#34;, rowcnt)
 
         labv = Gtk.Label.new_with_mnemonic(&#34;Vo_te:   &#34;)
+        labv.set_tooltip_text(&#34;Please cast vote here.&#34;)
         labv.set_alignment(1, 0)
         self.gridx.attach(labv, 0, rowcnt, 1, 1)
 
@@ -2073,6 +2159,14 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
     def start_pass_dlg(self, arg2):
 
+        if self.conf.recnum != -1:
+            #print(&#34;Showing record&#34;, self.conf.recnum)
+            self.set_title(&#34;PyVServer Vote ReadOnly View&#34;)
+            self.load_data(int(self.conf.recnum))
+            self.en_dis_all(False)
+            self.en_dis_ctrl(False)
+            return
+
         authcnt = 0
         while True:
             if authcnt &gt; 3:
@@ -2108,6 +2202,10 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
             pyvrecsel.audit(self.acore, self.packer, &#34;Successful Login&#34;, ret[1][0])
             break
         self.set_focus(self.dat_dict[&#39;nuuid&#39;])
+
+    def en_dis_ctrl(self, flag):
+        for aa in self.butts:
+            aa.set_sensitive(flag)
 
     def en_dis_all(self, flag):
         for aa in self.dat_dict.keys():
@@ -2364,10 +2462,15 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         sss = pyvrecsel.RecSelDlg(self.votecore, self.conf, mode=pyvrecsel.MODE_VOTE)
         if sss.response != Gtk.ResponseType.ACCEPT:
             return
+
         #print(&#34;sss.res:&#34;, sss.res)
+        self.load_data(int(sss.res[0][4]) )
+
+    def load_data(self, recnum):
+        #print(&#34;recnum:&#34;, recnum)
         try:
             #dat = self.votecore.retrieve(sss.res[0][3])
-            dat = self.votecore.get_rec(int(sss.res[0][4]))
+            dat = self.votecore.get_rec(recnum)
         except:
             dat = []
             print(sys.exc_info())
@@ -2484,13 +2587,17 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     def new_ballot(self, arg):
         exe = os.path.join(os.path.dirname(__file__), &#34;..&#34;, &#34;pyvballot.py&#34;)
         #print(exe)
-        ret = subprocess.run([exe, ], capture_output=True)
+        #ret = subprocess.run([exe, ], capture_output=True)
+        # Mon 03.Jun.2024 detach
+        ret = subprocess.run([exe, ])
         #print(&#34;Back to &#34;, ret)
 
     def new_voter(self, arg):
         exe = os.path.join(os.path.dirname(__file__), &#34;..&#34;, &#34;pyvpeople.py&#34;)
         #print(exe)
-        ret = subprocess.run([exe, ], capture_output=True)
+        #ret = subprocess.run([exe, ], capture_output=True)
+        # Mon 03.Jun.2024 detach completely
+        ret = subprocess.run([exe, ])
         #print(&#34;Back to &#34;, ret)
 
     def load_voter(self, arg):
@@ -2546,9 +2653,10 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
         self.was_saved = False
 
+        nnn = pymisc.anon_name(dec[&#39;name&#39;])
         # Partial fill, redirect fields
         self.dat_dict[&#39;nuuid&#39;].set_text(dec[&#39;uuid&#39;])
-        self.dat_dict[&#39;name&#39;].set_text(dec[&#39;name&#39;])
+        self.dat_dict[&#39;name&#39;].set_text(nnn)
         self.dat_dict[&#39;ndob&#39;].set_text(dec[&#39;dob&#39;])
         self.dat_dict[&#39;nnow&#39;].set_text(dec[&#39;now&#39;])
         self.dat_dict[&#39;noper&#39;].set_text(dec[&#39;oper&#39;])
@@ -2596,6 +2704,24 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
                 self.reset_changed()
                 self.status.set_status_text(&#34;Test Stopped&#34;)
                 break
+
+            # Get a voter record
+            vcnt = self.vcore.getdbsize()
+            while True:
+                vrand = random.randint(0, vcnt-1)
+                try:
+                    vdat = self.vcore.get_rec(vrand)
+                except:
+                    vdat = []
+                    print(sys.exc_info())
+                    pass
+                if vdat:
+                    break
+
+            vdat2 = self.packer.decode_data(vdat[1])[0][&#39;PayLoad&#39;]
+            #print(&#34;vdat2:&#34;, vdat2)
+            #break
+
             for aa in self.dat_dict.keys():
                 # Handle differences in data
                 if &#34;buuid&#34; == aa:
@@ -2604,16 +2730,29 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
                     pass                # Do not change ballot fields
                 elif &#34;dob&#34; == aa:
                     pass                # Do not change ballot fields
+
+                #self.dat_dict[&#39;nuuid&#39;].set_text(dec[&#39;uuid&#39;])
+                #self.dat_dict[&#39;name&#39;].set_text(dec[&#39;name&#39;])
+                #self.dat_dict[&#39;ndob&#39;].set_text(dec[&#39;dob&#39;])
+                #self.dat_dict[&#39;nnow&#39;].set_text(dec[&#39;now&#39;])
+                #self.dat_dict[&#39;noper&#39;].set_text(dec[&#39;oper&#39;])
+
                 elif &#34;uid&#34; in str(aa):
                    self.dat_dict[aa].set_text(str(uuid.uuid1()) )
+                elif &#34;nuuid&#34; in str(aa):
+                   self.dat_dict[aa].set_text(vdat2[&#39;uuid&#39;])
                 elif aa == &#39;name&#39;:
-                   self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
+                   #self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
+                   self.dat_dict[aa].set_text(vdat2[&#39;name&#39;])
                 elif aa == &#39;dob&#39;:
                     self.dat_dict[aa].set_text(pgtests.randate())
                 elif aa == &#39;ndob&#39;:
-                    self.dat_dict[aa].set_text(pgtests.randate())
+                    #self.dat_dict[aa].set_text(pgtests.randate())
+                    self.dat_dict[aa].set_text(vdat2[&#39;dob&#39;])
                 elif aa == &#39;now&#39;:
                     self.dat_dict[aa].set_text(pgtests.randisodate())
+                elif aa == &#39;nnow&#39;:
+                    self.dat_dict[aa].set_text(vdat2[&#39;now&#39;])
                 elif aa == &#39;vnotes&#39;:
                     self.dat_dict[aa].set_text(pgtests.randascii(random.randint(33, 66)))
                 elif aa == &#39;vprim&#39;:
@@ -2667,7 +2806,6 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
                 else:
                     # Just fill in something
                     self.dat_dict[aa].set_text(pgtests.randstr(random.randint(6, 22)))
-            #break
 
             pgutils.usleep(10)
             if not self.save_data(0):
@@ -2680,24 +2818,26 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
             # Do not clear, we want ballot
             #self.clear_data()
+            # TEST only
+            #break
 
         self.conf.playsound = sps
+        pgutils.usleep(10)
 
-    def qr_uuid(self, arg, arg2):
+    def qr_uuid(self, arg, arg2, arg3):
         uuu = arg2.get_text()
         if not uuu:
-            msg = &#34;Please generate UUID first.&#34;
+            msg = &#34;Please generate / load UUID first.&#34;
             pymisc.smessage(msg)
             self.status.set_status_text(msg)
             return
         nnn = self.dat_dict[&#39;name&#39;].get_text() + &#34; -- &#34; + \
-                self.dat_dict[&#39;dob&#39;].get_text()
-
+                                                arg3.get_text()
         ret = pymisc.QrDlg(uuu, nnn, self.conf, parent = self)
 
     def save_data(self, arg1):
 
-        &#39;&#39;&#39; See if data changed, save_vote &#39;&#39;&#39;
+        &#39;&#39;&#39; See if data changed, save vote &#39;&#39;&#39;
 
         if not self.is_changed():
             msg = &#34;Nothing changed, cannot save.&#34;
@@ -2797,20 +2937,17 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         #print(&#34;Saving:&#34;, ddd)
 
         pvh = pyvhash.BcData(header = self.dat_dict[&#39;uuid&#39;].get_text())
-
         # We mark this as &#39;test&#39; so it can stay in the chain, if desired
         #pvh.addpayload({&#34;Test&#34;: &#34;test&#34; ,})
-
         pvh.addpayload(ddd)
-
         pvh.hasharr()
         if self.conf.weak:
             pvh.num_zeros = 1
 
-        def callb(dlg):
+        def callbdlg(dlg):
             #print(&#34;callback from dlg&#34;)
             self.status.set_status_text(&#34;PROW calc, please wait ...&#34;)
-            ddd = 15
+            ddd = 20
             for aa in range(ddd):
                 dlg.prog.set_fraction((aa+1) * 1/ddd)
                 if pvh.powarr():
@@ -2822,7 +2959,8 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
         if self.conf.weak:
             pvh.num_zeros = 1
-        dlg = pymisc.progDlg(self.conf, callb, parent = self)
+
+        dlg = pymisc.progDlg(self.conf, callbdlg, parent = self)
 
         if not pvh.checkpow():
             msg = &#34;Cold not generate PROW, please retry saving record.&#34;
@@ -2830,42 +2968,16 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
             return
 
         enc = self.packer.encode_data(&#34;&#34;, pvh.datax)
-
         #print(&#34;enc:&#34;, enc)
         uuu = self.dat_dict[&#39;uuid&#39;].get_text()
-
-        #print(&#34;Save_data&#34;, uuu, ddd)
-
-        # Add indices
-        def callb2(c2, id2):
-            # Replicate saved locally
-            dddd = [uuu, enc.encode()]
-            #print(&#34;dddd:&#34;, dddd)
-            try:
-                pyvindex.append_index(c2, c2.hashname, pyvindex.hash_id, dddd)
-            except:
-                print(&#34;exc save callb hash&#34;, sys.exc_info())
-            try:
-                pyvindex.append_index(c2, c2.hashname2, pyvindex.hash_name, dddd)
-            except:
-                print(&#34;exc save callb name&#34;, sys.exc_info())
-                support.put_exception(&#34;save callb name&#34;)
-        try:
-            self.votecore.postexec = callb2
-            ret = self.votecore.save_data(uuu, enc)
-        except:
-            print(&#34;exc save&#34;, sys.exc_info())
-        finally:
-            self.votecore.postexec = None
+        #print(&#34;Save_data&#34;, uuu, pvh.datax)
+        ret = pyvcores.votesave(self.votecore, uuu, enc)
 
         # Save replicator
         ttt = time.time()
         dd = datetime.datetime.fromtimestamp(ttt)
         idt = dd.isoformat()
         now = dd.strftime(pyvhash.datefmt)
-
-        #self.dat_dict[&#39;now&#39;].get_text(),
-
         # Prepare data. Do strings so it can be re-written in place
         rrr = {
                 &#39;header&#39; : uuu,
@@ -2902,6 +3014,8 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
         for aa in self.dat_dict.keys():
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
+
+
         return True
 
     def main(self):
@@ -3224,6 +3338,20 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         self.dat_dict[aa].set_sensitive(flag)</code></pre>
 </details>
 </dd>
+<dt id="mainwinvote.MainWin.en_dis_ctrl"><code class="name flex">
+<span>def <span class="ident">en_dis_ctrl</span></span>(<span>self, flag)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def en_dis_ctrl(self, flag):
+    for aa in self.butts:
+        aa.set_sensitive(flag)</code></pre>
+</details>
+</dd>
 <dt id="mainwinvote.MainWin.exit_all"><code class="name flex">
 <span>def <span class="ident">exit_all</span></span>(<span>self)</span>
 </code></dt>
@@ -3284,7 +3412,6 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def load_ballot(self, arg2):
-
     # See if previous one saved
     #if self.is_changed():
     #    msg = &#34;Unsaved data. Are you sure you want to abandon it?&#34;
@@ -3341,6 +3468,76 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     # Select the NONE entry
     self.noneradio.set_active(True)
     self.set_focus(self.noneradio)</code></pre>
+</details>
+</dd>
+<dt id="mainwinvote.MainWin.load_data"><code class="name flex">
+<span>def <span class="ident">load_data</span></span>(<span>self, recnum)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_data(self, recnum):
+    #print(&#34;recnum:&#34;, recnum)
+    try:
+        #dat = self.votecore.retrieve(sss.res[0][3])
+        dat = self.votecore.get_rec(recnum)
+    except:
+        dat = []
+        print(sys.exc_info())
+        pass
+    if not dat:
+        msg = &#34;No data selected.&#34;
+        #print(msg)
+        self.status.set_status_text(msg)
+        pymisc.smessage(msg)
+        return
+    #print(&#34;dat:&#34;, dat)
+    try:
+        dec = self.packer.decode_data(dat[1])[0][&#39;PayLoad&#39;]
+    except:
+        dec = {}
+        pass
+    #print(&#34;dec:&#34;, dec)
+    for aa in dec.keys():
+        #print(&#34;Key:&#34;, aa[:3])
+        try:
+            if aa[:3] == &#34;can&#34;:
+                #print(&#34;Cand&#34;, aa)
+                self.cand_dict[aa].set_text(dec[aa])
+            self.dat_dict[aa].set_text(dec[aa])
+        except:
+            pass
+    self.preview()
+
+    # Select matching entry:
+    cntc = 0
+    cc = self.dat_dict[&#39;vprim&#39;].get_text()
+    #print(&#34;anchor:&#34;, cc)
+    for aa in range(len(self.cand_dict)-1):  #.keys():
+        if self.randarr[cntc] &lt; 0:
+            continue
+        candidx = &#34;can%d&#34; % (self.randarr[cntc])
+        bb = self.cand_dict[candidx].get_text()
+        if bb == cc:
+            #print(&#34;found bb:&#34;, bb, &#34;ref:&#34;, aa)
+            posidx = &#34;can%d&#34; % (aa)
+            self.oneshot = True
+            self.radioarr[posidx].set_active(True)
+            #break
+        cntc += 1
+
+    # Mark as non changed (disabled)
+    self.reset_changed()
+
+    # Cannot change, would be duplicate upload
+    self.was_saved = True
+
+    msg = &#34;Loaded vote: &#39;%s&#39;&#34; % dec[&#39;name&#39;]
+    self.status.set_status_text(msg)
+    #self.status.set_status_text(&#34;Loaded:&#34;, dec[&#39;name&#39;])</code></pre>
 </details>
 </dd>
 <dt id="mainwinvote.MainWin.load_op_name"><code class="name flex">
@@ -3448,64 +3645,9 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     sss = pyvrecsel.RecSelDlg(self.votecore, self.conf, mode=pyvrecsel.MODE_VOTE)
     if sss.response != Gtk.ResponseType.ACCEPT:
         return
+
     #print(&#34;sss.res:&#34;, sss.res)
-    try:
-        #dat = self.votecore.retrieve(sss.res[0][3])
-        dat = self.votecore.get_rec(int(sss.res[0][4]))
-    except:
-        dat = []
-        print(sys.exc_info())
-        pass
-    if not dat:
-        msg = &#34;No data selected.&#34;
-        #print(msg)
-        self.status.set_status_text(msg)
-        pymisc.smessage(msg)
-        return
-    #print(&#34;dat:&#34;, dat)
-    try:
-        dec = self.packer.decode_data(dat[1])[0][&#39;PayLoad&#39;]
-    except:
-        dec = {}
-        pass
-    #print(&#34;dec:&#34;, dec)
-    for aa in dec.keys():
-        #print(&#34;Key:&#34;, aa[:3])
-        try:
-            if aa[:3] == &#34;can&#34;:
-                #print(&#34;Cand&#34;, aa)
-                self.cand_dict[aa].set_text(dec[aa])
-            self.dat_dict[aa].set_text(dec[aa])
-        except:
-            pass
-    self.preview()
-
-    # Select matching entry:
-    cntc = 0
-    cc = self.dat_dict[&#39;vprim&#39;].get_text()
-    #print(&#34;anchor:&#34;, cc)
-    for aa in range(len(self.cand_dict)-1):  #.keys():
-        if self.randarr[cntc] &lt; 0:
-            continue
-        candidx = &#34;can%d&#34; % (self.randarr[cntc])
-        bb = self.cand_dict[candidx].get_text()
-        if bb == cc:
-            #print(&#34;found bb:&#34;, bb, &#34;ref:&#34;, aa)
-            posidx = &#34;can%d&#34; % (aa)
-            self.oneshot = True
-            self.radioarr[posidx].set_active(True)
-            #break
-        cntc += 1
-
-    # Mark as non changed (disabled)
-    self.reset_changed()
-
-    # Cannot change, would be duplicate upload
-    self.was_saved = True
-
-    msg = &#34;Loaded vote: &#39;%s&#39;&#34; % dec[&#39;name&#39;]
-    self.status.set_status_text(msg)
-    #self.status.set_status_text(&#34;Loaded:&#34;, dec[&#39;name&#39;])</code></pre>
+    self.load_data(int(sss.res[0][4]) )</code></pre>
 </details>
 </dd>
 <dt id="mainwinvote.MainWin.load_vote_uuid"><code class="name flex">
@@ -3588,9 +3730,10 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 
     self.was_saved = False
 
+    nnn = pymisc.anon_name(dec[&#39;name&#39;])
     # Partial fill, redirect fields
     self.dat_dict[&#39;nuuid&#39;].set_text(dec[&#39;uuid&#39;])
-    self.dat_dict[&#39;name&#39;].set_text(dec[&#39;name&#39;])
+    self.dat_dict[&#39;name&#39;].set_text(nnn)
     self.dat_dict[&#39;ndob&#39;].set_text(dec[&#39;dob&#39;])
     self.dat_dict[&#39;nnow&#39;].set_text(dec[&#39;now&#39;])
     self.dat_dict[&#39;noper&#39;].set_text(dec[&#39;oper&#39;])
@@ -3612,6 +3755,45 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     #if rrr:
     #    self.set_focus(rrr)
     self.set_focus(self.noneradio)</code></pre>
+</details>
+</dd>
+<dt id="mainwinvote.MainWin.loadconf"><code class="name flex">
+<span>def <span class="ident">loadconf</span></span>(<span>self, arg2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read config</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def loadconf(self, arg2):
+
+    &#39;&#39;&#39; Read config &#39;&#39;&#39;
+
+    confname = os.path.join(pyservsup.globals.myhome,  &#34;config.pydb&#34;)
+    #print(&#34;confname&#34;, confname)
+    confcore = twincore.TwinCore(confname, 0)
+    try:
+        ddd = confcore.get_rec(0)
+        confx = self.packer.decode_data(ddd[1])[0]
+    except:
+        # No conf, generate default
+        uuu = str(uuid.uuid1())
+        defconf = {&#34;start_replic&#34; : 1, }
+        defconf2 = self.packer.encode_data(&#34;&#34;, defconf)
+        confcore.save_data(uuu, defconf2)
+        ddd = confcore.get_rec(0)
+        confx = self.packer.decode_data(ddd[1])[0]
+
+    #print(&#34;confx:&#34;, confx)
+    if confx[&#39;start_replic&#39;]:
+        exe = os.path.join(os.path.dirname(__file__),
+                            &#34;..&#34;, &#34;..&#34;, &#34;pyvreplic&#34;, &#34;pyvreplic.py&#34;)
+        exe = os.path.normpath(exe)
+        #print(&#34;exe:&#34;, exe)
+        ret = subprocess.Popen([&#34;python&#34;, exe, &#34;-c&#34;, ],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        #print(&#34;subp ret&#34;, ret)</code></pre>
 </details>
 </dd>
 <dt id="mainwinvote.MainWin.main"><code class="name flex">
@@ -3639,7 +3821,9 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 <pre><code class="python">def new_ballot(self, arg):
     exe = os.path.join(os.path.dirname(__file__), &#34;..&#34;, &#34;pyvballot.py&#34;)
     #print(exe)
-    ret = subprocess.run([exe, ], capture_output=True)
+    #ret = subprocess.run([exe, ], capture_output=True)
+    # Mon 03.Jun.2024 detach
+    ret = subprocess.run([exe, ])
     #print(&#34;Back to &#34;, ret)</code></pre>
 </details>
 </dd>
@@ -3702,7 +3886,9 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
 <pre><code class="python">def new_voter(self, arg):
     exe = os.path.join(os.path.dirname(__file__), &#34;..&#34;, &#34;pyvpeople.py&#34;)
     #print(exe)
-    ret = subprocess.run([exe, ], capture_output=True)
+    #ret = subprocess.run([exe, ], capture_output=True)
+    # Mon 03.Jun.2024 detach completely
+    ret = subprocess.run([exe, ])
     #print(&#34;Back to &#34;, ret)</code></pre>
 </details>
 </dd>
@@ -3832,6 +4018,7 @@ for the potencial new record</p></div>
     #print(&#34;rowcnt&#34;, rowcnt)
 
     labv = Gtk.Label.new_with_mnemonic(&#34;Vo_te:   &#34;)
+    labv.set_tooltip_text(&#34;Please cast vote here.&#34;)
     labv.set_alignment(1, 0)
     self.gridx.attach(labv, 0, rowcnt, 1, 1)
 
@@ -3942,7 +4129,7 @@ for the potencial new record</p></div>
 </details>
 </dd>
 <dt id="mainwinvote.MainWin.qr_uuid"><code class="name flex">
-<span>def <span class="ident">qr_uuid</span></span>(<span>self, arg, arg2)</span>
+<span>def <span class="ident">qr_uuid</span></span>(<span>self, arg, arg2, arg3)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3950,16 +4137,15 @@ for the potencial new record</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def qr_uuid(self, arg, arg2):
+<pre><code class="python">def qr_uuid(self, arg, arg2, arg3):
     uuu = arg2.get_text()
     if not uuu:
-        msg = &#34;Please generate UUID first.&#34;
+        msg = &#34;Please generate / load UUID first.&#34;
         pymisc.smessage(msg)
         self.status.set_status_text(msg)
         return
     nnn = self.dat_dict[&#39;name&#39;].get_text() + &#34; -- &#34; + \
-            self.dat_dict[&#39;dob&#39;].get_text()
-
+                                            arg3.get_text()
     ret = pymisc.QrDlg(uuu, nnn, self.conf, parent = self)</code></pre>
 </details>
 </dd>
@@ -3984,14 +4170,14 @@ for the potencial new record</p></div>
 <span>def <span class="ident">save_data</span></span>(<span>self, arg1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>See if data changed, save_vote</p></div>
+<div class="desc"><p>See if data changed, save vote</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def save_data(self, arg1):
 
-    &#39;&#39;&#39; See if data changed, save_vote &#39;&#39;&#39;
+    &#39;&#39;&#39; See if data changed, save vote &#39;&#39;&#39;
 
     if not self.is_changed():
         msg = &#34;Nothing changed, cannot save.&#34;
@@ -4091,20 +4277,17 @@ for the potencial new record</p></div>
     #print(&#34;Saving:&#34;, ddd)
 
     pvh = pyvhash.BcData(header = self.dat_dict[&#39;uuid&#39;].get_text())
-
     # We mark this as &#39;test&#39; so it can stay in the chain, if desired
     #pvh.addpayload({&#34;Test&#34;: &#34;test&#34; ,})
-
     pvh.addpayload(ddd)
-
     pvh.hasharr()
     if self.conf.weak:
         pvh.num_zeros = 1
 
-    def callb(dlg):
+    def callbdlg(dlg):
         #print(&#34;callback from dlg&#34;)
         self.status.set_status_text(&#34;PROW calc, please wait ...&#34;)
-        ddd = 15
+        ddd = 20
         for aa in range(ddd):
             dlg.prog.set_fraction((aa+1) * 1/ddd)
             if pvh.powarr():
@@ -4116,7 +4299,8 @@ for the potencial new record</p></div>
 
     if self.conf.weak:
         pvh.num_zeros = 1
-    dlg = pymisc.progDlg(self.conf, callb, parent = self)
+
+    dlg = pymisc.progDlg(self.conf, callbdlg, parent = self)
 
     if not pvh.checkpow():
         msg = &#34;Cold not generate PROW, please retry saving record.&#34;
@@ -4124,42 +4308,16 @@ for the potencial new record</p></div>
         return
 
     enc = self.packer.encode_data(&#34;&#34;, pvh.datax)
-
     #print(&#34;enc:&#34;, enc)
     uuu = self.dat_dict[&#39;uuid&#39;].get_text()
-
-    #print(&#34;Save_data&#34;, uuu, ddd)
-
-    # Add indices
-    def callb2(c2, id2):
-        # Replicate saved locally
-        dddd = [uuu, enc.encode()]
-        #print(&#34;dddd:&#34;, dddd)
-        try:
-            pyvindex.append_index(c2, c2.hashname, pyvindex.hash_id, dddd)
-        except:
-            print(&#34;exc save callb hash&#34;, sys.exc_info())
-        try:
-            pyvindex.append_index(c2, c2.hashname2, pyvindex.hash_name, dddd)
-        except:
-            print(&#34;exc save callb name&#34;, sys.exc_info())
-            support.put_exception(&#34;save callb name&#34;)
-    try:
-        self.votecore.postexec = callb2
-        ret = self.votecore.save_data(uuu, enc)
-    except:
-        print(&#34;exc save&#34;, sys.exc_info())
-    finally:
-        self.votecore.postexec = None
+    #print(&#34;Save_data&#34;, uuu, pvh.datax)
+    ret = pyvcores.votesave(self.votecore, uuu, enc)
 
     # Save replicator
     ttt = time.time()
     dd = datetime.datetime.fromtimestamp(ttt)
     idt = dd.isoformat()
     now = dd.strftime(pyvhash.datefmt)
-
-    #self.dat_dict[&#39;now&#39;].get_text(),
-
     # Prepare data. Do strings so it can be re-written in place
     rrr = {
             &#39;header&#39; : uuu,
@@ -4196,6 +4354,8 @@ for the potencial new record</p></div>
 
     for aa in self.dat_dict.keys():
         self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
+
+
     return True</code></pre>
 </details>
 </dd>
@@ -4238,6 +4398,14 @@ for the potencial new record</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def start_pass_dlg(self, arg2):
+
+    if self.conf.recnum != -1:
+        #print(&#34;Showing record&#34;, self.conf.recnum)
+        self.set_title(&#34;PyVServer Vote ReadOnly View&#34;)
+        self.load_data(int(self.conf.recnum))
+        self.en_dis_all(False)
+        self.en_dis_ctrl(False)
+        return
 
     authcnt = 0
     while True:
@@ -4310,6 +4478,24 @@ for the potencial new record</p></div>
             self.reset_changed()
             self.status.set_status_text(&#34;Test Stopped&#34;)
             break
+
+        # Get a voter record
+        vcnt = self.vcore.getdbsize()
+        while True:
+            vrand = random.randint(0, vcnt-1)
+            try:
+                vdat = self.vcore.get_rec(vrand)
+            except:
+                vdat = []
+                print(sys.exc_info())
+                pass
+            if vdat:
+                break
+
+        vdat2 = self.packer.decode_data(vdat[1])[0][&#39;PayLoad&#39;]
+        #print(&#34;vdat2:&#34;, vdat2)
+        #break
+
         for aa in self.dat_dict.keys():
             # Handle differences in data
             if &#34;buuid&#34; == aa:
@@ -4318,16 +4504,29 @@ for the potencial new record</p></div>
                 pass                # Do not change ballot fields
             elif &#34;dob&#34; == aa:
                 pass                # Do not change ballot fields
+
+            #self.dat_dict[&#39;nuuid&#39;].set_text(dec[&#39;uuid&#39;])
+            #self.dat_dict[&#39;name&#39;].set_text(dec[&#39;name&#39;])
+            #self.dat_dict[&#39;ndob&#39;].set_text(dec[&#39;dob&#39;])
+            #self.dat_dict[&#39;nnow&#39;].set_text(dec[&#39;now&#39;])
+            #self.dat_dict[&#39;noper&#39;].set_text(dec[&#39;oper&#39;])
+
             elif &#34;uid&#34; in str(aa):
                self.dat_dict[aa].set_text(str(uuid.uuid1()) )
+            elif &#34;nuuid&#34; in str(aa):
+               self.dat_dict[aa].set_text(vdat2[&#39;uuid&#39;])
             elif aa == &#39;name&#39;:
-               self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
+               #self.dat_dict[aa].set_text(pgtests.simname(random.randint(12, 22)))
+               self.dat_dict[aa].set_text(vdat2[&#39;name&#39;])
             elif aa == &#39;dob&#39;:
                 self.dat_dict[aa].set_text(pgtests.randate())
             elif aa == &#39;ndob&#39;:
-                self.dat_dict[aa].set_text(pgtests.randate())
+                #self.dat_dict[aa].set_text(pgtests.randate())
+                self.dat_dict[aa].set_text(vdat2[&#39;dob&#39;])
             elif aa == &#39;now&#39;:
                 self.dat_dict[aa].set_text(pgtests.randisodate())
+            elif aa == &#39;nnow&#39;:
+                self.dat_dict[aa].set_text(vdat2[&#39;now&#39;])
             elif aa == &#39;vnotes&#39;:
                 self.dat_dict[aa].set_text(pgtests.randascii(random.randint(33, 66)))
             elif aa == &#39;vprim&#39;:
@@ -4381,7 +4580,6 @@ for the potencial new record</p></div>
             else:
                 # Just fill in something
                 self.dat_dict[aa].set_text(pgtests.randstr(random.randint(6, 22)))
-        #break
 
         pgutils.usleep(10)
         if not self.save_data(0):
@@ -4394,8 +4592,11 @@ for the potencial new record</p></div>
 
         # Do not clear, we want ballot
         #self.clear_data()
+        # TEST only
+        #break
 
-    self.conf.playsound = sps</code></pre>
+    self.conf.playsound = sps
+    pgutils.usleep(10)</code></pre>
 </details>
 </dd>
 <dt id="mainwinvote.MainWin.wrap"><code class="name flex">
@@ -4445,10 +4646,12 @@ for the potencial new record</p></div>
 <li><code><a title="mainwinvote.MainWin.config_dlg" href="#mainwinvote.MainWin.config_dlg">config_dlg</a></code></li>
 <li><code><a title="mainwinvote.MainWin.del_vote" href="#mainwinvote.MainWin.del_vote">del_vote</a></code></li>
 <li><code><a title="mainwinvote.MainWin.en_dis_all" href="#mainwinvote.MainWin.en_dis_all">en_dis_all</a></code></li>
+<li><code><a title="mainwinvote.MainWin.en_dis_ctrl" href="#mainwinvote.MainWin.en_dis_ctrl">en_dis_ctrl</a></code></li>
 <li><code><a title="mainwinvote.MainWin.exit_all" href="#mainwinvote.MainWin.exit_all">exit_all</a></code></li>
 <li><code><a title="mainwinvote.MainWin.is_changed" href="#mainwinvote.MainWin.is_changed">is_changed</a></code></li>
 <li><code><a title="mainwinvote.MainWin.key_press_event" href="#mainwinvote.MainWin.key_press_event">key_press_event</a></code></li>
 <li><code><a title="mainwinvote.MainWin.load_ballot" href="#mainwinvote.MainWin.load_ballot">load_ballot</a></code></li>
+<li><code><a title="mainwinvote.MainWin.load_data" href="#mainwinvote.MainWin.load_data">load_data</a></code></li>
 <li><code><a title="mainwinvote.MainWin.load_op_name" href="#mainwinvote.MainWin.load_op_name">load_op_name</a></code></li>
 <li><code><a title="mainwinvote.MainWin.load_op_uuid" href="#mainwinvote.MainWin.load_op_uuid">load_op_uuid</a></code></li>
 <li><code><a title="mainwinvote.MainWin.load_site_uuid" href="#mainwinvote.MainWin.load_site_uuid">load_site_uuid</a></code></li>
@@ -4456,6 +4659,7 @@ for the potencial new record</p></div>
 <li><code><a title="mainwinvote.MainWin.load_vote" href="#mainwinvote.MainWin.load_vote">load_vote</a></code></li>
 <li><code><a title="mainwinvote.MainWin.load_vote_uuid" href="#mainwinvote.MainWin.load_vote_uuid">load_vote_uuid</a></code></li>
 <li><code><a title="mainwinvote.MainWin.load_voter" href="#mainwinvote.MainWin.load_voter">load_voter</a></code></li>
+<li><code><a title="mainwinvote.MainWin.loadconf" href="#mainwinvote.MainWin.loadconf">loadconf</a></code></li>
 <li><code><a title="mainwinvote.MainWin.main" href="#mainwinvote.MainWin.main">main</a></code></li>
 <li><code><a title="mainwinvote.MainWin.new_ballot" href="#mainwinvote.MainWin.new_ballot">new_ballot</a></code></li>
 <li><code><a title="mainwinvote.MainWin.new_data" href="#mainwinvote.MainWin.new_data">new_data</a></code></li>

@@ -74,7 +74,7 @@ from pyvcommon import support, comline, pywrap
 from pyvcommon import pydata, pyservsup,  crysupp
 from pyvserver import pyvstate
 from pyvserver import pyvfunc
-from guilib import mainwin
+from guilib import mainwinpanel
 
 # -----------------------------------------------------------------------
 # Globals
@@ -138,7 +138,7 @@ def mainfunct():
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
 
-    mw = mainwin.MainWin()
+    mw = mainwinpanel.MainWin()
     mw.main()
     sys.exit(0)
 
@@ -173,7 +173,7 @@ if __name__ == &#39;__main__&#39;:
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
 
-    mw = mainwin.MainWin()
+    mw = mainwinpanel.MainWin()
     mw.main()
     sys.exit(0)</code></pre>
 </details>

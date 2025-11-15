@@ -12,6 +12,11 @@ import threading
 import queue
 import qrcode
 
+import numpy as np
+
+import cv2
+from pyzbar.pyzbar import decode
+
 from pyvguicom import pgutils
 from pyvguicom import pggui
 from pyvguicom import pgtests
@@ -398,5 +403,122 @@ class QrDlg(Gtk.Dialog):
                                     data2, GdkPixbuf.Colorspace.RGB,
                                                       False, 8, ww, hh, ww*3 )
         return pix
+
+class   ScanQR(Gtk.Dialog):
+
+    def __init__(self):
+
+        Gtk.Window.__init__(self)
+
+        # initalize the cam
+        self.cap = cv2.VideoCapture(0)
+        #self.cap.set(cv2.CAP_PROP_BACKLIGHT, 0)
+        self.datax = None
+        self.qqq = queue.Queue(5)
+        #ttt = threading.Thread(None, target=self._scan)
+        #ttt.daemon = True
+        #ttt.start()
+        print("Scan init ...")
+        self.set_size_request(600, 400)
+        #self.image = Gtk.Image.new_from_file("vote.png")
+        self.image = Gtk.Image()
+        #self.image.set_from_file("vote.png")
+        self.vbox.pack_start(self.image, 0, 0, 0)
+        self.show_all()
+        self.done = 0
+        self.connect("destroy", self.destroy_dlg)
+
+    def destroy_dlg(self, arg2):
+        self.done = 10
+
+    def _scan(self):
+
+        self.done = 0
+        ttt = time.time()
+        cnt = 0
+        while True:
+            _, img = self.cap.read()
+            dataz = decode(img)
+            #print("_scanning ...", self.datax, len(img), type(img))
+            if dataz:
+                #print("[+] QR Code detected, data:", datax)
+                self.datax = dataz
+                rrr = self.datax[0].rect
+                ul = tuple((rrr[0], rrr[1]))
+                ur = tuple((rrr[0] + rrr[2], rrr[1]))
+                ll = tuple((rrr[0], rrr[1] + rrr[3]))
+                lr = tuple((rrr[0] + rrr[2], rrr[1] + rrr[3]))
+                colx = (0, 255, 0)
+                thickx = 2
+
+                cv2.line(img, ul, ur, color=colx, thickness=thickx)
+                cv2.line(img, ur, lr, color=colx, thickness=thickx)
+                cv2.line(img, ul, ll, color=colx, thickness=thickx)
+                cv2.line(img, ll, lr, color=colx, thickness=thickx)
+
+                self.done += 1
+
+            # give it time to show frame
+            if self.done > 0:
+                self.done += 1
+                if self.done > 10:
+                    break
+
+            #print("key", cv2.waitKey(1))
+            #if cv2.waitKey(1) & 0xff == ord("q"):
+            #    break
+
+            # display the result
+            img2 = np.array(img).ravel()
+            pixbuf = GdkPixbuf.Pixbuf.new_from_data(img2,
+                            GdkPixbuf.Colorspace.RGB, False, 8, 640, 480, 3*640)
+            self.image.set_from_pixbuf(pixbuf)
+
+            pgutils.usleep(1)
+            #pgutils.ubreed()
+
+            if (time.time() - ttt) > 30:
+                break
+
+        cv2.destroyAllWindows()
+        self.destroy()
+        return self.datax
+
+    def scan(self):
+
+        print("scan called")
+
+        ttt = time.time()
+        seen = []
+        self.qqq.empty()
+
+        while True:
+            # = self.qqq.get()
+            if self.datax:
+                print("Code detected, data:", datax[0])
+                break
+
+            if (time.time() - ttt) > 10:
+                break
+
+            pgutils.usleep(200)
+
+            #if datax[0].data in seen:
+            #    if (time.time() - last) < 2:
+            #        continue
+            #    else:
+            #        last = time.time()
+            #else:
+            #    seen.append(datax[0].data)
+            #
+            #break
+
+        self.done = True
+        return self.datax
+
+    def __del__(self):
+        pass
+        self.cap.release()
+        cv2.destroyAllWindows()
 
 # EOF

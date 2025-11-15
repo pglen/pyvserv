@@ -428,7 +428,7 @@ class MainWin(Gtk.Window):
             exe = os.path.join(os.path.dirname(__file__),
                                 "..", "..", "pyvreplic", "pyvreplic.py")
             exe = os.path.normpath(exe)
-            print("exe:", exe)
+            #print("exe:", exe)
             ret = subprocess.Popen(["python", exe, "-c", ],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             #print("subp ret", ret)

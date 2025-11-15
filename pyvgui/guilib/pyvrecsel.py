@@ -165,11 +165,24 @@ class RecSelDlg(Gtk.Dialog):
             rowcnt += 1
         elif mode == MODE_VOTE:
             self.headers = HEAD_VOTE
-            butt3 = Gtk.Button.new_with_mnemonic("  by Vote ID  ")
-            butt4 = Gtk.Button.new_with_mnemonic("  by Voter ID  ")
+
+            hbox3x = Gtk.HBox()
+            butt3s = Gtk.Button.new_with_mnemonic("S_can")
+            butt3 = Gtk.Button.new_with_mnemonic("  Vote ID  ")
+            hbox3x.pack_start(butt3, 0, 0, 2)
+            hbox3x.pack_start(butt3s, 0, 0, 2)
+
+            hbox4x = Gtk.HBox()
+            butt4s = Gtk.Button.new_with_mnemonic("S_can")
+            butt4 = Gtk.Button.new_with_mnemonic("  Voter ID  ")
+            hbox4x.pack_start(butt4, 0, 0, 2)
+            hbox4x.pack_start(butt4s, 0, 0, 2)
+
             tp5x = ("Vote I_D:", "get", "Search for Vote ID. Must be a valid UUID", None)
             tp5y = ("_Find by Voter ID:", "get", "Search for Voter ID (person).  Must be a valid UUID.", None)
-            lab5x, lab6x = pgentry.gridhexa(gridx, 0, rowcnt, tp5x, tp5y, butt3, butt4)
+            lab5x, lab6x = pgentry.gridhexa(gridx, 0, rowcnt, tp5x, tp5y, hbox3x, hbox4x)
+            butt3s.connect("clicked", self.scan_qr, lab5x)
+            butt3s.connect("clicked", self.scan_qr, lab6x)
             butt3.connect("clicked", self.search_idx, lab5x,
                                         self.vcore.hashname, pyvindex.hash_id, "uuid")
             butt4.connect("clicked", self.search_idx, lab6x,
@@ -299,6 +312,12 @@ class RecSelDlg(Gtk.Dialog):
 
         #print ("response", self.response, "result", self.res)
         self.destroy()
+
+    def scan_qr(self, arg, arg2, arg3):
+        sss = pymisc.ScanQR()
+        ddd = sss._scan()
+        print(ddd)
+        pass
 
     def cleartree(self):
 

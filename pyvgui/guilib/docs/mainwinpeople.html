@@ -54,7 +54,7 @@ from pyvguicom import pgtests
 from pymenu import  *
 from pgui import  *
 
-import pyvrecsel, pgcal, config, passdlg, pymisc
+import pyvrecsel, pgcal, config, passdlg, pymisc, pyvcores
 
 from pyvcommon import pydata, pyservsup,  pyvhash, crysupp, pyvindex
 
@@ -93,17 +93,12 @@ class MainWin(Gtk.Window):
         self.set_title(&#34;PyVServer Client Entry&#34;)
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
-        self.vcore = twincore.TwinCore(&#34;voters.pydb&#34;, 0)
         self.hcore = twincore.TwinCore(&#34;ihosts.pydb&#34;, 0)
         self.acore = twincore.TwinCore(&#34;audit.pydb&#34;, 0)
         self.authcore = twincore.TwinCore(&#34;auth.pydb&#34;, 0)
 
-        # We let the core carry vars; make sure they do not collide
+        self.vcore = pyvcores.votercore(&#34;voters.pydb&#34;)
         self.vcore.packer = self.packer
-        self.vcore.hashname  = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.id&#34;
-        self.vcore.hashname2 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.name&#34;
-        self.vcore.hashname3 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.phone&#34;
-        self.vcore.hashname4 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.email&#34;
 
         self.exit_flag = 0
         self.stop = True
@@ -809,7 +804,7 @@ class MainWin(Gtk.Window):
         def callbdlg(dlg):
             #print(&#34;callback from dlg&#34;)
             self.status.set_status_text(&#34;PROW calc, please wait ...&#34;)
-            ddd = 15
+            ddd = 20
             for aa in range(ddd):
                 dlg.prog.set_fraction((aa+1) * 1/ddd)
                 if pvh.powarr():
@@ -834,38 +829,7 @@ class MainWin(Gtk.Window):
         #print(&#34;enc:&#34;, enc)
         uuu = self.dat_dict[&#39;uuid&#39;].get_text()
 
-        # Add index
-        def callb(c2, id2):
-            # Replicate fields from local data
-            dddd = [uuu, enc.encode()]
-            #print(&#34;dddd:&#34;, dddd)
-            try:
-                pyvindex.append_index(c2, self.vcore.hashname,  pyvindex.hash_id, dddd)
-            except:
-                print(&#34;exc save callb hash&#34;, sys.exc_info())
-            try:
-                pyvindex.append_index(c2, self.vcore.hashname2, pyvindex.hash_name, dddd)
-            except:
-                print(&#34;exc save callb name&#34;, sys.exc_info())
-                #pgutils.put_exception(&#34;save idx&#34;)
-            try:
-                pyvindex.append_index(c2, self.vcore.hashname3, pyvindex.hash_email, dddd)
-            except:
-                print(&#34;exc save callb name&#34;, sys.exc_info())
-
-            try:
-                pyvindex.append_index(c2, self.vcore.hashname4, pyvindex.hash_phone, dddd)
-            except:
-                print(&#34;exc save callb name&#34;, sys.exc_info())
-
-        try:
-            self.vcore.postexec = callb
-            ret = self.vcore.save_data(uuu, enc)
-        except:
-            pass
-            print(&#34;save&#34;, sys.exc_info())
-        finally:
-            self.vcore.postexec = None
+        ret = pyvcores.votersave(self.vcore, uuu, enc)
 
         if self.conf.playsound:
             self.conf.playsound.play_sound(&#34;shutter&#34;)
@@ -993,17 +957,12 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         self.set_title(&#34;PyVServer Client Entry&#34;)
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
-        self.vcore = twincore.TwinCore(&#34;voters.pydb&#34;, 0)
         self.hcore = twincore.TwinCore(&#34;ihosts.pydb&#34;, 0)
         self.acore = twincore.TwinCore(&#34;audit.pydb&#34;, 0)
         self.authcore = twincore.TwinCore(&#34;auth.pydb&#34;, 0)
 
-        # We let the core carry vars; make sure they do not collide
+        self.vcore = pyvcores.votercore(&#34;voters.pydb&#34;)
         self.vcore.packer = self.packer
-        self.vcore.hashname  = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.id&#34;
-        self.vcore.hashname2 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.name&#34;
-        self.vcore.hashname3 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.phone&#34;
-        self.vcore.hashname4 = os.path.splitext(self.vcore.fname)[0] + &#34;.hash.email&#34;
 
         self.exit_flag = 0
         self.stop = True
@@ -1709,7 +1668,7 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         def callbdlg(dlg):
             #print(&#34;callback from dlg&#34;)
             self.status.set_status_text(&#34;PROW calc, please wait ...&#34;)
-            ddd = 15
+            ddd = 20
             for aa in range(ddd):
                 dlg.prog.set_fraction((aa+1) * 1/ddd)
                 if pvh.powarr():
@@ -1734,38 +1693,7 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         #print(&#34;enc:&#34;, enc)
         uuu = self.dat_dict[&#39;uuid&#39;].get_text()
 
-        # Add index
-        def callb(c2, id2):
-            # Replicate fields from local data
-            dddd = [uuu, enc.encode()]
-            #print(&#34;dddd:&#34;, dddd)
-            try:
-                pyvindex.append_index(c2, self.vcore.hashname,  pyvindex.hash_id, dddd)
-            except:
-                print(&#34;exc save callb hash&#34;, sys.exc_info())
-            try:
-                pyvindex.append_index(c2, self.vcore.hashname2, pyvindex.hash_name, dddd)
-            except:
-                print(&#34;exc save callb name&#34;, sys.exc_info())
-                #pgutils.put_exception(&#34;save idx&#34;)
-            try:
-                pyvindex.append_index(c2, self.vcore.hashname3, pyvindex.hash_email, dddd)
-            except:
-                print(&#34;exc save callb name&#34;, sys.exc_info())
-
-            try:
-                pyvindex.append_index(c2, self.vcore.hashname4, pyvindex.hash_phone, dddd)
-            except:
-                print(&#34;exc save callb name&#34;, sys.exc_info())
-
-        try:
-            self.vcore.postexec = callb
-            ret = self.vcore.save_data(uuu, enc)
-        except:
-            pass
-            print(&#34;save&#34;, sys.exc_info())
-        finally:
-            self.vcore.postexec = None
+        ret = pyvcores.votersave(self.vcore, uuu, enc)
 
         if self.conf.playsound:
             self.conf.playsound.play_sound(&#34;shutter&#34;)
@@ -2498,7 +2426,7 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     def callbdlg(dlg):
         #print(&#34;callback from dlg&#34;)
         self.status.set_status_text(&#34;PROW calc, please wait ...&#34;)
-        ddd = 15
+        ddd = 20
         for aa in range(ddd):
             dlg.prog.set_fraction((aa+1) * 1/ddd)
             if pvh.powarr():
@@ -2523,38 +2451,7 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
     #print(&#34;enc:&#34;, enc)
     uuu = self.dat_dict[&#39;uuid&#39;].get_text()
 
-    # Add index
-    def callb(c2, id2):
-        # Replicate fields from local data
-        dddd = [uuu, enc.encode()]
-        #print(&#34;dddd:&#34;, dddd)
-        try:
-            pyvindex.append_index(c2, self.vcore.hashname,  pyvindex.hash_id, dddd)
-        except:
-            print(&#34;exc save callb hash&#34;, sys.exc_info())
-        try:
-            pyvindex.append_index(c2, self.vcore.hashname2, pyvindex.hash_name, dddd)
-        except:
-            print(&#34;exc save callb name&#34;, sys.exc_info())
-            #pgutils.put_exception(&#34;save idx&#34;)
-        try:
-            pyvindex.append_index(c2, self.vcore.hashname3, pyvindex.hash_email, dddd)
-        except:
-            print(&#34;exc save callb name&#34;, sys.exc_info())
-
-        try:
-            pyvindex.append_index(c2, self.vcore.hashname4, pyvindex.hash_phone, dddd)
-        except:
-            print(&#34;exc save callb name&#34;, sys.exc_info())
-
-    try:
-        self.vcore.postexec = callb
-        ret = self.vcore.save_data(uuu, enc)
-    except:
-        pass
-        print(&#34;save&#34;, sys.exc_info())
-    finally:
-        self.vcore.postexec = None
+    ret = pyvcores.votersave(self.vcore, uuu, enc)
 
     if self.conf.playsound:
         self.conf.playsound.play_sound(&#34;shutter&#34;)
