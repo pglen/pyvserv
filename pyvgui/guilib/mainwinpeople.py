@@ -11,6 +11,10 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
+#import tracemalloc
+# Start tracing memory allocations
+#tracemalloc.start()
+
 from pyvguicom import pgutils
 
 # Add this path to find local modules
@@ -42,7 +46,7 @@ class MainWin(Gtk.Window):
 
     def __init__(self, globals):
 
-        Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
+        Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
 
         #print("globals", globals.myhome)
         self.reentry    = False
@@ -78,6 +82,7 @@ class MainWin(Gtk.Window):
         #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
         #window.set_icon(ic.get_pixbuf())
 
+        warnings.simplefilter("ignore")
         www = Gdk.Screen.width(); hhh = Gdk.Screen.height();
 
         disp2 = Gdk.Display()
@@ -87,12 +92,15 @@ class MainWin(Gtk.Window):
         ptr = disp.get_pointer()
         mon = scr.get_monitor_at_point(ptr[1], ptr[2])
         geo = scr.get_monitor_geometry(mon)
+
         www = geo.width; hhh = geo.height
         xxx = geo.x;     yyy = geo.y
 
         # Resort to old means of getting screen w / h
         if www == 0 or hhh == 0:
             www = Gdk.screen_width(); hhh = Gdk.screen_height();
+
+        warnings.simplefilter("default")
 
         #self.set_default_size(6*www/8, 6*hhh/8)
 
@@ -119,11 +127,11 @@ class MainWin(Gtk.Window):
         hbox4 = Gtk.HBox()
         #hbox4a = Gtk.HBox()
 
-        lab1 = Gtk.Label("   ");
+        lab1 = Gtk.Label(label="   ");
         hbox4.pack_start(lab1, 0, 0, 0)
         self.status = pymisc.Status()
         hbox4.pack_start(self.status.scroll, 1, 1, 0)
-        lab1 = Gtk.Label("   ");
+        lab1 = Gtk.Label(label="   ");
         hbox4.pack_start(lab1, 0, 0, 0)
 
         if globals.conf.testx:
@@ -144,19 +152,20 @@ class MainWin(Gtk.Window):
         hbox4.pack_start(butt2, False, 0, 2)
         #hbox4.pack_start(Gtk.Label("   "), 0, 0, 2)
 
+        warnings.simplefilter("ignore")
         merge = Gtk.UIManager()
         #self.mywin.set_data("ui-manager", merge)
-
         aa = create_action_group(self)
         merge.insert_action_group(aa, 0)
         self.add_accel_group(merge.get_accel_group())
-
         merge_id = merge.new_merge_id()
 
         try:
             mergeid = merge.add_ui_from_string(ui_info)
         except GLib.GError as msg:
             print("Building menus failed: %s" % msg)
+
+        warnings.simplefilter("default")
 
         #self.mbar = merge.get_widget("/MenuBar")
         #self.mbar.show()
@@ -179,7 +188,7 @@ class MainWin(Gtk.Window):
         butt2.connect("clicked", self.OnExit, self)
         hbox4.pack_start(butt2, False, 0, 2)
 
-        lab2 = Gtk.Label("   ");  hbox4.pack_start(lab2, 0, 0, 0)
+        lab2 = Gtk.Label(label="   ");  hbox4.pack_start(lab2, 0, 0, 0)
 
         gridx = Gtk.Grid()
         gridx.set_column_spacing(6)
@@ -308,9 +317,9 @@ class MainWin(Gtk.Window):
             self.dat_dict_org[aa] = self.dat_dict[aa].get_text()
 
         #hboxtop = Gtk.HBox()
-        #hboxtop.pack_start(Gtk.Label(" "),  0, 0, 2)
-        #hboxtop.pack_start(Gtk.Label("Not all enrties are required: "),  0, 0, 6)
-        #hboxtop.pack_start(Gtk.Label(" "),  1, 1, 2)
+        #hboxtop.pack_start(Gtk.Label(label=" "),  0, 0, 2)
+        #hboxtop.pack_start(Gtk.Label(label="Not all enrties are required: "),  0, 0, 6)
+        #hboxtop.pack_start(Gtk.Label(label=" "),  1, 1, 2)
         ##hboxtop.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaa44"))
         #vbox.pack_start(hboxtop, 0, 0, 0)
 
@@ -318,9 +327,9 @@ class MainWin(Gtk.Window):
         vbox.pack_start(pggui.ySpacer(4), 0, 0, 0)
 
         #sumx.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaaa"))
-        sumx.pack_start(Gtk.Label("   "), 0, 0, 0)
+        sumx.pack_start(Gtk.Label(label="   "), 0, 0, 0)
         sumx.pack_start(gridx, 1, 1, 0)
-        sumx.pack_start(Gtk.Label("   "), 0, 0, 0)
+        sumx.pack_start(Gtk.Label(label="   "), 0, 0, 0)
 
         #vbox.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaff"))
 
@@ -355,13 +364,15 @@ class MainWin(Gtk.Window):
                 pymisc.smessage("Too May tries, exiting.")
                 sys.exit(1)
             ret = passdlg.auth_initial(self.authcore, self.packer, self.conf)
-
-            #print("ret:", ret)
+            #print("ret", ret)
+            if ret[0] == -1:
+                #break
+                print("Failed authorization.")
+                sys.exit(1)
 
             if not ret[0]:
                 authcnt += 1
                 continue
-
             if ret[1][2] != "Enabled":
                 authcnt += 1
                 msg = "Cannot log in, user '%s' is disbled " % ret[1][0]

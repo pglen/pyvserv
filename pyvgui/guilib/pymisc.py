@@ -4,39 +4,47 @@
 
 # pylint: disable=C0103
 
-import os
-import sys
+import os, sys, time
 import datetime
-import time
 import threading
 import queue
 import qrcode
+import warnings
 
 import numpy as np
-
 import cv2
 from pyzbar.pyzbar import decode
+
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "1"
+warnings.simplefilter("ignore")
+import pygame
+warnings.simplefilter("default")
 
 from pyvguicom import pgutils
 from pyvguicom import pggui
 from pyvguicom import pgtests
 
-try:
-    import winsound
-
-    print("Playsound for windows")
-    def playsound(arg):
-        winsound.PlaySound(arg, 0)
-except:
-    try:
-        from playsound import playsound
-    except:
-        print("Playsound not available, beeping only.")
-        def playsound(arg):
-            print("Fake playsound")
-            Gdk.beep()
+class PlaySound():
+    inited = False
+    def __init__(self):
+        #global inited
+        if not PlaySound.inited:
+            #print("inited")
+            pygame.init()
+            pygame.mixer.init() # (frequency=44100)
+            PlaySound.inited = True
+    def play(self, fname):
+        pygame.mixer.music.load(fname)
+        pygame.mixer.music.play()
+    def wait(self ):
+        while pygame.mixer.music.get_busy():
             pass
-        #print("No sound subsystem")
+    def __del__(self):
+        #global inited
+        if PlaySound.inited:
+            PlaySound.inited = False
+            #print("Delete")
+            pygame.mixer.quit()
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -112,7 +120,7 @@ class Status(Gtk.Label):
             sum = sum[:self.maxlen] + " .."
         super().set_text(sum)
         self.status_cnt = len(sum) // 4
-        pgutils.usleep(20)
+        pggui.usleep(20)
 
     def _timer(self):
 
@@ -155,7 +163,8 @@ class Soundx():
             soundx = self.qqq.get()
             #print("Playing", os.path.basename(soundx))
             Gdk.beep()
-            playsound(soundx)
+            #ps = PlaySound()
+            #ps.play(soundx); ps.wait()
 
     def play_all(self):
 

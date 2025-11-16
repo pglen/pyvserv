@@ -219,7 +219,8 @@ def  create_read_idfile(fname):
                 #print("Badly formed UUID");
                 pass
             break
-    fp2.close
+    #print("Close fp2")
+    fp2.close()
 
     return uuuu
 
@@ -338,6 +339,7 @@ class   FileLock():
                     fcntl.flock(self.fpx, fcntl.LOCK_UN | fcntl.LOCK_NB)
                 pass
 
+            self.fpx.close()
             # Always remove file
             try:
                 os.remove(self.lockname)

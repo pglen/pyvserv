@@ -58,7 +58,7 @@ cleankeys:
 	@rm -rf ~/pyvserver/private/*
 
 tests:
-	@  ./isalive.py
+	@./isdead.py
 	@echo "Executing tests in the pyvclient directory"
 	cd pyvclient/tests; pytest; cd ..
 	@echo "Warning: On empty database this test created demo credentials."
@@ -145,6 +145,23 @@ installvirt:
 
 startvirt:
 	./pyvserv_venv.sh
+
+local-install:
+	pip install .
+
+local-pipx-uninstall:
+	pipx uninstall pyvserv
+
+local-pipx-install:
+	pipx install  --force .
+	pipx inject pyvserv pygobject==3.42.1
+	pipx inject  pyvserv pygame
+	pipx inject  pyvserv numpy
+	pipx inject  pyvserv opencv-python
+	pipx inject  pyvserv pyzbar
+
+local-uninstall:
+	pip uninstall pyvserv
 
 git2:
 	@$(eval AAA=$(shell zenity --entry --text "Enter Git Commit Message:"))

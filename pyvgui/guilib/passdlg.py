@@ -315,7 +315,7 @@ class PassDlg(Gtk.Dialog):
 
         self.vbox3.pack_start(hbox4, 0, 0, 4)
         self.vbox3.pack_start(\
-            Gtk.Label("Watermark animation is to assure authenticity."), 0, 0, 4)
+            Gtk.Label(label="Watermark animation is to assure authenticity."), 0, 0, 4)
 
         self.overlay.add(self.vbox3)
         self.vbox.pack_start(self.overlay, 1, 1, 1)

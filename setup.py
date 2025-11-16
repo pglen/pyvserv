@@ -70,7 +70,9 @@ try:
 
     # Thu 04.Apr.2024 abandoned readline; may install by hand
     deplist = ["pyvpacker", "pydbase", "pycryptodome",
-                        "pyvecc", "pyvguicom", "playsound", "qrcode"],
+    #                    "pyvecc", "pyvguicom", "playsound", "qrcode"],
+    #deplist = ["pyvpacker", "pydbase", "pycryptodome",
+                        "pyvecc", "pyvguicom", "qrcode"],
 except:
     # No fnctl, windows
     deplist = ["pyvpacker", "pydbase", "pycryptodome",
