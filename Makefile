@@ -37,15 +37,14 @@ cleansubs:
 	@make -C pyvtools clean
 
 clean:
-	echo Clean ...
+	@#echo Cleaninig ...
+	@#-find .  -type f  -name  "*.pyc" -exec rm -rf {} \;
+	@#-find .  -type d  -name "__pycache__" -exec rm -rf {}  \;
 	@rm -f aa bb cc pyvserv.deb
-	@-find .  -type f  -name  "*.pyc" -exec rm -rf {} \;
-	@-find .  -type d  -name "__pycache__" -exec rm -rf {}  \;
 	@rm -rf build-tmp/*
 	@rm -rf  dist/*
 	@rm -rf  build/*
 	@rm -f pyvserv.service
-	@rm -rf pip_pyvserv/*
 
 cleanall:
 	@rm -rf ~/pyvserver/*

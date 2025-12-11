@@ -1,6 +1,15 @@
 #!/bin/bash
 
-python3 -m venv pip_pyvserv
-cp pip_stage2.sh pip_pyvserv
-cd pip_pyvserv
-bash --rcfile ./bin/activate -c "./bin/pyvserv -v -d 5"
+if [ "$0" != "bash" ] ; then
+    echo Please start as 'source'
+    exit 1
+fi
+
+VENV=venv
+if [ ! -d $VENV ] ; then
+    echo Creating: $VENV
+    python3 -m venv $VENV
+fi
+cd $VENV
+source bin/activate
+echo "Type 'deactivate' to leave venv"

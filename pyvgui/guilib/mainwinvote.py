@@ -74,6 +74,7 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
 
+        #print("Location:", pyservsup.globals.chaindir)
         votename = os.path.join(pyservsup.globals.chaindir, "vote", "initial.pydb")
         self.votecore = pyvcores.votecore(votename)
         self.votecore.packer = self.packer

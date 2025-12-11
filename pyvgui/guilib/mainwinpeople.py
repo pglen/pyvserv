@@ -69,6 +69,7 @@ class MainWin(Gtk.Window):
         self.set_title("PyVServer Client Entry")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
+
         self.hcore = twincore.TwinCore("ihosts.pydb", 0)
         self.acore = twincore.TwinCore("audit.pydb", 0)
         self.authcore = twincore.TwinCore("auth.pydb", 0)
