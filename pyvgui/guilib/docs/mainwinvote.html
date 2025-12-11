@@ -102,6 +102,7 @@ class MainWin(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
 
+        #print(&#34;Location:&#34;, pyservsup.globals.chaindir)
         votename = os.path.join(pyservsup.globals.chaindir, &#34;vote&#34;, &#34;initial.pydb&#34;)
         self.votecore = pyvcores.votecore(votename)
         self.votecore.packer = self.packer
@@ -1617,6 +1618,7 @@ new(type:Gtk.WindowType) -&gt; Gtk.Widget
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.packer = pyvpacker.packbin()
 
+        #print(&#34;Location:&#34;, pyservsup.globals.chaindir)
         votename = os.path.join(pyservsup.globals.chaindir, &#34;vote&#34;, &#34;initial.pydb&#34;)
         self.votecore = pyvcores.votecore(votename)
         self.votecore.packer = self.packer

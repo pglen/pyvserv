@@ -29,7 +29,7 @@ from Crypto import Random
 # Globals and configurables
 
 # Update it here from setup
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 # Actions
 USER_AUTH  = 0;  USER_ADD = 1;   USER_DEL = 2;   USER_CHPASS = 3;

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$0" != "bash" ] ; then
-    echo Please start as 'source'
+    echo "Please start as 'source' like 'source pyvserv_venv.sh'"
     exit 1
 fi
 
@@ -13,3 +13,5 @@ fi
 cd $VENV
 source bin/activate
 echo "Type 'deactivate' to leave venv"
+
+# EOF
