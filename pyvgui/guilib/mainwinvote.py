@@ -53,11 +53,12 @@ class MainWin(Gtk.Window):
         self.was_saved = False
         self.powers     = 0
         self.conf       = globals.conf
-        self.conf.iconf  = os.path.dirname(globals.conf.me) + os.sep + "pyvvote.png"
-        self.conf.iconf2 = os.path.dirname(globals.conf.me) + os.sep + "pyvvote_sub.png"
+        self.conf.iconf  = os.path.dirname(globals.conf.me) + \
+                                os.sep + "images/pyvvote.png"
+        self.conf.iconf2 = os.path.dirname(globals.conf.me) + \
+                                os.sep + "images/pyvvote_sub.png"
         self.conf.siteid = globals.siteid
         self.oneshot = False
-
         self.radioarr = {}
 
         try:

@@ -103,7 +103,7 @@ class MainWin(Gtk.Window):
         self.old_curr = 0
         self.old_size = 0
         self.globals.conf.iconf  = os.path.dirname(globals.conf.me) + \
-                                                os.sep + "pyvvotemon.png"
+                                     os.sep + "images/pyvvotemon.png"
         try:
             #print("iconf", self.conf.iconf)
             ic = Gtk.Image(); ic.set_from_file(self.globals.conf.iconf)

@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import absolute_import
-from __future__ import print_function
-
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 

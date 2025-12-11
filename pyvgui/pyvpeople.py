@@ -134,7 +134,6 @@ def mainfunct():
 
     pyservsup.globals  = pyservsup.Global_Vars(__file__, conf.droot)
     pyservsup.globals.conf = conf
-
     pyservsup.globals.softmkdir(pyservsup.globals.myhome)
 
     # Change directory to the data dir
