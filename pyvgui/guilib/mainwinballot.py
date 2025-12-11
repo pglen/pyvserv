@@ -17,12 +17,13 @@ from pyvguicom import pgutils
 base = os.path.dirname(pgutils.__file__)
 sys.path.append(base)
 
+from pyvguicom import pgutils
 from pyvguicom import pgbox
 from pyvguicom import pgsimp
 from pyvguicom import pggui
 from pyvguicom import pgentry
-from pyvguicom import pgutils
 from pyvguicom import pgtests
+from pyvguicom import pgdlgs
 
 from pymenu import  *
 from pgui import  *
@@ -477,7 +478,7 @@ class MainWin(Gtk.Window):
         authcnt = 0
         while True:
             if authcnt > 3:
-                pggui.message("Too May tries, exiting.")
+                pgdlgs.message("Too May tries, exiting.")
                 sys.exit(1)
             ret = passdlg.auth_initial(self.authcore, self.packer, self.conf)
             #print("ret:", ret)
@@ -488,7 +489,7 @@ class MainWin(Gtk.Window):
                 msg = "Cannot log in, user '%s' is disbled " % ret[1][0]
                 self.status.set_text(msg)
                 self.status_cnt = 5
-                pggui.message(msg)
+                pgdlgs.message(msg)
                 authcnt += 1
                 continue
             # Success
@@ -546,7 +547,7 @@ class MainWin(Gtk.Window):
     def load_op_name(self, arg, arg2, arg3):
         if arg2.get_text() != "":
             msg = "Already has operator; Cannot set."
-            pggui.message(msg)
+            pgdlgs.message(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
             return
@@ -559,7 +560,7 @@ class MainWin(Gtk.Window):
     def load_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a UUID; Cannot set."
-            pggui.message(msg)
+            pgdlgs.message(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
             return
@@ -568,7 +569,7 @@ class MainWin(Gtk.Window):
     def load_op_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a OUID; Cannot set."
-            pggui.message(msg)
+            pgdlgs.message(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
             return
@@ -577,7 +578,7 @@ class MainWin(Gtk.Window):
     def load_vote_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a UUID; Cannot set."
-            pggui.message(msg)
+            pgdlgs.message(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
             return
@@ -586,7 +587,7 @@ class MainWin(Gtk.Window):
     def load_site_uuid(self, arg, arg2):
         if arg2.get_text() != "":
             msg = "Already has a Site UUID; Cannot set."
-            pggui.message(msg)
+            pgdlgs.message(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
             return
@@ -661,7 +662,7 @@ class MainWin(Gtk.Window):
             msg = "Empty record, cannot delete."
             self.status.set_text(msg)
             self.status_cnt = 4
-            pggui.message(msg)
+            pgdlgs.message(msg)
             return
         msg = "This will delete: '%s'" % nnn
         self.status.set_text(msg)
@@ -753,7 +754,7 @@ class MainWin(Gtk.Window):
             #print(msg)
             self.status.set_text(msg)
             self.status_cnt = 5
-            pggui.message(msg)
+            pgdlgs.message(msg)
             return
         #print("dat:", dat)
         try:
@@ -820,7 +821,7 @@ class MainWin(Gtk.Window):
             msg = "Nothing changed, cannot save."
             self.status.set_text(msg)
             self.status_cnt = 4
-            pggui.message(msg)
+            pgdlgs.message(msg)
             return
 
         if not self.dat_dict['name'].get_text():
@@ -828,7 +829,7 @@ class MainWin(Gtk.Window):
             self.status.set_text(msg)
             self.status_cnt = 4
             self.set_focus(self.dat_dict['name'])
-            pggui.message(msg)
+            pgdlgs.message(msg)
             return
 
         dob = self.dat_dict['dob'].get_text()
@@ -837,7 +838,7 @@ class MainWin(Gtk.Window):
             self.status.set_text(msg)
             self.status_cnt = 4
             self.set_focus(self.dat_dict['dob'])
-            pggui.message(msg)
+            pgdlgs.message(msg)
             return
 
         # Commemorate event by setting a fresh date
@@ -868,7 +869,7 @@ class MainWin(Gtk.Window):
             self.status.set_text(msg)
             self.status_cnt = 4
             self.set_focus(self.dat_dict['can1'])
-            pggui.message(msg)
+            pgdlgs.message(msg)
             return
 
         # Duplicate votes?
@@ -893,7 +894,7 @@ class MainWin(Gtk.Window):
             self.status.set_text(msg)
             self.status_cnt = 4
             self.set_focus(self.dat_dict['can%d' % (dabs+1)])
-            pggui.message(msg)
+            pgdlgs.message(msg)
             return
 
         # Empty gap?
@@ -912,7 +913,7 @@ class MainWin(Gtk.Window):
             self.status.set_text(msg)
             self.status_cnt = 4
             self.set_focus(self.dat_dict['can%d' % (gcnt)])
-            pggui.message(msg)
+            pgdlgs.message(msg)
             return
 
         ddd = {}

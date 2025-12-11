@@ -14,14 +14,14 @@ help:
 	@echo  "\tcleankeys   --  clean keys                           "
 	@echo  "\tfreshdata   --  clean all data !!! Warning: !!!      "
 	@echo  "\tgensun      --  genetrate SHA256 hashes              "
-	@echo  "\tchecsum     --  check hashes                         "
+	@echo  "\tchecksum    --  check hashes                         "
 	@echo  "\tdocs        --  generate documents                   "
 	@echo  "\tgensevice   --  generate sevice file                 "
 	@echo  "\tinstservice --  install service                      "
 	@echo  "\tstatservice --  see service status                   "
 
 init:
-	@python3 ./tools/genkey.py
+	@python3 ./pyvtools/pyvgenkey.py
 
 git:
 	#make clean
@@ -165,7 +165,7 @@ local-uninstall:
 git2:
 	@$(eval AAA=$(shell zenity --entry --text "Enter Git Commit Message:"))
 	git add .
-	git commit -m "${AAA}"
+	-git commit -m "${AAA}"
 	git push
 
 testinput:

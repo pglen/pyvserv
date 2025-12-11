@@ -34,6 +34,7 @@ def phelp():
     print( "  options:    -d level  - Debug level 0-10")
     print( "              -p port   - Port to use (default: 6666)")
     print( "              -v        - Verbose")
+    print( "              -t        - Time connection")
     print( "              -V        - Version")
     print( "              -q        - Quiet")
     print( "              -h        - Help")
@@ -49,6 +50,7 @@ optarr = \
     ["p:",  "port",     6666,   None],      \
     ["v",   "verbose",  0,      None],      \
     ["q",   "quiet",    0,      None],      \
+    ["t",   "timeit",    0,      None],      \
     ["V",   None,       None,   pversion],  \
     ["h",   None,       None,   phelp]      \
 
@@ -87,6 +89,8 @@ def mainfunct():
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
+    ttt = time.time()
+
     try:
         resp2 = hand.connect(ip, conf.port)
     except:
@@ -94,17 +98,25 @@ def mainfunct():
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
+    if conf.timeit:
+        print ("Connect time %.2f ms" % ( (time.time()-ttt) * 1000 ))
+
     if conf.verbose:
         respini = hand.pb.decode_data(resp2[1])[0]
         print ("Server initial:", respini)
 
     resp = hand.client(["ver"])
+
+
     print ("Version resp:", resp)
 
     resp = hand.client(["quit"])
     if conf.verbose:
         print ("Server quit resp:", resp)
     hand.close()
+
+    if conf.timeit:
+        print ("Response time %.2f ms" % ( (time.time()-ttt) * 1000 ))
 
     sys.exit(0)
 

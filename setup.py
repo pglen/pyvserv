@@ -36,6 +36,7 @@ test_root = [\
     "pyvcli_rman",
     "pyvcli_qr",
     "pyvcli_ihost",
+    "pyvcli_load",
     ]
 
 # Generate script and loadable details
@@ -129,6 +130,7 @@ setuptools.setup(
                 "pyvgui/pyvtally.py",  "pyvgui/pyvvote.py",
                 "pyvgui/pyvpeople.py",  "pyvgui/pyvballot.py",
                 *test_scripts,
+                "killpyvserv.sh",
                 ],
     package_dir = {
                     'pyvgui':           'pyvgui',
@@ -139,12 +141,10 @@ setuptools.setup(
                     'pyvreplic':        'pyvreplic',
                     'pyvtools':         'pyvtools',
                    },
-
     package_data = {    "pyvserver" :  doclist,
                         "pyvclient" : cdoclist,
                         "pyvtools"  : tdoclist,
                    },
-
     data_files =  [
                     ("pyvgui", [
                                 "pyvgui/pyvpeople.png",
@@ -157,7 +157,6 @@ setuptools.setup(
                                 "pyvgui/docs/pyvcpanel.html",
                                  "pyvgui/docs/pyvservui.html"]),
                     ],
-
     python_requires='>=3',
     install_requires=deplist,
     entry_points={

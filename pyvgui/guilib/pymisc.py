@@ -22,6 +22,7 @@ warnings.simplefilter("default")
 
 from pyvguicom import pgutils
 from pyvguicom import pggui
+from pyvguicom import pgdlgs
 from pyvguicom import pgtests
 
 class PlaySound():
@@ -218,7 +219,7 @@ def  smessage(*args, **kwargs):
         del kwargs["conf"]               # Remove extra keyword
     if sss:
         del kwargs['sound']
-    pggui.message(args[0], **kwargs)
+    pgdlgs.message(args[0], **kwargs)
     gl_in = False
 
 class progDlg(Gtk.Dialog):

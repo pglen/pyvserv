@@ -147,7 +147,8 @@ class   Global_Vars:
             try:
                 os.mkdir(ddd, 0o700)
             except:
-                print( "Cannot make " + ddd + " " + fff + " dir", sys.exc_info())
+                print( "Cannot make " + ddd + " " + fff + \
+                            " dir", sys.exc_info())
                 sys.exit(1)
 
     # --------------------------------------------------------------------

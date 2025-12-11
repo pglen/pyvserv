@@ -27,10 +27,11 @@ from gi.repository import GdkPixbuf
 import pyvpacker
 from pydbase import twincore, twinchain
 
+from pyvguicom import pgutils
 from pyvguicom import pggui
 from pyvguicom import pgsel
-from pyvguicom import pgutils
 from pyvguicom import pgentry
+from pyvguicom import pgdlgs
 
 from pyvcommon import pyvhash
 
@@ -104,7 +105,7 @@ def auth_initial(authcore, packer, conf):
         if ret[0] != 1:
             pymisc.smessage("Bad user or password", conf=conf, sound="error")
     else:
-        dret = pggui.yes_no("Must authenticate. Cancel login process?")
+        dret = pgdlgs.yes_no("Must authenticate. Cancel login process?")
         if dret == Gtk.ResponseType.YES:
             ret = [-1]
 

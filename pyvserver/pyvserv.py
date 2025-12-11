@@ -489,7 +489,9 @@ def simple_server(Host, Port):
 optarr =  []
 optarr.append ( ["n:",  "hostname=",     "host",   "127.0.0.1",
             None, "Set interface name. Default: 127.0.0.1"] )
-optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
+#optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
+#            None, "Set data root. Default: ~/pyvserver "] )
+optarr.append ( ["r:",  "dataroot=", "droot",  "/opt/pyvserv",
             None, "Set data root. Default: ~/pyvserver "] )
 optarr.append ( ["l:",  "loglevel=", "pglog",       1,
             None, "Log level. 0=none 10=noisy Default: 1"] )

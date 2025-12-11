@@ -27,10 +27,11 @@ from gi.repository import GdkPixbuf
 import pyvpacker
 from pydbase import twincore, twinchain
 
+from pyvguicom import pgutils
 from pyvguicom import pggui
 from pyvguicom import pgsel
-from pyvguicom import pgutils
 from pyvguicom import pgentry
+from pyvguicom import pgdlgs
 
 from pyvcommon import pyvhash
 
@@ -494,7 +495,7 @@ class ConfigDlg(Gtk.Dialog):
             # Is this a duplicate user?
             for aa in self.model:
                 if aa[0] == userx:
-                    pggui.message("Duplicate user, cannot add.", parent=self)
+                    pgdlgs.message("Duplicate user, cannot add.", parent=self)
                     return
             ddd = passdlg.gen_def_data(userx, passx, flag)
             self.model.append(None, ddd[:-1])

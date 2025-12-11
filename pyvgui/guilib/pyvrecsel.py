@@ -364,7 +364,7 @@ class RecSelDlg(Gtk.Dialog):
         textx = entry.get_text()
         if not textx:
             msg = "Search text cannot be empty."
-            pggui.message(msg, parent=self)
+            pydlgs.message(msg, parent=self)
             return
 
         #print("Search for:", textx)
@@ -445,7 +445,7 @@ class RecSelDlg(Gtk.Dialog):
         except:
             msg = "Must be a valid UUID"
             #print(msg)
-            pggui.message(msg, parent=self)
+            pydlgs.message(msg, parent=self)
             self.reentry = False
             return
         self.search_idx(arg2, entry, hashname, hashfunc, fieldname)
@@ -559,7 +559,7 @@ class RecSelDlg(Gtk.Dialog):
 
         if not filterx and not searchx and not searchall:
             msg = "Search text cannot be empty."
-            pggui.message(msg, parent=self)
+            pydlgs.message(msg, parent=self)
             return
 
         self.stop = False
@@ -662,7 +662,7 @@ class RecSelDlg(Gtk.Dialog):
                 msg = "Loaded %d records, stopping. \n" \
                         "If your intended record is not included, " \
                         "please narrow the filter condition." % (self.rec_cnt)
-                pggui.message(msg, parent=self)
+                pydlgs.message(msg, parent=self)
                 self.set_focus(self.tview)
                 break
 
