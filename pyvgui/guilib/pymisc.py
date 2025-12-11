@@ -263,14 +263,15 @@ class progDlg(Gtk.Dialog):
 
         #self.vbox = Gtk.VBox()
         self.vbox.pack_start(hbox, 1, 1, 4)
-        self.vbox.pack_start(Gtk.Label("Calculating Proof of Work"), 1, 1, 4)
+        self.vbox.pack_start( \
+                Gtk.Label(label="Calculating Proof of Work"), 1, 1, 4)
 
         #self.connect("destroy", self.destroy_sig)
 
         #self.add(self.vbox)
         self.show_all()
         self.get_window().set_cursor(self.w_cursor)
-        pgutils.usleep(5)
+        pggui.usleep(5)
         GLib.timeout_add(100, self._timer)
 
         #while True:
@@ -333,7 +334,7 @@ class ihostDlg(Gtk.Dialog):
 
         self.show_all()
         self.get_window().set_cursor(self.w_cursor)
-        pgutils.usleep(5)
+        pggui.usleep(5)
         GLib.timeout_add(100, self._timer)
 
         self.response = self.run()
@@ -484,7 +485,7 @@ class   ScanQR(Gtk.Dialog):
                             GdkPixbuf.Colorspace.RGB, False, 8, 640, 480, 3*640)
             self.image.set_from_pixbuf(pixbuf)
 
-            pgutils.usleep(1)
+            pggui.usleep(1)
             #pgutils.ubreed()
 
             if (time.time() - ttt) > 30:
@@ -511,7 +512,7 @@ class   ScanQR(Gtk.Dialog):
             if (time.time() - ttt) > 10:
                 break
 
-            pgutils.usleep(200)
+            pggui.usleep(200)
 
             #if datax[0].data in seen:
             #    if (time.time() - last) < 2:

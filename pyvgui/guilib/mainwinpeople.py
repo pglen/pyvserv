@@ -26,6 +26,7 @@ from pyvguicom import pgsimp
 from pyvguicom import pggui
 from pyvguicom import pgentry
 from pyvguicom import pgtests
+from pyvguicom import pgdlgs
 
 from pymenu import  *
 from pgui import  *
@@ -519,7 +520,7 @@ class MainWin(Gtk.Window):
         sel.select_iter(iter)
         ppp = xmodel.get_path(iter)
         treex.set_cursor(ppp, self.tree1.get_column(0), False)
-        pgutils.usleep(5)
+        pggui.usleep(5)
         treex.scroll_to_cell(ppp, None, True, 0., 0. )
         #sel.select_path(self.treestore.get_path(iter))
 
@@ -565,7 +566,7 @@ class MainWin(Gtk.Window):
         msg = "This will delete: '%s'" % nnn
         self.status.set_status_text(msg)
         msg += "\nAre you sure?"
-        ret = pggui.yes_no(msg, default="No")
+        ret = pgdlgs.yes_no(msg, default="No")
         if ret != Gtk.ResponseType.YES:
             return True
         ddd = self.dat_dict['uuid'].get_text()
@@ -597,7 +598,7 @@ class MainWin(Gtk.Window):
         if ccc:
             msg = "Unsaved data. Are you sure you want to abandon it for new record?"
             self.status.set_status_text(msg)
-            ret = pggui.yes_no(msg, default="No")
+            ret = pgdlgs.yes_no(msg, default="No")
             if ret != Gtk.ResponseType.YES:
                 return True
 
@@ -628,7 +629,7 @@ class MainWin(Gtk.Window):
             msg = "Please save data before loading a new record.\n" \
                   "Current changes would be discarded. Are you sure?"
             self.status.set_status_text(msg)
-            ret = pggui.yes_no(msg, default="No")
+            ret = pgdlgs.yes_no(msg, default="No")
             if ret != Gtk.ResponseType.YES:
                 return
 
@@ -684,7 +685,7 @@ class MainWin(Gtk.Window):
         self.stop = not self.stop
 
         if self.reentry:
-            self.usleep(100)
+            pggui.usleep(100)
             return
 
         self.reentry = True
@@ -727,10 +728,10 @@ class MainWin(Gtk.Window):
                 else:
                     self.dat_dict[aa].set_text(pgtests.randstr(random.randint(6, 22)))
             sleepx = 20
-            pgutils.usleep(sleepx)
+            pggui.usleep(sleepx)
             self.save_data(0)
             self.clear_data()
-            pgutils.usleep(sleepx)
+            pggui.usleep(sleepx)
         self.reentry = False
 
 
@@ -841,7 +842,7 @@ class MainWin(Gtk.Window):
             msg = "Unsaved data. Are you sure you want to abandon it?"
             self.status.set_status_text(msg)
             self.status_cnt = 4
-            ret = pggui.yes_no(msg, default="No")
+            ret = pgdlgs.yes_no(msg, default="No")
             #print("yes_no:", ret)
             if ret != Gtk.ResponseType.YES:
                 return True

@@ -12,6 +12,7 @@ import uuid
 import io
 import struct
 import base64
+import warnings
 
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
@@ -179,12 +180,14 @@ class PassDlg(Gtk.Dialog):
 
     def __init__(self, firsttime, conf):
 
-        super().__init__(self)
+        #self.res = ["", "", ""]
+        #return
+
+        super().__init__()
 
         self.set_title("Password prompt")
         self.add_buttons(   Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT,
                             Gtk.STOCK_CANCEL, Gtk.ResponseType.REJECT)
-
         self.set_modal(True)
         self.set_skip_pager_hint(False)
         self.set_skip_taskbar_hint(False)
@@ -222,15 +225,17 @@ class PassDlg(Gtk.Dialog):
         self.rec_cnt = 0
         self.scan_cnt = 0
         self.stop = False
-        self.w_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.sort_cnt = 0
         #self.vbox3 = self.get_content_area()
         self.connect("key-press-event", self.area_key)
         self.connect("key-release-event", self.area_key)
         self.connect("response", self.response_pre)
-
         self.vbox3 = Gtk.VBox()
         self.vbox3.pack_start(pggui.ySpacer(8), 0, 0, 0)
+
+        warnings.simplefilter("ignore")
+        self.w_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
+        warnings.simplefilter("default")
 
         pbox = Gtk.HBox()
 

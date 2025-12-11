@@ -13,6 +13,8 @@ import io
 import struct
 import random
 import array
+import warnings
+
 from io import BytesIO
 
 import gi
@@ -242,27 +244,27 @@ class RecSelDlg(Gtk.Dialog):
         frame2.add(scroll)
 
         hbox3 = Gtk.HBox()
-        label1 = Gtk.Label("   ")
+        label1 = Gtk.Label(label="   ")
         hbox3.pack_start(label1, 0, 0, 0)
         hbox3.pack_start(frame2, True, True, 0)
-        label2 = Gtk.Label("   ")
+        label2 = Gtk.Label(label="   ")
         hbox3.pack_start(label2, 0, 0, 0)
 
         self.vbox.pack_start(pggui.xSpacer(), 0, 0, 0)
         self.vbox.pack_start(hbox3, True, True, 0)
 
-        #label5  = Gtk.Label("  ")
+        #label5  = Gtk.Label(label="  ")
         #self.vbox.pack_start(label5, 0, 0, 0)
-        self.labhelp = Gtk.Label.new( \
+        self.labhelp = Gtk.Label(label= \
             "Select Filter or Search criteria. "
             "On the list, double click to select an entry.")
 
         self.vbox.pack_start(self.labhelp, 0, 0, 2)
         #self.vbox.pack_start(pggui.xSpacer(), 0, 0, 0)
-
         #self.set_focus(self.namex)
-
+        warnings.simplefilter("ignore")
         self.abox = self.get_action_area()
+        warnings.simplefilter("default")
 
         self.livebutt = Gtk.Button.new_with_mnemonic("Load from oth_er")
         self.livebutt.connect("clicked", self.liveload)
@@ -279,7 +281,8 @@ class RecSelDlg(Gtk.Dialog):
         self.abox.pack_start(self.stopbutt, 1, 1, 0)
         self.abox.reorder_child(self.stopbutt, 0)
 
-        self.labsss = Gtk.Label("Awaiting filter or seach selection ...")
+        self.labsss = Gtk.Label(\
+                        label="Awaiting filter or seach selection ...")
         self.abox.pack_start(self.labsss, 1, 1, 0)
         self.abox.reorder_child(self.labsss, 0)
 
@@ -373,7 +376,7 @@ class RecSelDlg(Gtk.Dialog):
         self.labsss.set_text("Searching ...")
         self.stopbutt.set_sensitive(True)
         self.get_window().set_cursor(self.w_cursor)
-        pgutils.usleep(5)
+        pggui.usleep(5)
 
         self.cleartree()
 
@@ -470,9 +473,9 @@ class RecSelDlg(Gtk.Dialog):
         ''' Selection callback '''
 
         #print(letterx)
-        pgutils.usleep(10)
+        pggui.usleep(10)
         self.populate(letterx)
-        pgutils.usleep(10)
+        pggui.usleep(10)
 
     def initial_pop(self):
 
@@ -497,7 +500,7 @@ class RecSelDlg(Gtk.Dialog):
         self.labsss.set_text("Loading ...")
         self.stopbutt.set_sensitive(True)
         self.get_window().set_cursor(self.w_cursor)
-        pgutils.usleep(5)
+        pggui.usleep(5)
 
         self.cleartree()
         self.rec_cnt = 0
@@ -567,7 +570,7 @@ class RecSelDlg(Gtk.Dialog):
         self.labsss.set_text("Loading ...")
         self.stopbutt.set_sensitive(True)
         self.get_window().set_cursor(self.w_cursor)
-        pgutils.usleep(5)
+        pggui.usleep(5)
         self.cleartree()
         self.rec_cnt = 0
         datasize = self.vcore.getdbsize()
@@ -596,7 +599,7 @@ class RecSelDlg(Gtk.Dialog):
                 self.labsss.set_text("Scanning:  %d of %d Loading: %d" %
                             (self.scan_cnt, datasize, self.rec_cnt))
                 self.get_window().set_cursor(self.w_cursor)
-                pgutils.usleep(5)
+                pggui.usleep(5)
 
             # See if search requested:
             cont = False
@@ -693,7 +696,7 @@ class RecSelDlg(Gtk.Dialog):
         #self.sort_cnt += 1
         #if self.sort_cnt % 1000 == 0:
         #    self.get_window().set_cursor(self.w_cursor)
-        #    pgutils.usleep(5)
+        #    pggui.usleep(5)
 
         sort_column, _ = model.get_sort_column_id()
         value1 = model.get_value(row1, sort_column)
