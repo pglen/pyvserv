@@ -1,5 +1,4 @@
-
-
+#!/bin/bash
 cp /usr/share/sounds/freedesktop/stereo/trash-empty.oga sounds
 cp /usr/share/sounds/freedesktop/stereo/complete.oga sounds
 cp /usr/share/sounds/freedesktop/stereo/camera-shutter.oga sounds

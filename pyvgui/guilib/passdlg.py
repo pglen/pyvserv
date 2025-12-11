@@ -180,10 +180,8 @@ class PassDlg(Gtk.Dialog):
 
     def __init__(self, firsttime, conf):
 
-        #self.res = ["", "", ""]
-        #return
-
         super().__init__()
+        self.conf = conf
 
         self.set_title("Password prompt")
         self.add_buttons(   Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT,
@@ -349,6 +347,9 @@ class PassDlg(Gtk.Dialog):
             self.res.append(cyph)
         else:
             self.res.append("")
+            #if self.conf.playsound:
+            #    self.conf.playsound.play_sound("error")
+
         self.destroy()
 
     def timer(self):

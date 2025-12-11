@@ -41,13 +41,17 @@ import pyvpacker
 
 from Crypto.Cipher import AES
 
+#import tracemalloc
+# Start tracing memory allocations
+#tracemalloc.start()
+
 # ------------------------------------------------------------------------
 
 class MainWin(Gtk.Window):
 
     def __init__(self, globals):
 
-        Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
+        Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
 
         #print("globals", globals.myhome)
         self.was_saved = False
@@ -96,6 +100,7 @@ class MainWin(Gtk.Window):
         #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
         #window.set_icon(ic.get_pixbuf())
 
+        warnings.simplefilter("ignore")
         www = Gdk.Screen.width(); hhh = Gdk.Screen.height();
 
         disp2 = Gdk.Display()
@@ -112,6 +117,7 @@ class MainWin(Gtk.Window):
         if www == 0 or hhh == 0:
             www = Gdk.screen_width(); hhh = Gdk.screen_height();
 
+        warnings.simplefilter("default")
         #self.set_default_size(6*www/8, 6*hhh/8)
 
         self.dat_dict = {}
@@ -133,6 +139,8 @@ class MainWin(Gtk.Window):
             pass
 
         vbox = Gtk.VBox()
+
+        warnings.simplefilter("ignore")
         merge = Gtk.UIManager()
         #self.mywin.set_data("ui-manager", merge)
 
@@ -146,6 +154,7 @@ class MainWin(Gtk.Window):
             mergeid = merge.add_ui_from_string(ui_info)
         except GLib.GError as msg:
             print("Building menus failed: %s" % msg)
+        warnings.simplefilter("default")
 
         #self.mbar = merge.get_widget("/MenuBar")
         #self.mbar.show()
@@ -158,11 +167,11 @@ class MainWin(Gtk.Window):
 
         hbox4 = Gtk.HBox()
 
-        lab1 = Gtk.Label("    ");
+        lab1 = Gtk.Label(label="    ");
         hbox4.pack_start(lab1, 0, 0, 0)
         self.status = pymisc.Status()
         hbox4.pack_start(self.status.scroll, 1, 1, 0)
-        lab1a = Gtk.Label("   ");
+        lab1a = Gtk.Label(label="   ");
         hbox4.pack_start(lab1a, 0, 0, 0)
 
         self.butts = []
@@ -208,7 +217,7 @@ class MainWin(Gtk.Window):
         hbox4.pack_start(butt2, False, 0, 2)
         # Do not add to control, will always want to exit
 
-        lab2 = Gtk.Label("   ");  hbox4.pack_start(lab2, 0, 0, 0)
+        lab2 = Gtk.Label(label="   ");  hbox4.pack_start(lab2, 0, 0, 0)
 
         #sg = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
         sumx = Gtk.HBox()
@@ -386,9 +395,9 @@ class MainWin(Gtk.Window):
 
         #pggui.set_testmode(1)
         vbox.pack_start(pggui.ySpacer(4), 0, 0, 0)
-        sumx.pack_start(Gtk.Label("   "), 0, 0, 0)
+        sumx.pack_start(Gtk.Label(label="   "), 0, 0, 0)
         sumx.pack_start(self.gridx, 1, 1, 0)
-        sumx.pack_start(Gtk.Label("   "), 0, 0, 0)
+        sumx.pack_start(Gtk.Label(label="   "), 0, 0, 0)
 
         #vbox.modify_bg(Gtk.StateType.NORMAL, Gdk.color_parse("#aaaaff"))
 
@@ -426,14 +435,14 @@ class MainWin(Gtk.Window):
             confx = self.packer.decode_data(ddd[1])[0]
 
         #print("confx:", confx)
-        if confx['start_replic']:
-            exe = os.path.join(os.path.dirname(__file__),
-                                "..", "..", "pyvreplic", "pyvreplic.py")
-            exe = os.path.normpath(exe)
-            #print("exe:", exe)
-            ret = subprocess.Popen(["python", exe, "-c", ],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            #print("subp ret", ret)
+        #if confx['start_replic']:
+        #    exe = os.path.join(os.path.dirname(__file__),
+        #                        "..", "..", "pyvreplic", "pyvreplic.py")
+        #    exe = os.path.normpath(exe)
+        #    #print("exe:", exe)
+        #    ret = subprocess.Popen(["python", exe, "-c", ],
+        #            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        #    #print("subp ret", ret)
 
     def load_ballot(self, arg2):
         # See if previous one saved

@@ -10,6 +10,7 @@ import threading
 import queue
 import qrcode
 import warnings
+import playsound
 
 import numpy as np
 import cv2
@@ -34,9 +35,12 @@ class PlaySound():
             pygame.init()
             pygame.mixer.init() # (frequency=44100)
             PlaySound.inited = True
+
     def play(self, fname):
-        pygame.mixer.music.load(fname)
-        pygame.mixer.music.play()
+        if PlaySound.inited:
+            pygame.mixer.music.load(fname)
+            pygame.mixer.music.play()
+
     def wait(self ):
         while pygame.mixer.music.get_busy():
             pass
@@ -153,6 +157,7 @@ SNAMES =  {
 class Soundx():
 
     def __init__(self):
+        self.ps = PlaySound()
         self.qqq = queue.Queue(5)
         ttt = threading.Thread(None, target=self._asynsound)
         ttt.daemon = True
@@ -162,10 +167,10 @@ class Soundx():
     def _asynsound(self):
         while True:
             soundx = self.qqq.get()
-            #print("Playing", os.path.basename(soundx))
-            Gdk.beep()
-            #ps = PlaySound()
-            #ps.play(soundx); ps.wait()
+            print("Playing async", soundx)
+            playsound.playsound(soundx)
+            #Gdk.beep()
+            #self.ps.play(soundx); ps.wait()
 
     def play_all(self):
 
@@ -185,15 +190,17 @@ class Soundx():
 
         me = os.path.dirname(__file__)
         sname = os.path.normpath(os.path.join(me, sname))
-        #print("playing sound: '%s' '%s'" % (sound, sname))
-        try:
-            if not self.qqq.full():
-                self.qqq.put(sname)
-            else:
-                #print("Sound queue full")
-                pass
-        except:
-            print("Exc: Sound Queue:", sys.exc_info())
+        #print("Playing sound: '%s'" % (sname))
+        playsound.playsound(sname)
+        #try:
+        #    if not self.qqq.full():
+        #        self.qqq.put(sname)
+        #    else:
+        #        #print("Sound queue full")
+        #        pass
+        #except:
+        #    print("Exc: Sound Queue:", sys.exc_info())
+
 
 gl_in = 0
 
