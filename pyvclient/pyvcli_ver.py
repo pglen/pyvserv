@@ -21,40 +21,18 @@ from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
 
 # For this file
-version = "1.0.0"
+VERSION = "1.0.0"
 
-# ------------------------------------------------------------------------
-# Functions from command line
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-def phelp():
-
-    print( "The pyvserv version query.")
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [hostname]")
-    print( "  hostname: host to connect to. (default: 127.0.0.1)")
-    print( "  options:    -d level  - Debug level 0-10")
-    print( "              -p port   - Port to use (default: 6666)")
-    print( "              -v        - Verbose")
-    print( "              -t        - Time connection")
-    print( "              -V        - Version")
-    print( "              -q        - Quiet")
-    print( "              -h        - Help")
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["t",   "timeit",    0,      None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
-
-conf = comline.Config(optarr)
+optarr = []
+optarr.append ( ["t:",   "timeit",     "timeit",       0,
+                            None, "Print time statistics."] )
+optarr += comline.optarrlong
+conf = comline.ConfigLong(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -65,7 +43,7 @@ def mainfunct():
         sys.exit()
 
     try:
-        args = conf.comline(sys.argv[1:])
+        opts, args = conf.comline(sys.argv[1:])
     except getopt.GetoptError:
         sys.exit(1)
     except SystemExit:
@@ -73,6 +51,10 @@ def mainfunct():
     except:
         print(sys.exc_info())
         sys.exit(1)
+
+    #print("opts:", opts, "args:", args)
+    #conf.printvars()
+    #sys.exit()
 
     if conf.verbose and conf.pgdebug:
         print("Debug level", conf.pgdebug)

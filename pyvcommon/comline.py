@@ -1,49 +1,81 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+#from __future__ import print_function
 
 import os, sys, string, time,  traceback, getopt
 import random, glob, warnings
 
-VERSION = 1.0
+VERSION  = "1.0.0"
+PROGNAME = "progname"
 
 #warnings.simplefilter("ignore")
 #warnings.simplefilter("default")
 #warnings.simplefilter("always")
 
-# ------------------------------------------------------------------------
+comdebug = 0        # Show internals
 
-glargs = ""
-glhead = ""
-glfoot = ""
+class cpm():
 
-glprog = "proname"
-gloptarr = []
-glsoptarr = []
+    glargs = ""
+    glhead = ""
+    glfoot = ""
+    glprog = PROGNAME
+    glver = VERSION
+    gloptarr = []
+    glsoptarr = []
 
-def pversion(ver):
-    print(glprog, "Version", ver)
+    def pversion():
+        print(cpm.glprog, "Version", cpm.glver)
 
-    if sys.stdout.isatty():
-        sys.exit(0)
+        if sys.stdout.isatty():
+            sys.exit(0)
 
-def setargs(args):
-    global glargs
-    glargs = args
+    # ------------------------------------------------------------------------
+    # Long form help
 
-def setfoot(args):
-    global glfoot
-    glfoot = args
+    def phelplong():
 
-def sethead(args):
-    global glhead
-    glhead = args
+        if cpm.glhead:
+            print(cpm.glhead)
 
-def setprog(args):
-    global glprog
-    glprog = args
+        print( "Usage:", cpm.glprog, cpm.glargs)
+        #print( "  options:")
+        try:
+            for aa in cpm.gloptarr:
+                longop = aa[1].replace("=", "")
+                if "=" in aa[1]:
+                    arg = aa[2]
+                else:
+                    arg = " "
 
-# ------------------------------------------------------------------------
+                pad  = " " * (8 - len(longop))
+                pad2 = " " * (8 - len(arg))
+
+                print("   ", "-" + aa[0][0], " ",
+                                "--" + longop, pad, arg, pad2,"- ", aa[5])
+            if cpm.glfoot:
+                print(cpm.glfoot)
+        except:
+            pass
+
+        # Sat 11.May.2024 only exit if real stdout
+        if sys.stdout.isatty():
+            sys.exit(0)
+
+    def setargs(args):
+        cpm.glargs = args
+
+    def setfoot(args):
+        cpm.glfoot = args
+
+    def sethead(args):
+        cpm.glhead = args
+
+    def setprog(args):
+        cpm.glprog = args
+
+    def setver(args):
+        cpm.glver = args
 
 def dupoptcheck(optarr):
         optdup = {}
@@ -63,142 +95,6 @@ def dupoptcheck(optarr):
                 found = cc
         return found
 
-def phelp():
-
-    if glhead:
-        print("head", glhead)
-    print( "Usage: " + os.path.basename(sys.argv[0]), "[options]", glargs)
-    print( "options:")
-
-    for aa in optarr:
-        pad = " " * (9 - len(aa[1]))
-        print("        ", "-" + aa[0][0], " ", aa[1], pad, " - ", aa[4])
-
-    print()
-    if glfoot:
-        print("s", glfoot)
-
-    if sys.stdout.isatty():
-        sys.exit(0)
-
-# ------------------------------------------------------------------------
-# option [:],  var_name, initial_val, function, helpstr
-# Add colon ':' to option with argument.
-
-optarr = [\
- ["d:",  "pgdebug",  0,      None,       "Debug level 0-10" ], \
- ["p:",  "port",     6666,   None,       "Listen on port"],    \
- ["v",   "verbose",  0,      None,       "Verbose. . More info on screen."],           \
- ["q",   "quiet",    0,      None,       "Quiet. Less info on screen."],             \
- ["V",   "version",  None,   pversion,   "Print Version."],     \
- ["h",   "help",     None,   phelp,      "Show Help. (this screen)"]          \
-]
-
-# ------------------------------------------------------------------------
-# Handle command line. Interpret optarray and decorate the class
-# This allows a lot of sub utils to have a common set of options.
-
-class Config:
-
-    #warnings.warn("Config Class obsolete, use ConfigLong", DeprecationWarning)
-
-    def __init__(self, optarr):
-
-
-        ddd = dupoptcheck(optarr)
-        if ddd:
-            raise ValueError("Duplicate options on comline.", ddd)
-
-        global glsoptarr
-        glsoptarr = optarr
-
-        self.optarr = optarr
-        self.verbose = False
-        self.debug = False
-        self.sess_key = ""
-
-    def comline(self, argv):
-        #warnings.warn("Config Class obsolete, use ConfigLong")
-
-        optletters = ""
-        for aa in self.optarr:
-            optletters += aa[0]
-        #print( optletters    )
-        # Create defaults:
-        err = 0
-        for bb in range(len(self.optarr)):
-            if self.optarr[bb][1]:
-                # Coerse type
-                if type(self.optarr[bb][2]) == type(0):
-                    self.__dict__[self.optarr[bb][1]] = int(self.optarr[bb][2])
-                if type(self.optarr[bb][2]) == type(.0):
-                    self.__dict__[self.optarr[bb][1]] = float(self.optarr[bb][2])
-                if type(self.optarr[bb][2]) == type(""):
-                    self.__dict__[self.optarr[bb][1]] = str(self.optarr[bb][2])
-        try:
-            opts, args = getopt.getopt(argv, optletters)
-        except getopt.GetoptError as err:
-            print( "Invalid option(s) on command line:", err)
-            raise
-            return ()
-        except:
-            print(sys.exc_info())
-
-        #print( "opts", opts, "args", args)
-        for aa in opts:
-            for bb in range(len(self.optarr)):
-                if aa[0][1] == self.optarr[bb][0][0]:
-                    #print( "match", aa, self.optarr[bb])
-                    if len(self.optarr[bb][0]) > 1:
-                        #print( "arg", self.optarr[bb][1], aa[1])
-                        if self.optarr[bb][2] != None:
-                            if type(self.optarr[bb][2]) == type(0):
-                                self.__dict__[self.optarr[bb][1]] = int(aa[1])
-                            if type(self.optarr[bb][2]) == type(.0):
-                                self.__dict__[self.optarr[bb][1]] = float(aa[1])
-                            if type(self.optarr[bb][2]) == type(""):
-                                self.__dict__[self.optarr[bb][1]] = str(aa[1])
-                    else:
-                        #print( "set", self.optarr[bb][1], self.optarr[bb][2])
-                        if self.optarr[bb][2] != None:
-                            self.__dict__[self.optarr[bb][1]] = 1
-                        #print( "call", self.optarr[bb][3])
-                        if self.optarr[bb][3] != None:
-                            self.optarr[bb][3]()
-        return args
-
-# ------------------------------------------------------------------------
-# Long form help
-
-def phelplong():
-
-    if glhead:
-        print(glhead)
-
-    print( "Usage:", glprog, glargs)
-    print( "  options:")
-    try:
-        for aa in gloptarr:
-            longop = aa[1].replace("=", "")
-            if "=" in aa[1]:
-                arg = aa[2]
-            else:
-                arg = " "
-
-            pad  = " " * (8 - len(longop))
-            pad2 = " " * (8 - len(arg))
-
-            print("   ", "-" + aa[0][0], " ",
-                            "--" + longop, pad, arg, pad2,"- ", aa[5])
-        if glfoot:
-            print(glfoot)
-    except:
-        pass
-
-     # Sat 11.May.2024 only exit if real stdout
-    if sys.stdout.isatty():
-        sys.exit(0)
-
 # ------------------------------------------------------------------------
 # Handle command line. Interpret optarray and decorate the class;
 # Uses UNIX getopt for compatibility;
@@ -209,18 +105,6 @@ def phelplong():
 #
 # Option with parameters:   add trailing colon (:)
 # Long opt with parameters: add training equal sign (=)
-#
-# Example:
-#
-#optarrlong = [\
-#    ["d:",    "debug=",      "pgdebug",  0,              None],      \
-#    ["p:",    "port",        "port",     9999,           None],      \
-#    ["v",     "verbose",     "verbose",  0,              None],      \
-#    ["t",     "test",        "test",     "x",            None],      \
-#    ["V",     "version",     None,       None,           pversion],  \
-#    ["h",     "help",        None,       None,           phelp],     \
-#    ["i:",    "input=",      "input",      "-",          None],      \
-#    ]
 
 # option [:], long_option[=],  var_name,   initial_value, function, helpstr
 optarrlong = [\
@@ -228,21 +112,22 @@ optarrlong = [\
  ["p:",  "port=",   "port",     6666,   None,       "Listen on port. Default: 6666"],
  ["v",   "verbose", "verbose",  0,      None,       "Verbose. Show more info."],
  ["q",   "quiet",   "quiet",    0,      None,       "Quiet. Show less info."],
- ["V",   "version", "version",  None,   pversion,   "Print Version string."],
- ["h",   "help",    "help",     None,   phelplong,  "Show Help. (this screen)"]
+ ["V",   "version", "version",  None,   cpm.pversion,   "Print Version string."],
+ ["h",   "help",    "help",     None,   cpm.phelplong,  "Show Help. (this screen)"]
 ]
 
 class ConfigLong:
 
     def __init__(self, optarr):
-
-        ddd = dupoptcheck(optarr)
-        if ddd:
-            raise ValueError("Duplicate options on comline.", ddd)
-
-        global gloptarr
-        gloptarr = optarr
         self._optarr = optarr
+        ddd = dupoptcheck(self._optarr)
+        if ddd:
+            #for aa in self._optarr:
+            #    print("%s" % aa)
+            raise ValueError("Duplicate options on comline: '%s'" % ddd)
+
+        cpm.gloptarr = self._optarr
+        self.args = []
         self.err = None
 
         # Create defaults:
@@ -282,9 +167,11 @@ class ConfigLong:
                 pass
         print("End Variables -----")
 
-    def comline(self, argv, pgdebug = 0):
+    def comline(self, argv):
 
-        ''' Parse what is comong from the command line '''
+        ''' Parse what is coming from the command line '''
+
+        #print("feed argv", argv)
 
         optletters = "";  longopt = []
         for aa in self._optarr:
@@ -294,19 +181,26 @@ class ConfigLong:
             optletters += aa[0]
             longopt.append(aa[1])
 
-        #print("optleters", optletters, "longopt", longopt)
-
+        if comdebug:
+           print("optleters:", optletters)
+           print("longopt:", longopt)
         try:
-            opts, args = getopt.getopt(argv, optletters, longopt)
+            opts, self.args = getopt.gnu_getopt(argv, optletters, longopt)
         #except getopt.GetoptError, err:
         except getopt.GetoptError as err:
             print("Invalid option(s) on command line: %s" % err)
             raise
 
-        if pgdebug:
+        if comdebug > 1:
             print ("opts", opts, "args", args)
+
         for aa in opts:
+            found = 0
+            if comdebug > 0:
+                print("process opt:", aa)
             for bb in range(len(self._optarr)):
+                #if comdebug > 0:
+                #    print("  ", self._optarr[bb])
                 ddd = None
                 if aa[0][1] == "-":
                     ddd = "--" + self._optarr[bb][0]
@@ -324,12 +218,15 @@ class ConfigLong:
                     ddd = ddd[:-1]
                     eee = eee[:-1]
 
-                if pgdebug:
-                        print ("aa",  aa, "bb", bb, "one opt =", self._optarr[bb][:-1], ddd, eee)
+                if comdebug > 1:
+                    print ("aa",  aa, "bb", bb,
+                            "one opt =", self._optarr[bb][:-1], ddd, eee)
                 if aa[0] == ddd or aa[0] == eee:
-                    #print ("match", aa, ddd)
+                    if comdebug > 1:
+                        print ("match", aa, ddd)
+                    found = True
                     if len(self._optarr[bb][0]) > 1:
-                        if pgdebug:
+                        if comdebug:
                             print ("arg", self._optarr[bb][2], self._optarr[bb][3], aa)
                         if self._optarr[bb][3] != None:
                             if type(self._optarr[bb][3]) == type(0):
@@ -342,34 +239,33 @@ class ConfigLong:
                             elif type(self._optarr[bb][2]) == type(""):
                                 self.__dict__[self._optarr[bb][2]] = str(aa[1])
                     else:
-                        if pgdebug:
-                            print ("set 1",
-                                self._optarr[bb][1], "set 2", self._optarr[bb][2],
+                        if comdebug > 1:
+                            print ( "set 1", self._optarr[bb][1],
+                                    "set 2", self._optarr[bb][2],
                                     "set 3", self._optarr[bb][3])
+
                         if self._optarr[bb][3] != None:
                             self.__dict__[self._optarr[bb][2]] += 1
                         #print ("call", self.optarr[bb][3])
                         if self._optarr[bb][4] != None:
                             self._optarr[bb][4]()
-        return args
+            if not found:
+                print("add arg", ddd)
+                self.args.append(ddd)
 
-# ------------------------------------------------------------------------
-# Print an exception as the system would print it
+        return opts, self.args
 
-def print_exception(xstr):
-    cumm = xstr + " "
-    a,b,c = sys.exc_info()
-    if a != None:
-        cumm += str(a) + " " + str(b) + "\n"
-        try:
-            #cumm += str(traceback.format_tb(c, 10))
-            ttt = traceback.extract_tb(c)
-            for aa in ttt:
-                cumm += "File: " + os.path.basename(aa[0]) + \
-                        " Line: " + str(aa[1]) + "\n" +  \
-                    "   Context: " + aa[2] + " -> " + aa[3] + "\n"
-        except:
-            print ("Could not print trace stack. ", sys.exc_info())
-    print (cumm)
+if __name__ == '__main__':
+
+    #print("Test comline.")
+    optarr = optarrlong
+    cpm.setprog(os.path.basename(__file__) + " [options] ")
+    cpm.sethead("The main pyvserv server excutable.")
+
+    conf = ConfigLong(optarr)
+    opts, args = conf.comline(sys.argv[1:])
+    print("opts:", opts, "args:", args)
+    conf.printvars()
+    #print(dir(conf))
 
 # EOF

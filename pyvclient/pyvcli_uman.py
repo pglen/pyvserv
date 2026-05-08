@@ -62,28 +62,30 @@ def pversion():
     sys.exit(0)
 
     # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",      0,              None],      \
-    ["p:",  "port",         6666,           None],      \
-    ["l:",  "login",        "admin",        None],      \
-    ["s:",  "lpass",        "1234",         None],      \
-    ["t",   "lprompt",      0,              None],      \
-    ["v",   "verbose",      0,              None],      \
-    ["q",   "quiet",        0,              None],      \
-    ["m",   "admin",        0,              None],      \
-    ["a",   "add",          0,              None],      \
-    ["r",   "remove",       0,              None],      \
-    ["c",   "change",       "",             None],      \
-    ["u:",  "userx",        "test_user",    None],      \
-    ["x:",  "passx",        "1234",         None],      \
-    ["X:",  "chpass",       "",             None],      \
-    ["T",   "prompt",       0,              None],      \
-    ["e:",  "encomm",       "",             None],      \
-    ["i:",  "listx",        "",             None],  \
-    ["V",   None,           None,           pversion],  \
-    ["h",   None,           None,           phelp]      \
+#optarr = \
+#    ["s:",  "lpass",        "1234",         None],      \
+#    ["t",   "lprompt",      0,              None],      \
+#    ["v",   "verbose",      0,              None],      \
+#    ["q",   "quiet",        0,              None],      \
+#    ["m",   "admin",        0,              None],      \
+#    ["a",   "add",          0,              None],      \
+#    ["r",   "remove",       0,              None],      \
+#    ["c",   "change",       "",             None],      \
+#    ["u:",  "userx",        "test_user",    None],      \
+#    ["x:",  "passx",        "1234",         None],      \
+#    ["X:",  "chpass",       "",             None],      \
+#    ["T",   "prompt",       0,              None],      \
+#    ["e:",  "encomm",       "",             None],      \
+#    ["i:",  "listx",        "",             None],  \
 
-conf = comline.Config(optarr)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+
+optarr = comline.optarrlong
+conf = comline.ConfigLong(optarr)
+
 conf.sess_key = ""
 
 # ------------------------------------------------------------------------

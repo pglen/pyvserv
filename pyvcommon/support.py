@@ -375,6 +375,12 @@ def timeit2(fn):
         return ret
     return wrapped
 
+import types
+def imports(globx):
+    for name, val in globx:
+        if isinstance(val, types.ModuleType):
+            yield val.__name__
+
 if __name__ == '__main__':
     lr = listrec("..")
     lr.noext = [".pyc", ".o", ".so", ".pem", ".pub", ]

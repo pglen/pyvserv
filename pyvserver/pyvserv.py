@@ -9,6 +9,8 @@
 # pylint: disable=W0702     # Bare exceptions
 # pylint: disable=W0602     # No global assignment
 
+VERSION = "1.0.0"
+
 __doc__ = \
 '''
 Server module.
@@ -506,14 +508,17 @@ optarr.append ( ["P",   "pmode",     "pmode",       0,
 optarr.append ( ["t",   "test",     "test",       0,
                             None, "Test mode. Allow weak hash. Test only."] )
 
-comline.sethead("The main pyvserv server excutable.")
+comline.cpm.sethead("The main pyvserv server excutable.")
 #comline.setprog(os.path.basename(sys.argv[0]))
-comline.setprog(os.path.basename(__file__) + " [options] ")
-comline.setargs("[options]")
-comline.setfoot("Use quotes for multiple option strings where appropriate.")
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setargs("[options]")
+comline.cpm.setver(pyservsup.VERSION)
+comline.cpm.setfoot("Use quotes for multiple option strings where appropriate.")
 
 conf = comline.ConfigLong(optarr)
+#if conf.pgdebug > 1:
 #conf.printvars()
+#sys.exit()
 
 def do_keys():
     ''' breakout '''
@@ -709,6 +714,9 @@ def mainfunct():
     global SHARED_MYDATA
     SHARED_MYDATA = pyservsup.SharedData()
     pyservsup.SHARED_LOGINS = pyservsup.SharedData()
+
+    #for aa in support.imports(globals().items()):
+    #    print(aa, end =  " ")
 
     start_server()
 

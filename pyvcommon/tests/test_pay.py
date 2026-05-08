@@ -46,12 +46,13 @@ def test_func(capsys):
     thd.hasharr()
     thd.powarr()
 
-    assert thd.datax['payload']['delx'] == 1234
+    assert thd.datax['PayLoad']['delx'] == 1234
 
     ret = thd.checkhash()
     assert ret == True
 
     ret = thd.checkpow()
+    # assert 0
     assert ret == True
 
 def test_del():
@@ -67,7 +68,7 @@ def test_del():
     thd.addpayload({"Default":99})
     print(thd.datax)
 
-    assert thd.datax['payload']['Default'] == 99
+    assert thd.datax['PayLoad']['Default'] == 99
 
     ret = thd.checkpow()
     assert ret == False

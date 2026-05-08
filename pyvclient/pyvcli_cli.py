@@ -106,33 +106,34 @@ Usage: %s [options] [hostname]
 Prefix local commands with '!' (exclamation mark) ''' \
  % (progn)
 
-def phelp():
-    ''' Provide local help '''
-    print(__doc__)
-    sys.exit(0)
+#optarr = \
+#    ["d:",  "pgdebug=",  "pgdebug",   0,          None],      \
+#    ["p:",  "port=",     "port",      6666,       None],      \
+#    ["l:",  "login=",    "login",     "admin",    None],      \
+#    ["s:",  "lpass=",    "lpass",     "1234",     None],      \
+#    ["x:",  "comm=",     "comm",      "",         None],      \
+#    ["t",   "prompt",    "prompt",    0,          None],      \
+#    ["v",   "verbose",   "verbose",   0,          None],      \
+#    ["q",   "quiet",     "quiet",     0,          None],      \
+#    ["V",   "verbose",   "vervose",   None,       pversion],  \
+#    ["h",   "help",      "help",      None,       phelp]      \
+#conf = comline.ConfigLong(optarr)
 
-def pversion():
-
-    ''' Print version string '''
-
-    print(progn, "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-
-optarr = \
-    ["d:",  "pgdebug=",  "pgdebug",   0,          None],      \
-    ["p:",  "port=",     "port",      6666,       None],      \
-    ["l:",  "login=",    "login",     "admin",    None],      \
-    ["s:",  "lpass=",    "lpass",     "1234",     None],      \
-    ["x:",  "comm=",     "comm",      "",         None],      \
-    ["t",   "prompt",    "prompt",    0,          None],      \
-    ["v",   "verbose",   "verbose",   0,          None],      \
-    ["q",   "quiet",     "quiet",     0,          None],      \
-    ["V",   "verbose",   "vervose",   None,       pversion],  \
-    ["h",   "help",      "help",      None,       phelp]      \
-
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
+optarr.append ( ["u:",   "userx",     "userx",       "admin",
+                            None, "Create user with name."] )
+optarr.append ( ["l:",   "passx",     "passx",       "1234",
+                            None, "Create user with pass."] )
+optarr.append ( ["t:",   "prompt",     "prompt",       0,
+                            None, "Create user with prompt."] )
+optarr.append ( ["f",   "noprompt",     "noprompt",       0,
+                            None, "Create user with noprompt."] )
 conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
@@ -141,7 +142,7 @@ def mainfunct():
     ''' Command line interpreter '''
 
     try:
-        args = conf.comline(sys.argv[1:])
+        opts, args = conf.comline(sys.argv[1:])
     except getopt.GetoptError:
         sys.exit(1)
     except SystemExit:

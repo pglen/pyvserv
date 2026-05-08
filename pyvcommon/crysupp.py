@@ -152,13 +152,26 @@ def getrstrtme(strx):
     xlen2 = xlen // 2
     return strx[xlen2-4:xlen2+4]
 
+def print_exception(xstr):
+
+    ''' Print an exception as the system would print it '''
+
+    cumm = xstr + " "
+    a,b,c = sys.exc_info()
+    if a != None:
+        cumm += str(a) + " " + str(b) + "\n"
+        try:
+            #cumm += str(traceback.format_tb(c, 10))
+            ttt = traceback.extract_tb(c)
+            for aa in ttt:
+                cumm += "File: " + os.path.basename(aa[0]) + \
+                        " Line: " + str(aa[1]) + "\n" +  \
+                    "   Context: " + aa[2] + " -> " + aa[3] + "\n"
+        except:
+            print ("Could not print trace stack. ", sys.exc_info())
+    print (cumm)
+
 if __name__ == '__main__':
     hexdump("12345")
 
-
-
-
-
-
-
-
+# EOF

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
 import sys
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
@@ -27,15 +25,13 @@ except:
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
 
-# ------------------------------------------------------------------------
-# Functions from command line
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-optarr =  comline.optarr
-optarr.append ( ["p:",  "port",  6666,   None, "Port to use (default: 6666)"] )
-
-#print (optarr)
-
-conf = comline.Config(optarr)
+optarr = comline.optarrlong
+conf = comline.ConfigLong(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -45,7 +41,7 @@ def mainfunct():
         print("Warning! This script was meant for python 3.x")
         time.sleep(1)
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     #for aa in vars(conf):
     #    print(aa, getattr(conf, aa))

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
 # ------------------------------------------------------------------------
 # Test client for the pyserv project. User add.
 
@@ -27,28 +25,7 @@ from pyvcommon import pysyslog, comline
 
 version = "1.0.0"
 
-# ------------------------------------------------------------------------
-# Functions from command line
-
-def phelp():
-
-    print( "The pyvserv help program.")
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [hostname]")
-    print( "  hostname: host to connect to. (default: 127.0.0.1)")
-    print( "  options:  -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 6666)")
-    print( "            -s str    - Subhelp string")
-    print( "            -v        - Verbose")
-    print( "            -V        - Print version number")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
+# option, var_name, initial_val, function
 optarr = \
     ["d:",  "pgdebug",  0,          None],      \
     ["p:",  "port",     6666,       None],      \
@@ -56,16 +33,23 @@ optarr = \
     ["q",   "quiet",    0,          None],      \
     ["t",   "test",     "x",        None],      \
     ["s:",  "subhelp",  "",         None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
 
-conf = comline.Config(optarr)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+
+optarr = comline.optarrlong
+optarr.append ( ["s:",   "subhelp",     "subhelp",       "",
+                            None, "Print sub help."] )
+
+conf = comline.ConfigLong(optarr)
 
 # ------------------------------------------------------------------------
 
 def mainfunct():
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug

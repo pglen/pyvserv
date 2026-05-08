@@ -31,24 +31,32 @@ if __name__ == '__main__':
     #ddd = { "Hello": 1234 }
     #thd = pyvhash.BcData(arrx)
     #thd = pyvhash.BcData()
-
-    print(thd.datax)
-
+    #print(thd.datax)
     #thd = pyvhash.BcData()
 
+    sss = time.clock_gettime(time.CLOCK_BOOTTIME)
     ret = thd.checkhash()
+    #print("Time: %f" % (time.clock_gettime(time.CLOCK_BOOTTIME) - sss))
     print("1 uncal hash: [False]", ret, end = " "); diff(False, ret)
 
+    sss = time.clock_gettime(time.CLOCK_BOOTTIME)
     ret = thd.checkpow()
+    #print("Time: %f" % (time.clock_gettime(time.CLOCK_BOOTTIME) - sss))
     print("2 uncal  pow: [False]", ret, end = " "); diff(False, ret)
 
+    sss = time.clock_gettime(time.CLOCK_BOOTTIME)
     thd.hasharr()
     ret = thd.checkhash()
+    #print("Time: %f" % (time.clock_gettime(time.CLOCK_BOOTTIME) - sss))
     print("3 match hash: [True]", ret, end = " "); diff(True, ret)
 
+    sss = time.clock_gettime(time.CLOCK_BOOTTIME)
     thd.powarr()
     ret = thd.checkpow()
-    print("4 match  pow: [True]", ret, end = " "); diff(True, ret)
+    #print("Time: %f cnt = %d" %  (time.clock_gettime(time.CLOCK_BOOTTIME) - sss, thd.cnt))
+    print("4 match pow: [True] cnt =", thd.cnt, ret, end = " "); diff(True, ret)
+
+    #sys.exit(0)
 
     thd.hasharr()
     ret = thd.checkhash()
@@ -75,10 +83,10 @@ if __name__ == '__main__':
 
     thd.powarr()
     ret = thd.checkpow()
-    print("0 match  pow: [True]", ret, end = " "); diff(True, ret)
+    print("10 match  pow: [True] cnt =", thd.cnt, ret, end = " "); diff(True, ret)
 
     ret = thd.checkhash()
-    print("1 match hash: [True]", ret, end = " "); diff(True, ret)
+    print("11 match hash: [True]", ret, end = " "); diff(True, ret)
 
 # EOF
 

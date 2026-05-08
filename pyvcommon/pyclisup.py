@@ -23,6 +23,8 @@ from Crypto.Cipher import PKCS1_OAEP
 #rbuffsize = 1024
 rbuffsize = 4096
 
+VERSION = "1.2.0"
+
 OK  = "OK"
 ERR = "ERR"
 
@@ -303,6 +305,7 @@ class CliSup():
         if type(message) != type([]):
             raise TypeError("Argument one to client() must be list")
 
+
         if self.pgdebug > 5:
             cnt = 0
             for aa in message:
@@ -359,6 +362,7 @@ class CliSup():
 
         if not hasattr(conf, "sess_key"):
             conf.sess_key = ""
+
         cresp = self.client(["user", userx], conf.sess_key)
         #print ("Server user response:", cresp)
         if(cresp[0] != "OK"):

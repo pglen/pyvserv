@@ -53,24 +53,35 @@ def pversion():
     sys.exit(0)
 
     # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["c:",  "comm",     "",     None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["s",   "showkey",  "",     None],      \
-    ["t",   "test",     "x",    None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
+#optarr = \
+#    ["c:",  "comm",     "",     None],      \
+#    ["s",   "showkey",  "",     None],      \
+#    ["t",   "test",     "x",    None],      \
+#conf = comline.Config(optarr)
 
-conf = comline.Config(optarr)
+# For this file
+VERSION = "1.0.0"
+
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+
+optarr = []
+optarr.append ( ["c:",   "comm",     "comm",       "",
+                            None, "comm"] )
+optarr.append ( ["s:",   "showkey",     "showkey",       "",
+                            None, "Show key"] )
+optarr.append ( ["t:",   "test",     "test",       "",
+                            None, "test"] )
+optarr += comline.optarrlong
+conf = comline.ConfigLong(optarr)
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     if conf.comm:
         print("Save to filename", conf.comm)

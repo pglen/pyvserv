@@ -29,7 +29,7 @@ test:
 	@-python3 ./pyvcli_fput.py  ${OPT}
 	@-python3 ./pyvcli_fget.py  ${OPT}
 	@-python3 ./pyvcli_uadd.py  ${OPT}
-	@-python3 ./pyvcli_uini.py  ${OPT}
+	@-python3 ./pyvcli_uini.py  -f ${OPT}
 	@-python3 ./pyvcli_cli.py -x ls ${OPT}
 
 clean:

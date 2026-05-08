@@ -30,39 +30,19 @@ progn = os.path.basename(sys.argv[0])
 
 __doc__ = '''\
 The pyvserv hello.
-Usage: %s  [options] [hostname]
-  hostname: host to connect to. (default: 127.0.0.1)
-  options:  -d level  - Debug level 0-10
-            -p        - Port to use (default: 6666)
-            -v        - Verbose
-            -V        - Print version number
-            -q        - Quiet
-            -h        - Help ''' \
- % (progn)
+%s
+''' % (progn)
 
-# ------------------------------------------------------------------------
-# Functions from command line
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-#print (optarr)
-def phelp():
-    print(__doc__)
-    sys.exit(0)
+optarr = comline.optarrlong
+#optarr.append ( ["g:",   "long",     "long",       0,
+#                            None, "Long."] )
 
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",      0,          None],      \
-    ["p:",  "port",         6666,       None],      \
-    ["g",   "long",         0,          None],      \
-    ["v",   "verbose",      0,          None],      \
-    ["q",   "quiet",        0,          None],      \
-    ["V",   None,           None,       pversion],  \
-    ["h",   None,           None,       phelp]      \
-
-conf = comline.Config(optarr)
+conf = comline.ConfigLong(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -73,7 +53,7 @@ def mainfunct():
         time.sleep(1)
 
     try:
-        args = conf.comline(sys.argv[1:])
+        opts, args = conf.comline(sys.argv[1:])
     except getopt.GetoptError:
         sys.exit(1)
     except SystemExit:

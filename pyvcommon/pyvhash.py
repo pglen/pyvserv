@@ -51,6 +51,23 @@ isostr  = "%Y-%m-%dT%H:%M:%S"
 
 ZERO = '0'
 
+def timeit(fn):
+    def wrapped(*args, **keyw):
+        ttt = time.time()
+        ret = fn(*args, **keyw)
+        print(" %s time: %.4f ms" % (fn.__name__, (time.time() - ttt)*1000))
+        return ret
+    return wrapped
+
+def timeitpow(fn):
+    def wrapped(*args, **keyw):
+        ttt = time.time()
+        ret = fn(*args, **keyw)
+        print(" %s time: %5.4f ms " % (fn.__name__,
+                    (time.time() - ttt)*1000), end = " ")
+        return ret
+    return wrapped
+
 def DefPayload():
     return {PayLoad : { "Default": "None"}}
 
@@ -93,13 +110,13 @@ def shahex(val):
 #USEHASH = SHA512
 USEHASH = SHA256
 
+#@timeit
 class BcData():
 
     '''
         This class manipulates the block chain data.
         Use it to create / add / remove / modify payload.
     '''
-
     def __init__(self, old_data = None, pgdebug = 0, header = None):
 
         self.pb  = pyvpacker.packbin()
@@ -109,7 +126,7 @@ class BcData():
         self.pow_ignore = [Hash, PrevHash, Link, Proof, Repli]
         self.link_ignore = [Hash, Link, Proof, Repli]
 
-        self.maxtry = 25000
+        self.maxtry = 250000
         self.num_zeros = 4
         self.zero = ZERO
         self.cnt = 0
@@ -184,6 +201,7 @@ class BcData():
         self.linkarr(prevhash)
         return self.datax
 
+    @timeit
     def hasharr(self):
 
         ''' Hash a array of data '''
@@ -206,6 +224,7 @@ class BcData():
         hhh = shahex(ssss)
         self.datax[Hash] = hhh
 
+    @timeitpow
     def powarr(self):
 
         ''' Provide proof of work. Only payload and powerhash '''
@@ -243,12 +262,17 @@ class BcData():
 
             #ssss = self.pb.encode_data("", arrx3)
             ssss = "".join(arrx3)
-
             #print(ssss)
             #ssss  = bytes(ssss) #, "utf-8")
             ssss  = ssss.encode("cp437")
+            #print("ssss", ssss)
             hhh = shahex(ssss)
-            #print("powarr", cnt, "hash", hhh, self.zero * self.num_zeros)
+            # Almost ...
+            #alm = self.num_zeros - 1
+            #if hhh[-alm:] == self.zero * (alm):
+            #    print("powarr", cnt, "hash", hhh[64:])
+            #    #, "zeros", self.zero * self.num_zeros)
+            #
             if hhh[-self.num_zeros:] == self.zero * self.num_zeros:
                 break
             cnt += 1
@@ -298,7 +322,7 @@ class BcData():
         return()
 
     # ------------------------------------------------------------------------
-
+    @timeit
     def checkhash(self):
 
         ''' Check record's hash against the hash filed '''

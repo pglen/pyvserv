@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------
 
 all:
-	@echo Targets: test testall clean
+	@echo Targets: tests testall clean
 
 tests:
 	@cd tests; pytest

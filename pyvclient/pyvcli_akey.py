@@ -20,45 +20,32 @@ sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
 
-# ------------------------------------------------------------------------
-# Functions from command line
+#optarr = \
+#    ["t",   "test",     "x",    None],      \
+#    ["s",   "showkey",  "",    None],      \
+#conf = comline.Config(optarr)
 
-def phelp():
+# For this file
+VERSION = "1.0.0"
 
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 6666)")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -s        - Showkey")
-    print( "            -h        - Help")
-    print( " Needs debug level or verbose to have any output.")
-    sys.exit(0)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", support.version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
-    ["s",   "showkey",  "",    None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
-
-conf = comline.Config(optarr)
+optarr = []
+optarr.append ( ["s:",   "showkey",     "showkey",       "",
+                            None, "Show key"] )
+optarr.append ( ["t:",   "test",     "test",       "",
+                            None, "test"] )
+optarr += comline.optarrlong
+conf = comline.ConfigLong(optarr)
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug

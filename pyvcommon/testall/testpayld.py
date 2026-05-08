@@ -50,18 +50,10 @@ if __name__ == '__main__':
     ddd = {'Default': 'Immutable', 'new': 1234}
     dddd = {}
     for aa in thd.datax:
-        if "payload" in aa:
+        if "PayLoad" in aa:
             dddd = thd.datax[aa]
 
     print("match data: [True]", ret, end = " ");
     diff(dddd == ddd, True)
 
-
-
-
-
-
-
-
-
-
+# EOF

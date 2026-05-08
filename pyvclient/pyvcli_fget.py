@@ -22,45 +22,33 @@ import pysyslog, comline
 
 version = "1.0.0"
 
-# ------------------------------------------------------------------------
+#    # option, var_name, initial_val, function
+#optarr = \
+#    ["f:",  "fname",    "test.txt", None],      \
+#    ["n",   "plain",    0,          None],      \
+#    ["t",   "test",     "x",        None],      \
+#
+#conf = comline.Config(optarr)
 
-def phelp():
+# For this file
+VERSION = "1.0.0"
 
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -n        - No encryption (plain)")
-    print( "            -h        - Help")
-    print()
-    sys.exit(0)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["f:",  "fname",    "test.txt", None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["n",   "plain",    0,          None],      \
-    ["t",   "test",     "x",        None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
-
-conf = comline.Config(optarr)
+optarr = []
+optarr.append ( ["f:",   "fname",     "fname",       "test.txt",
+                            None, "Recive file name. (test.txt)"] )
+optarr += comline.optarrlong
+conf = comline.ConfigLong(optarr)
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     #print(dir(conf))
 

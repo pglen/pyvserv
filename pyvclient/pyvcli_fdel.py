@@ -45,23 +45,29 @@ def pversion():
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["f:",  "fname",    "test.txt", None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
+#optarr = \
+#    ["f:",  "fname",    "test.txt", None],      \
+#conf = comline.Config(optarr)
 
-conf = comline.Config(optarr)
+# For this file
+VERSION = "1.0.0"
+
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+
+optarr = []
+optarr.append ( ["f:",   "fname",     "fname",       "test.txt",
+                            None, "Recive file name. (test.txt)"] )
+optarr += comline.optarrlong
+conf = comline.ConfigLong(optarr)
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug

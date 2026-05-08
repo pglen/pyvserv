@@ -17,45 +17,43 @@ import pysyslog, comline
 
 version = "1.0.0"
 
-def phelp():
+#optarr = \
+#    ["d:",  "pgdebug",  0,      None],      \
+#    ["p:",  "port",     6666,   None],      \
+#    ["v",   "verbose",  0,      None],      \
+#    ["q",   "quiet",    0,      None],      \
+#    ["t",   "test",     "x",    None],      \
+#    ["V",   None,       None,   pversion],  \
+#    ["h",   None,       None,   phelp]      \
+#conf = comline.Config(optarr)
 
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print()
-    sys.exit(0)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
+optarr.append ( ["u:",   "userx",     "userx",       "admin",
+                            None, "Create user with name."] )
+optarr.append ( ["l:",   "passx",     "passx",       "1234",
+                            None, "Create user with pass."] )
+optarr.append ( ["t:",   "prompt",     "prompt",       0,
+                            None, "Create user with prompt."] )
+optarr.append ( ["f",   "noprompt",     "noprompt",       0,
+                            None, "Create user with noprompt."] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
-
-conf = comline.Config(optarr)
 conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    '''if  sys.version_info[0] < 3:
+    if  sys.version_info[0] < 3:
         print(("Needs python 3 or better."))
-        sys.exit(1)'''
+        sys.exit(1)
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     if len(args) == 0:
         ip = '127.0.0.1'

@@ -57,19 +57,28 @@ def pversion():
     sys.exit(0)
 
     # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["u:",  "userx",    "admin",    None],      \
-    ["l:",  "passx",    "1234",     None],      \
-    ["t",   "prompt",    0,         None],      \
-    ["f",   "noprompt",  0,         None],      \
-    ["V",   None,        None,      pversion],  \
-    ["h",   None,        None,      phelp]      \
+#optarr = \
+#    ["u:",  "userx",    "admin",    None],      \
+#    ["l:",  "passx",    "1234",     None],      \
+#    ["t",   "prompt",    0,         None],      \
+#    ["f",   "noprompt",  0,         None],      \
+#
+#conf = comline.Config(optarr)
 
-conf = comline.Config(optarr)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
+optarr.append ( ["u:",   "userx",     "userx",       "admin",
+                            None, "Create user with name."] )
+optarr.append ( ["l:",   "passx",     "passx",       "1234",
+                            None, "Create user with pass."] )
+optarr.append ( ["t:",   "prompt",     "prompt",       0,
+                            None, "Create user with prompt."] )
+optarr.append ( ["f",   "noprompt",     "noprompt",       0,
+                            None, "Create user with noprompt."] )
+conf = comline.ConfigLong(optarr)
 conf.sess_key = ""
 
 # ------------------------------------------------------------------------
@@ -82,7 +91,7 @@ def    mainfunct():
     '''
 
     try:
-        args = conf.comline(sys.argv[1:])
+        opts, args = conf.comline(sys.argv[1:])
     except getopt.GetoptError:
         sys.exit(1)
     except SystemExit:
