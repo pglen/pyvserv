@@ -134,16 +134,16 @@ disableservice:
 # Control it from here
 
 install:
-	./pyvserv_install.sh
+	./sh/pyvserv_install.sh
 
 uninstall:
-	./pyvserv_uninstall.sh
+	./sh/pyvserv_uninstall.sh
 
 installvirt:
-	./pyvserv_venv_install.sh
+	./sh/pyvserv_venv_install.sh
 
 startvirt:
-	./pyvserv_venv.sh
+	./sh/pyvserv_venv.sh
 
 local-install:
 	pip install .

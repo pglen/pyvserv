@@ -147,11 +147,11 @@ setuptools.setup(
                    },
     data_files =  [
                     ("pyvgui", [
-                                "pyvgui/pyvpeople.png",
-                                "pyvgui/pyvballot.png",
-                                "pyvgui/pyvvote.png",
-                                "pyvgui/vote.png",
-                                "pyvgui/pyvvote_sub.png"]),
+                                "pyvgui/images/pyvpeople.png",
+                                "pyvgui/images/pyvballot.png",
+                                "pyvgui/images/pyvvote.png",
+                                "pyvgui/images/vote.png",
+                                "pyvgui/images/pyvvote_sub.png"]),
                     ("pyvgui/docs", [
                                 "pyvgui/docs/pyvtally.html",
                                 "pyvgui/docs/pyvcpanel.html",

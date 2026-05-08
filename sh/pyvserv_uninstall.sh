@@ -7,7 +7,7 @@ EXE=`which pipx`
 if [ "$EXE" !=  "" ] ; then
     pipx uninstall pyvserv
 else
-    pip install .
+    pip uninstall pyvserv
 fi
 
 # EOF
