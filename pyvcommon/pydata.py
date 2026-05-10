@@ -186,6 +186,7 @@ class DataHandler():
 
     def handle_one(self, par):
 
+        self.timex = 0
         self.par = par
 
         #print("Handle_one", par, par.ekey[:16])

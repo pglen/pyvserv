@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-# ------------------------------------------------------------------------
-# Test client for the pyserv project.
-
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
@@ -20,48 +17,26 @@ except:
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
 
-# ------------------------------------------------------------------------
-# Globals
+#optarr = \
+#    ["t:",   "throt",   "",         None],      \
+#
+#conf = comline.Config(optarr)
 
-version = "1.0.0"
-
-# ------------------------------------------------------------------------
-
-def phelp():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options] [hostname]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -t flag   - Throttle on / off")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print()
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["t:",   "throt",   "",         None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
-
-conf = comline.Config(optarr)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
+optarr.append ( ["t:",   "throt=",     "throt",       "",
+                            None, "Throttle on or off."] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -98,12 +73,13 @@ if __name__ == '__main__':
     #    print ("Server user response:", cresp[1])
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    if not conf.quiet:
-        print ("Server pass response:", cresp)
+    #if not conf.quiet:
+    #    print ("Server pass response:", cresp)
 
     if not conf.throt:
         cresp = hand.client(["throt", ], conf.sess_key)
     else:
+        print("arg", conf.throt)
         cresp = hand.client(["throt", conf.throt,], conf.sess_key)
 
     print ("Server throt response:", cresp)

@@ -32,17 +32,15 @@ comline.cpm.setver(pyclisup.VERSION)
 comline.cpm.setargs("[options] [hostname]")
 comline.cpm.setfoot("The hostname defaults to 'localhost'")
 optarr = comline.optarrlong
-optarr.append ( ["u:",   "userx",     "userx",       "admin",
+optarr.append ( ["u:",   "userx=",     "userx",       "admin",
                             None, "Create user with name."] )
-optarr.append ( ["l:",   "passx",     "passx",       "1234",
+optarr.append ( ["l:",   "passx=",     "passx",       "1234",
                             None, "Create user with pass."] )
-optarr.append ( ["t:",   "prompt",     "prompt",       0,
+optarr.append ( ["t:",   "prompt=",     "prompt",       0,
                             None, "Create user with prompt."] )
 optarr.append ( ["f",   "noprompt",     "noprompt",       0,
                             None, "Create user with noprompt."] )
 conf = comline.ConfigLong(optarr)
-conf.sess_key = ""
-
 conf.sess_key = ""
 
 # ------------------------------------------------------------------------
@@ -91,7 +89,9 @@ if __name__ == '__main__':
     if resp[0] != "OK":
         hand.client(["quit"], conf.sess_key)
         hand.close();
-        raise ValueError("Not authorized", resp[1])
+        #raise ValueError("Not authorized", resp[1])
+        print("Not authorized.")
+        sys.exit(0)
 
     resp = hand.client(["uadd", "peter3", "1234"], conf.sess_key)
     print("uadd Response:", resp)

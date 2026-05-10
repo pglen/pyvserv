@@ -5,9 +5,6 @@ if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)
 
-# ------------------------------------------------------------------------
-# Test client for the pyserv project. Download file.
-
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat, datetime, uuid, atexit
 
@@ -25,56 +22,36 @@ except:
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
 
-# ------------------------------------------------------------------------
-# Globals
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
 
-version = "1.0.0"
+#    ["n",   "plain",    0,          None],      \
+#    ["i:",  "inter",    0,          None],      \
+#    ["l:",  "login",    "admin",    None],      \
+#    ["s:",  "lpass",    "1234",     None],      \
+#    ["r:",  "rtest",    "",         None],      \
 
-# ------------------------------------------------------------------------
-
-def phelp():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -l login  - Login Name; default: 'admin'")
-    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
-    print( "            -r header - Test item")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -s        - Start time. Format: 'Y-m-d H:M'")
-    print( "            -i        - Interval in minutes. (Default: 1 day)")
-    print( "            -h        - Help")
-    print()
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["n",   "plain",    0,          None],      \
-    ["i:",  "inter",    0,          None],      \
-    ["l:",  "login",    "admin",    None],      \
-    ["s:",  "lpass",    "1234",     None],      \
-    ["r:",  "rtest",    "",         None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
-
-conf = comline.Config(optarr)
+optarr.append ( ["n",   "plain",     "plain",       0,
+                            None, "pain."] )
+optarr.append ( ["i",   "inter",     "inter",       0,
+                            None, "inter."] )
+optarr.append ( ["l:",   "login=",     "login",       "admin",
+                            None, "User to use."] )
+optarr.append ( ["s:",   "lpass=",     "lpass",       "1234",
+                            None, "Pass t use."] )
+optarr.append ( ["r:",   "rtest=",     "rtest",    "",
+                            None, "rtest."] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 def mainfunct():
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     #print(dir(conf))
 

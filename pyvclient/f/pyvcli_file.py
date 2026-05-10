@@ -20,46 +20,22 @@ except:
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
 
-# ------------------------------------------------------------------------
-# Globals
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-version = "1.0.0"
-
-# ------------------------------------------------------------------------
-
-def phelp():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print()
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
-
-conf = comline.Config(optarr)
+optarr = comline.optarrlong
+optarr.append ( ["f:",   "fname=",     "fname",       "test.txt",
+                            None, "Recive file name. (test.txt)"] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -104,18 +80,28 @@ if __name__ == '__main__':
     if not conf.quiet:
         print ("Server pass response:", cresp[1])
 
-    cresp = hand.client(["ls", ], conf.sess_key)
-    if not conf.quiet:
-        print ("Server ls response:", cresp)
-
-    cresp = hand.client(["file", "test.txt"], conf.sess_key)
-    print ("Server file response:", cresp)
     if cresp[0] != "OK":
-        cresp = hand.client(["quit", ], conf.sess_key)
-        #print ("Server quit response:", cresp)
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        #raise ValueError("Not authorized", resp[1])
+        print("Not authorized.")
         sys.exit(0)
 
-    fp = open("test.txt_local", "rb")
+    #cresp = hand.client(["ls", ], conf.sess_key)
+    #if not conf.quiet:
+    #    print ("Server ls response:", cresp)
+
+    cresp = hand.client(["file", conf.fname], conf.sess_key)
+    print ("Server file response:", cresp)
+    #if cresp[0] != "OK":
+    #    cresp = hand.client(["quit", ], conf.sess_key)
+    #    #print ("Server quit response:", cresp)
+    #    sys.exit(0)
+
+    ret2 = hand.getfile(conf.fname, conf.fname + "_local", conf.sess_key)
+    print ("Server getfile response:", ret2)
+
+    fp = open(conf.fname + "_local", "rb")
     offs = 0
     while 1:
         buf = fp.read(1024)

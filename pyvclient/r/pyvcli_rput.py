@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# ------------------------------------------------------------------------
-# Test client for the pyserv project. Encrypt test.
-
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat, uuid, atexit, datetime
 
@@ -35,8 +32,6 @@ from pyvguicom import pgutils, pgtests
 # ------------------------------------------------------------------------
 # Functions from command line
 
-#print( "            -n        - Number of records to put")
-
 def phelp():
 
     print()
@@ -53,30 +48,33 @@ def phelp():
     print()
     sys.exit(0)
 
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", support.version)
-    sys.exit(0)
+#    ["c:",  "comm",     "",     None],      \
+#    ["k:",  "putkey",   "",     None],      \
+#    ["n:",  "numrec",   1,     None],      \
+#    ["t",   "test",     0,    None],      \
 
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["c:",  "comm",     "",     None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["k:",  "putkey",   "",     None],      \
-    ["n:",  "numrec",   1,     None],      \
-    ["t",   "test",     0,    None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-conf = comline.Config(optarr)
+optarr = comline.optarrlong
+optarr.append ( ["c:",   "comm=",     "comm",       "",
+                            None, "Comm log."] )
+optarr.append ( ["s:",   "showkey=",     "showkey",    "",
+                            None, "showkey."] )
+optarr.append ( ["n:",   "numrec=",     "numrec",       0,
+                            None, "Pass t use."] )
+optarr.append ( ["t:",   "test=",     "test",       0,
+                            None, "test."] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 def mainfunct():
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
     #print(vars(conf))
 
     pyclisup.verbose = conf.verbose
@@ -127,7 +125,8 @@ def mainfunct():
     #print("pass %.3fms" % ((time.time() - ttt) * 1000) )
     if cresp[0] != "OK":
         print("Cannot log on")
-        sys.exit(1)
+        sys.exit(0)
+
     if not conf.quiet:
         print ("Server pass resp:", cresp)
 

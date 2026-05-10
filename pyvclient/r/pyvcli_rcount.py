@@ -25,53 +25,30 @@ except:
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
 
-# ------------------------------------------------------------------------
-# Globals
+#    ["t",   "test",     "x",        None],      \
+#    ["b:",  "begin",    "",         None],      \
+#    ["i:",  "inter",    0,          None],      \
 
-version = "1.0.0"
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-# ------------------------------------------------------------------------
-
-def phelp():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -b        - Start / Begin time. See format below. Default:today")
-    print( "            -i        - Interval in minutes. (Default: 1 day)")
-    print( "            -h        - Help")
-    print()
-    print("  Possible date Formats: 'Y-m-d+H:M' 'Y-m-d' 'm-d' 'm-d+H-M'")
-    print()
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["t",   "test",     "x",        None],      \
-    ["b:",  "begin",    "",         None],      \
-    ["i:",  "inter",    0,          None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
-
-conf = comline.Config(optarr)
+optarr = comline.optarrlong
+optarr.append ( ["t",   "test",     "test",       0,
+                            None, "test"] )
+optarr.append ( ["b:",   "begin=",     "begin",    "",
+                            None, "begin."] )
+optarr.append ( ["i:",   "inter=",     "inter",       0,
+                            None, "inter."] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 def mainfunct():
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -105,7 +82,7 @@ def mainfunct():
     #    print ("Server login response:", cresp)
     if cresp[0] != pyclisup.OK:
         print("Error on login", cresp)
-        sys.exit(1)
+        sys.exit(0)
 
     dd_beg, dd_end = pyclisup.inter_date(conf.begin, conf.inter)
 

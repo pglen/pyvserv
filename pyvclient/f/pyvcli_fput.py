@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 
-import sys
-if sys.version_info[0] < 3:
-    print("Python 2 is not supported as of 1/1/2020")
-    sys.exit(1)
-
 # ------------------------------------------------------------------------
-# Test client for the pyserv project. Download file.
+# Test client for the pyserv project. Upload file.
 
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
@@ -22,14 +17,6 @@ import pysyslog, comline
 
 version = "1.0.0"
 
-#    # option, var_name, initial_val, function
-#optarr = \
-#    ["f:",  "fname",    "test.txt", None],      \
-#    ["n",   "plain",    0,          None],      \
-#    ["t",   "test",     "x",        None],      \
-#
-#conf = comline.Config(optarr)
-
 # For this file
 VERSION = "1.0.0"
 
@@ -39,8 +26,8 @@ comline.cpm.setargs("[options] [hostname]")
 comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
 optarr = []
-optarr.append ( ["f:",   "fname",     "fname",       "test.txt",
-                            None, "Recive file name. (test.txt)"] )
+optarr.append ( ["f:",   "fname=",     "fname",       "test.txt",
+                            None, "Transmit file name. (test.txt)"] )
 optarr += comline.optarrlong
 conf = comline.ConfigLong(optarr)
 
@@ -49,11 +36,6 @@ conf = comline.ConfigLong(optarr)
 if __name__ == '__main__':
 
     opts, args = conf.comline(sys.argv[1:])
-
-    #print(dir(conf))
-
-    #if conf.comm:
-    #    print("Save to filename", conf.comm)
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -67,18 +49,16 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #hand.comm  = conf.comm
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 
-    #resp3 = hand.client(["id",] , "", False)
-    #print("ID Response:", resp3[1])
+    resp3 = hand.client(["hello",] , "", False)
+    if not conf.quiet:
+        print("Hello Response:", resp3[1])
 
-    #ret = ["OK",];  conf.sess_key = ""
     ret = hand.start_session(conf)
     if ret[0] != "OK":
         print("Error on setting session:", resp3[1])
@@ -86,27 +66,44 @@ if __name__ == '__main__':
         hand.close();
         sys.exit(0)
 
-    # Make a note of the session key
-    #print("Sess Key ACCEPTED:",  resp3[1])
+    # Session estabilished, try a simple command
+    resp4 = hand.client(["hello",], conf.sess_key)
+    if not conf.quiet:
+        print("Hello resp:", resp4)
+
+    cresp = hand.client(["user", "admin"], conf.sess_key)
+    if not conf.quiet:
+        print ("Server user response:", cresp[1])
+
+    cresp = hand.client(["pass", "1234"], conf.sess_key)
+    if not conf.quiet:
+        print ("Server pass response:", cresp[1])
 
     if not conf.quiet:
-        print("Session key:", conf.sess_key[:12], "...")
+        print("Started file ...", conf.fname)
 
-    resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    if not conf.quiet:
-        print("Hello Response:", resp3)
+    ttt = time.time()
+    resp = hand.putfile(conf.fname, "", conf.sess_key)
+    filesize = support.fsize(conf.fname)/1024
+    #print("filesize", filesize)
+    if resp[0] != "OK":
+        print ("fput resp:", resp)
+        cresp = hand.client(["quit", ], conf.sess_key)
+        print ("Server quit response:", cresp)
+        sys.exit()
 
-    cresp = hand.login("admin", "1234", conf)
-    if not conf.quiet:
-        print ("Server login response:", cresp)
+    if conf.verbose:
+        rate = filesize / (time.time() - ttt)
+        print ("fput resp:", resp, " %.2f kbytes/sec" % rate)
 
-    cresp = hand.client(["throt", "off"], conf.sess_key)
-    print ("Server throttle:", cresp)
+    print("fput response:", resp)
 
-    ret2 = hand.getfile(conf.fname, conf.fname + "_local", conf.sess_key)
-    print ("Server fget response:", ret2)
+    #cresp = hand.client(["ls", ], conf.sess_key)
+    #print ("Server  ls response:", cresp)
 
     cresp = hand.client(["quit", ], conf.sess_key)
     #print ("Server quit response:", cresp)
+
+    sys.exit(0)
 
 # EOF

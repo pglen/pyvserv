@@ -38,32 +38,25 @@ def phelp():
     print()
     sys.exit(0)
 
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
+#    ["c:",  "fname",    "test_dir", None],    \
 
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["c:",  "fname",    "test_dir", None],    \
-    ["p:",  "port",     6666,       None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-conf = comline.Config(optarr)
+optarr = comline.optarrlong
+optarr.append ( ["c:",   "fname=",     "fname",       "test_dir",
+                            None, "Dir to create."] )
+
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    args = conf.comline(sys.argv[1:])
-
-    #print(dir(conf))
-
-    #if conf.comm:
-    #    print("Save to filename", conf.comm)
+    opts, args = conf.comline(sys.argv[1:])
 
     pyclisup.verbose = conf.verbose
     pyclisup.pgdebug = conf.pgdebug
@@ -95,13 +88,17 @@ if __name__ == '__main__':
     if not conf.quiet:
         print("Session key:", conf.sess_key[:12], "...")
 
-    resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    if not conf.quiet:
-        print("Hello Response:", resp3)
+    #resp3 = hand.client(["hello", ],  conf.sess_key, False)
+    #if not conf.quiet:
+    #    print("Hello Response:", resp3)
 
     cresp = hand.login("admin", "1234", conf)
     if not conf.quiet:
         print ("Server login response:", cresp)
+
+    if cresp[0] != "OK":
+        print("Error on login, exiting.", cresp)
+        sys.exit(0)
 
     #cresp = hand.client(["buff", "10", ], conf.sess_key)
     #print ("Server buff response:", cresp)

@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
-# ------------------------------------------------------------------------
-# Test client for the pyserv project. Encrypt test.
-
 from Crypto.Hash import SHA512
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat, uuid
@@ -32,67 +27,46 @@ from pyvcommon import pysyslog, comline
 
 import pyvpacker
 
-# ------------------------------------------------------------------------
-# Globals
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
 
-version = "1.0.0"
-progn = os.path.basename(sys.argv[0])
+#    ["c:",  "comm",     "",         None],      \
+#    ["l:",  "login",    "admin",    None],      \
+#    ["s:",  "lpass",    "1234",     None],      \
+#    ["t",   "lprompt",  0,          None],      \
+#    ["n:",  "numrec",   1,          None],      \
+#    ["A:",  "addx",      "",        None],      \
+#    ["D:",  "delx",      "",        None],      \
+#    ["S",   "showx",     0,         None],      \
 
-__doc__ = '''\
-The pyvserv replication host manager.
-Usage: %s  [options] [hostname]
-  hostname: host to connect to. (default: 127.0.0.1)
-  options:  -d level       - Debug level 0-10
-            -p port        - Port to use (default: 6666)
-            -l login       - Login Name; default: 'admin'
-            -s lpass       - Login Pass; default: '1234' (for !!testing only!!)
-            -t             - Prompt for login pass
-            -A  host:port  - Add host:port to replicate to
-            -D  host:port  - Delete host:port to replicate to
-            -S             - Show (list) remote replication hosts
-            -n             - Number of records to put
-            -v             - Verbose
-            -q             - Quiet
-            -h             - Help''' \
-    % (progn)
-
-# ------------------------------------------------------------------------
-# Functions from command line
-
-
-def phelp():
-    print(__doc__)
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", support.version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["c:",  "comm",     "",         None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["l:",  "login",    "admin",    None],      \
-    ["s:",  "lpass",    "1234",     None],      \
-    ["t",   "lprompt",  0,          None],      \
-    ["n:",  "numrec",   1,          None],      \
-    ["A:",  "addx",      "",        None],      \
-    ["D:",  "delx",      "",        None],      \
-    ["S",   "showx",     0,         None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
-
-conf = comline.Config(optarr)
+optarr.append ( ["c:",   "comm=",     "comm",       "",
+                            None, "Communication."] )
+optarr.append ( ["l:",   "login=",     "login",       "admin",
+                            None, "User to use."] )
+optarr.append ( ["s:",   "lpass=",     "lpass",       "1234",
+                            None, "Pass t use."] )
+optarr.append ( ["t:",   "lprompt=",     "lprompt",     0,
+                            None, "Create user with prompt."] )
+optarr.append ( ["n:",   "numrec=",     "numrec",       0,
+                            None, "Pass t use."] )
+optarr.append ( ["A:",   "addx=",     "addx",    "",
+                            None, "Addx."] )
+optarr.append ( ["D:",   "delx=",     "delx",    "",
+                            None, "delx."] )
+optarr.append ( ["S",   "showx",     "showx",    0,
+                            None, "showx."] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
     try:
-        args = conf.comline(sys.argv[1:])
+        opts, args = conf.comline(sys.argv[1:])
     except getopt.GetoptError:
         sys.exit(1)
     except SystemExit:
@@ -161,7 +135,7 @@ if __name__ == '__main__':
     cresp = hand.login(conf.login, conf.lpass, conf)
     if cresp[0] != 'OK':
         print("Login Error:", cresp)
-        sys.exit(1)
+        sys.exit(0)
 
     cresp = hand.client(["dmode",], conf.sess_key)
     #print("dmode", cresp)

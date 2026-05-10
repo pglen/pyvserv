@@ -7,9 +7,6 @@ if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)
 
-# ------------------------------------------------------------------------
-# Test client for the pyserv project.
-
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
@@ -27,49 +24,26 @@ except:
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
 
-# ------------------------------------------------------------------------
-# Globals
+#optarr = \
+#    ["f:",  "file",     "",     None],      \
+#conf = comline.Config(optarr)
 
-version = "1.0.0"
-
-# ------------------------------------------------------------------------
-
-def phelp():
-
-    print( "The pyvserv QR code downloader.")
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print( "  hostname: host to connect to. (default: 127.0.0.1)")
-    print( "  options:  -d level  - Debug level 0-10")
-    print( "            -p port   - Port to use (default: 6666)")
-    print( "            -f file   - Upload new QR image file. Admin only.")
-    print( "            -v        - Verbose")
-    print( "            -V        - Version")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["f:",  "file",     "",     None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
-
-conf = comline.Config(optarr)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
+optarr.append ( ["f:",   "file=",     "file",       "",
+                            None, "File."] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 def mainfunct():
 
     try:
-        args = conf.comline(sys.argv[1:])
+        opts, args = conf.comline(sys.argv[1:])
     except getopt.GetoptError:
         sys.exit(1)
     except SystemExit:

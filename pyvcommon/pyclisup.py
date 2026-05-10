@@ -102,7 +102,6 @@ class CliSup():
 
         if self.comm:
             fp = open(self.comm, "a+")
-
             fp.write(strx.decode("cp437"))
             fp.close()
 

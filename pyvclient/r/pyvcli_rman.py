@@ -61,39 +61,53 @@ Possible date Formats: 'Y-m-d+H:M' 'Y-m-d' 'm-d' 'm-d+H-M'  '''  \
 
 __doc__= "<pre>" + cdoc + "</pre>"
 
-# ------------------------------------------------------------------------
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot(
+    "The hostname defaults to 'localhost'"
+    "Possible date Formats: 'Y-m-d+H:M' 'Y-m-d' 'm-d' 'm-d+H-M'  "
+    )
+optarr = comline.optarrlong
 
-def phelp():
-    ''' Present command line help '''
-    print(cdoc)
-    sys.exit(0)
+#    ["l:",  "login",    "admin",    None],      \
+#    ["s:",  "lpass",    "1234",     None],      \
+#    ["t",   "lprompt",  0,          None],      \
+#    ["u",   "upload",   0,          None],      \
+#    ["c",   "cget",     0,          None],      \
+#    ["z",   "size",    0,          None],       \
 
-def pversion():
-    ''' Display Version information '''
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
+optarr.append ( ["l:",   "login=",     "login",       "admin",
+                    None, "Login Name; default: 'admin'"] )
+optarr.append ( ["s:",   "lpass=",     "lpass",       "1234",
+                    None, "Login Pass; default: '1234' (for !!testing only!!)"] )
+optarr.append ( ["t",   "lprompt",     "lprompt",       0,
+                    None, "prompt for login pass"] )
+optarr.append ( ["u",   "upload",     "upload",         0,
+                    None, "Upload record (randomly generated)"] )
+optarr.append ( ["c",   "cget",     "cget",         0,
+                    None, "Get records between dates"] )
+optarr.append ( ["z",   "size",     "size",         0,
+                    None, "Get remote database size"] )
+#    ["r:",  "rget",     "",         None],      \
+#    ["a:",  "rabs",     "",         None],      \
+#    ["b:",  "begin",     "",        None],      \
+#    ["i:",  "inter",    0,          None],      \
+#    ["o",   "count",    0,          None],      \
 
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["l:",  "login",    "admin",    None],      \
-    ["s:",  "lpass",    "1234",     None],      \
-    ["t",   "lprompt",  0,          None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["u",   "upload",   0,          None],      \
-    ["c",   "cget",     0,          None],      \
-    ["z",   "size",    0,          None],       \
-    ["r:",  "rget",     "",         None],      \
-    ["a:",  "rabs",     "",         None],      \
-    ["b:",  "begin",     "",        None],      \
-    ["i:",  "inter",    0,          None],      \
-    ["o",   "count",    0,          None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
+optarr.append ( ["r:",   "rget=",     "rget",         "",
+                    None, "Get remote database size"] )
+optarr.append ( ["a:",   "rabs=",     "rabs",         "",
+                    None, "Get remote database size"] )
+optarr.append ( ["b:",   "begin=",    "begin",        "",
+                    None, "Get remote database size"] )
+optarr.append ( ["i:",   "inter=",     "inter",        0,
+                    None, "Get remote database size"] )
+optarr.append ( ["o",   "count",     "count",         0,
+                    None, "Get remote database size"] )
 
-conf = comline.Config(optarr)
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
@@ -102,7 +116,7 @@ def    mainfunct():
     ''' Entry point for pip script '''
 
     try:
-        args = conf.comline(sys.argv[1:])
+        opts, args = conf.comline(sys.argv[1:])
 
     except getopt.GetoptError:
         sys.exit(1)

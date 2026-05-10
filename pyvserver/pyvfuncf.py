@@ -147,14 +147,17 @@ def get_ls_func(self, strx):
                     # Escape spaces
                     response.append(aa) #support.escape(aa))
             except:
-                print( "Cannot stat ", aaa, str(sys.exc_info()[1]) )
+                if pyservsup.globals.conf.pgdebug > 1:
+                    print( "Cannot ls ", aaa, str(sys.exc_info()[1]) )
+                pass
 
     except:
         # Perhaps the user meant the file:
         if os.path.isfile(dname2):
             response = [OK, strx[1], strx[0]]
         else:
-            support.put_exception("ls ")
+            if pyservsup.globals.conf.pgdebug > 1:
+                support.put_exception("ls ")
             response = [ERR, "No such directory.", strx[1]]
 
     #print("response", response)

@@ -51,26 +51,35 @@ If no action is specified, defaults to list users. ''' \
 
 __doc__= "<pre>" + cdoc + "</pre>"
 
-def phelp():
-    ''' Present command line help '''
-    print(cdoc)
-    sys.exit(0)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-def pversion():
-    ''' Display Version information '''
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
+optarr = comline.optarrlong
 
-    # option, var_name, initial_val, function
-#optarr = \
 #    ["s:",  "lpass",        "1234",         None],      \
 #    ["t",   "lprompt",      0,              None],      \
-#    ["v",   "verbose",      0,              None],      \
-#    ["q",   "quiet",        0,              None],      \
 #    ["m",   "admin",        0,              None],      \
 #    ["a",   "add",          0,              None],      \
 #    ["r",   "remove",       0,              None],      \
 #    ["c",   "change",       "",             None],      \
+
+optarr.append ( ["l:",   "login=",     "login",       "admin",
+                            None, "Login as user. Default: 'admin'"] )
+optarr.append ( ["s:",   "lpass=",     "lpass",       "1234",
+                            None, "Pass to use. Default: '1234'"] )
+optarr.append ( ["t",   "lprompt",     "lprompt",     0,
+                            None, "Prompt fof login pass."] )
+optarr.append ( ["m",   "admin",     "admin",     0,
+                            None, "Add admin flag."] )
+optarr.append ( ["a",   "add",     "add",     0,
+                            None, "Add user flag."] )
+optarr.append ( ["r",   "remove",     "remove",     0,
+                            None, "Remove user flag."] )
+optarr.append ( ["c",   "change",     "change",     0,
+                            None, "Change pass flag."] )
+
 #    ["u:",  "userx",        "test_user",    None],      \
 #    ["x:",  "passx",        "1234",         None],      \
 #    ["X:",  "chpass",       "",             None],      \
@@ -78,14 +87,20 @@ def pversion():
 #    ["e:",  "encomm",       "",             None],      \
 #    ["i:",  "listx",        "",             None],  \
 
-comline.cpm.setprog(os.path.basename(__file__))
-comline.cpm.setver(pyclisup.VERSION)
-comline.cpm.setargs("[options] [hostname]")
-comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr.append ( ["u:",   "userx=",     "userx",       "test_user",
+                            None, "New/Op User Name; default: 'test_user'"] )
+optarr.append ( ["x:",   "passx=",     "passxx",      "1234",
+                            None, "New/Op User Pass; default: '1234'"] )
+optarr.append ( ["X:",   "chpass=",     "passxx",      "1234",
+                            None, "New/Op User Pass; default: '1234'"] )
+optarr.append ( ["T",   "prompt",     "prompt",      0,
+                            None, "Prompt for new/op user pass / change pass"] )
+optarr.append ( ["e:",   "encomm=",     "encomm",      "",
+                            None, "Enable / Disable user flag"] )
+optarr.append ( ["i:",   "listx=",     "listx",      "",
+                            None, "List users. (kind = user / admin / disabled / initial)"] )
 
-optarr = comline.optarrlong
 conf = comline.ConfigLong(optarr)
-
 conf.sess_key = ""
 
 # ------------------------------------------------------------------------
@@ -94,7 +109,7 @@ def    mainfunct():
 
     ''' Entry point for pip script '''
     try:
-        args = conf.comline(sys.argv[1:])
+        opts, args = conf.comline(sys.argv[1:])
 
     except getopt.GetoptError:
         sys.exit(1)
@@ -134,28 +149,28 @@ def    mainfunct():
         sys.exit(1)
 
     resp3 = hand.start_session(conf)
-    if not conf.quiet:
-        print("Sess Response:", resp3)
+    #if not conf.quiet:
+    #    print("Sess Response:", resp3)
 
     #resp3 = hand.client(["hello",] , conf.sess_key, False)
     #if not conf.quiet:
     #    print("Hello sess Response:", resp3[1])
 
     resp = hand.client(["user", conf.login], conf.sess_key)
-    if not conf.quiet:
-        print("user Response:", resp)
+    #if not conf.quiet:
+    #    print("user Response:", resp)
     if resp[0] != "OK":
         hand.client(["quit"], conf.sess_key)
         hand.close();
 
     resp = hand.client(["pass", conf.lpass], conf.sess_key)
-    if not conf.quiet:
-        print("pass Response:", resp)
+    #if not conf.quiet:
+    #    print("pass Response:", resp)
     if resp[0] != "OK":
         hand.client(["quit"], conf.sess_key)
         hand.close();
         print("Error on login, exiting.", resp)
-        sys.exit(1)
+        sys.exit(0)
 
     if conf.prompt:
         import getpass

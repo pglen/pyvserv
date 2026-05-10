@@ -9,7 +9,7 @@
 # pylint: disable=W0702     # Bare exceptions
 # pylint: disable=W0602     # No global assignment
 
-VERSION = "1.0.0"
+#VERSION = "1.0.0"
 
 __doc__ = \
 '''
@@ -487,13 +487,16 @@ def simple_server(Host, Port):
 # ------------------------------------------------------------------------
 
 # Tue 02.Apr.2024 made devmode default
+# Sun 10.May.2026 in user directory
+
+upath = os.path.expanduser("~/pyvserver")
+#print(upath)
+#sys.exit()
 
 optarr =  []
 optarr.append ( ["n:",  "hostname=",     "host",   "127.0.0.1",
             None, "Set interface name. Default: 127.0.0.1"] )
-#optarr.append ( ["r:",  "dataroot=", "droot",  "pyvserver",
-#            None, "Set data root. Default: ~/pyvserver "] )
-optarr.append ( ["r:",  "dataroot=", "droot",  "/opt/pyvserv",
+optarr.append ( ["r:",  "dataroot=", "droot",  upath,
             None, "Set data root. Default: ~/pyvserver "] )
 optarr.append ( ["l:",  "loglevel=", "pglog",       1,
             None, "Log level. 0=none 10=noisy Default: 1"] )

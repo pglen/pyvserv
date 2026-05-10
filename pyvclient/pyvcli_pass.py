@@ -121,17 +121,21 @@ if __name__ == '__main__':
 
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  resp3[1])
-    print("Post session, all is encrypted")
+    #print("Post session, all is encrypted")
 
     # Session estabilished, try a simple command
-    resp4 = hand.client(["hello",], conf.sess_key)
-    print("Hello sess Response:", resp4)
+    #resp4 = hand.client(["hello",], conf.sess_key)
+    #print("Hello sess Response:", resp4)
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
     print ("Server user response:", cresp[1])
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
     print ("Server pass response:", cresp[1])
+
+    if cresp[0] != "OK":
+        print("Error on login, exiting.", cresp)
+        sys.exit(0)
 
     #cresp = hand.client(["chpass", "1234"], conf.sess_key)
     #print ("Server chpass response:", cresp[1])

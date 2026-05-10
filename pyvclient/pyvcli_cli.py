@@ -107,31 +107,25 @@ Prefix local commands with '!' (exclamation mark) ''' \
  % (progn)
 
 #optarr = \
-#    ["d:",  "pgdebug=",  "pgdebug",   0,          None],      \
-#    ["p:",  "port=",     "port",      6666,       None],      \
 #    ["l:",  "login=",    "login",     "admin",    None],      \
 #    ["s:",  "lpass=",    "lpass",     "1234",     None],      \
 #    ["x:",  "comm=",     "comm",      "",         None],      \
 #    ["t",   "prompt",    "prompt",    0,          None],      \
-#    ["v",   "verbose",   "verbose",   0,          None],      \
-#    ["q",   "quiet",     "quiet",     0,          None],      \
-#    ["V",   "verbose",   "vervose",   None,       pversion],  \
-#    ["h",   "help",      "help",      None,       phelp]      \
-#conf = comline.ConfigLong(optarr)
 
 comline.cpm.setprog(os.path.basename(__file__))
 comline.cpm.setver(pyclisup.VERSION)
 comline.cpm.setargs("[options] [hostname]")
 comline.cpm.setfoot("The hostname defaults to 'localhost'")
+
 optarr = comline.optarrlong
-optarr.append ( ["u:",   "userx",     "userx",       "admin",
-                            None, "Create user with name."] )
-optarr.append ( ["l:",   "passx",     "passx",       "1234",
-                            None, "Create user with pass."] )
-optarr.append ( ["t:",   "prompt",     "prompt",       0,
+optarr.append ( ["l:",   "login=",     "login",       "admin",
+                            None, "User to use."] )
+optarr.append ( ["s:",   "lpass=",     "lpass",       "1234",
+                            None, "Pass t use."] )
+optarr.append ( ["x:",   "comm=",     "comm",    "",
+                            None, "comm."] )
+optarr.append ( ["t:",   "prompt=",     "prompt",       0,
                             None, "Create user with prompt."] )
-optarr.append ( ["f",   "noprompt",     "noprompt",       0,
-                            None, "Create user with noprompt."] )
 conf = comline.ConfigLong(optarr)
 conf.sess_key = ""
 
@@ -215,7 +209,7 @@ def mainfunct():
         sys.exit(0)
 
     # Interactive, need more time
-    hand.client(["tout", "10",], conf.sess_key)
+    hand.client(["tout", "30",], conf.sess_key)
 
     if conf.comm:
         import shlex
@@ -283,6 +277,10 @@ def mainloop(conf, hand):
                 elif ss[0][0] == "!":
                     #print ("local command")
                     os.system(ss[0][1:] + " " + " ".join(ss[1:]))
+                    continue
+                elif ss[0][0] == "?":
+                    cresp = hand.client(["help",], conf.sess_key)
+                    print ("resp:", cresp)
                     continue
                 else:
                     # No wrapper needed

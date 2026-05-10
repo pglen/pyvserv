@@ -22,51 +22,32 @@ def errexit(hand, retstr, msg = "exiting"):
     hand.client(["quit"], conf.sess_key);  hand.close();
     sys.exit(0)
 
-# ------------------------------------------------------------------------
-# Functions from command line
+#    ["f:",  "fname",    "test_1",   None],      \
+#    ["c:",  "comm",     "",         None],      \
+#    ["s",   "showkey",  "",         None],      \
+#    ["t",   "test",     "x",        None],      \
 
-def phelp():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level    - Debug level 0-10")
-    print( "            -p port     - Port to use (default: 666)")
-    print( "            -l level    - Log level (default: 0)")
-    print( "            -c file     - Save comm to file")
-    print( "            -f dirname  - Change to directory")
-    print( "            -s          - Showkey")
-    print( "            -v          - Verbose")
-    print( "            -q          - Quiet")
-    print( "            -h          - Help")
-    #print( " Needs debug level or verbose to have any output.")
-    print()
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", support.version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["f:",  "fname",    "test_1",   None],      \
-    ["c:",  "comm",     "",         None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["s",   "showkey",  "",         None],      \
-    ["t",   "test",     "x",        None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
-
-conf = comline.Config(optarr)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
+optarr.append ( ["f:",   "fname=",     "fname",       "test_1",
+                            None, "fname."] )
+optarr.append ( ["c:",   "comm=",     "comm",       "",
+                            None, "Pass t use."] )
+optarr.append ( ["s:",   "showkey=",     "showkey",    "",
+                            None, "showkey."] )
+optarr.append ( ["t:",   "test=",     "test",       "",
+                            None, "test."] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     if conf.comm:
         print("Save to filename", conf.comm)
@@ -103,17 +84,24 @@ if __name__ == '__main__':
 
     # Make a note of the session key
     #print("Sess Key ACCEPTED:",  resp3[1])
-    print("Post session, all is encrypted")
+    #print("Post session, all is encrypted")
 
     # Session estabilished, try a simple command
     #resp4 = hand.client(["hello",], conf.sess_key)
     #print("Hello Response:", resp4[1])
 
     cresp = hand.client(["user", "admin"], conf.sess_key)
-    print ("Server user response:", cresp)
+    #print ("Server user response:", cresp)
 
     cresp = hand.client(["pass", "1234"], conf.sess_key)
-    print ("Server pass response:", cresp)
+    #print ("Server pass response:", cresp)
+
+    if cresp[0] != "OK":
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        #raise ValueError("Not authorized", resp[1])
+        print("Not authorized.")
+        sys.exit(0)
 
     #///////////////////////////////////////////////////////////////////////
 

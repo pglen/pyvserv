@@ -114,17 +114,6 @@ def    mainfunct():
             sys.exit(0)
         conf.passx =  strx
 
-    if conf.passx == "1234":
-
-        if not conf.noprompt:
-            print("This creates credentials for a demo / test system.")
-            print("Are you sure? (y/N) ", end = ""); sys.stdout.flush()
-            sss = input().strip().lower()
-            #print(sss)
-            if sss != "y" and sss != "yes":
-                print("You may use the -t option for password prompt. Exiting ...")
-                sys.exit()
-
     if len(args) == 0:
         ip = '127.0.0.1'
     else:
@@ -146,8 +135,27 @@ def    mainfunct():
     if not conf.quiet:
         print("Sess Response:", resp3)
 
-    resp3 = hand.client(["hello",] , conf.sess_key, False)
+    #resp3 = hand.client(["hello",] , conf.sess_key, False)
     #print("Hello sess Response:", resp3[1])
+
+    cresp = hand.client(["user", "admin"], conf.sess_key)
+    #print ("Server user  response:", cresp)
+
+    cresp = hand.client(["pass", "1234"], conf.sess_key)
+    #print ("Server pass  response:", cresp)
+    if cresp[0] == "OK":
+        print("This system already has an initial user.")
+        sys.exit()
+
+    if conf.passx == "1234":
+        if not conf.noprompt:
+            print("This creates credentials for a demo / test system.")
+            print("Are you sure? (y/N) ", end = ""); sys.stdout.flush()
+            sss = input().strip().lower()
+            #print(sss)
+            if sss != "y" and sss != "yes":
+                print("You may use the -t option for password prompt. Exiting ...")
+                sys.exit()
 
     resp = hand.client(["uini", conf.userx, conf.passx], conf.sess_key)
     print("resp", resp)

@@ -5,9 +5,6 @@ if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)
 
-# ------------------------------------------------------------------------
-# Test client for the pyserv project. Download file.
-
 import os, sys, getopt, signal, select, socket, time, struct
 import random, stat
 
@@ -17,48 +14,23 @@ sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
 
-# ------------------------------------------------------------------------
-# Globals
+#    ["c:",  "fname",    "test_dir", None],    \
 
-version = "1.0.0"
-
-# ------------------------------------------------------------------------
-
-def phelp():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level   - Debug level 0-10")
-    print( "            -c dirname - Directory to remove. default: test_3")
-    print( "            -p         - Port to use (default: 6666)")
-    print( "            -v         - Verbose")
-    print( "            -q         - Quiet")
-    print( "            -h         - Help")
-    print()
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["c:",  "fname",    "test_dir", None],    \
-    ["p:",  "port",     6666,       None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
-
-conf = comline.Config(optarr)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
+optarr.append ( ["c:",   "fname=",     "fname",       "test_dir",
+                            None, "Directory to remove."] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 if __name__ == '__main__':
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     #print(dir(conf))
 
@@ -77,8 +49,6 @@ if __name__ == '__main__':
     hand.verbose = conf.verbose
     hand.pgdebug = conf.pgdebug
 
-    #hand.comm  = conf.comm
-
     try:
         respc = hand.connect(ip, conf.port)
     except:
@@ -95,13 +65,16 @@ if __name__ == '__main__':
     if not conf.quiet:
         print("Session key:", conf.sess_key[:12], "...")
 
-    resp3 = hand.client(["hello", ],  conf.sess_key, False)
-    if not conf.quiet:
-        print("Hello Response:", resp3)
+    #resp3 = hand.client(["hello", ],  conf.sess_key, False)
+    #if not conf.quiet:
+    #    print("Hello Response:", resp3)
 
     cresp = hand.login("admin", "1234", conf)
     if not conf.quiet:
         print ("Server login response:", cresp)
+    if cresp[0] != "OK":
+        print("Error on login, exiting.", cresp)
+        sys.exit(0)
 
     #cresp = hand.client(["buff", "10", ], conf.sess_key)
     #print ("Server buff response:", cresp)

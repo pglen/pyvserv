@@ -54,26 +54,35 @@ def pversion():
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["l:",  "login",    "admin",    None],      \
-    ["s:",  "lpass",    "1234",     None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["b:",  "begin",    "",         None],      \
-    ["i:",  "inter",    0,          None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot(
+        "The hostname defaults to 'localhost'\n" +
+        "Possible date Formats: 'Y-m-d+H:M' 'Y-m-d' 'm-d' 'm-d+H-M'"
+        )
+optarr = comline.optarrlong
 
-conf = comline.Config(optarr)
+#    ["l:",  "login",    "admin",    None],      \
+#    ["s:",  "lpass",    "1234",     None],      \
+#    ["b:",  "begin",    "",         None],      \
+#    ["i:",  "inter",    0,          None],      \
 
-# ------------------------------------------------------------------------
+optarr.append ( ["l:",   "login=",     "login",       "admin",
+                            None, "User to use."] )
+optarr.append ( ["s:",   "lpass=",     "lpass",       "1234",
+                            None, "Pass t0 use."] )
+optarr.append ( ["b:",   "begin=",     "begin",    "",
+              None, "Start / Begin time. Default: today"] )
+optarr.append ( ["i:",   "inter=",     "inter",       0,
+                            None, "Interval in minutes. (Default: 1 day)"] )
+
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 def mainfunct():
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     #print(dir(conf))
 
@@ -112,7 +121,13 @@ def mainfunct():
         sys.exit(0)
 
     cresp = hand.login(conf.login, conf.lpass, conf)
-    pyclisup.exit_if_err(cresp)
+    #pyclisup.exit_if_err(cresp)
+    if cresp[0] != "OK":
+        hand.client(["quit"], conf.sess_key)
+        hand.close();
+        #raise ValueError("Not authorized", resp[1])
+        print("Not authorized.")
+        sys.exit(0)
 
     #if not conf.quiet:
     #    print ("Server login response:", cresp)

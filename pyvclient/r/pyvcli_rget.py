@@ -27,57 +27,37 @@ from pyvcommon import pysyslog, comline
 
 import pyvpacker
 
-# ------------------------------------------------------------------------
-# Globals
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
-version = "1.0.0"
+optarr = comline.optarrlong
 
-# ------------------------------------------------------------------------
+#    ["f:",  "fname",    "test.txt", None],      \
+#    ["n",   "plain",    0,          None],      \
+#    ["r:",  "rget",     "",         None],      \
+#    ["b:",  "begin",    "",        None],      \
+#    ["i:",  "inter",    0,          None],      \
 
-def phelp():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -r recids - Record IDs to get")
-    print( "            -b        - Start / Begin time. Format: 'Y-m-d+H:M' Default: now")
-    print( "            -i        - Interval in minutes. (Default: 1 day)")
-    print( "            -h        - Help")
-    print()
-    print("  Use quotes for multiple arguments on recids.")
-    print()
-
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["f:",  "fname",    "test.txt", None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["n",   "plain",    0,          None],      \
-    ["r:",  "rget",     "",         None],      \
-    ["b:",  "begin",    "",        None],      \
-    ["i:",  "inter",    0,          None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
-
-conf = comline.Config(optarr)
+optarr.append ( ["f:",   "fname=",     "fname",       "test.txt",
+                            None, "fname"] )
+optarr.append ( ["n",   "plain",     "plain",       0,
+                            None, "plain"] )
+optarr.append ( ["r:",   "rget=",     "rget",    "",
+                            None, "rget."] )
+optarr.append ( ["b:",   "begin=",     "begin",    "",
+        None, "Start / Begin time. See format below. Default:today."] )
+optarr.append ( ["i:",   "inter=",     "inter",       0,
+                            None, "inter."] )
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 def    mainfunct():
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     #print(dir(conf))
 

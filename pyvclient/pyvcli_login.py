@@ -15,10 +15,7 @@ sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
 import support, pycrypt, pyservsup, pyclisup
 import pysyslog, comline
 
-#optarr = \
 #    ["c:",  "comm",     "",     None],      \
-#    ["s",   "showkey",  "",     None],      \
-#    ["t",   "test",     "x",    None],      \
 
 comline.cpm.setprog(os.path.basename(__file__))
 comline.cpm.setver(pyclisup.VERSION)
@@ -26,9 +23,8 @@ comline.cpm.setargs("[options] [hostname]")
 comline.cpm.setfoot("The hostname defaults to 'localhost'")
 
 optarr = []
-optarr.append ( ["c:",   "comm",     "comm",       "",
-                            None, "Print time statistics."] )
-
+optarr.append ( ["c:",   "comm=",     "comm",       "",
+                            None, "Print time statistics to file."] )
 optarr += comline.optarrlong
 conf = comline.ConfigLong(optarr)
 

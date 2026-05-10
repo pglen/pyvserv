@@ -915,7 +915,8 @@ class SharedData():
         try:
             del self.mydata[keyx]
         except:
-            print("deldat", sys.exc_info())
+            if pgdebug:
+                print("deldat", sys.exc_info())
         self.sem.release()
         return
 
@@ -1017,8 +1018,8 @@ class Throttle():
 # The one and only instance
 gl_throttle = Throttle()
 
-bool_yes = [ "on", "yes", "true", "enable" ]
-bool_no = [ "off", "no", "false", "disable" ]
+bool_yes = [ "on", "yes", "true", "enable", "1", ]
+bool_no = [ "off", "no", "false", "disable", "0", ]
 
 def str2bool(strx, default = False):
 

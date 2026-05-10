@@ -25,57 +25,35 @@ except:
 from pyvcommon import support, pycrypt, pyclisup
 from pyvcommon import pysyslog, comline
 
-# ------------------------------------------------------------------------
-# Globals
+#    ["l:",  "login",    "admin",    None],      \
+#    ["s:",  "lpass",    "1234",     None],      \
+#    ["t",   "lprompt",  0,          None],      \
+#    ["a:",  "rabs",     "",         None],      \
 
-version = "1.0.0"
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
+optarr.append ( ["l:",   "login=",     "login",       "admin",
+                            None, "User to use."] )
+optarr.append ( ["s:",   "lpass=",     "lpass",       "1234",
+                            None, "Pass t use."] )
+optarr.append ( ["x:",   "comm=",     "comm",    "",
+                            None, "comm."] )
+optarr.append ( ["t:",   "lprompt=",     "lprompt",       0,
+                            None, "Create user with prompt."] )
+optarr.append ( ["a:",   "rabs=",     "rabs",       "",
+                            None, "rabs."] )
 
-# ------------------------------------------------------------------------
-
-def phelp():
-
-    print()
-    print( "Usage: " + os.path.basename(sys.argv[0]) + " [options]")
-    print()
-    print( "Options:    -d level  - Debug level 0-10")
-    print( "            -p        - Port to use (default: 6666)")
-    print( "            -l login  - Login Name; default: 'admin'")
-    print( "            -s lpass  - Login Pass; default: '1234' (for !!testing only!!)")
-    print( "            -t        - prompt for login pass")
-    print( "            -a recpos - Absolute positions. Negative for end offsets.")
-    print( "            -v        - Verbose")
-    print( "            -q        - Quiet")
-    print( "            -h        - Help")
-    print()
-    print("  Use quotes for multiple arguments. (like: -a \"-1 -2 -3\") -- lists last 3")
-    print()
-
-    sys.exit(0)
-
-def pversion():
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
-
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,          None],      \
-    ["p:",  "port",     6666,       None],      \
-    ["l:",  "login",    "admin",    None],      \
-    ["s:",  "lpass",    "1234",     None],      \
-    ["t",   "lprompt",  0,          None],      \
-    ["v",   "verbose",  0,          None],      \
-    ["q",   "quiet",    0,          None],      \
-    ["a:",  "rabs",     "",         None],      \
-    ["V",   None,       None,       pversion],  \
-    ["h",   None,       None,       phelp]      \
-
-conf = comline.Config(optarr)
+conf = comline.ConfigLong(optarr)
+conf.sess_key = ""
 
 # ------------------------------------------------------------------------
 
 def    mainfunct():
 
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     #print(dir(conf))
 

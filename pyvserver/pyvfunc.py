@@ -137,24 +137,24 @@ def get_buff_func(self, strx):
         print( "get_buff_func()", strx)
 
     if len(strx) < 2:
-        response = [ERR, "Must specify buffer size.", strx[0]]
+        #response = [ERR, "Must specify buffer size.", strx[0]]
+        response = [OK, "Current buffer size:", pyservsup.buffsize]
         self.resp.datahandler.putencode(response, self.resp.ekey)
         return
 
     # Set to an number that most short based (2 bytes) routines can handle
     num = int(strx[1])
     if num <= 0:
-        num = 1
-    elif num > 0xf000:
-        num = 0xf000
+        num = 1024
+    elif num > 0xffff:
+        num = 0xffff
 
     if pyservsup.globals.conf.pgdebug > 2:
         print("buffer set to %d" % num)
 
     self.buffsize = num
-    response = [OK, "Buffer set to:", pyservsup.buffsize]
+    response = [OK, "Buffer set to:", self.buffsize]
     self.resp.datahandler.putencode(response, self.resp.ekey)
-
 
 def get_ihost_func(self, strx):
 
@@ -891,7 +891,7 @@ def get_qr_func(self, strx):
             fp = open('qr.png', 'wb')
             fp.write(strx[1])
             fp.close()
-            self.resp.datahandler.putencode([OK, "Written new QR image", len(strx[1])], self.resp.ekey)
+            self.resp.datahandler.putencode([OK, "Written new QR image", len(strx[1]), "qr.png"], self.resp.ekey)
         except:
             self.resp.datahandler.putencode([ERR, "Cannot save QR image"], self.resp.ekey)
 
