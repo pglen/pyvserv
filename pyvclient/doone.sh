@@ -10,5 +10,3 @@ fi
 export PYTHONPATH=$(pwd):$(pwd)/..:$(pwd)/../pyvcommon:$(pwd)/pyvcommon
 #echo $PYTHONPATH
 python3 $1
-
-echo done

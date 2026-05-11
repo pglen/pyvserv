@@ -48,38 +48,52 @@ If no action is specified, command defaults to list files. ''' \
 
 __doc__= "<pre>" + cdoc + "</pre>"
 
-def phelp():
-    ''' Present command line help '''
-    print(cdoc)
-    sys.exit(0)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
 
-def pversion():
-    ''' Display Version information '''
-    print( os.path.basename(sys.argv[0]), "Version", version)
-    sys.exit(0)
+#    ["l:",  "login",        "admin",    None],      \
+#    ["s:",  "lpass",        "1234",     None],      \
+#    ["u:",  "fname",        "",         None],      \
+#    ["m:",  "mdname",       "",         None],      \
+#    ["r:",  "rdname",       "",         None],      \
 
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",      0,          None],      \
-    ["p:",  "port",         6666,       None],      \
-    ["l:",  "login",        "admin",    None],      \
-    ["s:",  "lpass",        "1234",     None],      \
-    ["u:",  "fname",        "",         None],      \
-    ["m:",  "mdname",       "",         None],      \
-    ["r:",  "rdname",       "",         None],      \
-    ["n:",  "dname",        "",         None],      \
-    ["e:",  "delname",      "",         None],      \
-    ["a:",  "stname",       "",         None],      \
-    ["t",   "lprompt",      0,          None],      \
-    ["i",   "list",         0,          None],      \
-    ["I",   "dlist",        0,          None],      \
-    ["g",   "long",         0,          None],      \
-    ["v",   "verbose",      0,          None],      \
-    ["q",   "quiet",        0,          None],      \
-    ["V",   None,           None,       pversion],  \
-    ["h",   None,           None,       phelp]      \
+optarr.append ( ["l:",   "login=",     "login",       "admin",
+                            None, "User to use."] )
+optarr.append ( ["s:",   "lpass=",     "lpass",       "1234",
+                            None, "Pass t use."] )
+optarr.append ( ["u:",   "fname=",     "fname",    "",
+                            None, "fname."] )
+optarr.append ( ["m:",   "mdname=",     "mdname",       "",
+                            None, "mdname."] )
+optarr.append ( ["r:",   "rdname=",     "rdname",       "",
+                            None, "rdname."] )
+#    ["n:",  "dname",        "",         None],      \
+#    ["e:",  "delname",      "",         None],      \
+#    ["a:",  "stname",       "",         None],      \
+#    ["t",   "lprompt",      0,          None],      \
+#    ["i",   "list",         0,          None],      \
+#    ["I",   "dlist",        0,          None],      \
+#    ["g",   "long",         0,          None],      \
 
-conf = comline.Config(optarr)
+optarr.append ( ["n:",   "dname=",     "dname",       "",
+                            None, "Download file."] )
+optarr.append ( ["e:",   "delname=",     "delname",       "",
+                            None, "Delete file."] )
+optarr.append ( ["a:",   "stname=",     "stname",       "",
+                            None, "Stat file."] )
+optarr.append ( ["t",   "lprompt",     "lprompt",   0,
+                            None, "Prompt for login pass"] )
+optarr.append ( ["i",   "list",     "list",         0,
+                            None, "List files."] )
+optarr.append ( ["I",   "dlist",     "dlist",       0,
+                            None, "List directories."] )
+optarr.append ( ["g",   "long",     "long",         0,
+                            None, "Long listing."] )
+
+conf = comline.ConfigLong(optarr)
 conf.sess_key = ""
 
 # ------------------------------------------------------------------------
@@ -89,7 +103,7 @@ def    mainfunct():
     ''' Entry point for pip script '''
 
     try:
-        args = conf.comline(sys.argv[1:])
+        opts, args = conf.comline(sys.argv[1:])
     except getopt.GetoptError:
         sys.exit(1)
     except SystemExit:

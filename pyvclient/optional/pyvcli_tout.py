@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
 import sys
 if sys.version_info[0] < 3:
     print("Python 2 is not supported as of 1/1/2020")
     sys.exit(1)
 
-# ------------------------------------------------------------------------
-# Test client for the pyserv project. Encrypt test.
-
-import  os, sys, getopt, signal, select, socket, time, struct
+import  os, getopt, signal, select, socket, time, struct
 import  random, stat
+
+# This repairs the path from local run to pip run.
+try:
+    from pyvcommon import support
+    base = os.path.dirname(os.path.realpath(support.__file__))
+    sys.path.append(os.path.join(base, "."))
+except:
+    base = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(base,  '..'))
+    sys.path.append(os.path.join(base,  '..', "pyvcommon"))
+    from pyvcommon import support
+
 
 base = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(base,  '..' + os.sep + 'pyvcommon'))
@@ -39,17 +46,22 @@ def pversion():
     print( os.path.basename(sys.argv[0]), "Version", version)
     sys.exit(0)
 
-    # option, var_name, initial_val, function
-optarr = \
-    ["d:",  "pgdebug",  0,      None],      \
-    ["p:",  "port",     6666,   None],      \
-    ["v",   "verbose",  0,      None],      \
-    ["q",   "quiet",    0,      None],      \
-    ["t",   "test",     "x",    None],      \
-    ["V",   None,       None,   pversion],  \
-    ["h",   None,       None,   phelp]      \
+#optarr = \
+#    ["d:",  "pgdebug",  0,      None],      \
+#    ["p:",  "port",     6666,   None],      \
+#    ["v",   "verbose",  0,      None],      \
+#    ["q",   "quiet",    0,      None],      \
+#    ["t",   "test",     "x",    None],      \
+#    ["V",   None,       None,   pversion],  \
+#    ["h",   None,       None,   phelp]      \
 
-conf = comline.Config(optarr)
+comline.cpm.setprog(os.path.basename(__file__))
+comline.cpm.setver(pyclisup.VERSION)
+comline.cpm.setargs("[options] [hostname]")
+comline.cpm.setfoot("The hostname defaults to 'localhost'")
+optarr = comline.optarrlong
+
+conf = comline.ConfigLong(optarr)
 
 # ------------------------------------------------------------------------
 
@@ -59,11 +71,7 @@ if __name__ == '__main__':
         print("Warning! This script was meant for python 3.x")
         time.sleep(1)
 
-    #if  sys.version_info[0] < 3:
-    #    print("Needs python 3 or better.")
-    #    sys.exit(1)
-    #
-    args = conf.comline(sys.argv[1:])
+    opts, args = conf.comline(sys.argv[1:])
 
     if len(args) == 0:
         ip = '127.0.0.1'
@@ -77,7 +85,7 @@ if __name__ == '__main__':
     try:
         resp2 = hand.connect(ip, conf.port)
     except:
-        support.put_exception("On connect")
+        #support.put_exception("On connect")
         print( "Cannot connect to:", ip + ":" + str(conf.port), sys.exc_info()[1])
         sys.exit(1)
 

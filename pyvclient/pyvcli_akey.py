@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
-
-# ------------------------------------------------------------------------
-# Test client for the pyserv project. Encrypt test.
-
 import  os, sys, getopt, signal, select, socket, time, struct
 import  random, stat
 

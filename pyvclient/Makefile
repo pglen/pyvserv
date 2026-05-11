@@ -25,98 +25,14 @@ SSS += $(wildcard pyv*.py)
 
 CWD = $(shell pwd)
 
-#    PYTHONPATH=. python3 $$ii ; \
-        #echo  $$ii ; \
-        #python3 $$ii ; \
+#   PYTHONPATH=. python3 $$ii ; \
+#   echo  $$ii ; \
+#   python3 $$ii ; \
 
-testx:
+test:
 	@for ii in $(SSS); do \
         ./doone.sh $$ii ; \
     done
-
-test2:
-	@python3 ./u/pyvcli_uadd.py
-	@python3 ./u/pyvcli_uchpass.py
-	@python3 ./u/pyvcli_uman.py
-	@python3 ./u/pyvcli_uini.py
-	@python3 ./u/pyvcli_uena.py
-	@python3 ./u/pyvcli_udel.py
-	@python3 ./pyvcli_login.py
-	@python3 ./pyvcli_ihost.py
-	@python3 ./pyvcli_qr.py
-	@python3 ./pyvcli_load.py
-	@python3 ./f/pyvcli_fdel.py
-	@python3 ./f/pyvcli_fman.py
-	@python3 ./f/pyvcli_file.py
-	@python3 ./f/pyvcli_fput.py
-	@python3 ./f/pyvcli_fget.py
-	@python3 ./pyvcli_akey.py
-	@python3 ./pyvcli_sess.py
-	@python3 ./pyvcli_id.py
-	@python3 ./pyvcli_cd.py
-	@python3 ./pyvcli_gethelp.py
-	@python3 ./pyvcli_throt.py
-	@python3 ./pyvcli_hello.py
-	@python3 ./pyvcli_cli.py
-	@python3 ./pyvcli_ping.py
-	@python3 ./optional/pyvcli_tout.py
-	@python3 ./optional/pyvcli_acc.py
-	@python3 ./optional/pyvcli_sess_tout.py
-	@python3 ./pyvcli_pass.py
-	@python3 ./pyvcli_ls.py
-	@python3 ./pyvcli_bigget.py
-	@python3 ./r/pyvcli_rcount.py
-	@python3 ./r/pyvcli_rabs.py
-	@python3 ./r/pyvcli_rman.py
-	@python3 ./r/pyvcli_rlist.py
-	@python3 ./r/pyvcli_rput.py
-	@python3 ./r/pyvcli_rcheck.py
-	@python3 ./r/pyvcli_rget.py
-	@python3 ./r/pyvcli_rmdir.py
-	@python3 ./pyvcli_lsd.py
-	@python3 ./pyvcli_ver.py
-	@python3 ./pyvcli_mkdir.py
-
-test3:
-	python3 ./pyvcli_akey.py
-	python3 ./pyvcli_hello.py
-	python3 ./pyvcli_qr.py
-	python3 ./pyvcli_throt.py
-	python3 ./pyvcli_bigget.py
-	python3 ./pyvcli_id.py
-	python3 ./pyvcli_rabs.py
-	python3 ./pyvcli_uadd.py
-	python3 ./pyvcli_cd.py
-	python3 ./pyvcli_ihost.py
-	python3 ./pyvcli_rcheck.py
-	python3 ./pyvcli_uchpass.py
-	#python3 ./pyvcli_cli.py
-	python3 ./pyvcli_load.py
-	python3 ./pyvcli_rcount.py
-	python3 ./pyvcli_udel.py
-	python3 ./pyvcli_fdel.py
-	python3 ./pyvcli_login.py
-	python3 ./pyvcli_rget.py
-	python3 ./pyvcli_uena.py
-	python3 ./pyvcli_fget.py
-	python3 ./pyvcli_lsd.py
-	python3 ./pyvcli_rlist.py
-	#python3 ./pyvcli_uini.py
-	python3 ./pyvcli_file.py
-	python3 ./pyvcli_ls.py
-	python3 ./pyvcli_rman.py
-	python3 ./pyvcli_uman.py
-	#python3 ./pyvcli_fman.py
-	python3 ./pyvcli_mkdir.py
-	python3 ./pyvcli_rmdir.py
-	python3 ./pyvcli_ver.py
-	python3 ./pyvcli_fput.py
-	python3 ./pyvcli_pass.py
-	python3 ./pyvcli_rput.py
-	python3 ./pyvcli_gethelp.py
-	python3 ./pyvcli_ping.py
-	python3 ./pyvcli_sess.py
-	@echo "End of tests"
 
 clean:
 	@rm -f aa bb cc dd ee
